@@ -1,10 +1,4 @@
-﻿export enum LoadStateEnum {
-    Loading,
-    Finish,
-    Failed,
-}
-
-export enum ResponseTypeEnum {
+﻿export enum ResponseTypeEnum {
     text = "text",
     json = "json",
     blob = "blob",
@@ -80,28 +74,32 @@ export function loadBlob(url: string, onProgress: (info: IdownloadInfo) => void 
     return httpRequeset(url, ResponseTypeEnum.blob, onProgress);
 }
 
-export function loadImg(
-    input: string | ArrayBuffer | Blob,
-    onProgress: (info: IdownloadInfo) => void = null,
-): Promise<HTMLImageElement> {
+export function loadImg(url: string, onProgress: (info: IdownloadInfo) => void = null): Promise<HTMLImageElement> {
     return new Promise<HTMLImageElement>((resolve, reject) => {
-        let url: string;
-        if (input instanceof ArrayBuffer) {
-            url = URL.createObjectURL(new Blob([input]));
-        } else if (input instanceof Blob) {
-            url = URL.createObjectURL(input);
-        } else {
-            url = input;
-        }
         let img = new Image();
         img.src = url;
         img.onerror = error => {
             reject(error);
         };
+        img.onload = () => {
+            resolve(img);
+        };
         img.onprogress = e => {
             if (onProgress) {
                 onProgress({ loaded: e.loaded, total: e.total });
             }
+        };
+    });
+}
+export function arraybufferToImge(data: ArrayBuffer): Promise<HTMLImageElement> {
+    return new Promise<HTMLImageElement>((resolve, reject) => {
+        var arrayBufferView = new Uint8Array(data);
+        var blob = new Blob([arrayBufferView], { type: "image/jpeg" });
+        var imageUrl = window.URL.createObjectURL(blob);
+        let img = new Image();
+        img.src = imageUrl;
+        img.onerror = error => {
+            reject(error);
         };
         img.onload = () => {
             URL.revokeObjectURL(img.src);

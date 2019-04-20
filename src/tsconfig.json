@@ -13,6 +13,7 @@
     "strict": true,
     "sourceMap": true,
     "declaration": true,
+    "strictNullChecks": false,
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
