@@ -157,7 +157,7 @@ export class Vec3 extends Float32Array {
      * @param b the second operand
      * @returns out
      */
-    public static divide(out: Vec3, a: Vec3, b: Vec3): Vec3 {
+    public static divide(a: Vec3, b: Vec3, out: Vec3): Vec3 {
         out[0] = a[0] / b[0];
         out[1] = a[1] / b[1];
         out[2] = a[2] / b[2];
