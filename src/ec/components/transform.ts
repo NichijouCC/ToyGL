@@ -1,17 +1,17 @@
-import { ECS, Icomponent, Ientity } from "../ecs";
+import { EC, Icomponent, Ientity } from "../ec";
 import { Vec3 } from "../../mathD/vec3";
 import { Quat } from "../../mathD/quat";
 import { Mat4 } from "../../mathD/mat4";
 
 enum DirtyFlagEnum {
-    WWORLD_POS = 0b00010,
-    WORLD_ROTATION = 0b00100,
-    WORLD_SCALE = 0b01000,
-    LOCALMAT = 0b00001,
-    WORLDMAT = 0b10000,
+    WWORLD_POS = 0b000100,
+    WORLD_ROTATION = 0b001000,
+    WORLD_SCALE = 0b010000,
+    LOCALMAT = 0b000001,
+    WORLDMAT = 0b000010,
 }
 
-@ECS.RegComp
+@EC.RegComp
 export class Transform implements Icomponent {
     entity: Ientity;
     parent: Transform;
@@ -163,6 +163,22 @@ export class Transform implements Icomponent {
     markdirty() {
         this.dirtyFlag = this.dirtyFlag | DirtyFlagEnum.LOCALMAT | DirtyFlagEnum.WORLDMAT;
         Transform.NotifyChildSelfDirty(this);
+    }
+
+    static addChild(node: Transform, childNode: Transform) {
+        if (childNode.parent != null) {
+            Transform.removeChild(childNode.parent, childNode);
+        }
+        node.child[node.child.length] = childNode;
+        childNode.markdirty();
+    }
+
+    static removeChild(node: Transform, childNode: Transform): Transform {
+        let index = node.child.indexOf(childNode);
+        if (index >= 0) {
+            node.child.splice(index, 1);
+        }
+        return childNode;
     }
 
     dispose(): void {

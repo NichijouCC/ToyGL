@@ -1,0 +1,50 @@
+import { Ientity, Icomponent, EC } from "./ec";
+
+export class Entity implements Ientity {
+    name: string;
+    readonly guid: number;
+    beActive: boolean;
+    components: { [name: string]: Icomponent };
+
+    constructor(name: string = null, compsArr: string[] = null) {
+        this.guid = newId();
+        this.name = name ? name : "newEntity";
+        this.beActive = true;
+
+        if (compsArr != null) {
+            for (let i = 0; i < compsArr.length; i++) {
+                this.addCompByName(compsArr[i]);
+            }
+        }
+    }
+
+    addCompByName(name: string): Icomponent {
+        let comp = EC.NewComponent(name);
+        this.components[name] = comp;
+        comp.entity = this;
+        return comp;
+    }
+    addComp(comp: Icomponent): Icomponent {
+        this.components[comp.constructor.name] = comp;
+        comp.entity = this;
+        return comp;
+    }
+    removeCompByName(name: string) {
+        if (this.components[name]) {
+            this.components[name].dispose();
+            delete this.components[name];
+        }
+    }
+
+    dispose(): void {
+        for (let key in this.components) {
+            this.components[key].dispose();
+        }
+        this.components = null;
+    }
+}
+
+function newId(): number {
+    return newId.prototype.id++;
+}
+newId.prototype.id = -1;
