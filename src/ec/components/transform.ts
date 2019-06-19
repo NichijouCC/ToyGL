@@ -15,7 +15,7 @@ enum DirtyFlagEnum {
 export class Transform implements Icomponent {
     entity: Ientity;
     parent: Transform;
-    child: Transform[] = [];
+    children: Transform[] = [];
     dirtyFlag: number = 0;
 
     //------------------------local属性-------------------------------------------------------------
@@ -68,7 +68,7 @@ export class Transform implements Icomponent {
             Mat4.transformPoint(value, invparentworld, this.localPosition);
             Mat4.recycle(invparentworld);
         }
-        this.markdirty();
+        this.markDirty();
     }
 
     private _worldRotation: Quat = Quat.create();
@@ -91,7 +91,7 @@ export class Transform implements Icomponent {
             Quat.multiply(invparentworldrot, value, this.localRotation);
             Quat.recycle(invparentworldrot);
         }
-        this.markdirty();
+        this.markDirty();
     }
 
     private _worldScale: Vec3 = Vec3.create(1, 1, 1);
@@ -111,7 +111,7 @@ export class Transform implements Icomponent {
         } else {
             Vec3.divide(value, this.parent.worldScale, this.localScale);
         }
-        this.markdirty();
+        this.markDirty();
     }
 
     private _worldMatrix: Mat4 = Mat4.create();
@@ -148,8 +148,8 @@ export class Transform implements Icomponent {
      * @param node
      */
     private static NotifyChildSelfDirty(node: Transform) {
-        for (let key in node.child) {
-            let child = node.child[key];
+        for (let key in node.children) {
+            let child = node.children[key];
             if (child.dirtyFlag & DirtyFlagEnum.WORLDMAT) {
                 child.dirtyFlag = child.dirtyFlag | DirtyFlagEnum.WORLDMAT;
                 this.NotifyChildSelfDirty(child);
@@ -160,29 +160,52 @@ export class Transform implements Icomponent {
     /**
      * 修改local属性后，标记dirty
      */
-    markdirty() {
+    markDirty() {
         this.dirtyFlag = this.dirtyFlag | DirtyFlagEnum.LOCALMAT | DirtyFlagEnum.WORLDMAT;
         Transform.NotifyChildSelfDirty(this);
     }
 
-    static addChild(node: Transform, childNode: Transform) {
-        if (childNode.parent != null) {
-            Transform.removeChild(childNode.parent, childNode);
+    ///------------------------------------------父子结构
+    /**
+     * 添加子物体实例
+     */
+    addChild(node: Transform) {
+        if (node.parent != null) {
+            node.parent.removeChild(node);
         }
-        node.child[node.child.length] = childNode;
-        childNode.markdirty();
+        this.children.push(node);
+        node.parent = this;
+
+        node.markDirty();
+    }
+    /**
+     * 移除所有子物体
+     */
+    removeAllChild() {
+        //if(this.children==undefined||this.children.length==0) return;
+        if (this.children.length == 0) return;
+        for (let i = 0, len = this.children.length; i < len; i++) {
+            this.children[i].parent = null;
+        }
+        this.children.length = 0;
+    }
+    /**
+     * 移除指定子物体
+     */
+    removeChild(node: Transform) {
+        if (node.parent != this || this.children.length == 0) {
+            throw new Error("not my child.");
+        }
+        let i = this.children.indexOf(node);
+        if (i >= 0) {
+            this.children.splice(i, 1);
+            node.parent = null;
+        }
     }
 
-    static removeChild(node: Transform, childNode: Transform): Transform {
-        let index = node.child.indexOf(childNode);
-        if (index >= 0) {
-            node.child.splice(index, 1);
-        }
-        return childNode;
-    }
-
+    update(deltaTime: number): void {}
     dispose(): void {
         this.parent = null;
-        this.child = null;
+        this.children = null;
     }
 }

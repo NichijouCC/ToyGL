@@ -3,6 +3,7 @@ export interface Ientity {
     components: { [name: string]: Icomponent };
     addCompByName(compName: string): Icomponent;
     addComp(comp: Icomponent): Icomponent;
+    update(deltaTime: number): void;
     dispose(): void;
 }
 
@@ -11,6 +12,7 @@ export interface IcompoentConstructor {
 }
 export interface Icomponent {
     entity: Ientity;
+    update(deltaTime: number): void;
     dispose(): void;
 }
 

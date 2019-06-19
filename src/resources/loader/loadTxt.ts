@@ -1,4 +1,4 @@
-import { IassetLoader, Iasset, IassetLoadInfo } from "../base/type";
+import { IassetLoader, Iasset, IassetLoadInfo } from "../type";
 import { getFileName } from "../base/helper";
 import { TextAsset } from "../assets/textasset";
 import { loadText } from "../../io/loadtool";

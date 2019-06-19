@@ -1,4 +1,4 @@
-import { Iasset } from "./type";
+import { Iasset } from "../type";
 
 export class ResID {
     private static idAll: number = 0;

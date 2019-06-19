@@ -1,7 +1,11 @@
-import { Entity } from "./ec/entity";
+import { Entity } from "../ec/entity";
+import { Camera } from "../ec/components/camera";
+import { Transform } from "../ec/components/transform";
+import { SceneMgr } from "./sceneMgr";
 
 export class Scene {
-    private entities: Map<number, Entity> = new Map();
+    name: string;
+    private root: Transform = new Transform();
 
     newEntity(name: string = null, compsArr: string[] = null): Entity {
         let newobj = new Entity(name, compsArr);
@@ -10,6 +14,10 @@ export class Scene {
     }
 
     addEntity(entity: Entity) {
-        this.entities.set(entity.guid, entity);
+        this.root.addChild(entity.transform);
+    }
+
+    getRootTransforms() {
+        return this.root.children;
     }
 }

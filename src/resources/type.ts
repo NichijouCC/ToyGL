@@ -1,4 +1,4 @@
-import { LoadEnum } from "./loadEnum";
+import { LoadEnum } from "./base/loadEnum";
 
 export interface IassetLoadInfo {
     url: string;
@@ -35,5 +35,10 @@ export interface IassetLoader {
 }
 
 export interface IassetMgr {
-    load(url: string): Iasset;
+    load(
+        url: string,
+        onFinish: (asset: Iasset, loadInfo?: IassetLoadInfo) => void,
+        onProgress: (progress: number) => void,
+    ): Iasset;
+    loadAsync(url: string): Promise<Iasset>;
 }

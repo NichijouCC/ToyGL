@@ -9,5 +9,6 @@ export class Mesh implements Icomponent {
         return this._geometry;
     }
     material: Material;
+    update(deltaTime: number): void {}
     dispose(): void {}
 }

@@ -1,4 +1,4 @@
-import { IassetLoader, IassetLoadInfo, Iasset } from "../base/type";
+import { IassetLoader, IassetLoadInfo, Iasset } from "../type";
 import { getFileName } from "../base/helper";
 
 export class LoadTextureSample implements IassetLoader {

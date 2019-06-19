@@ -39,5 +39,7 @@ export class Camera implements Icomponent {
     backgroundColor: Color = Color.create(0.3, 0.3, 0.3, 1);
     dePthValue: number = 1.0;
     stencilValue: number = 0;
+
+    update(deltaTime: number): void {}
     dispose(): void {}
 }

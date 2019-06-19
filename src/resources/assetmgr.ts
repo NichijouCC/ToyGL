@@ -1,4 +1,4 @@
-import { IassetLoader, IassetLoadInfo, Iasset } from "./base/type";
+import { IassetLoader, IassetLoadInfo, Iasset, IassetMgr } from "./type";
 import { LoadEnum } from "./base/loadEnum";
 import { IprogramInfo } from "../glRender";
 import { getAssetExtralName } from "./base/helper";
@@ -46,7 +46,7 @@ import { getAssetExtralName } from "./base/helper";
  *
  */
 
-export class AssetMgr {
+export class AssetLoader {
     static RegisterAssetLoader(extral: string, factory: () => IassetLoader) {
         // this.ExtendNameDic[extral] = type;
         this.RESLoadDic[extral] = factory;
@@ -54,12 +54,20 @@ export class AssetMgr {
     //private static ExtendNameDic: { [name: string]: AssetExtralEnum } = {};
     private static RESLoadDic: { [ExtralName: string]: () => IassetLoader } = {};
 
-    //-------------------资源加载拓展
-    static RegisterAssetExtensionLoader(extral: string, factory: () => IassetLoader) {
-        this.RESExtensionLoadDic[extral] = factory;
+    static getAssetLoader(url: string): IassetLoader {
+        let extralType = getAssetExtralName(url);
+        let factory = this.RESLoadDic[extralType];
+        return factory && factory();
     }
-    private static RESExtensionLoadDic: { [ExtralName: string]: () => IassetLoader } = {};
+    // //-------------------资源加载拓展
+    // static RegisterAssetExtensionLoader(extral: string, factory: () => IassetLoader) {
+    //     this.RESExtensionLoadDic[extral] = factory;
+    // }
 
+    // private static RESExtensionLoadDic: { [ExtralName: string]: () => IassetLoader } = {};
+}
+
+export class AssetMgr implements IassetMgr {
     mapShader: { [id: string]: IprogramInfo } = {};
     getShader(name: string): IprogramInfo {
         return this.mapShader[name];
@@ -76,10 +84,6 @@ export class AssetMgr {
      */
     private loadingUrl: { [url: string]: ((asset: Iasset | null, loadInfo?: IassetLoadInfo) => void)[] } = {}; //
 
-    // /**
-    //  * 存放bundle包中所有资源asset
-    //  */
-    // loadMapBundle: { [bundleName: string]: BundleInfo } = {};
     getAssetLoadInfo(url: string): IassetLoadInfo | null {
         if (this.loadMap[url]) {
             return this.loadMap[url].loadinfo;
@@ -119,11 +123,11 @@ export class AssetMgr {
             }
             return this.loadMap[url].asset;
         } else {
-            let extralType = getAssetExtralName(url);
+            let factory: IassetLoader = AssetLoader.getAssetLoader(url);
             let _state: IassetLoadInfo = { url: url, loadState: LoadEnum.None };
             this.loadMap[url] = { asset: null, loadinfo: _state };
 
-            if (AssetMgr.RESLoadDic[extralType] == null) {
+            if (factory == null) {
                 let errorMsg =
                     "ERROR: load Asset error. INfo: not have Load Func to handle (" +
                     getAssetExtralName(url) +
@@ -136,7 +140,6 @@ export class AssetMgr {
                 }
                 return null;
             } else {
-                let factory: IassetLoader = AssetMgr.RESLoadDic[extralType]();
                 let asset = factory.load(
                     url,
                     (asset, state) => {
@@ -176,24 +179,6 @@ export class AssetMgr {
             });
         });
     }
-    // /**
-    //  *
-    //  * @param asset
-    //  */
-    // disposeAssetBundle(bundleName: string) {
-    //     let bundleinfo = this.loadMapBundle[bundleName];
-    //     for (let key in bundleinfo.mapNamed) {
-    //         let url = bundleinfo.mapNamed[key];
-    //         if(this.loadMap[url].asset)
-    //         {
-    //             (this.loadMap[url].asset as Iasset).dispose();
-    //         }
-    //         delete this.loadMap[url];
-    //     }
-    //     delete this.loadMapBundle[bundleName];
-    // }
-
-    //#endregion
 }
 
 //<<<<<<<--------1.  new出来的自己管理,如果进行管控,assetmgr必然持有该资源的引用。当用该资源的对象被释放,该对象对该资源的引用也就没了,但是assetmgr持有它的引用，资源也就是没被释放;

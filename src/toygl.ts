@@ -1,10 +1,11 @@
 import { GlRender } from "./glRender";
 import { AssetMgr } from "./resources/assetmgr";
+import { IassetMgr } from "./resources/type";
 
 export class ToyGL {
     private loop: Iloop;
     private glrender: GlRender;
-    private assetMgr: AssetMgr;
+    private assetMgr: IassetMgr;
     // setupRender(canvas: HTMLCanvasElement) {}
 
     initByDiv(container: HTMLDivElement) {
