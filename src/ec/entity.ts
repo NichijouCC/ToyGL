@@ -1,4 +1,4 @@
-import { Ientity, Icomponent, EC } from "./ec";
+import { Ientity, Icomponent, EC, Irender } from "./ec";
 import { Transform } from "./components/transform";
 
 export class Entity implements Ientity {
@@ -43,11 +43,6 @@ export class Entity implements Ientity {
         }
     }
 
-    update(deltatime: number) {
-        for (const key in this.components) {
-            this.components[key].update(deltatime);
-        }
-    }
     dispose(): void {
         for (let key in this.components) {
             this.components[key].dispose();

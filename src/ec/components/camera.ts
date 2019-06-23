@@ -12,6 +12,7 @@ export enum ClearEnum {
     DEPTH = 0b010,
     STENCIL = 0b100,
 }
+
 export class Camera implements Icomponent {
     entity: Ientity;
     projectionType: ProjectionEnum = ProjectionEnum.PERSPECTIVE;
@@ -40,6 +41,7 @@ export class Camera implements Icomponent {
     dePthValue: number = 1.0;
     stencilValue: number = 0;
 
+    priority: number = 0;
     update(deltaTime: number): void {}
     dispose(): void {}
 }

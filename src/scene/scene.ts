@@ -1,7 +1,5 @@
 import { Entity } from "../ec/entity";
-import { Camera } from "../ec/components/camera";
 import { Transform } from "../ec/components/transform";
-import { SceneMgr } from "./sceneMgr";
 
 export class Scene {
     name: string;
