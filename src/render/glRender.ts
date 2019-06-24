@@ -17,12 +17,28 @@ import {
     setGeometryAndProgramWithCached,
     setViewPortWithCached,
     createTextureFromImageSource,
+    setProgramUniforms,
+    setClear,
 } from "twebgl";
+import { RenderLayerEnum } from "../ec/ec";
+import { RenderContext } from "./renderContext";
+import { AutoUniform } from "./autoUniform";
 export { IprogramInfo, IgeometryInfo };
+
+export interface IshaderOptions extends IprogramOptions {
+    layer: RenderLayerEnum;
+}
+
+export interface IshaderInfo extends IprogramInfo {
+    layer: RenderLayerEnum;
+}
+
 export class GlRender {
     private context: WebGLRenderingContext;
-    constructor(canvas: HTMLCanvasElement, options: IcontextOptions = null) {
+    private autoUniform: AutoUniform;
+    constructor(canvas: HTMLCanvasElement, autoUniform: AutoUniform, options: IcontextOptions = null) {
         this.context = setUpWebgl(canvas, options);
+        this.autoUniform = autoUniform;
     }
 
     //---------------------capacities
@@ -51,6 +67,10 @@ export class GlRender {
             viewport[3] * this.context.drawingBufferHeight,
         );
     }
+    setClear(clearDepth: boolean, clearColor: Float32Array, clearStencil?: boolean) {
+        setClear(this.context, clearDepth, clearColor, clearStencil);
+    }
+
     setState(): void {
         throw new Error("Method not implemented.");
     }
@@ -60,8 +80,9 @@ export class GlRender {
         return info;
     }
 
-    createPrograme(op: IprogramOptions): IprogramInfo {
-        let info = createProgramInfo(this.context, op);
+    createPrograme(op: IshaderOptions): IshaderInfo {
+        let info = createProgramInfo(this.context, op) as IshaderInfo;
+        info.layer = op.layer || RenderLayerEnum.Geometry;
         return info;
     }
 
@@ -73,9 +94,20 @@ export class GlRender {
         setGeometryAndProgramWithCached(this.context, geometry, program);
     }
 
-    drawObject(geometry: IgeometryInfo, program: IprogramInfo, instancecount?: number): void {
+    drawObject(
+        geometry: IgeometryInfo,
+        program: IprogramInfo,
+        uniforms?: { [name: string]: any },
+        instancecount?: number,
+    ): void {
         // setProgram(this.context, program);
         setGeometryAndProgramWithCached(this.context, geometry, program);
+        //set uniforms
+        for (const key in program.uniformsDic) {
+            let func = this.autoUniform.AutoUniforms[key];
+            let value = func ? func() : uniforms[key];
+            program.uniformsDic[key].setter(value);
+        }
         drawBufferInfo(this.context, geometry, instancecount);
     }
 }

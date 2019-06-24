@@ -2,6 +2,7 @@ import { EC, Icomponent, Ientity } from "../ec";
 import { Vec3 } from "../../mathD/vec3";
 import { Quat } from "../../mathD/quat";
 import { Mat4 } from "../../mathD/mat4";
+import { IframeState } from "../../scene/frameState";
 
 enum DirtyFlagEnum {
     WWORLD_POS = 0b000100,
@@ -203,7 +204,7 @@ export class Transform implements Icomponent {
         }
     }
 
-    update(deltaTime: number): void {}
+    update(frameState: IframeState): void {}
     dispose(): void {
         this.parent = null;
         this.children = null;

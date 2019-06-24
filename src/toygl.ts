@@ -1,11 +1,14 @@
-import { GlRender } from "./glRender";
 import { AssetMgr } from "./resources/assetmgr";
 import { IassetMgr } from "./resources/type";
+import { RenderMachine } from "./render/renderMachine";
+import { GameScreen } from "./gameScreen";
+import { Scene } from "./scene/scene";
+import { GameTimer } from "./GameTimer";
 
 export class ToyGL {
     private loop: Iloop;
-    private glrender: GlRender;
-    private assetMgr: IassetMgr;
+    assetMgr: IassetMgr;
+    scene: Scene;
     // setupRender(canvas: HTMLCanvasElement) {}
 
     initByDiv(container: HTMLDivElement) {
@@ -16,13 +19,19 @@ export class ToyGL {
         container.appendChild(cancvas);
         cancvas.style.width = "100%";
         cancvas.style.height = "100%";
-        this.glrender = new GlRender(cancvas);
+
         this.assetMgr = new AssetMgr();
+        let render = new RenderMachine(cancvas);
+        this.scene = new Scene(render);
+        GameScreen.init(cancvas);
 
         this.loop = new Loop();
         this.loop.update = this.frameUpdate;
     }
-    private frameUpdate = () => {};
+
+    private frameUpdate = (deltaTime: number) => {
+        this.scene.update(deltaTime);
+    };
 }
 
 export class Loop implements Iloop {
@@ -32,13 +41,17 @@ export class Loop implements Iloop {
     disActive() {
         this.beActive = false;
     }
-    update: () => void = () => {};
+    update: (deltaTime: number) => void = () => {};
 
     private beActive: boolean = false;
+    private _lastTime: number;
     constructor() {
         let func = () => {
+            let now = Date.now();
+            let deltaTime = now - this._lastTime || now;
+            this._lastTime = now;
             if (this.beActive) {
-                this.update();
+                this.update(deltaTime);
             }
             requestAnimationFrame(func);
         };
@@ -50,5 +63,5 @@ export class Loop implements Iloop {
 export interface Iloop {
     active(): void;
     disActive(): void;
-    update: () => void;
+    update: (deltaTime: number) => void;
 }

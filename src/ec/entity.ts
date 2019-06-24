@@ -1,7 +1,8 @@
-import { Ientity, Icomponent, EC, Irender } from "./ec";
+import { Ientity, Icomponent, EC, Irender, CullingMask } from "./ec";
 import { Transform } from "./components/transform";
 
 export class Entity implements Ientity {
+    maskLayer: CullingMask = CullingMask.default;
     name: string;
     readonly guid: number;
     beActive: boolean;
@@ -30,6 +31,9 @@ export class Entity implements Ientity {
         this.components[name] = comp;
         comp.entity = this;
         return comp;
+    }
+    getCompByName(compName: string): Icomponent {
+        return this.components[compName];
     }
     addComp(comp: Icomponent): Icomponent {
         this.components[comp.constructor.name] = comp;

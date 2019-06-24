@@ -1,8 +1,12 @@
+import { IframeState } from "../scene/frameState";
+
 export interface Ientity {
     readonly guid: number;
     beActive: boolean;
+    maskLayer: CullingMask;
     components: { [name: string]: Icomponent };
     addCompByName(compName: string): Icomponent;
+    getCompByName(compName: string): Icomponent;
     addComp(comp: Icomponent): Icomponent;
     // update(deltaTime: number): void;
     dispose(): void;
@@ -13,7 +17,7 @@ export interface IcompoentConstructor {
 }
 export interface Icomponent {
     entity: Ientity;
-    update(deltaTime: number): void;
+    update(frameState: IframeState): void;
     dispose(): void;
 }
 
@@ -46,7 +50,7 @@ export interface Irender extends Icomponent {
     // layer: RenderLayerEnum;
     // queue: number;
     mask: CullingMask;
-    render(): void;
+    // render(): void;
     // materials: Material[];
     // // addToRenderList():void;
     // BeRenderable(): boolean;
@@ -55,10 +59,10 @@ export interface Irender extends Icomponent {
 }
 
 export class EC {
-    private static dic: { [compName: string]: IcompoentConstructor };
-    static RegComp(comp: Function) {
-        this.dic[comp.constructor.name] = comp.constructor as IcompoentConstructor;
-    }
+    private static dic: { [compName: string]: IcompoentConstructor } = {};
+    static RegComp = (comp: Function) => {
+        EC.dic[comp.constructor.name] = comp.constructor as IcompoentConstructor;
+    };
     static NewComponent(compname: string): Icomponent {
         return new EC.dic[compname]();
     }

@@ -1,6 +1,6 @@
 import { IassetLoader, IassetLoadInfo, Iasset, IassetMgr } from "./type";
 import { LoadEnum } from "./base/loadEnum";
-import { IprogramInfo } from "../glRender";
+import { IprogramInfo } from "../render/glRender";
 import { getAssetExtralName } from "./base/helper";
 
 // export class DefaultAssetMgr {
