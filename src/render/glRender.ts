@@ -21,7 +21,6 @@ import {
     setClear,
 } from "twebgl";
 import { RenderLayerEnum } from "../ec/ec";
-import { RenderContext } from "./renderContext";
 import { AutoUniform } from "./autoUniform";
 export { IprogramInfo, IgeometryInfo };
 
@@ -34,31 +33,30 @@ export interface IshaderInfo extends IprogramInfo {
 }
 
 export class GlRender {
-    private context: WebGLRenderingContext;
-    private autoUniform: AutoUniform;
-    constructor(canvas: HTMLCanvasElement, autoUniform: AutoUniform, options: IcontextOptions = null) {
+    private static context: WebGLRenderingContext;
+    static autoUniform: AutoUniform;
+    static init(canvas: HTMLCanvasElement, options: IcontextOptions = null) {
         this.context = setUpWebgl(canvas, options);
-        this.autoUniform = autoUniform;
     }
 
     //---------------------capacities
-    private _maxVertexAttribs: number;
-    get maxVertexAttribs(): number {
+    private static _maxVertexAttribs: number;
+    static get maxVertexAttribs(): number {
         if (this._maxVertexAttribs == null) {
             this.context.getParameter(this.context.MAX_VERTEX_ATTRIBS);
         }
         return this._maxVertexAttribs;
     }
 
-    private _maxTexturesImageUnits: number;
-    get maxTexturesImageUnits(): number {
+    private static _maxTexturesImageUnits: number;
+    static get maxTexturesImageUnits(): number {
         if (this._maxTexturesImageUnits == null) {
             this.context.getParameter(this.context.MAX_TEXTURE_IMAGE_UNITS);
         }
         return this._maxTexturesImageUnits;
     }
 
-    setViewPort(viewport: Float32Array): void {
+    static setViewPort(viewport: Float32Array): void {
         setViewPortWithCached(
             this.context,
             viewport[0] * this.context.drawingBufferWidth,
@@ -67,34 +65,34 @@ export class GlRender {
             viewport[3] * this.context.drawingBufferHeight,
         );
     }
-    setClear(clearDepth: boolean, clearColor: Float32Array, clearStencil?: boolean) {
+    static setClear(clearDepth: boolean, clearColor: Float32Array, clearStencil?: boolean) {
         setClear(this.context, clearDepth, clearColor, clearStencil);
     }
 
-    setState(): void {
+    static setState(): void {
         throw new Error("Method not implemented.");
     }
 
-    createGeometry(op: IgeometryOptions): IgeometryInfo {
+    static createGeometry(op: IgeometryOptions): IgeometryInfo {
         let info = createGeometryInfo(this.context, op);
         return info;
     }
 
-    createPrograme(op: IshaderOptions): IshaderInfo {
+    static createPrograme(op: IshaderOptions): IshaderInfo {
         let info = createProgramInfo(this.context, op) as IshaderInfo;
         info.layer = op.layer || RenderLayerEnum.Geometry;
         return info;
     }
 
-    createTextureFromImg(img: TexImageSource): WebGLTexture {
+    static createTextureFromImg(img: TexImageSource): WebGLTexture {
         return createTextureFromImageSource(this.context, img);
     }
 
-    setGeometryAndProgram(geometry: IgeometryInfo, program: IprogramInfo) {
+    static setGeometryAndProgram(geometry: IgeometryInfo, program: IprogramInfo) {
         setGeometryAndProgramWithCached(this.context, geometry, program);
     }
 
-    drawObject(
+    static drawObject(
         geometry: IgeometryInfo,
         program: IprogramInfo,
         uniforms?: { [name: string]: any },
@@ -104,7 +102,7 @@ export class GlRender {
         setGeometryAndProgramWithCached(this.context, geometry, program);
         //set uniforms
         for (const key in program.uniformsDic) {
-            let func = this.autoUniform.AutoUniforms[key];
+            let func = this.autoUniform && this.autoUniform.autoUniforms[key];
             let value = func ? func() : uniforms[key];
             program.uniformsDic[key].setter(value);
         }

@@ -3,7 +3,7 @@ import { IassetMgr } from "./resources/type";
 import { RenderMachine } from "./render/renderMachine";
 import { GameScreen } from "./gameScreen";
 import { Scene } from "./scene/scene";
-import { GameTimer } from "./GameTimer";
+import { GlRender } from "./render/glRender";
 
 export class ToyGL {
     private loop: Iloop;

@@ -1,33 +1,33 @@
 import { RenderContext } from "./renderContext";
 
 export class AutoUniform {
-    private AutoUniformDic: { [name: string]: () => any } = {};
+    private uniformDic: { [name: string]: () => any } = {};
     private renderContext: RenderContext;
     constructor(renderContext: RenderContext) {
         this.renderContext = renderContext;
         this.init();
     }
     private init() {
-        this.AutoUniformDic["u_mat_model"] = () => {
+        this.uniformDic["u_mat_model"] = () => {
             return this.renderContext.matrixModel;
         };
-        this.AutoUniformDic["u_mat_view"] = () => {
+        this.uniformDic["u_mat_view"] = () => {
             return this.renderContext.matrixView;
         };
-        this.AutoUniformDic["u_mat_project"] = () => {
+        this.uniformDic["u_mat_project"] = () => {
             return this.renderContext.matrixProject;
         };
-        this.AutoUniformDic["u_mat_ModelView"] = () => {
+        this.uniformDic["u_mat_ModelView"] = () => {
             return this.renderContext.matrixModelView;
         };
-        this.AutoUniformDic["u_mat_viewproject"] = () => {
+        this.uniformDic["u_mat_viewproject"] = () => {
             return this.renderContext.matrixViewProject;
         };
-        this.AutoUniformDic["u_mat_mvp"] = () => {
+        this.uniformDic["u_mat_mvp"] = () => {
             return this.renderContext.matrixModelViewProject;
         };
 
-        this.AutoUniformDic["u_mat_normal"] = () => {
+        this.uniformDic["u_mat_normal"] = () => {
             return this.renderContext.matrixNormalToworld;
         };
 
@@ -58,7 +58,7 @@ export class AutoUniform {
         // };
     }
 
-    get AutoUniforms() {
-        return this.AutoUniformDic;
+    get autoUniforms() {
+        return this.uniformDic;
     }
 }

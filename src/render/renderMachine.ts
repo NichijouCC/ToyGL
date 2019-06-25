@@ -6,12 +6,11 @@ import { RenderContext } from "./renderContext";
 import { AutoUniform } from "./autoUniform";
 
 export class RenderMachine {
-    private glrender: GlRender;
     private rendercontext: RenderContext;
     constructor(cancvas: HTMLCanvasElement) {
         this.rendercontext = new RenderContext();
-        let autoUnform = new AutoUniform(this.rendercontext);
-        this.glrender = new GlRender(cancvas, autoUnform);
+        GlRender.autoUniform = new AutoUniform(this.rendercontext);
+        GlRender.init(cancvas);
     }
     private camRenderList: { [cameraId: number]: RenderList } = {};
     frameRender(frameState: IframeState) {
@@ -37,8 +36,8 @@ export class RenderMachine {
             }
 
             //----------- set global State
-            this.glrender.setViewPort(cam.viewport);
-            this.glrender.setClear(
+            GlRender.setViewPort(cam.viewport);
+            GlRender.setClear(
                 cam.clearFlag & ClearEnum.DEPTH ? true : false,
                 cam.clearFlag & ClearEnum.COLOR ? cam.backgroundColor : null,
                 cam.clearFlag & ClearEnum.STENCIL ? true : false,
@@ -48,7 +47,7 @@ export class RenderMachine {
             //-----------camera render ing
             camrenderList.sort().foreach((item: Irenderable) => {
                 this.rendercontext.curRender = item;
-                this.glrender.drawObject(item.geometry.data, item.material.program, item.material.uniforms);
+                GlRender.drawObject(item.geometry.data, item.material.program, item.material.uniforms);
             });
             //-----------canera render end
         }
