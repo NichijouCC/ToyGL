@@ -1,10 +1,17 @@
-import { GeometryInfo } from "twebgl";
-import { ToyAsset } from "../base/toyAsset";
+import { ToyAsset, ItoyAsset } from "../base/toyAsset";
+import { GlRender, IgeometryInfo, IgeometryOptions } from "../../render/glRender";
 
 export class Geometry extends ToyAsset {
-    constructor(name: string, url: string) {
-        super({ name: name, URL: url });
+    constructor(param: ItoyAsset) {
+        super(param);
     }
     dispose(): void {}
-    data: GeometryInfo;
+    data: IgeometryInfo;
+
+    static fromCustomData(data: IgeometryOptions) {
+        let geometry = GlRender.createGeometry(data);
+        let newAsset = new Geometry({ name: "custom_Mesh" });
+        newAsset.data = geometry;
+        return newAsset;
+    }
 }

@@ -22,7 +22,7 @@ import {
 } from "twebgl";
 import { RenderLayerEnum } from "../ec/ec";
 import { AutoUniform } from "./autoUniform";
-export { IprogramInfo, IgeometryInfo };
+export { IprogramInfo, IgeometryInfo, IgeometryOptions };
 
 export interface IshaderOptions extends IprogramOptions {
     layer: RenderLayerEnum;
