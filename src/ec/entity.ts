@@ -1,16 +1,12 @@
 import { Ientity, Icomponent, EC, Irender, CullingMask } from "./ec";
-import { Transform } from "./components/transform";
 
 export class Entity implements Ientity {
     maskLayer: CullingMask = CullingMask.default;
     name: string;
     readonly guid: number;
     beActive: boolean;
-    components: { [name: string]: Icomponent };
+    components: { [name: string]: Icomponent } = {};
 
-    get transform(): Transform {
-        return this.components["Transform"] as Transform;
-    }
     constructor(name: string = null, compsArr: string[] = null) {
         this.guid = newId();
         this.name = name || "newEntity";
@@ -21,7 +17,7 @@ export class Entity implements Ientity {
                 this.addCompByName(compsArr[i]);
             }
         }
-        if (this.transform == null) {
+        if (this.components["Transform"] == null) {
             this.addCompByName("Transform");
         }
     }

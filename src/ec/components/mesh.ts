@@ -1,9 +1,10 @@
-import { Icomponent, Ientity, Irender, CullingMask } from "../ec";
+import { Icomponent, Ientity, Irender, CullingMask, EC } from "../ec";
 import { Material } from "../../resources/assets/material";
 import { Geometry } from "../../resources/assets/geometry";
 import { IframeState, Irenderable } from "../../scene/frameState";
 import { Transform } from "./transform";
 
+@EC.RegComp
 export class Mesh implements Irender {
     entity: Ientity;
     mask: CullingMask = CullingMask.default;

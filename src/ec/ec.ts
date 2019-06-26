@@ -60,10 +60,16 @@ export interface Irender extends Icomponent {
 
 export class EC {
     private static dic: { [compName: string]: IcompoentConstructor } = {};
-    static RegComp = (comp: Function) => {
-        EC.dic[comp.constructor.name] = comp.constructor as IcompoentConstructor;
+    static RegComp = (constructor: Function) => {
+        let target = constructor.prototype;
+        EC.dic[target.constructor.name] = target.constructor as IcompoentConstructor;
     };
     static NewComponent(compname: string): Icomponent {
-        return new EC.dic[compname]();
+        let contr = EC.dic[compname];
+        if (contr) {
+            return new contr();
+        } else {
+            return null;
+        }
     }
 }

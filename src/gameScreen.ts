@@ -61,26 +61,28 @@ export class GameScreen {
     }
 
     private static canvas: HTMLCanvasElement;
-    static divcontiner: HTMLDivElement;
+    // static divcontiner: HTMLDivElement;
     static init(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
-        this.OnResizeCanvas();
-        window.onresize = () => {
-            this.OnResizeCanvas();
-        };
+        // this.OnResizeCanvas();
+        // window.onresize = () => {
+        //     this.OnResizeCanvas();
+        // };
 
-        let divcontiner = document.createElement("div");
-        divcontiner.className = "divContiner";
-        divcontiner.style.overflow = "hidden";
-        divcontiner.style.left = "0px";
-        divcontiner.style.top = "0px";
-        canvas.parentElement.appendChild(divcontiner);
-        this.divcontiner = divcontiner;
+        // let divcontiner = document.createElement("div");
+        // divcontiner.className = "divContiner";
+        // divcontiner.style.overflow = "hidden";
+        // divcontiner.style.left = "0px";
+        // divcontiner.style.top = "0px";
+        // canvas.parentElement.appendChild(divcontiner);
+        // this.divcontiner = divcontiner;
     }
     private static OnResizeCanvas() {
         console.warn("canvas resize!");
-        this._windowWidth = window.innerWidth;
-        this._windowHeight = window.innerHeight;
+        // this._windowWidth = window.innerWidth;
+        // this._windowHeight = window.innerHeight;
+        this._windowWidth = this.canvas.parentElement.clientWidth;
+        this._windowHeight = this.canvas.parentElement.clientHeight;
 
         let pixelRatio = window.devicePixelRatio || 1;
         this.canvaswidth = pixelRatio * this.scale * this._windowWidth;

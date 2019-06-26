@@ -17,7 +17,7 @@ export class Scene {
     }
 
     addEntity(entity: Entity) {
-        this.root.addChild(entity.transform);
+        this.root.addChild(entity.getCompByName("Transform") as Transform);
     }
 
     foreachRootNodes(func: (rootItem: Transform) => void) {

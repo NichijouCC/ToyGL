@@ -1,10 +1,10 @@
 import { GlRender } from "../render/glRender";
 import { Geometry } from "./assets/geometry";
 
-export class DefMesh {
-    private static defMesh: { [type: string]: Geometry } = {};
+export class DefGeometry {
+    private static defGeometry: { [type: string]: Geometry } = {};
     static fromType(type: string): Geometry {
-        if (this.defMesh[type] == null) {
+        if (this.defGeometry[type] == null) {
             let gemetryinfo;
             switch (type) {
                 case "quad":
@@ -21,12 +21,10 @@ export class DefMesh {
                     return null;
             }
             if (gemetryinfo != null) {
-                this.defMesh[type] = new Geometry({ name: "def_" + type, beDefaultAsset: true });
-                this.defMesh[type].data = gemetryinfo;
-                return this.defMesh[type];
+                this.defGeometry[type] = new Geometry({ name: "def_" + type, beDefaultAsset: true });
+                this.defGeometry[type].data = gemetryinfo;
             }
-        } else {
-            return this.defMesh[type];
         }
+        return this.defGeometry[type];
     }
 }

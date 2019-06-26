@@ -11,19 +11,24 @@ export class ToyGL {
     scene: Scene;
     // setupRender(canvas: HTMLCanvasElement) {}
 
-    initByDiv(container: HTMLDivElement) {
-        let cancvas = document.createElement("canvas");
-        cancvas.width = container.clientWidth;
-        cancvas.width = container.clientHeight;
+    initByHtmlElement(element: HTMLDivElement | HTMLCanvasElement) {
+        let canvas: HTMLCanvasElement;
+        if (element instanceof HTMLDivElement) {
+            canvas = document.createElement("canvas");
+            canvas.width = element.clientWidth;
+            canvas.width = element.clientHeight;
 
-        container.appendChild(cancvas);
-        cancvas.style.width = "100%";
-        cancvas.style.height = "100%";
+            element.appendChild(canvas);
+            canvas.style.width = "100%";
+            canvas.style.height = "100%";
+        } else {
+            canvas = element;
+        }
 
         this.assetMgr = new AssetMgr();
-        let render = new RenderMachine(cancvas);
+        let render = new RenderMachine(canvas);
         this.scene = new Scene(render);
-        GameScreen.init(cancvas);
+        GameScreen.init(canvas);
 
         this.loop = new Loop();
         this.loop.update = this.frameUpdate;
@@ -65,3 +70,5 @@ export interface Iloop {
     disActive(): void;
     update: (deltaTime: number) => void;
 }
+
+export * from "./ec/components/mesh";

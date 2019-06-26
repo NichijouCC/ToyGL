@@ -22,10 +22,10 @@ import {
 } from "twebgl";
 import { RenderLayerEnum } from "../ec/ec";
 import { AutoUniform } from "./autoUniform";
-export { IprogramInfo, IgeometryInfo, IgeometryOptions };
+export { IprogramInfo, IgeometryInfo, IgeometryOptions, IprogramOptions };
 
 export interface IshaderOptions extends IprogramOptions {
-    layer: RenderLayerEnum;
+    layer?: RenderLayerEnum;
 }
 
 export interface IshaderInfo extends IprogramInfo {
@@ -35,7 +35,7 @@ export interface IshaderInfo extends IprogramInfo {
 export class GlRender {
     private static context: WebGLRenderingContext;
     static autoUniform: AutoUniform;
-    static init(canvas: HTMLCanvasElement, options: IcontextOptions = null) {
+    static init(canvas: HTMLCanvasElement, options: IcontextOptions = {}) {
         this.context = setUpWebgl(canvas, options);
     }
 
@@ -78,7 +78,7 @@ export class GlRender {
         return info;
     }
 
-    static createPrograme(op: IshaderOptions): IshaderInfo {
+    static createProgram(op: IshaderOptions): IshaderInfo {
         let info = createProgramInfo(this.context, op) as IshaderInfo;
         info.layer = op.layer || RenderLayerEnum.Geometry;
         return info;

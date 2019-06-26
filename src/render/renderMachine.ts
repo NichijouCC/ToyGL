@@ -47,7 +47,7 @@ export class RenderMachine {
             //-----------camera render ing
             camrenderList.sort().foreach((item: Irenderable) => {
                 this.rendercontext.curRender = item;
-                GlRender.drawObject(item.geometry.data, item.material.program, item.material.uniforms);
+                GlRender.drawObject(item.geometry.data, item.material.shader, item.material.uniforms);
             });
             //-----------canera render end
         }

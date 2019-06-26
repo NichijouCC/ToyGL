@@ -13,7 +13,182 @@
     })(LoadEnum || (LoadEnum = {}));
 
     //通过url获取资源的名称(包含尾缀)
+    // static getAssetExtralType(url: string): AssetExtralEnum {
+    //     let index = url.lastIndexOf("/");
+    //     let filename = url.substr(index + 1);
+    //     index = filename.indexOf(".", 0);
+    //     let extname = filename.substr(index);
+    //     let type = this.ExtendNameDic[extname];
+    //     if (type == null) {
+    //         console.warn("Load Asset Failed.type:(" + type + ") not have loader yet");
+    //     }
+    //     return type;
+    // }
+    function getAssetExtralName(url) {
+        let index = url.lastIndexOf("/");
+        let filename = url.substr(index + 1);
+        index = filename.indexOf(".", 0);
+        let extname = filename.substr(index);
+        return extname;
+    }
 
+    // export class DefaultAssetMgr {
+    //     //#region -------------------default resource
+    //     initDefAsset() {
+    //         DefTexture.initDefaultTexture();
+    //         DefMesh.initDefaultMesh();
+    //         DefShader.initDefaultShader();
+    //         DefMatrial.initDefaultMat();
+    //     }
+    //     mapDefaultMesh: { [id: string]: Mesh } = {};
+    //     getDefaultMesh(name: string): Mesh {
+    //         return this.mapDefaultMesh[name];
+    //     }
+    //     mapDefaultTexture: { [id: string]: Texture } = {};
+    //     getDefaultTexture(name: string): Texture {
+    //         return this.mapDefaultTexture[name];
+    //     }
+    //     mapDefaultCubeTexture: { [id: string]: CubeTexture } = {};
+    //     getDefaultCubeTexture(name: string): CubeTexture {
+    //         return this.mapDefaultCubeTexture[name];
+    //     }
+    //     mapDefaultMat: { [id: string]: Material } = {};
+    //     getDefaultMaterial(name: string) {
+    //         return this.mapDefaultMat[name];
+    //     }
+    // }
+    /**
+     * 资源都继承web3dAsset 实现Iasset接口,有唯一ID
+     *
+     * assetmgr仅仅管理load进来的资源
+     * load过的资源再次load不会造成重复加载
+     * 所有的资源都是从资源管理器load（url）出来，其他接口全部封闭
+     * 资源的来源有三种：new、load、内置资源
+     * bundle包不会shared asset,bundle不会相互依赖。即如果多个bundle引用同一个asset,每个包都包含一份该资源.
+     *
+     *
+     * 资源释放：
+     * gameobject（new或instance的）通过dispose 销毁自己的内存，不销毁引用的asset
+     * asset 可以通过dispose 销毁自己的内存。包释放(prefab/scene/gltfbundle)也属于asset的释放,包会释放自己依赖的asset。
+     *
+     */
+    class AssetLoader {
+        static RegisterAssetLoader(extral, factory) {
+            // this.ExtendNameDic[extral] = type;
+            this.RESLoadDic[extral] = factory;
+        }
+        static getAssetLoader(url) {
+            let extralType = getAssetExtralName(url);
+            let factory = this.RESLoadDic[extralType];
+            return factory && factory();
+        }
+    }
+    //private static ExtendNameDic: { [name: string]: AssetExtralEnum } = {};
+    AssetLoader.RESLoadDic = {};
+    class AssetMgr {
+        constructor() {
+            this.mapShader = {};
+            //#endregion
+            /**
+             * 调用load方法就会塞到这里面来
+             */
+            this.loadMap = {};
+            /**
+             * load同一个资源监听回调
+             */
+            this.loadingUrl = {}; //
+        }
+        getShader(name) {
+            return this.mapShader[name];
+        }
+        getAssetLoadInfo(url) {
+            if (this.loadMap[url]) {
+                return this.loadMap[url].loadinfo;
+            }
+            else {
+                return null;
+            }
+        }
+        /**
+         * 加载资源
+         * @param url 地址
+         * @param onFinish  load回调]
+         */
+        load(url, onFinish = null, onProgress = null) {
+            if (this.loadMap[url]) {
+                if (onFinish) {
+                    switch (this.loadMap[url].loadinfo.loadState) {
+                        case LoadEnum.Success:
+                        case LoadEnum.Failed:
+                            onFinish(this.loadMap[url].asset, this.loadMap[url].loadinfo);
+                            break;
+                        case LoadEnum.Loading:
+                            if (this.loadingUrl[url] == null) {
+                                this.loadingUrl[url] = [];
+                            }
+                            this.loadingUrl[url].push(onFinish);
+                            break;
+                        default:
+                        case LoadEnum.None:
+                            console.error("load error 为啥出现这种情况！");
+                            break;
+                    }
+                }
+                return this.loadMap[url].asset;
+            }
+            else {
+                let factory = AssetLoader.getAssetLoader(url);
+                let _state = { url: url, loadState: LoadEnum.None };
+                this.loadMap[url] = { asset: null, loadinfo: _state };
+                if (factory == null) {
+                    let errorMsg = "ERROR: load Asset error. INfo: not have Load Func to handle (" +
+                        getAssetExtralName(url) +
+                        ") type File.  load URL:" +
+                        url;
+                    _state.err = new Error(errorMsg);
+                    console.error(errorMsg);
+                    if (onFinish) {
+                        onFinish(null, _state);
+                    }
+                    return null;
+                }
+                else {
+                    let asset = factory.load(url, (asset, state) => {
+                        //-------------------------------存进资源存储map
+                        _state.loadState = state.loadState;
+                        //---------------------回调事件
+                        if (onFinish) {
+                            onFinish(asset, state);
+                        }
+                        //------------------监听此资源loadfinish的事件
+                        let arr = this.loadingUrl[url];
+                        this.loadingUrl[url] = null;
+                        delete this.loadingUrl[url]; //set loadingUrl null
+                        if (arr) {
+                            arr.forEach(func => {
+                                func(asset, state);
+                            });
+                        }
+                    }, onProgress);
+                    _state.loadState = LoadEnum.Loading;
+                    this.loadMap[url].asset = asset;
+                    return asset;
+                }
+            }
+        }
+        loadAsync(url) {
+            return new Promise((resolve, reject) => {
+                this.load(url, (asset, loadInfo) => {
+                    if (loadInfo.loadState == LoadEnum.Success) {
+                        resolve(asset);
+                    }
+                    else {
+                        reject(new Error("Load Failed."));
+                    }
+                });
+            });
+        }
+    }
     //<<<<<<<--------1.  new出来的自己管理,如果进行管控,assetmgr必然持有该资源的引用。当用该资源的对象被释放,该对象对该资源的引用也就没了,但是assetmgr持有它的引用，资源也就是没被释放;
     //释放对象的时候我们又不能对资源进行释放，不然其他对象使用该资源就会报错，对于new出的资源,没被使用就会被系统自动释放或者自己释放-------------------->>>>>>>>>
     //<<<<<<<------- 2.  资源的name不作为asset的标识.不然造成一大堆麻烦。如果允许重名资源在assetmgr获取资源的需要通过bundlename /assetname才能正确获取资源,bundlename于asset来说不一定有;
@@ -619,11 +794,679 @@
         GlConstants[GlConstants["MAX_TEXTURE_MAX_ANISOTROPY_EXT"] = 34047] = "MAX_TEXTURE_MAX_ANISOTROPY_EXT";
     })(GlConstants || (GlConstants = {}));
 
+    /**
+     * Get the GL type for a typedArray
+     */
+    function getGLTypeForTypedArray(typedArray) {
+        if (typedArray instanceof Int8Array) {
+            return GlConstants.BYTE;
+        }
+        if (typedArray instanceof Uint8Array) {
+            return GlConstants.UNSIGNED_BYTE;
+        }
+        if (typedArray instanceof Uint8ClampedArray) {
+            return GlConstants.UNSIGNED_BYTE;
+        }
+        if (typedArray instanceof Int16Array) {
+            return GlConstants.SHORT;
+        }
+        if (typedArray instanceof Uint16Array) {
+            return GlConstants.UNSIGNED_SHORT;
+        }
+        if (typedArray instanceof Int32Array) {
+            return GlConstants.INT;
+        }
+        if (typedArray instanceof Uint32Array) {
+            return GlConstants.UNSIGNED_INT;
+        }
+        if (typedArray instanceof Float32Array) {
+            return GlConstants.FLOAT;
+        }
+        throw "unsupported typed array to gl type";
+    }
+    function getArrayTypeForGLtype(glType) {
+        if (glType == GlConstants.BYTE) {
+            return Int8Array;
+        }
+        if (glType == GlConstants.UNSIGNED_BYTE) {
+            return Uint8Array;
+        }
+        if (glType == GlConstants.UNSIGNED_BYTE) {
+            return Uint8ClampedArray;
+        }
+        if (glType == GlConstants.SHORT) {
+            return Int16Array;
+        }
+        if (glType == GlConstants.UNSIGNED_SHORT) {
+            return Uint16Array;
+        }
+        if (glType == GlConstants.INT) {
+            return Int32Array;
+        }
+        if (glType == GlConstants.UNSIGNED_INT) {
+            return Uint32Array;
+        }
+        if (glType == GlConstants.FLOAT) {
+            return Float32Array;
+        }
+        throw "unsupported gltype to array type";
+    }
+    function getbytesForGLtype(glType) {
+        switch (glType) {
+            case GlConstants.BYTE:
+                return 1;
+            case GlConstants.UNSIGNED_BYTE:
+                return 1;
+            case GlConstants.SHORT:
+                return 2;
+            case GlConstants.UNSIGNED_SHORT_4_4_4_4:
+                return 2;
+            case GlConstants.UNSIGNED_SHORT:
+                return 2;
+            case GlConstants.INT:
+                return 4;
+            case GlConstants.UNSIGNED_INT:
+                return 4;
+            case GlConstants.HALF_FLOAT:
+                return 2;
+            case GlConstants.HALF_FLOAT_OES:
+                return 2;
+            case GlConstants.FLOAT:
+                return 4;
+            default:
+                throw "unsupported gltype to bytesPerElement";
+        }
+    }
+
+    var VertexIndex = /** @class */ (function () {
+        function VertexIndex() {
+        }
+        VertexIndex.fromTarrayInfo = function (data) {
+            var newData = new VertexIndex();
+            newData.name = "indices";
+            if (data instanceof Array) {
+                newData.viewBuffer = new Uint16Array(data);
+            }
+            else if (ArrayBuffer.isView(data)) {
+                newData.viewBuffer = data;
+            }
+            else {
+                var arraydata = data.value;
+                if (arraydata instanceof Array) {
+                    var type = data.componentDataType ? getArrayTypeForGLtype(data.componentDataType) : Uint16Array;
+                    newData.viewBuffer = new type(arraydata);
+                }
+                else {
+                    newData.viewBuffer = arraydata;
+                }
+            }
+            var orginData = data;
+            if (orginData.componentDataType == null) {
+                newData.componentDataType = newData.viewBuffer
+                    ? getGLTypeForTypedArray(newData.viewBuffer)
+                    : GlConstants.UNSIGNED_SHORT;
+            }
+            else {
+                newData.componentDataType = orginData.componentDataType;
+            }
+            if (orginData.count == null) {
+                newData.count = newData.viewBuffer ? newData.viewBuffer.length : null;
+            }
+            else {
+                newData.count = orginData.count;
+            }
+            newData.drawType = orginData.drawType ? newData.drawType : GlConstants.STATIC_DRAW;
+            if (newData.count == null) {
+                throw new Error("can not deduce geometry Indices count.");
+            }
+            // vertexData.count = newData.indexCount ? newData.indexCount : vertexData.length;
+            return newData;
+        };
+        return VertexIndex;
+    }());
+    function createIndexBufferInfo(gl, data) {
+        var vertexdata = VertexIndex.fromTarrayInfo(data);
+        if (vertexdata.glBuffer == null) {
+            var buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, vertexdata.viewBuffer, vertexdata.drawType);
+            vertexdata.glBuffer = buffer;
+        }
+        return vertexdata;
+    }
+
+    var VertexAtt = /** @class */ (function () {
+        function VertexAtt() {
+        }
+        VertexAtt.fromTarrayInfo = function (attName, data) {
+            var newData = new VertexAtt();
+            newData.name = attName;
+            if (data instanceof Array) {
+                newData.viewBuffer = new Float32Array(data);
+            }
+            else if (ArrayBuffer.isView(data)) {
+                newData.viewBuffer = data;
+            }
+            else {
+                var arraydata = data.value;
+                if (arraydata instanceof Array) {
+                    var type = data.componentDataType ? getArrayTypeForGLtype(data.componentDataType) : Float32Array;
+                    newData.viewBuffer = new type(arraydata);
+                }
+                else {
+                    newData.viewBuffer = arraydata;
+                }
+            }
+            var orginData = data;
+            if (orginData.componentDataType == null) {
+                newData.componentDataType = newData.viewBuffer
+                    ? getGLTypeForTypedArray(newData.viewBuffer)
+                    : GlConstants.FLOAT;
+            }
+            else {
+                newData.componentDataType = orginData.componentDataType;
+            }
+            newData.componentSize = orginData.componentSize ? orginData.componentSize : guessNumComponentsFromName(attName);
+            newData.normalize = orginData.normalize != null ? orginData.normalize : false;
+            newData.bytesOffset = orginData.bytesOffset ? orginData.bytesOffset : 0;
+            newData.bytesStride = orginData.bytesStride ? orginData.bytesStride : 0;
+            newData.drawType = orginData.drawType ? orginData.drawType : GlConstants.STATIC_DRAW;
+            newData.divisor = orginData.divisor;
+            if (orginData.count == null) {
+                var elementBytes = getbytesForGLtype(newData.componentDataType) * newData.componentSize;
+                newData.count = newData.viewBuffer
+                    ? newData.viewBuffer.byteLength / elementBytes
+                    : undefined;
+            }
+            else {
+                newData.count = orginData.count;
+            }
+            return newData;
+        };
+        return VertexAtt;
+    }());
+    function createAttributeBufferInfo(gl, attName, data) {
+        var vertexdata = VertexAtt.fromTarrayInfo(attName, data);
+        if (vertexdata.glBuffer == null) {
+            var buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, vertexdata.viewBuffer, vertexdata.drawType);
+            vertexdata.glBuffer = buffer;
+        }
+        return vertexdata;
+    }
+    var uvRE = /uv/;
+    var colorRE = /color/;
+    function guessNumComponentsFromName(name, length) {
+        if (length === void 0) { length = null; }
+        var numComponents;
+        if (uvRE.test(name)) {
+            numComponents = 2;
+        }
+        else if (colorRE.test(name)) {
+            numComponents = 4;
+        }
+        else {
+            numComponents = 3; // position, normals, indices ...
+        }
+        // if (length % numComponents > 0)
+        // {
+        //     throw "Can not guess numComponents for attribute '" + name + "'. Tried " +
+        //     numComponents + " but " + length +
+        //     " values is not evenly divisible by " + numComponents +
+        //     ". You should specify it.";
+        // }
+        return numComponents;
+    }
+
+    var GeometryInfo = /** @class */ (function () {
+        function GeometryInfo() {
+            this.atts = {};
+        }
+        return GeometryInfo;
+    }());
+    function createGeometryInfo(gl, op) {
+        var info = new GeometryInfo();
+        info.primitiveType = op.primitiveType ? op.primitiveType : gl.TRIANGLES;
+        if (op.indices != null) {
+            info.indices = createIndexBufferInfo(gl, op.indices);
+            if (info.count == null) {
+                info.count = info.indices.count;
+            }
+        }
+        for (var attName in op.atts) {
+            info.atts[attName] = createAttributeBufferInfo(gl, attName, op.atts[attName]);
+            if (info.count == null) {
+                info.count = info.atts[attName].count;
+            }
+        }
+        return info;
+    }
+    function setGeometry(gl, geometry, program) {
+        for (var attName in program.attsDic) {
+            program.attsDic[attName].setter(geometry.atts[attName]);
+        }
+        if (geometry.indices) {
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geometry.indices.glBuffer);
+        }
+    }
+    function setGeometryWithCached(gl, geometry, program) {
+        if (gl._cachedGeometry != geometry || gl._cachedProgram != program.program) {
+            setGeometry(gl, geometry, program);
+            gl._cachedGeometry = geometry;
+        }
+    }
+
+    function setViewPortWithCached(gl, x, y, width, height) {
+        var bechanged = gl._cachedViewPortX != x ||
+            gl._cachedViewPortY != y ||
+            gl._cachedViewPortWidth != width ||
+            gl._cachedViewPortHeight != height;
+        if (!bechanged) {
+            gl.viewport(x, y, width, height);
+            gl._cachedViewPortX = x;
+            gl._cachedViewPortY = y;
+            gl._cachedViewPortWidth = width;
+            gl._cachedViewPortHeight = height;
+        }
+    }
+    function setClear(gl, clearDepth, clearColor, clearStencil) {
+        if (clearStencil === void 0) { clearStencil = false; }
+        var cleartag = 0;
+        if (clearDepth) {
+            gl.clearDepth(1.0);
+            cleartag |= gl.DEPTH_BUFFER_BIT;
+        }
+        if (clearColor) {
+            gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+            cleartag |= gl.COLOR_BUFFER_BIT;
+        }
+        if (clearStencil) {
+            gl.clearStencil(0);
+            cleartag |= gl.STENCIL_BUFFER_BIT;
+        }
+        gl.clear(cleartag);
+    }
+    function setCullFaceStateWithCached(gl, enableCullFace, cullBack) {
+        if (gl._cachedEnableCullFace != enableCullFace) {
+            gl._cachedEnableCullFace = enableCullFace;
+            if (enableCullFace) {
+                gl.enable(gl.CULL_FACE);
+                if (gl._cachedCullFace != cullBack) {
+                    gl._cachedCullFace = cullBack;
+                    gl.cullFace(cullBack ? gl.BACK : gl.FRONT);
+                }
+            }
+            else {
+                gl.disable(gl.CULL_FACE);
+            }
+        }
+        else {
+            if (gl._cachedCullFace != cullBack) {
+                gl._cachedCullFace = cullBack;
+                gl.cullFace(cullBack ? gl.BACK : gl.FRONT);
+            }
+        }
+    }
+    function setDepthStateWithCached(gl, depthWrite, depthTest) {
+        if (depthWrite === void 0) { depthWrite = true; }
+        if (depthTest === void 0) { depthTest = true; }
+        if (gl._cachedDepthWrite != depthWrite) {
+            gl._cachedDepthWrite = depthWrite;
+            gl.depthMask(depthWrite);
+        }
+        if (gl._cachedDepthTest != depthTest) {
+            gl._cachedDepthTest = depthTest;
+            if (depthTest) {
+                gl.enable(gl.DEPTH_TEST);
+            }
+            else {
+                gl.disable(gl.DEPTH_TEST);
+            }
+        }
+    }
+    function setBlendStateWithCached(gl, enableBlend, blendEquation, blendSrc, blendDst) {
+        if (enableBlend === void 0) { enableBlend = false; }
+        if (blendEquation === void 0) { blendEquation = GlConstants.FUNC_ADD; }
+        if (blendSrc === void 0) { blendSrc = GlConstants.ONE; }
+        if (blendDst === void 0) { blendDst = GlConstants.ONE_MINUS_SRC_ALPHA; }
+        if (gl._cachedEnableBlend != enableBlend) {
+            gl._cachedEnableBlend = enableBlend;
+            if (enableBlend) {
+                gl.enable(gl.BLEND);
+                if (gl._cachedBlendEquation != blendEquation) {
+                    gl._cachedBlendEquation = blendEquation;
+                    gl.blendEquation(blendEquation);
+                }
+                if (gl._cachedBlendFuncSrc != blendSrc || gl._cachedBlendFuncDst != blendDst) {
+                    gl._cachedBlendFuncSrc = blendSrc;
+                    gl._cachedBlendFuncDst = blendDst;
+                    gl.blendFunc(blendSrc, blendDst);
+                }
+            }
+            else {
+                gl.disable(gl.BLEND);
+            }
+        }
+    }
+    function setStencilStateWithCached(gl, enableStencilTest, stencilFunc, stencilRefValue, stencilMask, stencilFail, stencilPassZfail, stencilFaileZpass) {
+        if (gl._cachedEnableStencilTest != enableStencilTest) {
+            gl._cachedEnableStencilTest = enableStencilTest;
+            gl.enable(gl.STENCIL_TEST);
+            if (gl._cachedStencilFunc != stencilFunc ||
+                gl._cachedStencilRefValue != stencilRefValue ||
+                gl._cachedStencilMask != stencilMask) {
+                gl._cachedStencilFunc = stencilFunc;
+                gl._cachedStencilRefValue = stencilRefValue;
+                gl._cachedStencilMask = stencilMask;
+                gl.stencilFunc(stencilFunc, stencilRefValue, stencilMask);
+            }
+            if (gl._cachedStencilFail != stencilFail ||
+                gl._cachedStencilPassZfail != stencilPassZfail ||
+                gl._cachedStencilFaileZpass != stencilFaileZpass) {
+                gl._cachedStencilFail = stencilFail;
+                gl._cachedStencilPassZfail = stencilPassZfail;
+                gl._cachedStencilFaileZpass = stencilFaileZpass;
+                gl.stencilOp(stencilFail, stencilPassZfail, stencilFaileZpass);
+            }
+        }
+    }
+    function setProgramStatesWithCached(gl, state) {
+        if (state.beDeduce != true) {
+            deduceFullShderState(state);
+        }
+        //---------------------------cullface
+        setCullFaceStateWithCached(gl, state.enableCullFace, state.cullBack);
+        //----------------depth
+        setDepthStateWithCached(gl, state.depthWrite, state.depthTest);
+        //------------------------blend
+        setBlendStateWithCached(gl, state.enableBlend, state.blendEquation, state.blendSrc, state.blendDst);
+        //-------------------------stencil
+        setStencilStateWithCached(gl, state.enableStencilTest, state.stencilFunc, state.stencilRefValue, state.stencilMask, state.stencilFail, state.stencilPassZfail, state.stencilFaileZpass);
+    }
+    /**
+     *
+     * @param state 原始 webgl state
+     */
+    // state 是给每个物体 render用的，是不想受前一个物体render影响，所以需要推断出完整的 webgl state，缺失的按照默认值
+    function deduceFullShderState(state) {
+        //----------------------------cull face
+        if (state.enableCullFace == null) {
+            state.enableCullFace = true;
+        }
+        if (state.enableCullFace) {
+            if (state.cullBack == null) {
+                state.cullBack = true;
+            }
+        }
+        //------------------depth
+        if (state.depthWrite == null) {
+            state.depthWrite = true;
+        }
+        if (state.depthTest == null) {
+            state.depthTest = true;
+        }
+        if (state.depthTest) {
+            if (state.depthTestFuc == null) {
+                state.depthTestFuc = GlConstants.LEQUAL;
+            }
+        }
+        //------------------ blend
+        if (state.enableBlend == true) {
+            if (state.blendEquation == null) {
+                state.blendEquation = GlConstants.FUNC_ADD;
+            }
+            if (state.blendSrc == null) {
+                state.blendSrc = GlConstants.ONE;
+            }
+            if (state.blendDst == null) {
+                state.blendDst = GlConstants.ONE_MINUS_SRC_ALPHA;
+            }
+        }
+        //---------------------stencil
+        if (state.enableStencilTest == true) {
+            if (state.stencilFunc == null) {
+                state.stencilFunc = GlConstants.ALWAYS;
+            }
+            if (state.stencilFail == null) {
+                state.stencilFail = GlConstants.KEEP;
+            }
+            if (state.stencilFaileZpass == null) {
+                state.stencilFaileZpass = GlConstants.KEEP;
+            }
+            if (state.stencilPassZfail == null) {
+                state.stencilPassZfail = GlConstants.REPLACE;
+            }
+            if (state.stencilRefValue == null) {
+                state.stencilRefValue = 1;
+            }
+            if (state.stencilMask == null) {
+                state.stencilMask = 0xff;
+            }
+        }
+        return state;
+    }
+
     var ShaderTypeEnum;
     (function (ShaderTypeEnum) {
         ShaderTypeEnum[ShaderTypeEnum["VS"] = 0] = "VS";
         ShaderTypeEnum[ShaderTypeEnum["FS"] = 1] = "FS";
     })(ShaderTypeEnum || (ShaderTypeEnum = {}));
+    function createProgramInfo(gl, op) {
+        var info;
+        if (op.program.program != null) {
+            var bassprogram = op.program;
+            info = {};
+            info.program = bassprogram.program;
+            info.attsDic = bassprogram.attsDic;
+            info.uniformsDic = bassprogram.uniformsDic;
+        }
+        else {
+            var bassprogramOp = op.program;
+            info = createBassProgramInfo(gl, bassprogramOp.vs, bassprogramOp.fs, bassprogramOp.name);
+        }
+        if (op.uniforms) {
+            info.uniforms = op.uniforms;
+        }
+        if (op.states) {
+            info.states = op.states;
+        }
+        return info;
+    }
+    function setProgramWithCached(gl, program) {
+        if (gl._cachedProgram != program.program) {
+            gl._cachedProgram = program.program;
+            gl.useProgram(program.program);
+        }
+        if (program.uniforms) {
+            setProgramUniforms(program, program.uniforms);
+        }
+        if (program.states) {
+            setProgramStatesWithCached(gl, program.states);
+        }
+    }
+    function setProgramUniforms(info, uniforms) {
+        for (var key in uniforms) {
+            var setter = info.uniformsDic[key].setter;
+            var value = uniforms[key];
+            setter(value);
+        }
+    }
+    function createBassProgramInfo(gl, vs, fs, name) {
+        var vsShader = createShader(gl, ShaderTypeEnum.VS, vs, name + "_vs");
+        var fsShader = createShader(gl, ShaderTypeEnum.FS, fs, name + "_fs");
+        if (vsShader && fsShader) {
+            var item = gl.createProgram();
+            gl.attachShader(item, vsShader.shader);
+            gl.attachShader(item, fsShader.shader);
+            gl.linkProgram(item);
+            var check = gl.getProgramParameter(item, gl.LINK_STATUS);
+            if (check == false) {
+                var debguInfo = "ERROR: compile program Error!" + "VS:" + vs + "   FS:" + fs + "\n" + gl.getProgramInfoLog(item);
+                console.error(debguInfo);
+                gl.deleteProgram(item);
+                return null;
+            }
+            else {
+                var attsInfo = getAttributesInfo(gl, item);
+                var uniformsInfo = getUniformsInfo(gl, item);
+                return { program: item, programName: name, uniformsDic: uniformsInfo, attsDic: attsInfo };
+            }
+        }
+    }
+    function getAttributesInfo(gl, program) {
+        var attdic = {};
+        var numAttribs = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
+        for (var i = 0; i < numAttribs; i++) {
+            var attribInfo = gl.getActiveAttrib(program, i);
+            if (!attribInfo)
+                break;
+            var attName = attribInfo.name;
+            var attlocation = gl.getAttribLocation(program, attName);
+            var func = getAttributeSetter(gl, attlocation);
+            attdic[attName] = { name: attName, location: attlocation, setter: func };
+        }
+        return attdic;
+    }
+    function getUniformsInfo(gl, program) {
+        var uniformDic = {};
+        var numUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+        gl.bindpoint = 0;
+        for (var i = 0; i < numUniforms; i++) {
+            var uniformInfo = gl.getActiveUniform(program, i);
+            if (!uniformInfo)
+                break;
+            var name_1 = uniformInfo.name;
+            var type = uniformInfo.type;
+            var location_1 = gl.getUniformLocation(program, name_1);
+            var beArray = false;
+            // remove the array suffix.
+            if (name_1.substr(-3) === "[0]") {
+                beArray = true;
+                // name = name.substr(0, name.length - 3);
+            }
+            if (location_1 == null)
+                continue;
+            var bindpoint = gl.bindpoint;
+            var func = getUniformSetter(gl, type, beArray, location_1, bindpoint);
+            uniformDic[name_1] = { name: name_1, location: location_1, type: type, setter: func };
+        }
+        return uniformDic;
+    }
+    function createShader(gl, type, source, name) {
+        if (name === void 0) { name = null; }
+        var target = type == ShaderTypeEnum.VS ? GlConstants.VERTEX_SHADER : GlConstants.FRAGMENT_SHADER;
+        var item = gl.createShader(target);
+        gl.shaderSource(item, source);
+        gl.compileShader(item);
+        var check = gl.getShaderParameter(item, gl.COMPILE_STATUS);
+        if (check == false) {
+            var debug = type == ShaderTypeEnum.VS ? "ERROR: compile  VS Shader Error! VS:" : "ERROR: compile FS Shader Error! FS:";
+            debug = debug + name + ".\n";
+            console.error(debug + gl.getShaderInfoLog(item));
+            gl.deleteShader(item);
+            return null;
+        }
+        else {
+            return { shaderType: type, shaderName: name, shader: item };
+        }
+    }
+    function getUniformSetter(gl, uniformType, beArray, location, bindpoint) {
+        switch (uniformType) {
+            case gl.FLOAT:
+                if (beArray) {
+                    return function (value) {
+                        gl.uniform1f(location, value);
+                    };
+                }
+                else {
+                    return function (value) {
+                        gl.uniform1fv(location, value);
+                    };
+                }
+                break;
+            case gl.FLOAT_VEC2:
+                return function (value) {
+                    gl.uniform2fv(location, value);
+                };
+                break;
+            case gl.FLOAT_VEC3:
+                return function (value) {
+                    gl.uniform3fv(location, value);
+                };
+                break;
+            case gl.FLOAT_VEC4:
+                return function (value) {
+                    gl.uniform4fv(location, value);
+                };
+                break;
+            case gl.INT:
+            case gl.BOOL:
+                if (beArray) {
+                    return function (value) {
+                        gl.uniform1iv(location, value);
+                    };
+                }
+                else {
+                    return function (value) {
+                        gl.uniform1i(location, value);
+                    };
+                }
+                break;
+            case gl.INT_VEC2:
+            case gl.BOOL_VEC2:
+                return function (value) {
+                    gl.uniform2iv(location, value);
+                };
+                break;
+            case gl.INT_VEC3:
+            case gl.BOOL_VEC3:
+                return function (value) {
+                    gl.uniform3iv(location, value);
+                };
+                break;
+            case gl.INT_VEC4:
+            case gl.BOOL_VEC4:
+                return function (value) {
+                    gl.uniform4fv(location, value);
+                };
+                break;
+            case gl.FLOAT_MAT2:
+                return function (value) {
+                    gl.uniformMatrix2fv(location, false, value);
+                };
+            case gl.FLOAT_MAT3:
+                return function (value) {
+                    gl.uniformMatrix3fv(location, false, value);
+                };
+                break;
+            case gl.FLOAT_MAT4:
+                return function (value) {
+                    gl.uniformMatrix4fv(location, false, value);
+                };
+                break;
+            case gl.SAMPLER_2D:
+                return function (value) {
+                    gl.activeTexture(gl.TEXTURE0 + bindpoint);
+                    gl.bindTexture(gl.TEXTURE_2D, value);
+                    gl.uniform1i(location, bindpoint);
+                    gl.bindpoint = gl.bindpoint + 1;
+                };
+            default:
+                console.error("uniformSetter not handle type:" + uniformType + " yet!");
+                break;
+        }
+    }
+    function getAttributeSetter(gl, location) {
+        return function (value) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, value.glBuffer);
+            gl.enableVertexAttribArray(location);
+            gl.vertexAttribPointer(location, value.componentSize, value.componentDataType, value.normalize, value.bytesStride, value.bytesOffset);
+            if (value.divisor !== undefined) {
+                gl.vertexAttribDivisor(location, value.divisor);
+            }
+        };
+    }
 
     /**
      * Enum containing WebGL Constant values by name.
@@ -1223,6 +2066,65 @@
         // Extensions
         GlConstants[GlConstants["MAX_TEXTURE_MAX_ANISOTROPY_EXT"] = 34047] = "MAX_TEXTURE_MAX_ANISOTROPY_EXT";
     })(GlConstants$1 || (GlConstants$1 = {}));
+    function createTextureFromImageSource(gl, data, texOP) {
+        texOP = texOP != null ? texOP : {};
+        deduceTextureimgSourceOption(gl, data, texOP);
+        var tex = gl.createTexture();
+        gl.bindTexture(texOP.target, tex);
+        gl.texParameteri(texOP.target, gl.TEXTURE_MAG_FILTER, texOP.filterMax);
+        gl.texParameteri(texOP.target, gl.TEXTURE_MIN_FILTER, texOP.filterMin);
+        gl.texParameteri(texOP.target, gl.TEXTURE_WRAP_S, texOP.wrapS);
+        gl.texParameteri(texOP.target, gl.TEXTURE_WRAP_T, texOP.wrapT);
+        gl.texImage2D(texOP.target, 0, texOP.pixelFormat, texOP.pixelFormat, texOP.pixelDatatype, data);
+        return tex;
+    }
+    function dedeuceBaseTextureOption(gl, texOP) {
+        texOP.target = texOP.target ? texOP.target : GlConstants.TEXTURE_2D;
+        // texOP.wrap_s = texOP.wrap_s ? texOP.wrap_s : GLConstants.CLAMP_TO_EDGE;
+        // texOP.wrap_t = texOP.wrap_t ? texOP.wrap_t : GLConstants.CLAMP_TO_EDGE;
+        texOP.pixelFormat = texOP.pixelFormat ? texOP.pixelFormat : GlConstants.RGBA;
+        if (texOP.enableMipMap && canGenerateMipmap(gl, texOP.width, texOP.height)) {
+            texOP.enableMipMap = true;
+        }
+        else {
+            texOP.enableMipMap = false;
+        }
+        if (texOP.filterMax == null) {
+            texOP.filterMax = texOP.enableMipMap ? GlConstants.LINEAR_MIPMAP_LINEAR : GlConstants.LINEAR;
+        }
+        if (texOP.filterMin == null) {
+            texOP.filterMin = texOP.enableMipMap ? GlConstants.LINEAR_MIPMAP_LINEAR : GlConstants.LINEAR;
+        }
+        if (texOP.wrapS == null) {
+            texOP.wrapS = canWrapReapeat(gl, texOP.width, texOP.height) ? GlConstants.REPEAT : GlConstants.CLAMP_TO_EDGE;
+        }
+        if (texOP.wrapT == null) {
+            texOP.wrapT = canWrapReapeat(gl, texOP.width, texOP.height) ? GlConstants.REPEAT : GlConstants.CLAMP_TO_EDGE;
+        }
+    }
+    function deduceTextureimgSourceOption(gl, data, texOP) {
+        texOP.width = data.width;
+        texOP.height = data.height;
+        dedeuceBaseTextureOption(gl, texOP);
+        if (texOP.pixelDatatype == null) {
+            texOP.pixelDatatype = GlConstants.UNSIGNED_BYTE;
+        }
+    }
+    function isPowerOf2(value) {
+        return (value & (value - 1)) === 0;
+    }
+    function canGenerateMipmap(gl, width, height) {
+        if (!gl.beWebgl2) {
+            return isPowerOf2(width) && isPowerOf2(height);
+        }
+        return true;
+    }
+    function canWrapReapeat(gl, width, height) {
+        if (!gl.beWebgl2) {
+            return isPowerOf2(width) && isPowerOf2(height);
+        }
+        return true;
+    }
 
     WebGLRenderingContext.prototype.addExtension = function (extname) {
         var ext = this.getExtension(extname);
@@ -1259,6 +2161,47 @@
             this._beWebgl2 = value;
         },
     });
+    function setUpWebgl(canvas, options) {
+        if (options === void 0) { options = {}; }
+        var type = options.context || "webgl";
+        var gl = canvas.getContext(type, options.contextAtts);
+        if (options.extentions != null) {
+            options.extentions.forEach(function (ext) {
+                gl.addExtension(ext);
+            });
+        }
+        if (type == "webgl2") {
+            gl.beActiveInstance = true;
+            gl.beActiveVao = true;
+        }
+        // canvas.addEventListener('webglcontextlost', function (e)
+        // {
+        //     console.log(e);
+        // }, false);
+        return gl;
+    }
+    function setGeometryAndProgramWithCached(gl, geometry, program) {
+        setGeometryWithCached(gl, geometry, program);
+        setProgramWithCached(gl, program);
+    }
+    function drawBufferInfo(gl, geometry, instanceCount) {
+        if (geometry.indices != null) {
+            if (instanceCount != null) {
+                gl.drawElementsInstanced(geometry.primitiveType, geometry.count, geometry.indices.componentDataType, geometry.offset || 0, instanceCount);
+            }
+            else {
+                gl.drawElements(geometry.primitiveType, geometry.count, geometry.indices.componentDataType, geometry.offset || 0);
+            }
+        }
+        else {
+            if (instanceCount != null) {
+                gl.drawArraysInstanced(geometry.primitiveType, geometry.offset || 0, geometry.count, instanceCount);
+            }
+            else {
+                gl.drawArrays(geometry.primitiveType, geometry.offset || 0, geometry.count);
+            }
+        }
+    }
 
     /**
      * 渲染的层级(从小到大绘制)
@@ -1286,13 +2229,73 @@
     })(CullingMask || (CullingMask = {}));
     class EC {
         static NewComponent(compname) {
-            return new EC.dic[compname]();
+            let contr = EC.dic[compname];
+            if (contr) {
+                return new contr();
+            }
+            else {
+                return null;
+            }
         }
     }
     EC.dic = {};
-    EC.RegComp = (comp) => {
-        EC.dic[comp.constructor.name] = comp.constructor;
+    EC.RegComp = (constructor) => {
+        let target = constructor.prototype;
+        EC.dic[target.constructor.name] = target.constructor;
     };
+
+    class GlRender {
+        static init(canvas, options = {}) {
+            this.context = setUpWebgl(canvas, options);
+        }
+        static get maxVertexAttribs() {
+            if (this._maxVertexAttribs == null) {
+                this.context.getParameter(this.context.MAX_VERTEX_ATTRIBS);
+            }
+            return this._maxVertexAttribs;
+        }
+        static get maxTexturesImageUnits() {
+            if (this._maxTexturesImageUnits == null) {
+                this.context.getParameter(this.context.MAX_TEXTURE_IMAGE_UNITS);
+            }
+            return this._maxTexturesImageUnits;
+        }
+        static setViewPort(viewport) {
+            setViewPortWithCached(this.context, viewport[0] * this.context.drawingBufferWidth, viewport[1] * this.context.drawingBufferHeight, viewport[2] * this.context.drawingBufferWidth, viewport[3] * this.context.drawingBufferHeight);
+        }
+        static setClear(clearDepth, clearColor, clearStencil) {
+            setClear(this.context, clearDepth, clearColor, clearStencil);
+        }
+        static setState() {
+            throw new Error("Method not implemented.");
+        }
+        static createGeometry(op) {
+            let info = createGeometryInfo(this.context, op);
+            return info;
+        }
+        static createProgram(op) {
+            let info = createProgramInfo(this.context, op);
+            info.layer = op.layer || RenderLayerEnum.Geometry;
+            return info;
+        }
+        static createTextureFromImg(img) {
+            return createTextureFromImageSource(this.context, img);
+        }
+        static setGeometryAndProgram(geometry, program) {
+            setGeometryAndProgramWithCached(this.context, geometry, program);
+        }
+        static drawObject(geometry, program, uniforms, instancecount) {
+            // setProgram(this.context, program);
+            setGeometryAndProgramWithCached(this.context, geometry, program);
+            //set uniforms
+            for (const key in program.uniformsDic) {
+                let func = this.autoUniform && this.autoUniform.autoUniforms[key];
+                let value = func ? func() : uniforms[key];
+                program.uniformsDic[key].setter(value);
+            }
+            drawBufferInfo(this.context, geometry, instancecount);
+        }
+    }
 
     const EPSILON = 0.000001;
     function clamp(v, min = 0, max = 1) {
@@ -3689,11 +4692,214 @@
     Mat4.Identity = Mat4.create();
 
     /**
+     * @private
+     */
+    class RenderList {
+        constructor(camera) {
+            this.layerLists = {};
+            this.layerLists[RenderLayerEnum.Background] = new RenderContainer("Background");
+            this.layerLists[RenderLayerEnum.Geometry] = new RenderContainer("Geometry");
+            this.layerLists[RenderLayerEnum.AlphaTest] = new RenderContainer("AlphaTest");
+            this.layerLists[RenderLayerEnum.Transparent] = new RenderContainer("Transparent", (arr) => {
+                arr.sort((a, b) => {
+                    let aRenderQueue = a.material.layer + a.material.queue;
+                    let bRenderQueue = b.material.layer + b.material.queue;
+                    if (aRenderQueue != bRenderQueue) {
+                        return aRenderQueue - bRenderQueue;
+                    }
+                    else {
+                        let viewmat = camera.ViewMatrix;
+                        let aWorldPos = Mat4.getTranslationing(a.modelMatrix, Vec3.create());
+                        let bWorldPos = Mat4.getTranslationing(b.modelMatrix, Vec3.create());
+                        let aView = Mat4.transformPoint(aWorldPos, viewmat, Vec3.create());
+                        let bView = Mat4.transformPoint(bWorldPos, viewmat, Vec3.create());
+                        let out = aView[2] - bView[2];
+                        Vec3.recycle(aWorldPos);
+                        Vec3.recycle(bWorldPos);
+                        Vec3.recycle(aView);
+                        Vec3.recycle(bView);
+                        return out;
+                    }
+                });
+                return arr;
+            });
+            this.layerLists[RenderLayerEnum.Overlay] = new RenderContainer("Overlay");
+        }
+        clear() {
+            for (let key in this.layerLists) {
+                this.layerLists[key].clear();
+            }
+        }
+        addRenderer(renderer) {
+            this.layerLists[renderer.material.layer].addRender(renderer);
+        }
+        sort() {
+            for (const key in this.layerLists) {
+                this.layerLists[key].sort();
+            }
+            return this;
+        }
+        foreach(func) {
+            this.layerLists[RenderLayerEnum.Background].foreach(func);
+            this.layerLists[RenderLayerEnum.Geometry].foreach(func);
+            this.layerLists[RenderLayerEnum.AlphaTest].foreach(func);
+            this.layerLists[RenderLayerEnum.Transparent].foreach(func);
+            this.layerLists[RenderLayerEnum.Overlay].foreach(func);
+        }
+    }
+    class RenderContainer {
+        constructor(layerType, queueSortFunc = null) {
+            this.renderArr = [];
+            this.layer = layerType;
+            this._queueSortFunc = queueSortFunc || RenderContainer.defaultSortFunc;
+        }
+        addRender(render) {
+            this.renderArr.push(render);
+        }
+        sort() {
+            this.renderArr = this._queueSortFunc(this.renderArr);
+            return this;
+        }
+        foreach(fuc) {
+            for (let i = 0; i < this.renderArr.length; i++) {
+                fuc(this.renderArr[i]);
+            }
+        }
+        clear() {
+            this.renderArr.length = 0;
+        }
+    }
+    RenderContainer.defaultSortFunc = (arr) => {
+        arr.sort((a, b) => {
+            let aRenderQueue = a.material.layer + a.material.queue;
+            let bRenderQueue = b.material.layer + b.material.queue;
+            if (aRenderQueue != bRenderQueue) {
+                return aRenderQueue - bRenderQueue;
+            }
+            else {
+                return a.material.guid - b.material.guid;
+            }
+        });
+        return arr;
+    };
+    /**
      * 按照Geometry-》AlphaTest-》Background-》Transparent-》Overlay的顺序进行渲染
      * 非透明物体/透明物体都要按照queue排序
      * 非透明物体暂时没发现需要按照距离排序（近到远）
      * 透明物体按照距离排序（远到近）
      */
+
+    /*! *****************************************************************************
+    Copyright (c) Microsoft Corporation. All rights reserved.
+    Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+    this file except in compliance with the License. You may obtain a copy of the
+    License at http://www.apache.org/licenses/LICENSE-2.0
+
+    THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+    WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+    MERCHANTABLITY OR NON-INFRINGEMENT.
+
+    See the Apache Version 2.0 License for specific language governing permissions
+    and limitations under the License.
+    ***************************************************************************** */
+
+    function __decorate(decorators, target, key, desc) {
+        var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+        return c > 3 && r && Object.defineProperty(target, key, r), r;
+    }
+
+    class Rect extends Float32Array {
+        constructor(x = 0, y = 0, w = 0, h = 0) {
+            super(4);
+            this[0] = x;
+            this[1] = y;
+            this[2] = w;
+            this[3] = h;
+        }
+        get x() {
+            return this[0];
+        }
+        set x(value) {
+            this[0] = value;
+        }
+        get y() {
+            return this[1];
+        }
+        set y(value) {
+            this[1] = value;
+        }
+        get z() {
+            return this[2];
+        }
+        set z(value) {
+            this[2] = value;
+        }
+        get width() {
+            return this[2];
+        }
+        get height() {
+            return this[3];
+        }
+        get w() {
+            return this[3];
+        }
+        set w(value) {
+            this[3] = value;
+        }
+        static create(x = 0, y = 0, w = 0, h = 0) {
+            if (Rect.Recycle && Rect.Recycle.length > 0) {
+                let item = Rect.Recycle.pop();
+                item[0] = x;
+                item[1] = y;
+                item[2] = w;
+                item[3] = h;
+                return item;
+            }
+            else {
+                let item = new Rect(x, y, w, h);
+                return item;
+            }
+        }
+        static clone(from) {
+            if (Rect.Recycle.length > 0) {
+                let item = Rect.Recycle.pop();
+                Rect.copy(from, item);
+                return item;
+            }
+            else {
+                let item = new Rect(from[0], from[1], from[2], from[3]);
+                return item;
+            }
+        }
+        static recycle(item) {
+            Rect.Recycle.push(item);
+        }
+        static disposeRecycledItems() {
+            Rect.Recycle.length = 0;
+        }
+        static copy(a, out) {
+            out[0] = a[0];
+            out[1] = a[1];
+            out[2] = a[2];
+            out[3] = a[3];
+            return out;
+        }
+        static euqal(a, b) {
+            if (a[0] != b[0])
+                return false;
+            if (a[1] != b[1])
+                return false;
+            if (a[2] != b[2])
+                return false;
+            if (a[3] != b[3])
+                return false;
+            return true;
+        }
+    }
+    Rect.Recycle = [];
 
     class Color extends Float32Array {
         constructor(r = 1, g, b = 1, a = 1) {
@@ -3837,6 +5043,85 @@
      * |------(w,h)
      *
      */
+    class GameScreen {
+        /**
+         * 屏幕(canvas)高度
+         */
+        static get Height() {
+            return GameScreen.canvasheight;
+        }
+        /**
+         * 屏幕(canvas)宽度
+         */
+        static get Width() {
+            return GameScreen.canvaswidth;
+        }
+        /**
+         * 窗口宽度,一般用于html
+         */
+        static get windowWidth() {
+            return this._windowWidth;
+        }
+        /**
+         * 窗口高度,一般用于html
+         */
+        static get windowHeight() {
+            return this._windowHeight;
+        }
+        /**
+         * width/height
+         */
+        static get aspect() {
+            return this.apset;
+        }
+        /**
+         * 修改canvas 缩放
+         * 可提升画面效果，消除闪烁(最好用mipmap解决)
+         * @param scale
+         */
+        static SetCanvasSize(scale) {
+            GameScreen.scale = scale;
+            this.OnResizeCanvas();
+        }
+        // static divcontiner: HTMLDivElement;
+        static init(canvas) {
+            this.canvas = canvas;
+            // this.OnResizeCanvas();
+            // window.onresize = () => {
+            //     this.OnResizeCanvas();
+            // };
+            // let divcontiner = document.createElement("div");
+            // divcontiner.className = "divContiner";
+            // divcontiner.style.overflow = "hidden";
+            // divcontiner.style.left = "0px";
+            // divcontiner.style.top = "0px";
+            // canvas.parentElement.appendChild(divcontiner);
+            // this.divcontiner = divcontiner;
+        }
+        static OnResizeCanvas() {
+            console.warn("canvas resize!");
+            // this._windowWidth = window.innerWidth;
+            // this._windowHeight = window.innerHeight;
+            this._windowWidth = this.canvas.parentElement.clientWidth;
+            this._windowHeight = this.canvas.parentElement.clientHeight;
+            let pixelRatio = window.devicePixelRatio || 1;
+            this.canvaswidth = pixelRatio * this.scale * this._windowWidth;
+            this.canvasheight = pixelRatio * this.scale * this._windowHeight;
+            this.canvas.width = this.canvaswidth;
+            this.canvas.height = this.canvasheight;
+            this.apset = this.canvaswidth / this.canvasheight;
+            for (let i = 0; i < this.resizeListenerArr.length; i++) {
+                let fuc = this.resizeListenerArr[i];
+                fuc();
+            }
+        }
+        static addListenertoCanvasResize(fuc) {
+            this.resizeListenerArr.push(fuc);
+        }
+    }
+    //#region canvas resize
+    GameScreen.scale = 1;
+    GameScreen.resizeListenerArr = [];
 
     var ProjectionEnum;
     (function (ProjectionEnum) {
@@ -3849,28 +5134,287 @@
         ClearEnum[ClearEnum["DEPTH"] = 2] = "DEPTH";
         ClearEnum[ClearEnum["STENCIL"] = 4] = "STENCIL";
     })(ClearEnum || (ClearEnum = {}));
+    let Camera = class Camera {
+        constructor() {
+            this.projectionType = ProjectionEnum.PERSPECTIVE;
+            //perspective 透视投影
+            this.fov = Math.PI * 0.25; //透视投影的fov//verticle field of view
+            /**
+             * height
+             */
+            this.size = 2;
+            this._near = 0.01;
+            this._far = 1000;
+            this.viewport = Rect.create(0, 0, 1, 1);
+            this.clearFlag = ClearEnum.COLOR | ClearEnum.DEPTH;
+            this.backgroundColor = Color.create(0.3, 0.3, 0.3, 1);
+            this.dePthValue = 1.0;
+            this.stencilValue = 0;
+            this.priority = 0;
+            this.cullingMask = CullingMask.default;
+            this._viewMatrix = Mat4.create();
+            /**
+             * 计算相机投影矩阵
+             */
+            this._Projectmatrix = Mat4.create();
+            // private ohMat:Mat4=Mat4.create();
+            // getOrthoLH_ProjectMatrix():Mat4
+            // {
+            //     Mat4.project_OrthoLH(this.PixelHeight * GameScreen.aspect, this.PixelHeight, this.near, this.far, this.ohMat);
+            //     return this.ohMat;
+            // }
+            this._viewProjectMatrix = Mat4.create();
+            this.needComputeViewMat = true;
+            this.needcomputeProjectMat = true;
+            this.needcomputeViewProjectMat = true;
+        }
+        get near() {
+            return this._near;
+        }
+        set near(val) {
+            if (this.projectionType == ProjectionEnum.PERSPECTIVE && val < 0.01) {
+                val = 0.01;
+            }
+            if (val >= this.far)
+                val = this.far - 0.01;
+            this._near = val;
+        }
+        get far() {
+            return this._far;
+        }
+        set far(val) {
+            if (val <= this.near)
+                val = this.near + 0.01;
+            this._far = val;
+        }
+        update(frameState) {
+            frameState.cameraList.push(this);
+        }
+        get ViewMatrix() {
+            if (this.needComputeViewMat) {
+                let camworld = this.entity.getCompByName("Transform").worldMatrix;
+                //视矩阵刚好是摄像机世界矩阵的逆
+                Mat4.invert(camworld, this._viewMatrix);
+                this.needComputeViewMat = false;
+            }
+            return this._viewMatrix;
+        }
+        get ProjectMatrix() {
+            if (this.needcomputeProjectMat) {
+                if (this.projectionType == ProjectionEnum.PERSPECTIVE) {
+                    Mat4.projectPerspectiveLH(this.fov, GameScreen.aspect, this.near, this.far, this._Projectmatrix);
+                }
+                else {
+                    Mat4.projectOrthoLH(this.size * GameScreen.aspect, this.size, this.near, this.far, this._Projectmatrix);
+                }
+                this.needcomputeProjectMat = false;
+            }
+            return this._Projectmatrix;
+        }
+        get ViewProjectMatrix() {
+            if (this.needcomputeViewProjectMat) {
+                Mat4.multiply(this.ProjectMatrix, this.ViewMatrix, this._viewProjectMatrix);
+                this.needcomputeViewProjectMat = false;
+            }
+            return this._viewProjectMatrix;
+        }
+        restToDirty() {
+            this.needComputeViewMat = true;
+            this.needcomputeProjectMat = true;
+            this.needcomputeViewProjectMat = true;
+        }
+        dispose() { }
+    };
+    Camera = __decorate([
+        EC.RegComp
+    ], Camera);
 
-    /*! *****************************************************************************
-    Copyright (c) Microsoft Corporation. All rights reserved.
-    Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-    this file except in compliance with the License. You may obtain a copy of the
-    License at http://www.apache.org/licenses/LICENSE-2.0
-
-    THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-    KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
-    WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-    MERCHANTABLITY OR NON-INFRINGEMENT.
-
-    See the Apache Version 2.0 License for specific language governing permissions
-    and limitations under the License.
-    ***************************************************************************** */
-
-    function __decorate(decorators, target, key, desc) {
-        var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-        return c > 3 && r && Object.defineProperty(target, key, r), r;
+    class RenderContext {
+        constructor() {
+            this.activeTexCount = 0;
+            this.viewPortPixel = new Rect(0, 0, 0, 0); //像素的viewport
+            this._matrixNormalToworld = Mat4.create();
+            this._matrixMV = Mat4.create();
+            this._matMVP = Mat4.create();
+            //matrixNormal: matrix = new matrix();
+            //最多8灯，再多不管
+            this.intLightCount = 0;
+            this.vec4LightPos = new Float32Array(32);
+            this.vec4LightDir = new Float32Array(32);
+            this.floatLightSpotAngleCos = new Float32Array(8);
+            this.lightmap = null;
+        }
+        // campos: vec3;
+        get matrixModel() {
+            return this.curRender.modelMatrix;
+        }
+        get matrixNormalToworld() {
+            Mat4.invert(this.matrixModel, this._matrixNormalToworld);
+            Mat4.transpose(this._matrixNormalToworld, this._matrixNormalToworld);
+            return this._matrixNormalToworld;
+        }
+        get matrixModelView() {
+            return Mat4.multiply(this.matrixModel, this.curCamera.ViewProjectMatrix, this._matrixMV);
+        }
+        get matrixModelViewProject() {
+            return Mat4.multiply(this.matrixModel, this.curCamera.ViewProjectMatrix, this._matMVP);
+        }
+        get matrixView() {
+            return this.curCamera.ViewMatrix;
+        }
+        get matrixProject() {
+            return this.curCamera.ProjectMatrix;
+        }
+        get matrixViewProject() {
+            return this.curCamera.ViewProjectMatrix;
+        }
     }
+
+    class AutoUniform {
+        constructor(renderContext) {
+            this.uniformDic = {};
+            this.renderContext = renderContext;
+            this.init();
+        }
+        init() {
+            this.uniformDic["u_mat_model"] = () => {
+                return this.renderContext.matrixModel;
+            };
+            this.uniformDic["u_mat_view"] = () => {
+                return this.renderContext.matrixView;
+            };
+            this.uniformDic["u_mat_project"] = () => {
+                return this.renderContext.matrixProject;
+            };
+            this.uniformDic["u_mat_ModelView"] = () => {
+                return this.renderContext.matrixModelView;
+            };
+            this.uniformDic["u_mat_viewproject"] = () => {
+                return this.renderContext.matrixViewProject;
+            };
+            this.uniformDic["u_mat_mvp"] = () => {
+                return this.renderContext.matrixModelViewProject;
+            };
+            this.uniformDic["u_mat_normal"] = () => {
+                return this.renderContext.matrixNormalToworld;
+            };
+            // this.AutoUniformDic["u_timer"] = () => {
+            //     return GameTimer.Time;
+            // };
+            // this.AutoUniformDic["u_campos"] = () => {
+            //     return renderContext.campos;
+            // };
+            // this.AutoUniformDic["u_LightmapTex"] = () => {
+            //     return renderContext.lightmap[renderContext.lightmapIndex];
+            // };
+            // this.AutoUniformDic["u_lightmapOffset"] = () => {
+            //     return renderContext.lightmapTilingOffset;
+            // };
+            // this.AutoUniformDic["u_lightposs"] = () => {
+            //     return renderContext.vec4LightPos;
+            // };
+            // this.AutoUniformDic["u_lightdirs"] = () => {
+            //     return renderContext.vec4LightDir;
+            // };
+            // this.AutoUniformDic["u_spotangelcoss"] = () => {
+            //     return renderContext.floatLightSpotAngleCos;
+            // };
+            // this.AutoUniformDic["u_jointMatirx"] = () => {
+            //     return renderContext.jointMatrixs;
+            // };
+        }
+        get autoUniforms() {
+            return this.uniformDic;
+        }
+    }
+
+    class RenderMachine {
+        constructor(cancvas) {
+            this.camRenderList = {};
+            this.rendercontext = new RenderContext();
+            GlRender.autoUniform = new AutoUniform(this.rendercontext);
+            GlRender.init(cancvas);
+        }
+        frameRender(frameState) {
+            let camerlist = frameState.cameraList;
+            let renderList = frameState.renderList;
+            camerlist.sort((a, b) => {
+                return a.priority - b.priority;
+            });
+            for (let i = 0; i < camerlist.length; i++) {
+                let cam = camerlist[i];
+                if (this.camRenderList[cam.entity.guid] == null) {
+                    this.camRenderList[cam.entity.guid] = new RenderList(cam);
+                }
+                let camrenderList = this.camRenderList[cam.entity.guid];
+                // let newList = this.filterRenderByCamera(renderList, cam);
+                for (let i = 0; i < renderList.length; i++) {
+                    if (renderList[i].maskLayer & cam.cullingMask) {
+                        camrenderList.addRenderer(renderList[i]);
+                    }
+                }
+                //----------- set global State
+                GlRender.setViewPort(cam.viewport);
+                GlRender.setClear(cam.clearFlag & ClearEnum.DEPTH ? true : false, cam.clearFlag & ClearEnum.COLOR ? cam.backgroundColor : null, cam.clearFlag & ClearEnum.STENCIL ? true : false);
+                //-----------camera render before
+                this.rendercontext.curCamera = cam;
+                //-----------camera render ing
+                camrenderList.sort().foreach((item) => {
+                    this.rendercontext.curRender = item;
+                    GlRender.drawObject(item.geometry.data, item.material.shader, item.material.uniforms);
+                });
+                //-----------canera render end
+            }
+        }
+    }
+
+    class Entity {
+        constructor(name = null, compsArr = null) {
+            this.maskLayer = CullingMask.default;
+            this.components = {};
+            this.guid = newId();
+            this.name = name || "newEntity";
+            this.beActive = true;
+            if (compsArr != null) {
+                for (let i = 0; i < compsArr.length; i++) {
+                    this.addCompByName(compsArr[i]);
+                }
+            }
+            if (this.components["Transform"] == null) {
+                this.addCompByName("Transform");
+            }
+        }
+        addCompByName(name) {
+            let comp = EC.NewComponent(name);
+            this.components[name] = comp;
+            comp.entity = this;
+            return comp;
+        }
+        getCompByName(compName) {
+            return this.components[compName];
+        }
+        addComp(comp) {
+            this.components[comp.constructor.name] = comp;
+            comp.entity = this;
+            return comp;
+        }
+        removeCompByName(name) {
+            if (this.components[name]) {
+                this.components[name].dispose();
+                delete this.components[name];
+            }
+        }
+        dispose() {
+            for (let key in this.components) {
+                this.components[key].dispose();
+            }
+            this.components = null;
+        }
+    }
+    function newId() {
+        return newId.prototype.id++;
+    }
+    newId.prototype.id = -1;
 
     class Mat3 extends Float32Array {
         static create() {
@@ -5550,7 +7094,305 @@
         EC.RegComp
     ], Transform);
 
+    class FrameState {
+        constructor() {
+            this.renderList = [];
+            this.cameraList = [];
+        }
+        reInit() {
+            this.renderList.length = 0;
+            this.cameraList.length = 0;
+        }
+    }
+
+    class Scene {
+        constructor(render) {
+            this.root = new Transform();
+            this.frameState = new FrameState();
+            this.render = render;
+        }
+        newEntity(name = null, compsArr = null) {
+            let newobj = new Entity(name, compsArr);
+            this.addEntity(newobj);
+            return newobj;
+        }
+        addEntity(entity) {
+            this.root.addChild(entity.getCompByName("Transform"));
+        }
+        foreachRootNodes(func) {
+            for (let i = 0; i < this.root.children.length; i++) {
+                func(this.root.children[i]);
+            }
+        }
+        update(deltatime) {
+            this.frameState.reInit();
+            this.frameState.deltaTime = deltatime;
+            this.foreachRootNodes(node => {
+                this._updateNode(node, this.frameState);
+            });
+            this.render.frameRender(this.frameState);
+        }
+        _updateNode(node, frameState) {
+            let entity = node.entity;
+            if (!entity.beActive)
+                return;
+            for (const key in node.entity.components) {
+                node.entity.components[key].update(frameState);
+            }
+            for (let i = 0, len = node.children.length; i < len; i++) {
+                this._updateNode(node.children[i], frameState);
+            }
+        }
+    }
+
+    let Mesh = class Mesh {
+        constructor() {
+            this.mask = CullingMask.default;
+        }
+        get geometry() {
+            return this._geometry;
+        }
+        set geometry(value) {
+            this._geometry = value;
+            this._renderDirty = true;
+        }
+        get material() {
+            return this._material;
+        }
+        set material(value) {
+            this._material = value;
+            this._renderDirty = true;
+        }
+        update(frameState) {
+            let currentRender = (this.render && this.updateRender()) || {
+                maskLayer: this.entity.maskLayer,
+                geometry: this._geometry,
+                // program: this._material.program,
+                // uniforms: this._material.uniforms,
+                material: this._material,
+                modelMatrix: this.entity.getCompByName("Transform").worldMatrix,
+            };
+            frameState.renderList.push(currentRender);
+        }
+        updateRender() {
+            if (this._renderDirty) {
+                this.render.geometry = this._geometry;
+                // this.render.program = this._material.program;
+                // this.render.uniforms = this._material.uniforms;
+                this.render.material = this._material;
+                this._renderDirty = false;
+            }
+            this.render.maskLayer = this.entity.maskLayer;
+            return this.render;
+        }
+        dispose() { }
+    };
+    Mesh = __decorate([
+        EC.RegComp
+    ], Mesh);
+
+    class ToyGL {
+        constructor() {
+            this.frameUpdate = (deltaTime) => {
+                this.scene.update(deltaTime);
+            };
+        }
+        // setupRender(canvas: HTMLCanvasElement) {}
+        initByHtmlElement(element) {
+            let canvas;
+            if (element instanceof HTMLDivElement) {
+                canvas = document.createElement("canvas");
+                canvas.width = element.clientWidth;
+                canvas.width = element.clientHeight;
+                element.appendChild(canvas);
+                canvas.style.width = "100%";
+                canvas.style.height = "100%";
+            }
+            else {
+                canvas = element;
+            }
+            this.assetMgr = new AssetMgr();
+            let render = new RenderMachine(canvas);
+            this.scene = new Scene(render);
+            GameScreen.init(canvas);
+            this.loop = new Loop();
+            this.loop.update = this.frameUpdate;
+        }
+    }
+    class Loop {
+        constructor() {
+            this.update = () => { };
+            this.beActive = false;
+            let func = () => {
+                let now = Date.now();
+                let deltaTime = now - this._lastTime || now;
+                this._lastTime = now;
+                if (this.beActive) {
+                    this.update(deltaTime);
+                }
+                requestAnimationFrame(func);
+            };
+            func();
+            this.beActive = true;
+        }
+        active() {
+            this.beActive = true;
+        }
+        disActive() {
+            this.beActive = false;
+        }
+    }
+
+    class ResID {
+        static next() {
+            let next = ResID.idAll;
+            ResID.idAll++;
+            return next;
+        }
+    }
+    ResID.idAll = 0;
+    class ToyAsset {
+        constructor(param) {
+            this.guid = ResID.next();
+            this.name = (param && param.name) || "asset_" + this.guid;
+            this.URL = param && param.URL;
+            this.beDefaultAsset = (param && param.beDefaultAsset) || false;
+        }
+    }
+
+    class Geometry extends ToyAsset {
+        constructor(param) {
+            super(param);
+        }
+        dispose() { }
+        static fromCustomData(data) {
+            let geometry = GlRender.createGeometry(data);
+            let newAsset = new Geometry({ name: "custom_Mesh" });
+            newAsset.data = geometry;
+            return newAsset;
+        }
+    }
+
+    class DefGeometry {
+        static fromType(type) {
+            if (this.defGeometry[type] == null) {
+                let gemetryinfo;
+                switch (type) {
+                    case "quad":
+                        gemetryinfo = GlRender.createGeometry({
+                            atts: {
+                                aPos: [-0.5, -0.5, 0.5, -0.5, 0.5, 0, 0.5, 0.5, 0, 0.5, -0.5, 0],
+                                aUv: [0, 1, 0, 0, 1, 0, 1, 1],
+                            },
+                            indices: [0, 1, 2, 0, 3, 2],
+                        });
+                        break;
+                    default:
+                        console.warn("Unkowned default mesh type:", type);
+                        return null;
+                }
+                if (gemetryinfo != null) {
+                    this.defGeometry[type] = new Geometry({ name: "def_" + type, beDefaultAsset: true });
+                    this.defGeometry[type].data = gemetryinfo;
+                }
+            }
+            return this.defGeometry[type];
+        }
+    }
+    DefGeometry.defGeometry = {};
+
+    class Shader extends ToyAsset {
+        constructor(param) {
+            super(param);
+        }
+        static fromCustomData(data) {
+            let program = GlRender.createProgram(data);
+            let newAsset = new Shader({ name: "custom_shader" });
+            for (const key in program) {
+                newAsset[key] = program[key];
+            }
+            return newAsset;
+        }
+        dispose() { }
+    }
+
+    class DefShader {
+        static fromType(type) {
+            if (this.defShader[type] == null) {
+                switch (type) {
+                    case "color":
+                        let colorVs = "\
+                          attribute vec3 aPos;\
+                          void main()\
+                          {\
+                              highp vec4 tmplet_1=vec4(aPos.xyz,1.0);\
+                              gl_Position = tmplet_1;\
+                          }";
+                        let colorFs = "\
+                          uniform highp vec4 MainColor;\
+                          void main()\
+                          {\
+                              gl_FragData[0] = MainColor;\
+                          }";
+                        this.defShader[type] = Shader.fromCustomData({
+                            program: {
+                                vs: colorVs,
+                                fs: colorFs,
+                                name: "defcolor",
+                            },
+                        });
+                        break;
+                    default:
+                        console.warn("Unkowned default shader type:", type);
+                        return null;
+                }
+            }
+            return this.defShader[type];
+        }
+    }
+    DefShader.defShader = {};
+
+    class Material extends ToyAsset {
+        constructor(param) {
+            super(param);
+            this.uniforms = {};
+            this._dirty = false;
+            this.queue = 0;
+        }
+        set shader(value) {
+            this._program = value;
+            this._dirty = true;
+        }
+        get shader() {
+            return this._program;
+        }
+        set layer(value) {
+            this._layer = value;
+        }
+        get layer() {
+            return this._layer || (this._program && this._program.layer) || RenderLayerEnum.Geometry;
+        }
+        setColor(uniform, color) {
+            this.uniforms[uniform] = color;
+        }
+        dispose() { }
+    }
+
     window.onload = () => {
+        let toy = new ToyGL();
+        toy.initByHtmlElement(document.getElementById("canvas"));
+        let geometry = DefGeometry.fromType("quad");
+        let shader = DefShader.fromType("color");
+        let material = new Material();
+        material.shader = shader;
+        material.setColor("MainColor", Color.create(1, 0, 0, 1));
+        let obj = new Entity();
+        let mesh = obj.addCompByName("Mesh");
+        mesh.geometry = geometry;
+        mesh.material = material;
+        toy.scene.addEntity(obj);
+        let camobj = new Entity("", ["Camera"]);
+        toy.scene.addEntity(camobj);
     };
 
 })));
