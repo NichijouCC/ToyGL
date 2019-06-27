@@ -1,7 +1,6 @@
 import { ToyAsset, ItoyAsset } from "../base/toyAsset";
 import { RenderLayerEnum } from "../../ec/ec";
-import { IshaderInfo } from "../../render/glRender";
-import { Shader } from "./shader";
+import { Shader, IshaderInfo } from "./shader";
 import { Color } from "../../mathD/color";
 
 export class Material extends ToyAsset {

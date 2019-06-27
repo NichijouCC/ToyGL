@@ -24,13 +24,13 @@ import { RenderLayerEnum } from "../ec/ec";
 import { AutoUniform } from "./autoUniform";
 export { IprogramInfo, IgeometryInfo, IgeometryOptions, IprogramOptions };
 
-export interface IshaderOptions extends IprogramOptions {
-    layer?: RenderLayerEnum;
-}
+// export interface IshaderOptions extends IprogramOptions {
+//     layer?: RenderLayerEnum;
+// }
 
-export interface IshaderInfo extends IprogramInfo {
-    layer: RenderLayerEnum;
-}
+// export interface IshaderInfo extends IprogramInfo {
+//     layer: RenderLayerEnum;
+// }
 
 export class GlRender {
     private static context: WebGLRenderingContext;
@@ -78,9 +78,9 @@ export class GlRender {
         return info;
     }
 
-    static createProgram(op: IshaderOptions): IshaderInfo {
-        let info = createProgramInfo(this.context, op) as IshaderInfo;
-        info.layer = op.layer || RenderLayerEnum.Geometry;
+    static createProgram(op: IprogramOptions): IprogramInfo {
+        let info = createProgramInfo(this.context, op);
+        // info.layer = op.layer || RenderLayerEnum.Geometry;
         return info;
     }
 

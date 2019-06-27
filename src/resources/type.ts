@@ -34,11 +34,11 @@ export interface IassetLoader {
     ): Iasset;
 }
 
-export interface IassetMgr {
-    load(
-        url: string,
-        onFinish: (asset: Iasset, loadInfo?: IassetLoadInfo) => void,
-        onProgress: (progress: number) => void,
-    ): Iasset;
-    loadAsync(url: string): Promise<Iasset>;
-}
+// export interface IassetMgr {
+//     load(
+//         url: string,
+//         onFinish: (asset: Iasset, loadInfo?: IassetLoadInfo) => void,
+//         onProgress: (progress: number) => void,
+//     ): Iasset;
+//     loadAsync(url: string): Promise<Iasset>;
+// }

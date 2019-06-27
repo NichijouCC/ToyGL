@@ -4,197 +4,6 @@
     (factory());
 }(this, (function () { 'use strict';
 
-    var LoadEnum;
-    (function (LoadEnum) {
-        LoadEnum["Success"] = "Success";
-        LoadEnum["Failed"] = "Failed";
-        LoadEnum["Loading"] = "Loading";
-        LoadEnum["None"] = "None";
-    })(LoadEnum || (LoadEnum = {}));
-
-    //通过url获取资源的名称(包含尾缀)
-    // static getAssetExtralType(url: string): AssetExtralEnum {
-    //     let index = url.lastIndexOf("/");
-    //     let filename = url.substr(index + 1);
-    //     index = filename.indexOf(".", 0);
-    //     let extname = filename.substr(index);
-    //     let type = this.ExtendNameDic[extname];
-    //     if (type == null) {
-    //         console.warn("Load Asset Failed.type:(" + type + ") not have loader yet");
-    //     }
-    //     return type;
-    // }
-    function getAssetExtralName(url) {
-        let index = url.lastIndexOf("/");
-        let filename = url.substr(index + 1);
-        index = filename.indexOf(".", 0);
-        let extname = filename.substr(index);
-        return extname;
-    }
-
-    // export class DefaultAssetMgr {
-    //     //#region -------------------default resource
-    //     initDefAsset() {
-    //         DefTexture.initDefaultTexture();
-    //         DefMesh.initDefaultMesh();
-    //         DefShader.initDefaultShader();
-    //         DefMatrial.initDefaultMat();
-    //     }
-    //     mapDefaultMesh: { [id: string]: Mesh } = {};
-    //     getDefaultMesh(name: string): Mesh {
-    //         return this.mapDefaultMesh[name];
-    //     }
-    //     mapDefaultTexture: { [id: string]: Texture } = {};
-    //     getDefaultTexture(name: string): Texture {
-    //         return this.mapDefaultTexture[name];
-    //     }
-    //     mapDefaultCubeTexture: { [id: string]: CubeTexture } = {};
-    //     getDefaultCubeTexture(name: string): CubeTexture {
-    //         return this.mapDefaultCubeTexture[name];
-    //     }
-    //     mapDefaultMat: { [id: string]: Material } = {};
-    //     getDefaultMaterial(name: string) {
-    //         return this.mapDefaultMat[name];
-    //     }
-    // }
-    /**
-     * 资源都继承web3dAsset 实现Iasset接口,有唯一ID
-     *
-     * assetmgr仅仅管理load进来的资源
-     * load过的资源再次load不会造成重复加载
-     * 所有的资源都是从资源管理器load（url）出来，其他接口全部封闭
-     * 资源的来源有三种：new、load、内置资源
-     * bundle包不会shared asset,bundle不会相互依赖。即如果多个bundle引用同一个asset,每个包都包含一份该资源.
-     *
-     *
-     * 资源释放：
-     * gameobject（new或instance的）通过dispose 销毁自己的内存，不销毁引用的asset
-     * asset 可以通过dispose 销毁自己的内存。包释放(prefab/scene/gltfbundle)也属于asset的释放,包会释放自己依赖的asset。
-     *
-     */
-    class AssetLoader {
-        static RegisterAssetLoader(extral, factory) {
-            // this.ExtendNameDic[extral] = type;
-            this.RESLoadDic[extral] = factory;
-        }
-        static getAssetLoader(url) {
-            let extralType = getAssetExtralName(url);
-            let factory = this.RESLoadDic[extralType];
-            return factory && factory();
-        }
-    }
-    //private static ExtendNameDic: { [name: string]: AssetExtralEnum } = {};
-    AssetLoader.RESLoadDic = {};
-    class AssetMgr {
-        constructor() {
-            this.mapShader = {};
-            //#endregion
-            /**
-             * 调用load方法就会塞到这里面来
-             */
-            this.loadMap = {};
-            /**
-             * load同一个资源监听回调
-             */
-            this.loadingUrl = {}; //
-        }
-        getShader(name) {
-            return this.mapShader[name];
-        }
-        getAssetLoadInfo(url) {
-            if (this.loadMap[url]) {
-                return this.loadMap[url].loadinfo;
-            }
-            else {
-                return null;
-            }
-        }
-        /**
-         * 加载资源
-         * @param url 地址
-         * @param onFinish  load回调]
-         */
-        load(url, onFinish = null, onProgress = null) {
-            if (this.loadMap[url]) {
-                if (onFinish) {
-                    switch (this.loadMap[url].loadinfo.loadState) {
-                        case LoadEnum.Success:
-                        case LoadEnum.Failed:
-                            onFinish(this.loadMap[url].asset, this.loadMap[url].loadinfo);
-                            break;
-                        case LoadEnum.Loading:
-                            if (this.loadingUrl[url] == null) {
-                                this.loadingUrl[url] = [];
-                            }
-                            this.loadingUrl[url].push(onFinish);
-                            break;
-                        default:
-                        case LoadEnum.None:
-                            console.error("load error 为啥出现这种情况！");
-                            break;
-                    }
-                }
-                return this.loadMap[url].asset;
-            }
-            else {
-                let factory = AssetLoader.getAssetLoader(url);
-                let _state = { url: url, loadState: LoadEnum.None };
-                this.loadMap[url] = { asset: null, loadinfo: _state };
-                if (factory == null) {
-                    let errorMsg = "ERROR: load Asset error. INfo: not have Load Func to handle (" +
-                        getAssetExtralName(url) +
-                        ") type File.  load URL:" +
-                        url;
-                    _state.err = new Error(errorMsg);
-                    console.error(errorMsg);
-                    if (onFinish) {
-                        onFinish(null, _state);
-                    }
-                    return null;
-                }
-                else {
-                    let asset = factory.load(url, (asset, state) => {
-                        //-------------------------------存进资源存储map
-                        _state.loadState = state.loadState;
-                        //---------------------回调事件
-                        if (onFinish) {
-                            onFinish(asset, state);
-                        }
-                        //------------------监听此资源loadfinish的事件
-                        let arr = this.loadingUrl[url];
-                        this.loadingUrl[url] = null;
-                        delete this.loadingUrl[url]; //set loadingUrl null
-                        if (arr) {
-                            arr.forEach(func => {
-                                func(asset, state);
-                            });
-                        }
-                    }, onProgress);
-                    _state.loadState = LoadEnum.Loading;
-                    this.loadMap[url].asset = asset;
-                    return asset;
-                }
-            }
-        }
-        loadAsync(url) {
-            return new Promise((resolve, reject) => {
-                this.load(url, (asset, loadInfo) => {
-                    if (loadInfo.loadState == LoadEnum.Success) {
-                        resolve(asset);
-                    }
-                    else {
-                        reject(new Error("Load Failed."));
-                    }
-                });
-            });
-        }
-    }
-    //<<<<<<<--------1.  new出来的自己管理,如果进行管控,assetmgr必然持有该资源的引用。当用该资源的对象被释放,该对象对该资源的引用也就没了,但是assetmgr持有它的引用，资源也就是没被释放;
-    //释放对象的时候我们又不能对资源进行释放，不然其他对象使用该资源就会报错，对于new出的资源,没被使用就会被系统自动释放或者自己释放-------------------->>>>>>>>>
-    //<<<<<<<------- 2.  资源的name不作为asset的标识.不然造成一大堆麻烦。如果允许重名资源在assetmgr获取资源的需要通过bundlename /assetname才能正确获取资源,bundlename于asset来说不一定有;
-    //new asset的时候还要检查重名资源,允许还是不允许都是麻烦—--->>>>>>>>>>>>>>>>>>>>>>>
-    //<<<<<<<--------3.  资源本身的描述json，不会被作为资源被assetmgr管理起来-->>>
-
     /**
      * Enum containing WebGL Constant values by name.
      * for use without an active WebGL context, or in cases where certain constants are unavailable using the WebGL context
@@ -2203,6 +2012,65 @@
         }
     }
 
+    // export interface IshaderOptions extends IprogramOptions {
+    //     layer?: RenderLayerEnum;
+    // }
+    // export interface IshaderInfo extends IprogramInfo {
+    //     layer: RenderLayerEnum;
+    // }
+    class GlRender {
+        static init(canvas, options = {}) {
+            this.context = setUpWebgl(canvas, options);
+        }
+        static get maxVertexAttribs() {
+            if (this._maxVertexAttribs == null) {
+                this.context.getParameter(this.context.MAX_VERTEX_ATTRIBS);
+            }
+            return this._maxVertexAttribs;
+        }
+        static get maxTexturesImageUnits() {
+            if (this._maxTexturesImageUnits == null) {
+                this.context.getParameter(this.context.MAX_TEXTURE_IMAGE_UNITS);
+            }
+            return this._maxTexturesImageUnits;
+        }
+        static setViewPort(viewport) {
+            setViewPortWithCached(this.context, viewport[0] * this.context.drawingBufferWidth, viewport[1] * this.context.drawingBufferHeight, viewport[2] * this.context.drawingBufferWidth, viewport[3] * this.context.drawingBufferHeight);
+        }
+        static setClear(clearDepth, clearColor, clearStencil) {
+            setClear(this.context, clearDepth, clearColor, clearStencil);
+        }
+        static setState() {
+            throw new Error("Method not implemented.");
+        }
+        static createGeometry(op) {
+            let info = createGeometryInfo(this.context, op);
+            return info;
+        }
+        static createProgram(op) {
+            let info = createProgramInfo(this.context, op);
+            // info.layer = op.layer || RenderLayerEnum.Geometry;
+            return info;
+        }
+        static createTextureFromImg(img) {
+            return createTextureFromImageSource(this.context, img);
+        }
+        static setGeometryAndProgram(geometry, program) {
+            setGeometryAndProgramWithCached(this.context, geometry, program);
+        }
+        static drawObject(geometry, program, uniforms, instancecount) {
+            // setProgram(this.context, program);
+            setGeometryAndProgramWithCached(this.context, geometry, program);
+            //set uniforms
+            for (const key in program.uniformsDic) {
+                let func = this.autoUniform && this.autoUniform.autoUniforms[key];
+                let value = func ? func() : uniforms[key];
+                program.uniformsDic[key].setter(value);
+            }
+            drawBufferInfo(this.context, geometry, instancecount);
+        }
+    }
+
     /**
      * 渲染的层级(从小到大绘制)
      */
@@ -2243,59 +2111,6 @@
         let target = constructor.prototype;
         EC.dic[target.constructor.name] = target.constructor;
     };
-
-    class GlRender {
-        static init(canvas, options = {}) {
-            this.context = setUpWebgl(canvas, options);
-        }
-        static get maxVertexAttribs() {
-            if (this._maxVertexAttribs == null) {
-                this.context.getParameter(this.context.MAX_VERTEX_ATTRIBS);
-            }
-            return this._maxVertexAttribs;
-        }
-        static get maxTexturesImageUnits() {
-            if (this._maxTexturesImageUnits == null) {
-                this.context.getParameter(this.context.MAX_TEXTURE_IMAGE_UNITS);
-            }
-            return this._maxTexturesImageUnits;
-        }
-        static setViewPort(viewport) {
-            setViewPortWithCached(this.context, viewport[0] * this.context.drawingBufferWidth, viewport[1] * this.context.drawingBufferHeight, viewport[2] * this.context.drawingBufferWidth, viewport[3] * this.context.drawingBufferHeight);
-        }
-        static setClear(clearDepth, clearColor, clearStencil) {
-            setClear(this.context, clearDepth, clearColor, clearStencil);
-        }
-        static setState() {
-            throw new Error("Method not implemented.");
-        }
-        static createGeometry(op) {
-            let info = createGeometryInfo(this.context, op);
-            return info;
-        }
-        static createProgram(op) {
-            let info = createProgramInfo(this.context, op);
-            info.layer = op.layer || RenderLayerEnum.Geometry;
-            return info;
-        }
-        static createTextureFromImg(img) {
-            return createTextureFromImageSource(this.context, img);
-        }
-        static setGeometryAndProgram(geometry, program) {
-            setGeometryAndProgramWithCached(this.context, geometry, program);
-        }
-        static drawObject(geometry, program, uniforms, instancecount) {
-            // setProgram(this.context, program);
-            setGeometryAndProgramWithCached(this.context, geometry, program);
-            //set uniforms
-            for (const key in program.uniformsDic) {
-                let func = this.autoUniform && this.autoUniform.autoUniforms[key];
-                let value = func ? func() : uniforms[key];
-                program.uniformsDic[key].setter(value);
-            }
-            drawBufferInfo(this.context, geometry, instancecount);
-        }
-    }
 
     const EPSILON = 0.000001;
     function clamp(v, min = 0, max = 1) {
@@ -5361,7 +5176,10 @@
                 //-----------camera render ing
                 camrenderList.sort().foreach((item) => {
                     this.rendercontext.curRender = item;
-                    GlRender.drawObject(item.geometry.data, item.material.shader, item.material.uniforms);
+                    let shader = item.material.shader;
+                    for (let i = 0; i < shader.passes["base"].length; i++) {
+                        GlRender.drawObject(item.geometry.data, shader.passes["base"][i], item.material.uniforms);
+                    }
                 });
                 //-----------canera render end
             }
@@ -7191,6 +7009,7 @@
         EC.RegComp
     ], Mesh);
 
+    // import { IassetMgr } from "./resources/type";
     class ToyGL {
         constructor() {
             this.frameUpdate = (deltaTime) => {
@@ -7211,7 +7030,6 @@
             else {
                 canvas = element;
             }
-            this.assetMgr = new AssetMgr();
             let render = new RenderMachine(canvas);
             this.scene = new Scene(render);
             GameScreen.init(canvas);
@@ -7304,16 +7122,65 @@
     class Shader extends ToyAsset {
         constructor(param) {
             super(param);
+            this.layer = RenderLayerEnum.Geometry;
+            this.queue = 0;
         }
         static fromCustomData(data) {
-            let program = GlRender.createProgram(data);
             let newAsset = new Shader({ name: "custom_shader" });
-            for (const key in program) {
-                newAsset[key] = program[key];
+            newAsset.layer = data.layer || RenderLayerEnum.Geometry;
+            newAsset.queue = data.queue != null ? data.queue : 0;
+            let features = data.feature != null ? [...data.feature, "base"] : ["base"];
+            let passes = data.passes;
+            let featurePasses = {};
+            for (let i = 0; i < features.length; i++) {
+                let type = features[i];
+                let featureStr = getFeaturShderStr(type);
+                let programArr = [];
+                for (let i = 0; i < passes.length; i++) {
+                    let passitem = passes[i];
+                    let program = GlRender.createProgram({
+                        program: {
+                            vs: featureStr + passitem.program.vs,
+                            fs: featureStr + passitem.program.fs,
+                            name: null,
+                        },
+                        states: passitem.states,
+                        uniforms: passitem.uniforms,
+                    });
+                    programArr.push(program);
+                }
+                featurePasses[type] = programArr;
             }
+            newAsset.passes = featurePasses;
             return newAsset;
         }
         dispose() { }
+    }
+    var UniformTypeEnum;
+    (function (UniformTypeEnum) {
+        UniformTypeEnum[UniformTypeEnum["FLOAT"] = 0] = "FLOAT";
+        UniformTypeEnum[UniformTypeEnum["FLOAT_VEC2"] = 1] = "FLOAT_VEC2";
+        UniformTypeEnum[UniformTypeEnum["FLOAT_VEC3"] = 2] = "FLOAT_VEC3";
+        UniformTypeEnum[UniformTypeEnum["FLOAT_VEC4"] = 3] = "FLOAT_VEC4";
+        UniformTypeEnum[UniformTypeEnum["TEXTURE"] = 4] = "TEXTURE";
+    })(UniformTypeEnum || (UniformTypeEnum = {}));
+    function getFeaturShderStr(type) {
+        switch (type) {
+            case "base":
+                return "";
+            case "fog":
+                return "#define FOG \n";
+            case "skin":
+                return "#define SKIN \n";
+            case "skin_fog":
+                return "#define SKIN \n" + "#define FOG \n";
+            case "lightmap":
+                return "#define LIGHTMAP \n";
+            case "lightmap_fog":
+                return "#define LIGHTMAP \n" + "#define FOG \n";
+            case "instance":
+                return "#define INSTANCE \n";
+        }
     }
 
     class DefShader {
@@ -7335,11 +7202,15 @@
                               gl_FragData[0] = MainColor;\
                           }";
                         this.defShader[type] = Shader.fromCustomData({
-                            program: {
-                                vs: colorVs,
-                                fs: colorFs,
-                                name: "defcolor",
-                            },
+                            passes: [
+                                {
+                                    program: {
+                                        vs: colorVs,
+                                        fs: colorFs,
+                                        name: "defcolor",
+                                    },
+                                },
+                            ],
                         });
                         break;
                     default:

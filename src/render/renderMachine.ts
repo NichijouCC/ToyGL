@@ -47,7 +47,11 @@ export class RenderMachine {
             //-----------camera render ing
             camrenderList.sort().foreach((item: Irenderable) => {
                 this.rendercontext.curRender = item;
-                GlRender.drawObject(item.geometry.data, item.material.shader, item.material.uniforms);
+
+                let shader = item.material.shader;
+                for (let i = 0; i < shader.passes["base"].length; i++) {
+                    GlRender.drawObject(item.geometry.data, shader.passes["base"][i], item.material.uniforms);
+                }
             });
             //-----------canera render end
         }

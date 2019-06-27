@@ -1,6 +1,6 @@
 import { IassetLoader, Iasset, IassetLoadInfo } from "../type";
 import { getFileName } from "../base/helper";
-import { TextAsset } from "../assets/textasset";
+import { TextAsset } from "../assets/textAsset";
 import { loadText } from "../../io/loadtool";
 import { LoadEnum } from "../base/loadEnum";
 
@@ -32,7 +32,7 @@ export class LoadTxt implements IassetLoader {
         return text;
     }
 }
-const _loadtxt: LoadTxt = new LoadTxt();
+// const _loadtxt: LoadTxt = new LoadTxt();
 // AssetMgr.RegisterAssetLoader(".vs.glsl", () => _loadtxt);
 // AssetMgr.RegisterAssetLoader(".fs.glsl", () => _loadtxt);
 // AssetMgr.RegisterAssetLoader(".txt", () => _loadtxt);

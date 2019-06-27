@@ -1,5 +1,5 @@
-import { AssetMgr } from "./resources/assetmgr";
-import { IassetMgr } from "./resources/type";
+import { Resource } from "./resources/resource";
+// import { IassetMgr } from "./resources/type";
 import { RenderMachine } from "./render/renderMachine";
 import { GameScreen } from "./gameScreen";
 import { Scene } from "./scene/scene";
@@ -7,7 +7,7 @@ import { GlRender } from "./render/glRender";
 
 export class ToyGL {
     private loop: Iloop;
-    assetMgr: IassetMgr;
+    // assetMgr: IassetMgr;
     scene: Scene;
     // setupRender(canvas: HTMLCanvasElement) {}
 
@@ -24,8 +24,6 @@ export class ToyGL {
         } else {
             canvas = element;
         }
-
-        this.assetMgr = new AssetMgr();
         let render = new RenderMachine(canvas);
         this.scene = new Scene(render);
         GameScreen.init(canvas);

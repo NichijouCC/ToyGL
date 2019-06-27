@@ -1,35 +1,7 @@
-import { IassetLoader, IassetLoadInfo, Iasset, IassetMgr } from "./type";
+import { IassetLoader, IassetLoadInfo, Iasset } from "./type";
 import { LoadEnum } from "./base/loadEnum";
 import { IprogramInfo } from "../render/glRender";
 import { getAssetExtralName } from "./base/helper";
-
-// export class DefaultAssetMgr {
-//     //#region -------------------default resource
-//     initDefAsset() {
-//         DefTexture.initDefaultTexture();
-//         DefMesh.initDefaultMesh();
-//         DefShader.initDefaultShader();
-//         DefMatrial.initDefaultMat();
-//     }
-
-//     mapDefaultMesh: { [id: string]: Mesh } = {};
-//     getDefaultMesh(name: string): Mesh {
-//         return this.mapDefaultMesh[name];
-//     }
-//     mapDefaultTexture: { [id: string]: Texture } = {};
-//     getDefaultTexture(name: string): Texture {
-//         return this.mapDefaultTexture[name];
-//     }
-//     mapDefaultCubeTexture: { [id: string]: CubeTexture } = {};
-//     getDefaultCubeTexture(name: string): CubeTexture {
-//         return this.mapDefaultCubeTexture[name];
-//     }
-//     mapDefaultMat: { [id: string]: Material } = {};
-//     getDefaultMaterial(name: string) {
-//         return this.mapDefaultMat[name];
-//     }
-// }
-
 /**
  * 资源都继承web3dAsset 实现Iasset接口,有唯一ID
  *
@@ -65,26 +37,31 @@ export class AssetLoader {
     // }
 
     // private static RESExtensionLoadDic: { [ExtralName: string]: () => IassetLoader } = {};
+
+    static async addLoader() {
+        import("./loader/loadTxt").then(mod => {
+            this.RegisterAssetLoader(".txt", () => new mod.LoadTxt());
+        });
+        import("./loader/loadTxt").then(mod => {
+            this.RegisterAssetLoader(".txt", () => new mod.LoadTxt());
+        });
+    }
 }
 
-export class AssetMgr implements IassetMgr {
-    mapShader: { [id: string]: IprogramInfo } = {};
-    getShader(name: string): IprogramInfo {
-        return this.mapShader[name];
-    }
+export class Resource {
     //#endregion
     /**
      * 调用load方法就会塞到这里面来
      */
-    private loadMap: {
+    private static loadMap: {
         [url: string]: { asset: Iasset | null; loadinfo: IassetLoadInfo | null };
     } = {};
     /**
      * load同一个资源监听回调
      */
-    private loadingUrl: { [url: string]: ((asset: Iasset | null, loadInfo?: IassetLoadInfo) => void)[] } = {}; //
+    private static loadingUrl: { [url: string]: ((asset: Iasset | null, loadInfo?: IassetLoadInfo) => void)[] } = {}; //
 
-    getAssetLoadInfo(url: string): IassetLoadInfo | null {
+    static getAssetLoadInfo(url: string): IassetLoadInfo | null {
         if (this.loadMap[url]) {
             return this.loadMap[url].loadinfo;
         } else {
@@ -97,7 +74,7 @@ export class AssetMgr implements IassetMgr {
      * @param url 地址
      * @param onFinish  load回调]
      */
-    load(
+    static load(
         url: string,
         onFinish: ((asset: Iasset | null, loadInfo?: IassetLoadInfo) => void) | null = null,
         onProgress: (progress: number) => void = null,
@@ -168,7 +145,7 @@ export class AssetMgr implements IassetMgr {
         }
     }
 
-    loadAsync(url: string): Promise<Iasset> {
+    static loadAsync(url: string): Promise<Iasset> {
         return new Promise((resolve, reject) => {
             this.load(url, (asset, loadInfo) => {
                 if (loadInfo.loadState == LoadEnum.Success) {

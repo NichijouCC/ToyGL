@@ -25,11 +25,15 @@ export class DefShader {
                               gl_FragData[0] = MainColor;\
                           }";
                     this.defShader[type] = Shader.fromCustomData({
-                        program: {
-                            vs: colorVs,
-                            fs: colorFs,
-                            name: "defcolor",
-                        },
+                        passes: [
+                            {
+                                program: {
+                                    vs: colorVs,
+                                    fs: colorFs,
+                                    name: "defcolor",
+                                },
+                            },
+                        ],
                     });
                     break;
                 default:
