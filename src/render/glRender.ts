@@ -4,6 +4,7 @@ import {
     IcontextOptions,
     IgeometryOptions,
     IprogramOptions,
+    ItexImageDataOption,
 } from "twebgl/dist/types/type";
 
 import {
@@ -85,8 +86,8 @@ export class GlRender {
         return info;
     }
 
-    static createTextureFromImg(img: TexImageSource): WebGLTexture {
-        return createTextureFromImageSource(this.context, img);
+    static createTextureFromImg(img: TexImageSource,texop?:ItexImageDataOption): WebGLTexture {
+        return createTextureFromImageSource(this.context, img,texop);
     }
 
     static setGeometryAndProgram(geometry: IgeometryInfo, program: IprogramInfo) {

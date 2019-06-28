@@ -46,6 +46,10 @@ export class AssetLoader {
         await import("./loader/loadShader").then(mod => {
             this.RegisterAssetLoader(".shader.json", () => new mod.LoadShader());
         });
+        await import("./loader/loadTexture").then(mod => {
+            this.RegisterAssetLoader(".png", () => new mod.LoadTextureSample());
+            this.RegisterAssetLoader(".jpg", () => new mod.LoadTextureSample());
+        });
     }
 }
 

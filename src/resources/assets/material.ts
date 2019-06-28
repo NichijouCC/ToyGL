@@ -1,3 +1,4 @@
+import { Texture } from './texture';
 import { ToyAsset, ItoyAsset } from "../base/toyAsset";
 import { RenderLayerEnum } from "../../ec/ec";
 import { Shader, IshaderInfo } from "./shader";
@@ -31,6 +32,11 @@ export class Material extends ToyAsset {
 
     setColor(uniform: string, color: Color) {
         this.uniforms[uniform] = color;
+    }
+
+    setTexture(unfiorm:string,tex:Texture)
+    {
+        this.uniforms[unfiorm]=tex;
     }
 
     dispose(): void {}

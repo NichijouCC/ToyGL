@@ -1,3 +1,4 @@
+import { Transform } from './components/transform';
 import { Ientity, Icomponent, EC, Irender, CullingMask } from "./ec";
 
 export class Entity implements Ientity {
@@ -20,6 +21,11 @@ export class Entity implements Ientity {
         if (this.components["Transform"] == null) {
             this.addCompByName("Transform");
         }
+    }
+
+    get transForm():Transform
+    {
+        return this.getCompByName("Transform") as Transform;
     }
 
     addCompByName(name: string): Icomponent {

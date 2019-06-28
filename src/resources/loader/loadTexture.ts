@@ -1,151 +1,127 @@
+import { GlRender } from './../../render/glRender';
 import { IassetLoader, IassetLoadInfo, Iasset } from "../type";
 import { getFileName } from "../base/helper";
+import { Texture } from "../assets/texture";
+import { loadImg, loadText } from "../../io/loadtool";
+import { LoadEnum } from '../base/loadEnum';
 
 export class LoadTextureSample implements IassetLoader {
     load(
         url: string,
         onFinish: (asset: Iasset, state: IassetLoadInfo) => void,
         onProgress: (progress: number) => void,
-    ): Iasset {{
+    ): Iasset {
         let name = getFileName(url);
-        let texture: Texture = new Texture(name);
+        let texture: Texture = new Texture({name:name,URL:url});
+        loadImg(url).then((img)=>{
+            texture.width=img.width;
+            texture.height=img.height;
+            texture.glTexture=GlRender.createTextureFromImg(img);
 
-        state.progress = loadImg(
-            url,
-            (tex, err) => {
-                if (err) {
-                    let errorMsg = "ERROR: Load Image Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
-                    state.err = new Error(errorMsg);
-                } else {
-                    LoadTextureSample.parse(texture, tex as HTMLImageElement);
-                    state.beSucces = true;
-                }
-                if (onFinish) {
-                    onFinish(texture, state);
-                }
-            },
-            null,
-        );
+            if (onFinish) {
+                onFinish(texture, { url: url, loadState: LoadEnum.Success });
+            }
+        }).catch((err)=>{
+            let errorMsg = "ERROR: Load Image Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
+            if (onFinish) {
+                onFinish(texture, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
+            }
+        });
         return texture;
-    }
-    private static parse(tex: Texture, image: HTMLImageElement) {
-        tex.imageData = image;
-        tex.width = image.width;
-        tex.height = image.height;
-        tex.applyToGLTarget();
     }
 }
 
-export class LoadTexture implements IAssetLoader {
+export interface ItextureDesJson
+{
+    texture:string;
+
+}
+export class LoadTextureDes implements IassetLoader {
     load(
         url: string,
-        state: AssetLoadInfo,
-        onFinish: (asset: IAsset, state: AssetLoadInfo) => void,
-        onProgress: (downLoadinfo: DownloadInfo) => void = null,
-    ): IAsset {
-        let name = AssetMgr.getFileName(url);
-        let texture: Texture = new Texture(name);
+        onFinish: (asset: Iasset, state: IassetLoadInfo) => void,
+        onProgress: (progress: number) => void,
+    ): Iasset {
+        let name = getFileName(url);
+        let texture: Texture = new Texture({name:name,URL:url});
         //-------------load image des
+        loadText(url).then((txt)=>{
+            let desjson = JSON.parse(txt);
+            let imgName = desjson.texture;
+            let desname = getFileName(url);
 
-        let request = loadText(
-            url,
-            (txt, err) => {
-                if (err) {
-                    let errorMsg =
-                        "ERROR: Load Image Des Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
-                    state.err = new Error(errorMsg);
-                    if (onFinish) {
-                        onFinish(texture, state);
-                    }
-                } else {
-                    let desjson = JSON.parse(txt as string);
-                    let imgName = desjson.texture;
-                    let desname = AssetMgr.getFileName(url);
+            let imgurl = url.replace(desname, imgName);
+            loadImg(imgurl).then((img)=>{
+                texture.width=img.width;
+                texture.height=img.height;
+                texture.glTexture=GlRender.createTextureFromImg(img);
+    
+                if (onFinish) {
+                    onFinish(texture, { url: url, loadState: LoadEnum.Success });
+                }
+            }).catch((err)=>{
+                let errorMsg = "ERROR: Load Image Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
+                if (onFinish) {
+                    onFinish(texture, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
+                }
+            });
 
-                    let imgurl = url.replace(desname, imgName);
-                    let request = loadImg(imgurl, (tex, err) => {
-                        if (err) {
-                            let errorMsg =
-                                "ERROR: Load Image Error!\n Info: LOAD URL: " + imgurl + "  LOAD MSG:" + err.message;
-                            state.err = new Error(errorMsg);
-                            console.error(errorMsg);
-                        } else {
-                            LoadTexture.parse(texture, tex as HTMLImageElement, desjson);
-                            state.beSucces = true;
-                        }
-                        if (onFinish) {
-                            onFinish(texture, state);
-                        }
-                    });
-                }
-            },
-            info => {
-                if (onprogress) {
-                    onProgress(info);
-                }
-            },
-        );
+            }).catch((err)=>{
+                let errorMsg =
+                "ERROR: Load Image Des Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
+                
+            });
         return texture;
     }
 
-    private static parse(tex: Texture, image: HTMLImageElement, Desjson: any, keepOrigeData = true) {
-        let texop = this.getFromDesJson(Desjson);
-        texop.data = image;
-        texop.width = image.width;
-        texop.height = image.height;
 
-        tex.samplerInfo = texop;
+    // private static parse(tex: Texture, image: HTMLImageElement, Desjson: any, keepOrigeData = true) {
+    //     let texop = this.getFromDesJson(Desjson);
+    //     texop.data = image;
+    //     texop.width = image.width;
+    //     texop.height = image.height;
 
-        tex.imageData = image;
-        tex.applyToGLTarget();
-    }
+    //     tex.samplerInfo = texop;
 
-    static getFromDesJson(json: any): webGraph.TextureOption {
-        let op = new webGraph.TextureOption();
-        //---------------暂时先这样
-        if (json.flip_y) {
-            op.flip_y = json.flip_y;
-        }
-        if (json.filterMode) {
-            switch (json.filterMode) {
-                case "Bilinear":
-                case "Trilinear":
-                    op.max_filter = webGraph.TexFilterEnum.linear;
-                    break;
-                case "Point":
-                    op.max_filter = webGraph.TexFilterEnum.nearest;
-                    break;
-            }
-        }
-        if (json.wrapMode) {
-            switch (json.wrapMode) {
-                case "Clamp":
-                    op.wrap_s = webGraph.TexWrapEnum.clampToEdge;
-                    op.wrap_t = webGraph.TexWrapEnum.clampToEdge;
-                    break;
-                case "Repeat":
-                    op.wrap_s = webGraph.TexWrapEnum.repeat;
-                    op.wrap_t = webGraph.TexWrapEnum.repeat;
-                    break;
-            }
-        }
-        if (json.premultiplyAlpha) {
-            op.preMultiply_alpha = json.premultiplyAlpha;
-        }
-        if (json.flip_y) {
-            op.flip_y = json.flip_y;
-        }
-        return op;
-    }
+    //     tex.imageData = image;
+    //     tex.applyToGLTarget();
+    // }
+
+    // static getFromDesJson(json: any): webGraph.TextureOption {
+    //     let op = new webGraph.TextureOption();
+    //     //---------------暂时先这样
+    //     if (json.flip_y) {
+    //         op.flip_y = json.flip_y;
+    //     }
+    //     if (json.filterMode) {
+    //         switch (json.filterMode) {
+    //             case "Bilinear":
+    //             case "Trilinear":
+    //                 op.max_filter = webGraph.TexFilterEnum.linear;
+    //                 break;
+    //             case "Point":
+    //                 op.max_filter = webGraph.TexFilterEnum.nearest;
+    //                 break;
+    //         }
+    //     }
+    //     if (json.wrapMode) {
+    //         switch (json.wrapMode) {
+    //             case "Clamp":
+    //                 op.wrap_s = webGraph.TexWrapEnum.clampToEdge;
+    //                 op.wrap_t = webGraph.TexWrapEnum.clampToEdge;
+    //                 break;
+    //             case "Repeat":
+    //                 op.wrap_s = webGraph.TexWrapEnum.repeat;
+    //                 op.wrap_t = webGraph.TexWrapEnum.repeat;
+    //                 break;
+    //         }
+    //     }
+    //     if (json.premultiplyAlpha) {
+    //         op.preMultiply_alpha = json.premultiplyAlpha;
+    //     }
+    //     if (json.flip_y) {
+    //         op.flip_y = json.flip_y;
+    //     }
+    //     return op;
+    // }
 }
-const _loadTextureSample = new LoadTextureSample();
-const _loadtexture = new LoadTexture();
-AssetMgr.RegisterAssetLoader(".png", () => {
-    return _loadTextureSample;
-});
-AssetMgr.RegisterAssetLoader(".jpg", () => {
-    return _loadTextureSample;
-});
-AssetMgr.RegisterAssetLoader(".imgdes.json", () => {
-    return _loadtexture;
-});

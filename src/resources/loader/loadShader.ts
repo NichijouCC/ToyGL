@@ -9,6 +9,7 @@ import { Vec4 } from "../../mathD/vec4";
 import { Vec3 } from "../../mathD/vec3";
 import { GlRender } from "../../render/glRender";
 import { DrawTypeEnum } from "../../render/renderMachine";
+import { LoadEnum } from "../base/loadEnum";
 
 //instance-fog-lightmap-SKIN
 
@@ -76,7 +77,22 @@ export class LoadShader implements IassetLoader {
                 shader.queue = queue;
                 shader.mapUniformDef = defUniform;
                 shader.passes = progamArr;
+
+                if (onFinish) {
+                    onFinish(shader, { url: url, loadState: LoadEnum.Success });
+                }
+            }).catch(error=>{
+                let errorMsg = "ERROR: parse shader Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + error.message;
+                if (onFinish) {
+                    onFinish(shader, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
+                }
             });
+
+        }).catch(err=>{
+            let errorMsg = "ERROR: Load shader Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
+            if (onFinish) {
+                onFinish(shader, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
+            }
         });
         return shader;
     }

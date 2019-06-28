@@ -1,3 +1,4 @@
+import { Texture } from './../src/resources/assets/texture';
 import { Transform } from './../src/ec/components/transform';
 import { ToyGL } from "../src/toygl";
 import { DefGeometry } from "../src/resources/defGeometry";
@@ -19,11 +20,15 @@ window.onload = () => {
         let shader = DefShader.fromType("color");
         //-------------custom shader
         let customeShader= Resource.load("../res/shader/base.shader.json") as Shader;
-    
+        
         let material = new Material();
         material.shader = customeShader;
         material.setColor("_MainColor", Color.create(1, 0, 0, 1));
-    
+        
+        //-----------load tex
+        let tex=Resource.load("../res/imgs/tes.png") as Texture;
+        material.setTexture("_MainTex",tex);
+
         let obj = new Entity();
         let mesh = obj.addCompByName("Mesh") as Mesh;
         mesh.geometry = geometry;
