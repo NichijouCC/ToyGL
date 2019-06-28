@@ -5,6 +5,7 @@ import {
     IgeometryOptions,
     IprogramOptions,
     ItexImageDataOption,
+    ItextureInfo,
 } from "twebgl/dist/types/type";
 
 import {
@@ -24,7 +25,7 @@ import {
 import { RenderLayerEnum } from "../ec/ec";
 import { AutoUniform } from "./autoUniform";
 import { UniformTypeEnum } from "../resources/assets/shader";
-export { IprogramInfo, IgeometryInfo, IgeometryOptions, IprogramOptions };
+export { IprogramInfo, IgeometryInfo, IgeometryOptions, IprogramOptions,ItextureInfo,ItexImageDataOption};
 
 // export interface IshaderOptions extends IprogramOptions {
 //     layer?: RenderLayerEnum;
@@ -86,7 +87,7 @@ export class GlRender {
         return info;
     }
 
-    static createTextureFromImg(img: TexImageSource,texop?:ItexImageDataOption): WebGLTexture {
+    static createTextureFromImg(img: TexImageSource,texop?:ItexImageDataOption): ItextureInfo {
         return createTextureFromImageSource(this.context, img,texop);
     }
 

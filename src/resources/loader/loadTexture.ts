@@ -16,7 +16,9 @@ export class LoadTextureSample implements IassetLoader {
         loadImg(url).then((img)=>{
             texture.width=img.width;
             texture.height=img.height;
-            texture.glTexture=GlRender.createTextureFromImg(img);
+            let imaginfo =GlRender.createTextureFromImg(img);
+            texture.texture=imaginfo.texture;
+            texture.texDes=imaginfo.texDes;
 
             if (onFinish) {
                 onFinish(texture, { url: url, loadState: LoadEnum.Success });
@@ -54,8 +56,10 @@ export class LoadTextureDes implements IassetLoader {
             loadImg(imgurl).then((img)=>{
                 texture.width=img.width;
                 texture.height=img.height;
-                texture.glTexture=GlRender.createTextureFromImg(img);
-    
+                let imaginfo =GlRender.createTextureFromImg(img);
+                texture.texture=imaginfo.texture;
+                texture.texDes=imaginfo.texDes;
+                
                 if (onFinish) {
                     onFinish(texture, { url: url, loadState: LoadEnum.Success });
                 }

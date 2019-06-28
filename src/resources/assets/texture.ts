@@ -1,6 +1,9 @@
 import { ToyAsset, ItoyAsset } from "../base/toyAsset";
+import { ItextureInfo, ItexImageDataOption } from "../../render/glRender";
 
-export class Texture extends ToyAsset {
+export class Texture extends ToyAsset implements ItextureInfo  {
+    texture: WebGLTexture;
+    texDes: ItexImageDataOption;
     imageData:TexImageSource;
     width: number = 0;
     height: number = 0;
@@ -9,6 +12,5 @@ export class Texture extends ToyAsset {
     constructor(param?: ItoyAsset) {
         super(param);
     }
-    glTexture: WebGLTexture;
     dispose() {}
 }

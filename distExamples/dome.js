@@ -1319,7 +1319,7 @@
             case gl.SAMPLER_2D:
                 return function (value) {
                     gl.activeTexture(gl.TEXTURE0 + bindpoint);
-                    gl.bindTexture(gl.TEXTURE_2D, value);
+                    gl.bindTexture(gl.TEXTURE_2D, value.texture);
                     gl.uniform1i(location, bindpoint);
                     gl.bindpoint = gl.bindpoint + 1;
                 };
@@ -1937,64 +1937,51 @@
         // Extensions
         GlConstants[GlConstants["MAX_TEXTURE_MAX_ANISOTROPY_EXT"] = 34047] = "MAX_TEXTURE_MAX_ANISOTROPY_EXT";
     })(GlConstants$1 || (GlConstants$1 = {}));
+
+    /*! *****************************************************************************
+    Copyright (c) Microsoft Corporation. All rights reserved.
+    Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+    this file except in compliance with the License. You may obtain a copy of the
+    License at http://www.apache.org/licenses/LICENSE-2.0
+
+    THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+    WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+    MERCHANTABLITY OR NON-INFRINGEMENT.
+
+    See the Apache Version 2.0 License for specific language governing permissions
+    and limitations under the License.
+    ***************************************************************************** */
+
+    var __assign = function() {
+        __assign = Object.assign || function __assign(t) {
+            for (var s, i = 1, n = arguments.length; i < n; i++) {
+                s = arguments[i];
+                for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+            }
+            return t;
+        };
+        return __assign.apply(this, arguments);
+    };
     function createTextureFromImageSource(gl, data, texOP) {
-        texOP = texOP != null ? texOP : {};
-        deduceTextureimgSourceOption(gl, data, texOP);
         var tex = gl.createTexture();
-        gl.bindTexture(texOP.target, tex);
-        gl.texParameteri(texOP.target, gl.TEXTURE_MAG_FILTER, texOP.filterMax);
-        gl.texParameteri(texOP.target, gl.TEXTURE_MIN_FILTER, texOP.filterMin);
-        gl.texParameteri(texOP.target, gl.TEXTURE_WRAP_S, texOP.wrapS);
-        gl.texParameteri(texOP.target, gl.TEXTURE_WRAP_T, texOP.wrapT);
-        gl.texImage2D(texOP.target, 0, texOP.pixelFormat, texOP.pixelFormat, texOP.pixelDatatype, data);
-        return tex;
-    }
-    function dedeuceBaseTextureOption(gl, texOP) {
-        texOP.target = texOP.target ? texOP.target : GlConstants.TEXTURE_2D;
-        // texOP.wrap_s = texOP.wrap_s ? texOP.wrap_s : GLConstants.CLAMP_TO_EDGE;
-        // texOP.wrap_t = texOP.wrap_t ? texOP.wrap_t : GLConstants.CLAMP_TO_EDGE;
-        texOP.pixelFormat = texOP.pixelFormat ? texOP.pixelFormat : GlConstants.RGBA;
-        if (texOP.enableMipMap && canGenerateMipmap(gl, texOP.width, texOP.height)) {
-            texOP.enableMipMap = true;
-        }
-        else {
-            texOP.enableMipMap = false;
-        }
-        if (texOP.filterMax == null) {
-            texOP.filterMax = texOP.enableMipMap ? GlConstants.LINEAR_MIPMAP_LINEAR : GlConstants.LINEAR;
-        }
-        if (texOP.filterMin == null) {
-            texOP.filterMin = texOP.enableMipMap ? GlConstants.LINEAR_MIPMAP_LINEAR : GlConstants.LINEAR;
-        }
-        if (texOP.wrapS == null) {
-            texOP.wrapS = canWrapReapeat(gl, texOP.width, texOP.height) ? GlConstants.REPEAT : GlConstants.CLAMP_TO_EDGE;
-        }
-        if (texOP.wrapT == null) {
-            texOP.wrapT = canWrapReapeat(gl, texOP.width, texOP.height) ? GlConstants.REPEAT : GlConstants.CLAMP_TO_EDGE;
-        }
-    }
-    function deduceTextureimgSourceOption(gl, data, texOP) {
-        texOP.width = data.width;
-        texOP.height = data.height;
-        dedeuceBaseTextureOption(gl, texOP);
-        if (texOP.pixelDatatype == null) {
-            texOP.pixelDatatype = GlConstants.UNSIGNED_BYTE;
-        }
-    }
-    function isPowerOf2(value) {
-        return (value & (value - 1)) === 0;
-    }
-    function canGenerateMipmap(gl, width, height) {
-        if (!gl.beWebgl2) {
-            return isPowerOf2(width) && isPowerOf2(height);
-        }
-        return true;
-    }
-    function canWrapReapeat(gl, width, height) {
-        if (!gl.beWebgl2) {
-            return isPowerOf2(width) && isPowerOf2(height);
-        }
-        return true;
+        var target = texOP && texOP.target || gl.TEXTURE_2D;
+        var pixelFormat = texOP && texOP.pixelFormat || gl.RGBA;
+        var pixelDatatype = texOP && texOP.pixelDatatype || gl.UNSIGNED_BYTE;
+        var filterMax = texOP && texOP.filterMax || gl.LINEAR;
+        var filterMin = texOP && texOP.filterMin || gl.LINEAR;
+        var wrapS = texOP && texOP.wrapS || gl.CLAMP_TO_EDGE;
+        var wrapT = texOP && texOP.wrapT || gl.CLAMP_TO_EDGE;
+        gl.bindTexture(target, tex);
+        gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, texOP && texOP.filterMax || gl.LINEAR);
+        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, texOP && texOP.filterMin || gl.LINEAR);
+        gl.texParameteri(target, gl.TEXTURE_WRAP_S, texOP && texOP.wrapS || gl.CLAMP_TO_EDGE);
+        gl.texParameteri(target, gl.TEXTURE_WRAP_T, texOP && texOP.wrapT || gl.CLAMP_TO_EDGE);
+        gl.texImage2D(target, 0, pixelFormat, pixelFormat, pixelDatatype, data);
+        return {
+            texture: tex,
+            texDes: __assign({}, texOP, { target: target, pixelFormat: pixelFormat, pixelDatatype: pixelDatatype, filterMin: filterMin, filterMax: filterMax, wrapS: wrapS, wrapT: wrapT })
+        };
     }
 
     WebGLRenderingContext.prototype.addExtension = function (extname) {
@@ -2114,8 +2101,8 @@
             // info.layer = op.layer || RenderLayerEnum.Geometry;
             return info;
         }
-        static createTextureFromImg(img) {
-            return createTextureFromImageSource(this.context, img);
+        static createTextureFromImg(img, texop) {
+            return createTextureFromImageSource(this.context, img, texop);
         }
         static setGeometryAndProgram(geometry, program) {
             setGeometryAndProgramWithCached(this.context, geometry, program);
@@ -5296,6 +5283,9 @@
                 this.addCompByName("Transform");
             }
         }
+        get transForm() {
+            return this.getCompByName("Transform");
+        }
         addCompByName(name) {
             let comp = EC.NewComponent(name);
             this.components[name] = comp;
@@ -7340,6 +7330,9 @@
         setColor(uniform, color) {
             this.uniforms[uniform] = color;
         }
+        setTexture(unfiorm, tex) {
+            this.uniforms[unfiorm] = tex;
+        }
         dispose() { }
     }
 
@@ -7414,6 +7407,10 @@
                 });
                 yield Promise.resolve().then(function () { return loadShader; }).then(mod => {
                     this.RegisterAssetLoader(".shader.json", () => new mod.LoadShader());
+                });
+                yield Promise.resolve().then(function () { return loadTexture; }).then(mod => {
+                    this.RegisterAssetLoader(".png", () => new mod.LoadTextureSample());
+                    this.RegisterAssetLoader(".jpg", () => new mod.LoadTextureSample());
                 });
             });
         }
@@ -7536,6 +7533,9 @@
             let material = new Material();
             material.shader = customeShader;
             material.setColor("_MainColor", Color.create(1, 0, 0, 1));
+            //-----------load tex
+            let tex = Resource.load("../res/imgs/tes.png");
+            material.setTexture("_MainTex", tex);
             let obj = new Entity();
             let mesh = obj.addCompByName("Mesh");
             mesh.geometry = geometry;
@@ -7595,6 +7595,23 @@
     }
     function loadText(url, onProgress = null) {
         return httpRequeset(url, ResponseTypeEnum.text, onProgress);
+    }
+    function loadImg(url, onProgress = null) {
+        return new Promise((resolve, reject) => {
+            let img = new Image();
+            img.src = url;
+            img.onerror = error => {
+                reject(error);
+            };
+            img.onload = () => {
+                resolve(img);
+            };
+            img.onprogress = e => {
+                if (onProgress) {
+                    onProgress({ loaded: e.loaded, total: e.total });
+                }
+            };
+        });
     }
 
     class LoadTxt {
@@ -8692,7 +8709,20 @@
                     shader.queue = queue;
                     shader.mapUniformDef = defUniform;
                     shader.passes = progamArr;
+                    if (onFinish) {
+                        onFinish(shader, { url: url, loadState: LoadEnum.Success });
+                    }
+                }).catch(error => {
+                    let errorMsg = "ERROR: parse shader Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + error.message;
+                    if (onFinish) {
+                        onFinish(shader, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
+                    }
                 });
+            }).catch(err => {
+                let errorMsg = "ERROR: Load shader Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
+                if (onFinish) {
+                    onFinish(shader, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
+                }
             });
             return shader;
         }
@@ -8805,6 +8835,75 @@
 
     var loadShader = /*#__PURE__*/Object.freeze({
         LoadShader: LoadShader
+    });
+
+    class Texture extends ToyAsset {
+        // samplerInfo: TextureOption = new TextureOption();
+        constructor(param) {
+            super(param);
+            this.width = 0;
+            this.height = 0;
+        }
+        dispose() { }
+    }
+
+    class LoadTextureSample {
+        load(url, onFinish, onProgress) {
+            let name = getFileName(url);
+            let texture = new Texture({ name: name, URL: url });
+            loadImg(url).then((img) => {
+                texture.width = img.width;
+                texture.height = img.height;
+                let imaginfo = GlRender.createTextureFromImg(img);
+                texture.texture = imaginfo.texture;
+                texture.texDes = imaginfo.texDes;
+                if (onFinish) {
+                    onFinish(texture, { url: url, loadState: LoadEnum.Success });
+                }
+            }).catch((err) => {
+                let errorMsg = "ERROR: Load Image Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
+                if (onFinish) {
+                    onFinish(texture, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
+                }
+            });
+            return texture;
+        }
+    }
+    class LoadTextureDes {
+        load(url, onFinish, onProgress) {
+            let name = getFileName(url);
+            let texture = new Texture({ name: name, URL: url });
+            //-------------load image des
+            loadText(url).then((txt) => {
+                let desjson = JSON.parse(txt);
+                let imgName = desjson.texture;
+                let desname = getFileName(url);
+                let imgurl = url.replace(desname, imgName);
+                loadImg(imgurl).then((img) => {
+                    texture.width = img.width;
+                    texture.height = img.height;
+                    let imaginfo = GlRender.createTextureFromImg(img);
+                    texture.texture = imaginfo.texture;
+                    texture.texDes = imaginfo.texDes;
+                    if (onFinish) {
+                        onFinish(texture, { url: url, loadState: LoadEnum.Success });
+                    }
+                }).catch((err) => {
+                    let errorMsg = "ERROR: Load Image Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
+                    if (onFinish) {
+                        onFinish(texture, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
+                    }
+                });
+            }).catch((err) => {
+                let errorMsg = "ERROR: Load Image Des Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
+            });
+            return texture;
+        }
+    }
+
+    var loadTexture = /*#__PURE__*/Object.freeze({
+        LoadTextureSample: LoadTextureSample,
+        LoadTextureDes: LoadTextureDes
     });
 
 })));
