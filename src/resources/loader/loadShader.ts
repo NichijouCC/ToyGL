@@ -8,18 +8,9 @@ import { Vec2 } from "../../mathD/vec2";
 import { Vec4 } from "../../mathD/vec4";
 import { Vec3 } from "../../mathD/vec3";
 import { GlRender } from "../../render/glRender";
+import { DrawTypeEnum } from "../../render/renderMachine";
 
 //instance-fog-lightmap-SKIN
-export enum DrawTypeEnum {
-    BASE = 0,
-    SKIN = 1,
-    LIGHTMAP = 2,
-    FOG = 4,
-    INSTANCe = 8,
-
-    NOFOG = 3,
-    NOLIGHTMAP = 5,
-}
 
 export interface IpassJson {
     state?: IprogramState;

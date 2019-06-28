@@ -1,4 +1,4 @@
-import { Resource } from "./resources/resource";
+import { Resource, AssetLoader } from "./resources/resource";
 // import { IassetMgr } from "./resources/type";
 import { RenderMachine } from "./render/renderMachine";
 import { GameScreen } from "./gameScreen";
@@ -27,6 +27,7 @@ export class ToyGL {
         let render = new RenderMachine(canvas);
         this.scene = new Scene(render);
         GameScreen.init(canvas);
+
 
         this.loop = new Loop();
         this.loop.update = this.frameUpdate;

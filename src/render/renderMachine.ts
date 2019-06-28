@@ -47,13 +47,32 @@ export class RenderMachine {
             //-----------camera render ing
             camrenderList.sort().foreach((item: Irenderable) => {
                 this.rendercontext.curRender = item;
-
-                let shader = item.material.shader;
-                for (let i = 0; i < shader.passes["base"].length; i++) {
-                    GlRender.drawObject(item.geometry.data, shader.passes["base"][i], item.material.uniforms);
+                let shader=item.material.shader;
+                if(shader!=null)
+                {
+                    let passes=shader.passes&&shader.passes["base"];
+                    if(passes!=null)
+                    {
+                        for (let i = 0; i < passes.length; i++) {
+                            GlRender.drawObject(item.geometry.data, passes[i], item.material.uniforms,shader.mapUniformDef);
+                        }
+                    }
                 }
             });
             //-----------canera render end
         }
     }
 }
+
+
+export enum DrawTypeEnum {
+    BASE = 0,
+    SKIN = 1,
+    LIGHTMAP = 2,
+    FOG = 4,
+    INSTANCe = 8,
+
+    NOFOG = 3,
+    NOLIGHTMAP = 5,
+}
+

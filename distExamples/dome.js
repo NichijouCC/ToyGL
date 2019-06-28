@@ -809,6 +809,7 @@
     function guessNumComponentsFromName(name, length) {
         if (length === void 0) { length = null; }
         var numComponents;
+        name = name.toLowerCase();
         if (uvRE.test(name)) {
             numComponents = 2;
         }
@@ -830,8 +831,14 @@
 
     var GeometryInfo = /** @class */ (function () {
         function GeometryInfo() {
+            this.vaoDic = {};
             this.atts = {};
+            this.id = GeometryInfo.nextID();
         }
+        GeometryInfo.nextID = function () {
+            return GeometryInfo.count++;
+        };
+        GeometryInfo.count = 0;
         return GeometryInfo;
     }());
     function createGeometryInfo(gl, op) {
@@ -851,34 +858,51 @@
         }
         return info;
     }
+    /**
+     *  tips : setProgrameWithcached need behind (setGeometryWithAdvanced/setGeometryWithCached)，when draw obj
+     * @param gl
+     * @param geometry
+     * @param program
+     */
+    function setGeometryWithAdvanced(gl, geometry, program) {
+        var bechanged = gl._cachedGeometry != geometry || gl._cachedProgram != program.bassProgram.program;
+        if (bechanged) {
+            if (geometry.vaoDic[program.bassProgram.id]) {
+                gl.bindVertexArray(geometry.vaoDic[program.bassProgram.id]);
+            }
+            else {
+                if (gl.beActiveVao) {
+                    var vao = createVaoByPrograme(gl, program, geometry);
+                    gl.bindVertexArray(vao);
+                    geometry.vaoDic[program.bassProgram.id] = vao;
+                }
+                else {
+                    setGeometry(gl, geometry, program);
+                }
+            }
+            gl._cachedGeometry = geometry;
+        }
+    }
     function setGeometry(gl, geometry, program) {
-        for (var attName in program.attsDic) {
-            program.attsDic[attName].setter(geometry.atts[attName]);
+        for (var attName in program.bassProgram.attsDic) {
+            program.bassProgram.attsDic[attName].setter(geometry.atts[attName]);
         }
         if (geometry.indices) {
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geometry.indices.glBuffer);
         }
     }
-    function setGeometryWithCached(gl, geometry, program) {
-        if (gl._cachedGeometry != geometry || gl._cachedProgram != program.program) {
-            setGeometry(gl, geometry, program);
-            gl._cachedGeometry = geometry;
-        }
+    //------------program和vao是一一对应的，geometry可以有多个vao
+    /**
+     * 创建vao将geometry和program绑定
+     */
+    function createVaoByPrograme(gl, program, geometry) {
+        var vao = gl.createVertexArray();
+        gl.bindVertexArray(vao);
+        setGeometry(gl, geometry, program);
+        gl.bindVertexArray(null);
+        return vao;
     }
 
-    function setViewPortWithCached(gl, x, y, width, height) {
-        var bechanged = gl._cachedViewPortX != x ||
-            gl._cachedViewPortY != y ||
-            gl._cachedViewPortWidth != width ||
-            gl._cachedViewPortHeight != height;
-        if (!bechanged) {
-            gl.viewport(x, y, width, height);
-            gl._cachedViewPortX = x;
-            gl._cachedViewPortY = y;
-            gl._cachedViewPortWidth = width;
-            gl._cachedViewPortHeight = height;
-        }
-    }
     function setClear(gl, clearDepth, clearColor, clearStencil) {
         if (clearStencil === void 0) { clearStencil = false; }
         var cleartag = 0;
@@ -896,7 +920,22 @@
         }
         gl.clear(cleartag);
     }
+    function setViewPortWithCached(gl, x, y, width, height) {
+        var bechanged = gl._cachedViewPortX != x ||
+            gl._cachedViewPortY != y ||
+            gl._cachedViewPortWidth != width ||
+            gl._cachedViewPortHeight != height;
+        if (!bechanged) {
+            gl.viewport(x, y, width, height);
+            gl._cachedViewPortX = x;
+            gl._cachedViewPortY = y;
+            gl._cachedViewPortWidth = width;
+            gl._cachedViewPortHeight = height;
+        }
+    }
     function setCullFaceStateWithCached(gl, enableCullFace, cullBack) {
+        if (enableCullFace === void 0) { enableCullFace = true; }
+        if (cullBack === void 0) { cullBack = true; }
         if (gl._cachedEnableCullFace != enableCullFace) {
             gl._cachedEnableCullFace = enableCullFace;
             if (enableCullFace) {
@@ -959,6 +998,13 @@
         }
     }
     function setStencilStateWithCached(gl, enableStencilTest, stencilFunc, stencilRefValue, stencilMask, stencilFail, stencilPassZfail, stencilFaileZpass) {
+        if (enableStencilTest === void 0) { enableStencilTest = false; }
+        if (stencilFunc === void 0) { stencilFunc = gl.ALWAYS; }
+        if (stencilRefValue === void 0) { stencilRefValue = 1; }
+        if (stencilMask === void 0) { stencilMask = 0xff; }
+        if (stencilFail === void 0) { stencilFail = gl.KEEP; }
+        if (stencilPassZfail === void 0) { stencilPassZfail = gl.REPLACE; }
+        if (stencilFaileZpass === void 0) { stencilFaileZpass = gl.KEEP; }
         if (gl._cachedEnableStencilTest != enableStencilTest) {
             gl._cachedEnableStencilTest = enableStencilTest;
             gl.enable(gl.STENCIL_TEST);
@@ -981,80 +1027,77 @@
         }
     }
     function setProgramStatesWithCached(gl, state) {
-        if (state.beDeduce != true) {
-            deduceFullShderState(state);
-        }
         //---------------------------cullface
-        setCullFaceStateWithCached(gl, state.enableCullFace, state.cullBack);
+        setCullFaceStateWithCached(gl, state.enableCullFace != false, state.cullBack != false);
         //----------------depth
-        setDepthStateWithCached(gl, state.depthWrite, state.depthTest);
+        setDepthStateWithCached(gl, state.depthWrite != false, state.depthTest != false);
         //------------------------blend
-        setBlendStateWithCached(gl, state.enableBlend, state.blendEquation, state.blendSrc, state.blendDst);
+        setBlendStateWithCached(gl, state.enableBlend == true, state.blendEquation || gl.FUNC_ADD, state.blendSrc || gl.SRC_ALPHA, state.blendDst || gl.ONE_MINUS_SRC_ALPHA);
         //-------------------------stencil
-        setStencilStateWithCached(gl, state.enableStencilTest, state.stencilFunc, state.stencilRefValue, state.stencilMask, state.stencilFail, state.stencilPassZfail, state.stencilFaileZpass);
+        setStencilStateWithCached(gl, state.enableStencilTest == true, state.stencilFunc || gl.ALWAYS, state.stencilRefValue || 1, state.stencilMask || 0xff, state.stencilFail || gl.KEEP, state.stencilPassZfail || gl.REPLACE, state.stencilFaileZpass || gl.KEEP);
     }
-    /**
-     *
-     * @param state 原始 webgl state
-     */
-    // state 是给每个物体 render用的，是不想受前一个物体render影响，所以需要推断出完整的 webgl state，缺失的按照默认值
-    function deduceFullShderState(state) {
-        //----------------------------cull face
-        if (state.enableCullFace == null) {
-            state.enableCullFace = true;
-        }
-        if (state.enableCullFace) {
-            if (state.cullBack == null) {
-                state.cullBack = true;
-            }
-        }
-        //------------------depth
-        if (state.depthWrite == null) {
-            state.depthWrite = true;
-        }
-        if (state.depthTest == null) {
-            state.depthTest = true;
-        }
-        if (state.depthTest) {
-            if (state.depthTestFuc == null) {
-                state.depthTestFuc = GlConstants.LEQUAL;
-            }
-        }
-        //------------------ blend
-        if (state.enableBlend == true) {
-            if (state.blendEquation == null) {
-                state.blendEquation = GlConstants.FUNC_ADD;
-            }
-            if (state.blendSrc == null) {
-                state.blendSrc = GlConstants.ONE;
-            }
-            if (state.blendDst == null) {
-                state.blendDst = GlConstants.ONE_MINUS_SRC_ALPHA;
-            }
-        }
-        //---------------------stencil
-        if (state.enableStencilTest == true) {
-            if (state.stencilFunc == null) {
-                state.stencilFunc = GlConstants.ALWAYS;
-            }
-            if (state.stencilFail == null) {
-                state.stencilFail = GlConstants.KEEP;
-            }
-            if (state.stencilFaileZpass == null) {
-                state.stencilFaileZpass = GlConstants.KEEP;
-            }
-            if (state.stencilPassZfail == null) {
-                state.stencilPassZfail = GlConstants.REPLACE;
-            }
-            if (state.stencilRefValue == null) {
-                state.stencilRefValue = 1;
-            }
-            if (state.stencilMask == null) {
-                state.stencilMask = 0xff;
-            }
-        }
-        return state;
-    }
+    // /**
+    //  *
+    //  * @param state 原始 webgl state
+    //  */
+    // // state 是给每个物体 render用的，是不想受前一个物体render影响，所以需要推断出完整的 webgl state，缺失的按照默认值
+    // function deduceFullShderState(state: IprogramState): IprogramState {
+    //     //----------------------------cull face
+    //     if (state.enableCullFace == null) {
+    //         state.enableCullFace = true;
+    //     }
+    //     if (state.enableCullFace) {
+    //         if (state.cullBack == null) {
+    //             state.cullBack = true;
+    //         }
+    //     }
+    //     //------------------depth
+    //     if (state.depthWrite == null) {
+    //         state.depthWrite = true;
+    //     }
+    //     if (state.depthTest == null) {
+    //         state.depthTest = true;
+    //     }
+    //     if (state.depthTest) {
+    //         if (state.depthTestFuc == null) {
+    //             state.depthTestFuc = GlConstants.LEQUAL;
+    //         }
+    //     }
+    //     //------------------ blend
+    //     if (state.enableBlend == true) {
+    //         if (state.blendEquation == null) {
+    //             state.blendEquation = GlConstants.FUNC_ADD;
+    //         }
+    //         if (state.blendSrc == null) {
+    //             state.blendSrc = GlConstants.ONE;
+    //         }
+    //         if (state.blendDst == null) {
+    //             state.blendDst = GlConstants.ONE_MINUS_SRC_ALPHA;
+    //         }
+    //     }
+    //     //---------------------stencil
+    //     if (state.enableStencilTest == true) {
+    //         if (state.stencilFunc == null) {
+    //             state.stencilFunc = GlConstants.ALWAYS;
+    //         }
+    //         if (state.stencilFail == null) {
+    //             state.stencilFail = GlConstants.KEEP;
+    //         }
+    //         if (state.stencilFaileZpass == null) {
+    //             state.stencilFaileZpass = GlConstants.KEEP;
+    //         }
+    //         if (state.stencilPassZfail == null) {
+    //             state.stencilPassZfail = GlConstants.REPLACE;
+    //         }
+    //         if (state.stencilRefValue == null) {
+    //             state.stencilRefValue = 1;
+    //         }
+    //         if (state.stencilMask == null) {
+    //             state.stencilMask = 0xff;
+    //         }
+    //     }
+    //     return state;
+    // }
 
     var ShaderTypeEnum;
     (function (ShaderTypeEnum) {
@@ -1062,33 +1105,32 @@
         ShaderTypeEnum[ShaderTypeEnum["FS"] = 1] = "FS";
     })(ShaderTypeEnum || (ShaderTypeEnum = {}));
     function createProgramInfo(gl, op) {
-        var info;
-        if (op.program.program != null) {
-            var bassprogram = op.program;
-            info = {};
-            info.program = bassprogram.program;
-            info.attsDic = bassprogram.attsDic;
-            info.uniformsDic = bassprogram.uniformsDic;
+        var bassProgram;
+        if (!(op.program instanceof BassProgram)) {
+            var bassprogramOp = op.program;
+            bassProgram = createBassProgramInfo(gl, bassprogramOp.vs, bassprogramOp.fs, bassprogramOp.name);
         }
         else {
-            var bassprogramOp = op.program;
-            info = createBassProgramInfo(gl, bassprogramOp.vs, bassprogramOp.fs, bassprogramOp.name);
+            bassProgram = op.program;
         }
-        if (op.uniforms) {
+        if (bassProgram) {
+            var info = new Program();
+            info.bassProgram = bassProgram;
             info.uniforms = op.uniforms;
-        }
-        if (op.states) {
             info.states = op.states;
+            return info;
         }
-        return info;
+        else {
+            return null;
+        }
     }
     function setProgramWithCached(gl, program) {
-        if (gl._cachedProgram != program.program) {
-            gl._cachedProgram = program.program;
-            gl.useProgram(program.program);
+        if (gl._cachedProgram != program.bassProgram.program) {
+            gl._cachedProgram = program.bassProgram.program;
+            gl.useProgram(program.bassProgram.program);
         }
         if (program.uniforms) {
-            setProgramUniforms(program, program.uniforms);
+            setProgramUniforms(program.bassProgram, program.uniforms);
         }
         if (program.states) {
             setProgramStatesWithCached(gl, program.states);
@@ -1101,6 +1143,25 @@
             setter(value);
         }
     }
+    var Program = /** @class */ (function () {
+        function Program() {
+        }
+        return Program;
+    }());
+    var BassProgram = /** @class */ (function () {
+        function BassProgram(programName, program, uniformsDic, attsDic) {
+            this.id = BassProgram.nextID();
+            this.programName = programName;
+            this.program = program;
+            this.uniformsDic = uniformsDic;
+            this.attsDic = attsDic;
+        }
+        BassProgram.nextID = function () {
+            return BassProgram.count++;
+        };
+        BassProgram.count = 0;
+        return BassProgram;
+    }());
     function createBassProgramInfo(gl, vs, fs, name) {
         var vsShader = createShader(gl, ShaderTypeEnum.VS, vs, name + "_vs");
         var fsShader = createShader(gl, ShaderTypeEnum.FS, fs, name + "_fs");
@@ -1119,7 +1180,8 @@
             else {
                 var attsInfo = getAttributesInfo(gl, item);
                 var uniformsInfo = getUniformsInfo(gl, item);
-                return { program: item, programName: name, uniformsDic: uniformsInfo, attsDic: attsInfo };
+                return new BassProgram(name, item, uniformsInfo, attsInfo);
+                // return { program: item, programName: name, uniformsDic: uniformsInfo, attsDic: attsInfo };
             }
         }
     }
@@ -1185,12 +1247,12 @@
             case gl.FLOAT:
                 if (beArray) {
                     return function (value) {
-                        gl.uniform1f(location, value);
+                        gl.uniform1fv(location, value);
                     };
                 }
                 else {
                     return function (value) {
-                        gl.uniform1fv(location, value);
+                        gl.uniform1f(location, value);
                     };
                 }
                 break;
@@ -1990,7 +2052,7 @@
         return gl;
     }
     function setGeometryAndProgramWithCached(gl, geometry, program) {
-        setGeometryWithCached(gl, geometry, program);
+        setGeometryWithAdvanced(gl, geometry, program);
         setProgramWithCached(gl, program);
     }
     function drawBufferInfo(gl, geometry, instanceCount) {
@@ -2058,14 +2120,22 @@
         static setGeometryAndProgram(geometry, program) {
             setGeometryAndProgramWithCached(this.context, geometry, program);
         }
-        static drawObject(geometry, program, uniforms, instancecount) {
+        static drawObject(geometry, program, uniforms, defUniforms, instancecount) {
             // setProgram(this.context, program);
             setGeometryAndProgramWithCached(this.context, geometry, program);
             //set uniforms
-            for (const key in program.uniformsDic) {
-                let func = this.autoUniform && this.autoUniform.autoUniforms[key];
-                let value = func ? func() : uniforms[key];
-                program.uniformsDic[key].setter(value);
+            let uniformsDic = program.bassProgram.uniformsDic;
+            for (const key in uniformsDic) {
+                if (uniforms[key] != null) {
+                    uniformsDic[key].setter(uniforms[key]);
+                }
+                else if (this.autoUniform && this.autoUniform.autoUniforms[key]) {
+                    let value = this.autoUniform.autoUniforms[key]();
+                    uniformsDic[key].setter(value);
+                }
+                else {
+                    uniformsDic[key].setter(defUniforms && defUniforms[key].value);
+                }
             }
             drawBufferInfo(this.context, geometry, instancecount);
         }
@@ -4626,6 +4696,15 @@
         return c > 3 && r && Object.defineProperty(target, key, r), r;
     }
 
+    function __awaiter(thisArg, _arguments, P, generator) {
+        return new (P || (P = Promise))(function (resolve, reject) {
+            function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+            function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+            function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+            step((generator = generator.apply(thisArg, _arguments || [])).next());
+        });
+    }
+
     class Rect extends Float32Array {
         constructor(x = 0, y = 0, w = 0, h = 0) {
             super(4);
@@ -4901,7 +4980,7 @@
         // static divcontiner: HTMLDivElement;
         static init(canvas) {
             this.canvas = canvas;
-            // this.OnResizeCanvas();
+            this.OnResizeCanvas();
             // window.onresize = () => {
             //     this.OnResizeCanvas();
             // };
@@ -4917,8 +4996,8 @@
             console.warn("canvas resize!");
             // this._windowWidth = window.innerWidth;
             // this._windowHeight = window.innerHeight;
-            this._windowWidth = this.canvas.parentElement.clientWidth;
-            this._windowHeight = this.canvas.parentElement.clientHeight;
+            this._windowWidth = this.canvas.clientWidth;
+            this._windowHeight = this.canvas.clientHeight;
             let pixelRatio = window.devicePixelRatio || 1;
             this.canvaswidth = pixelRatio * this.scale * this._windowWidth;
             this.canvasheight = pixelRatio * this.scale * this._windowHeight;
@@ -5177,14 +5256,29 @@
                 camrenderList.sort().foreach((item) => {
                     this.rendercontext.curRender = item;
                     let shader = item.material.shader;
-                    for (let i = 0; i < shader.passes["base"].length; i++) {
-                        GlRender.drawObject(item.geometry.data, shader.passes["base"][i], item.material.uniforms);
+                    if (shader != null) {
+                        let passes = shader.passes && shader.passes["base"];
+                        if (passes != null) {
+                            for (let i = 0; i < passes.length; i++) {
+                                GlRender.drawObject(item.geometry.data, passes[i], item.material.uniforms, shader.mapUniformDef);
+                            }
+                        }
                     }
                 });
                 //-----------canera render end
             }
         }
     }
+    var DrawTypeEnum;
+    (function (DrawTypeEnum) {
+        DrawTypeEnum[DrawTypeEnum["BASE"] = 0] = "BASE";
+        DrawTypeEnum[DrawTypeEnum["SKIN"] = 1] = "SKIN";
+        DrawTypeEnum[DrawTypeEnum["LIGHTMAP"] = 2] = "LIGHTMAP";
+        DrawTypeEnum[DrawTypeEnum["FOG"] = 4] = "FOG";
+        DrawTypeEnum[DrawTypeEnum["INSTANCe"] = 8] = "INSTANCe";
+        DrawTypeEnum[DrawTypeEnum["NOFOG"] = 3] = "NOFOG";
+        DrawTypeEnum[DrawTypeEnum["NOLIGHTMAP"] = 5] = "NOLIGHTMAP";
+    })(DrawTypeEnum || (DrawTypeEnum = {}));
 
     class Entity {
         constructor(name = null, compsArr = null) {
@@ -7249,22 +7343,1469 @@
         dispose() { }
     }
 
+    var LoadEnum;
+    (function (LoadEnum) {
+        LoadEnum["Success"] = "Success";
+        LoadEnum["Failed"] = "Failed";
+        LoadEnum["Loading"] = "Loading";
+        LoadEnum["None"] = "None";
+    })(LoadEnum || (LoadEnum = {}));
+
+    //通过url获取资源的名称(包含尾缀)
+    function getFileName(url) {
+        let filei = url.lastIndexOf("/");
+        let file = url.substr(filei + 1);
+        return file;
+    }
+    // static getAssetExtralType(url: string): AssetExtralEnum {
+    //     let index = url.lastIndexOf("/");
+    //     let filename = url.substr(index + 1);
+    //     index = filename.indexOf(".", 0);
+    //     let extname = filename.substr(index);
+    //     let type = this.ExtendNameDic[extname];
+    //     if (type == null) {
+    //         console.warn("Load Asset Failed.type:(" + type + ") not have loader yet");
+    //     }
+    //     return type;
+    // }
+    function getAssetExtralName(url) {
+        let index = url.lastIndexOf("/");
+        let filename = url.substr(index + 1);
+        index = filename.indexOf(".", 0);
+        let extname = filename.substr(index);
+        return extname;
+    }
+
+    /**
+     * 资源都继承web3dAsset 实现Iasset接口,有唯一ID
+     *
+     * assetmgr仅仅管理load进来的资源
+     * load过的资源再次load不会造成重复加载
+     * 所有的资源都是从资源管理器load（url）出来，其他接口全部封闭
+     * 资源的来源有三种：new、load、内置资源
+     * bundle包不会shared asset,bundle不会相互依赖。即如果多个bundle引用同一个asset,每个包都包含一份该资源.
+     *
+     *
+     * 资源释放：
+     * gameobject（new或instance的）通过dispose 销毁自己的内存，不销毁引用的asset
+     * asset 可以通过dispose 销毁自己的内存。包释放(prefab/scene/gltfbundle)也属于asset的释放,包会释放自己依赖的asset。
+     *
+     */
+    class AssetLoader {
+        static RegisterAssetLoader(extral, factory) {
+            // this.ExtendNameDic[extral] = type;
+            console.warn("loader type:", extral);
+            this.RESLoadDic[extral] = factory;
+        }
+        static getAssetLoader(url) {
+            let extralType = getAssetExtralName(url);
+            let factory = this.RESLoadDic[extralType];
+            return factory && factory();
+        }
+        // //-------------------资源加载拓展
+        // static RegisterAssetExtensionLoader(extral: string, factory: () => IassetLoader) {
+        //     this.RESExtensionLoadDic[extral] = factory;
+        // }
+        // private static RESExtensionLoadDic: { [ExtralName: string]: () => IassetLoader } = {};
+        static addLoader() {
+            return __awaiter(this, void 0, void 0, function* () {
+                yield Promise.resolve().then(function () { return loadTxt; }).then(mod => {
+                    this.RegisterAssetLoader(".txt", () => new mod.LoadTxt());
+                });
+                yield Promise.resolve().then(function () { return loadShader; }).then(mod => {
+                    this.RegisterAssetLoader(".shader.json", () => new mod.LoadShader());
+                });
+            });
+        }
+    }
+    //private static ExtendNameDic: { [name: string]: AssetExtralEnum } = {};
+    AssetLoader.RESLoadDic = {};
+    class Resource {
+        static getAssetLoadInfo(url) {
+            if (this.loadMap[url]) {
+                return this.loadMap[url].loadinfo;
+            }
+            else {
+                return null;
+            }
+        }
+        /**
+         * 加载资源
+         * @param url 地址
+         * @param onFinish  load回调]
+         */
+        static load(url, onFinish = null, onProgress = null) {
+            if (this.loadMap[url]) {
+                if (onFinish) {
+                    switch (this.loadMap[url].loadinfo.loadState) {
+                        case LoadEnum.Success:
+                        case LoadEnum.Failed:
+                            onFinish(this.loadMap[url].asset, this.loadMap[url].loadinfo);
+                            break;
+                        case LoadEnum.Loading:
+                            if (this.loadingUrl[url] == null) {
+                                this.loadingUrl[url] = [];
+                            }
+                            this.loadingUrl[url].push(onFinish);
+                            break;
+                        default:
+                        case LoadEnum.None:
+                            console.error("load error 为啥出现这种情况！");
+                            break;
+                    }
+                }
+                return this.loadMap[url].asset;
+            }
+            else {
+                let factory = AssetLoader.getAssetLoader(url);
+                let _state = { url: url, loadState: LoadEnum.None };
+                this.loadMap[url] = { asset: null, loadinfo: _state };
+                if (factory == null) {
+                    let errorMsg = "ERROR: load Asset error. INfo: not have Load Func to handle (" +
+                        getAssetExtralName(url) +
+                        ") type File.  load URL:" +
+                        url;
+                    _state.err = new Error(errorMsg);
+                    console.error(errorMsg);
+                    if (onFinish) {
+                        onFinish(null, _state);
+                    }
+                    return null;
+                }
+                else {
+                    let asset = factory.load(url, (asset, state) => {
+                        //-------------------------------存进资源存储map
+                        _state.loadState = state.loadState;
+                        //---------------------回调事件
+                        if (onFinish) {
+                            onFinish(asset, state);
+                        }
+                        //------------------监听此资源loadfinish的事件
+                        let arr = this.loadingUrl[url];
+                        this.loadingUrl[url] = null;
+                        delete this.loadingUrl[url]; //set loadingUrl null
+                        if (arr) {
+                            arr.forEach(func => {
+                                func(asset, state);
+                            });
+                        }
+                    }, onProgress);
+                    _state.loadState = LoadEnum.Loading;
+                    this.loadMap[url].asset = asset;
+                    return asset;
+                }
+            }
+        }
+        static loadAsync(url) {
+            return new Promise((resolve, reject) => {
+                this.load(url, (asset, loadInfo) => {
+                    if (loadInfo.loadState == LoadEnum.Success) {
+                        resolve(asset);
+                    }
+                    else {
+                        reject(new Error("Load Failed."));
+                    }
+                });
+            });
+        }
+    }
+    //#endregion
+    /**
+     * 调用load方法就会塞到这里面来
+     */
+    Resource.loadMap = {};
+    /**
+     * load同一个资源监听回调
+     */
+    Resource.loadingUrl = {}; //
+    //<<<<<<<--------1.  new出来的自己管理,如果进行管控,assetmgr必然持有该资源的引用。当用该资源的对象被释放,该对象对该资源的引用也就没了,但是assetmgr持有它的引用，资源也就是没被释放;
+    //释放对象的时候我们又不能对资源进行释放，不然其他对象使用该资源就会报错，对于new出的资源,没被使用就会被系统自动释放或者自己释放-------------------->>>>>>>>>
+    //<<<<<<<------- 2.  资源的name不作为asset的标识.不然造成一大堆麻烦。如果允许重名资源在assetmgr获取资源的需要通过bundlename /assetname才能正确获取资源,bundlename于asset来说不一定有;
+    //new asset的时候还要检查重名资源,允许还是不允许都是麻烦—--->>>>>>>>>>>>>>>>>>>>>>>
+    //<<<<<<<--------3.  资源本身的描述json，不会被作为资源被assetmgr管理起来-->>>
+
     window.onload = () => {
         let toy = new ToyGL();
         toy.initByHtmlElement(document.getElementById("canvas"));
-        let geometry = DefGeometry.fromType("quad");
-        let shader = DefShader.fromType("color");
-        let material = new Material();
-        material.shader = shader;
-        material.setColor("MainColor", Color.create(1, 0, 0, 1));
-        let obj = new Entity();
-        let mesh = obj.addCompByName("Mesh");
-        mesh.geometry = geometry;
-        mesh.material = material;
-        toy.scene.addEntity(obj);
-        let camobj = new Entity("", ["Camera"]);
-        toy.scene.addEntity(camobj);
+        AssetLoader.addLoader().then(() => {
+            let geometry = DefGeometry.fromType("quad");
+            ///------------def shader
+            let shader = DefShader.fromType("color");
+            //-------------custom shader
+            let customeShader = Resource.load("../res/shader/base.shader.json");
+            let material = new Material();
+            material.shader = customeShader;
+            material.setColor("_MainColor", Color.create(1, 0, 0, 1));
+            let obj = new Entity();
+            let mesh = obj.addCompByName("Mesh");
+            mesh.geometry = geometry;
+            mesh.material = material;
+            toy.scene.addEntity(obj);
+            let camobj = new Entity("", ["Camera"]);
+            let trans = camobj.getCompByName("Transform");
+            trans.localPosition.z = 5;
+            trans.markDirty();
+            toy.scene.addEntity(camobj);
+        });
     };
+
+    class TextAsset extends ToyAsset {
+        constructor(name, url) {
+            super({ name: name, URL: url });
+            this.content = null;
+        }
+        dispose() {
+            if (this.beDefaultAsset)
+                return;
+            this.content = null;
+        }
+    }
+
+    var ResponseTypeEnum;
+    (function (ResponseTypeEnum) {
+        ResponseTypeEnum["text"] = "text";
+        ResponseTypeEnum["json"] = "json";
+        ResponseTypeEnum["blob"] = "blob";
+        ResponseTypeEnum["arraybuffer"] = "arraybuffer";
+    })(ResponseTypeEnum || (ResponseTypeEnum = {}));
+    function httpRequeset(url, type, onProgress = null) {
+        return new Promise((resolve, reject) => {
+            let req = new XMLHttpRequest();
+            req.open("GET", url);
+            req.responseType = type;
+            req.onprogress = e => {
+                if (onProgress) {
+                    onProgress({ loaded: e.loaded, total: e.total });
+                }
+            };
+            req.onerror = e => {
+                reject(e);
+            };
+            req.send();
+            req.onreadystatechange = () => {
+                if (req.readyState == 4) {
+                    if (req.status == 404) {
+                        reject(new Error("got a 404:" + url));
+                        return;
+                    }
+                    resolve(req.response);
+                }
+            };
+        });
+    }
+    function loadText(url, onProgress = null) {
+        return httpRequeset(url, ResponseTypeEnum.text, onProgress);
+    }
+
+    class LoadTxt {
+        load(url, onFinish, onProgress) {
+            let name = getFileName(url);
+            let text = new TextAsset(name, url);
+            loadText(url, info => {
+                if (onProgress) {
+                    onProgress(info.loaded / info.total);
+                }
+            })
+                .then(value => {
+                text.content = value;
+                if (onFinish) {
+                    onFinish(text, { url: url, loadState: LoadEnum.Success });
+                }
+            })
+                .catch(error => {
+                let errorMsg = "ERROR:Load Txt/json Error!\n  Info: LOAD URL: " + url + "  LOAD MSG:" + error.message;
+                if (onFinish) {
+                    onFinish(text, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
+                }
+            });
+            return text;
+        }
+    }
+    // const _loadtxt: LoadTxt = new LoadTxt();
+    // AssetMgr.RegisterAssetLoader(".vs.glsl", () => _loadtxt);
+    // AssetMgr.RegisterAssetLoader(".fs.glsl", () => _loadtxt);
+    // AssetMgr.RegisterAssetLoader(".txt", () => _loadtxt);
+
+    var loadTxt = /*#__PURE__*/Object.freeze({
+        LoadTxt: LoadTxt
+    });
+
+    class Vec2 extends Float32Array {
+        constructor(x = 0, y = 0) {
+            super(2);
+            this[0] = x;
+            this[1] = y;
+        }
+        get x() {
+            return this[0];
+        }
+        set x(value) {
+            this[0] = value;
+        }
+        get y() {
+            return this[1];
+        }
+        set y(value) {
+            this[1] = value;
+        }
+        static create(x = 0, y = 0) {
+            if (Vec2.Recycle && Vec2.Recycle.length > 0) {
+                let item = Vec2.Recycle.pop();
+                item[0] = x;
+                item[1] = y;
+                return item;
+            }
+            else {
+                let item = new Vec2(x, y);
+                // item[0]=x;
+                // item[1]=y;
+                return item;
+            }
+        }
+        static clone(from) {
+            if (Vec2.Recycle.length > 0) {
+                let item = Vec2.Recycle.pop();
+                Vec2.copy(from, item);
+                return item;
+            }
+            else {
+                let item = new Vec2(from[0], from[1]);
+                // item[0]=from[0];
+                // item[1]=from[1];
+                return item;
+            }
+        }
+        static recycle(item) {
+            Vec2.Recycle.push(item);
+        }
+        static disposeRecycledItems() {
+            Vec2.Recycle.length = 0;
+        }
+        /**
+         * Copy the values from one vec2 to another
+         *
+         * @param out the receiving vector
+         * @param a the source vector
+         * @returns out
+         */
+        static copy(a, out) {
+            out[0] = a[0];
+            out[1] = a[1];
+            return out;
+        }
+        /**
+         * Adds two vec2's
+         *
+         * @param out the receiving vector
+         * @param a the first operand
+         * @param b the second operand
+         * @returns out
+         */
+        static add(a, b, out) {
+            out[0] = a[0] + b[0];
+            out[1] = a[1] + b[1];
+            return out;
+        }
+        /**
+         * Subtracts vector b from vector a
+         *
+         * @param out the receiving vector
+         * @param a the first operand
+         * @param b the second operand
+         * @returns out
+         */
+        static subtract(a, b, out) {
+            out[0] = a[0] - b[0];
+            out[1] = a[1] - b[1];
+            return out;
+        }
+        /**
+         * Multiplies two vec2's
+         *
+         * @param out the receiving vector
+         * @param a the first operand
+         * @param b the second operand
+         * @returns out
+         */
+        static multiply(a, b, out) {
+            out[0] = a[0] * b[0];
+            out[1] = a[1] * b[1];
+            return out;
+        }
+        /**
+         * Multiplies two vec2's
+         *
+         * @param out the receiving vector
+         * @param a the first operand
+         * @param b the second operand
+         * @returns out
+         */
+        //public static mul(a: vec2, b: vec2,out: vec2): vec2 { return; }
+        /**
+         * Divides two vec2's
+         *
+         * @param out the receiving vector
+         * @param a the first operand
+         * @param b the second operand
+         * @returns out
+         */
+        static divide(a, b, out) {
+            out[0] = a[0] / b[0];
+            out[1] = a[1] / b[1];
+            return out;
+        }
+        /**
+         * Divides two vec2's
+         *
+         * @param out the receiving vector
+         * @param a the first operand
+         * @param b the second operand
+         * @returns out
+         */
+        //public static div(a: vec2, b: vec2,out: vec2): vec2 { return; }
+        /**
+         * Math.ceil the components of a vec2
+         *
+         * @param {Vec2} out the receiving vector
+         * @param {Vec2} a vector to ceil
+         * @returns {Vec2} out
+         */
+        static ceil(a, out) {
+            out[0] = Math.ceil(a[0]);
+            out[1] = Math.ceil(a[1]);
+            return out;
+        }
+        /**
+         * Math.floor the components of a vec2
+         *
+         * @param {Vec2} out the receiving vector
+         * @param {Vec2} a vector to floor
+         * @returns {Vec2} out
+         */
+        static floor(a, out) {
+            out[0] = Math.floor(a[0]);
+            out[1] = Math.floor(a[1]);
+            return out;
+        }
+        /**
+         * Returns the minimum of two vec2's
+         *
+         * @param out the receiving vector
+         * @param a the first operand
+         * @param b the second operand
+         * @returns out
+         */
+        static min(a, b, out) {
+            out[0] = Math.min(a[0], b[0]);
+            out[1] = Math.min(a[1], b[1]);
+            return out;
+        }
+        /**
+         * Returns the maximum of two vec2's
+         *
+         * @param out the receiving vector
+         * @param a the first operand
+         * @param b the second operand
+         * @returns out
+         */
+        static max(a, b, out) {
+            out[0] = Math.max(a[0], b[0]);
+            out[1] = Math.max(a[1], b[1]);
+            return out;
+        }
+        /**
+         * Math.round the components of a vec2
+         *
+         * @param {Vec2} out the receiving vector
+         * @param {Vec2} a vector to round
+         * @returns {Vec2} out
+         */
+        static round(a, out) {
+            out[0] = Math.round(a[0]);
+            out[1] = Math.round(a[1]);
+            return out;
+        }
+        /**
+         * Scales a vec2 by a scalar number
+         *
+         * @param out the receiving vector
+         * @param a the vector to scale
+         * @param b amount to scale the vector by
+         * @returns out
+         */
+        static scale(a, b, out) {
+            out[0] = a[0] * b;
+            out[1] = a[1] * b;
+            return out;
+        }
+        static scaleByVec2(a, b, out) {
+            out[0] = a[0] * b[0];
+            out[1] = a[1] * b[1];
+            return out;
+        }
+        /**
+         * Adds two vec2's after scaling the second operand by a scalar value
+         *
+         * @param out the receiving vector
+         * @param a the first operand
+         * @param b the second operand
+         * @param scale the amount to scale b by before adding
+         * @returns out
+         */
+        static scaleAndAdd(a, b, scale, out) {
+            out[0] = a[0] + b[0] * scale;
+            out[1] = a[1] + b[1] * scale;
+            return out;
+        }
+        /**
+         * Calculates the euclidian distance between two vec2's
+         *
+         * @param a the first operand
+         * @param b the second operand
+         * @returns distance between a and b
+         */
+        static distance(a, b) {
+            let x = b[0] - a[0], y = b[1] - a[1];
+            return Math.sqrt(x * x + y * y);
+        }
+        /**
+         * Calculates the euclidian distance between two vec2's
+         *
+         * @param a the first operand
+         * @param b the second operand
+         * @returns distance between a and b
+         */
+        //public static dist(a: vec2, b: vec2): number { return; }
+        /**
+         * Calculates the squared euclidian distance between two vec2's
+         *
+         * @param a the first operand
+         * @param b the second operand
+         * @returns squared distance between a and b
+         */
+        static squaredDistance(a, b) {
+            let x = b[0] - a[0], y = b[1] - a[1];
+            return x * x + y * y;
+        }
+        /**
+         * Calculates the squared euclidian distance between two vec2's
+         *
+         * @param a the first operand
+         * @param b the second operand
+         * @returns squared distance between a and b
+         */
+        //public static sqrDist(a: vec2, b: vec2): number { return; }
+        /**
+         * Calculates the length of a vec2
+         *
+         * @param a vector to calculate length of
+         * @returns length of a
+         */
+        static length_(a) {
+            let x = a[0], y = a[1];
+            return Math.sqrt(x * x + y * y);
+        }
+        /**
+         * Calculates the length of a vec2
+         *
+         * @param a vector to calculate length of
+         * @returns length of a
+         */
+        //public static len(a: vec2): number { return; }
+        /**
+         * Calculates the squared length of a vec2
+         *
+         * @param a vector to calculate squared length of
+         * @returns squared length of a
+         */
+        static squaredLength(a) {
+            let x = a[0], y = a[1];
+            return x * x + y * y;
+        }
+        /**
+         * Calculates the squared length of a vec2
+         *
+         * @param a vector to calculate squared length of
+         * @returns squared length of a
+         */
+        //public static sqrLen(a: vec2): number { return; }
+        /**
+         * Negates the components of a vec2
+         *
+         * @param out the receiving vector
+         * @param a vector to negate
+         * @returns out
+         */
+        static negate(a, out) {
+            out[0] = -a[0];
+            out[1] = -a[1];
+            return out;
+        }
+        /**
+         * Returns the inverse of the components of a vec2
+         *
+         * @param out the receiving vector
+         * @param a vector to invert
+         * @returns out
+         */
+        static inverse(a, out) {
+            out[0] = 1.0 / a[0];
+            out[1] = 1.0 / a[1];
+            return out;
+        }
+        /**
+         * Normalize a vec2
+         *
+         * @param out the receiving vector
+         * @param a vector to normalize
+         * @returns out
+         */
+        static normalize(a, out) {
+            let x = a[0], y = a[1];
+            let len = x * x + y * y;
+            if (len > 0) {
+                //TODO: evaluate use of glm_invsqrt here?
+                len = 1 / Math.sqrt(len);
+                out[0] = a[0] * len;
+                out[1] = a[1] * len;
+            }
+            return out;
+        }
+        /**
+         * Calculates the dot product of two vec2's
+         *
+         * @param a the first operand
+         * @param b the second operand
+         * @returns dot product of a and b
+         */
+        static dot(a, b) {
+            return a[0] * b[0] + a[1] * b[1];
+        }
+        /**
+         * Computes the cross product of two vec2's
+         * Note that the cross product must by definition produce a 3D vector
+         *
+         * @param out the receiving vector
+         * @param a the first operand
+         * @param b the second operand
+         * @returns out
+         */
+        static cross(a, b, out) {
+            let z = a[0] * b[1] - a[1] * b[0];
+            out[0] = out[1] = 0;
+            out[2] = z;
+            return out;
+        }
+        /**
+         * Performs a linear interpolation between two vec2's
+         *
+         * @param out the receiving vector
+         * @param from the first operand
+         * @param to the second operand
+         * @param lerp interpolation amount between the two inputs
+         * @returns out
+         */
+        static lerp(from, to, lerp$$1, out) {
+            let ax = from[0], ay = from[1];
+            out[0] = ax + lerp$$1 * (to[0] - ax);
+            out[1] = ay + lerp$$1 * (to[1] - ay);
+            return out;
+        }
+        /**
+         * Generates a random vector with the given scale
+         *
+         * @param out the receiving vector
+         * @param scale Length of the resulting vector. If ommitted, a unit vector will be returned
+         * @returns out
+         */
+        static random(scale = 1, out) {
+            scale = scale || 1.0;
+            let r = Math.random() * 2.0 * Math.PI;
+            out[0] = Math.cos(r) * scale;
+            out[1] = Math.sin(r) * scale;
+            return out;
+        }
+        // /**
+        //  * Transforms the vec2 with a mat2
+        //  *
+        //  * @param out the receiving vector
+        //  * @param a the vector to transform
+        //  * @param m matrix to transform with
+        //  * @returns out
+        //  */
+        // public static transformMat2(out: vec2, a: vec2, m: mat2): vec2 {
+        //     let x = a[0],
+        //     y = a[1];
+        //     out[0] = m[0] * x + m[2] * y;
+        //     out[1] = m[1] * x + m[3] * y;
+        //     return out;
+        // }
+        /**
+         * Transforms the vec2 with a Mat2d
+         *
+         * @param out the receiving vector
+         * @param a the vector to transform
+         * @param m matrix to transform with
+         * @returns out
+         */
+        static transformMat2d(a, m, out) {
+            let x = a[0], y = a[1];
+            out[0] = m[0] * x + m[2] * y + m[4];
+            out[1] = m[1] * x + m[3] * y + m[5];
+            return out;
+        }
+        // /**
+        //  * Transforms the vec2 with a mat3
+        //  * 3rd vector component is implicitly '1'
+        //  *
+        //  * @param out the receiving vector
+        //  * @param a the vector to transform
+        //  * @param m matrix to transform with
+        //  * @returns out
+        //  */
+        // public static transformMat3(out: vec2, a: vec2, m: mat3): vec2 {
+        //     let x = a[0],
+        //     y = a[1];
+        //     out[0] = m[0] * x + m[3] * y + m[6];
+        //     out[1] = m[1] * x + m[4] * y + m[7];
+        //     return out;
+        // }
+        /**
+         * Transforms the vec2 with a Mat4
+         * 3rd vector component is implicitly '0'
+         * 4th vector component is implicitly '1'
+         *
+         * @param out the receiving vector
+         * @param a the vector to transform
+         * @param m matrix to transform with
+         * @returns out
+         */
+        static transformMat4(a, m, out) {
+            let x = a[0];
+            let y = a[1];
+            out[0] = m[0] * x + m[4] * y + m[12];
+            out[1] = m[1] * x + m[5] * y + m[13];
+            return out;
+        }
+        // /**
+        //  * Perform some operation over an array of vec2s.
+        //  *
+        //  * @param a the array of vectors to iterate over
+        //  * @param stride Number of elements between the start of each vec2. If 0 assumes tightly packed
+        //  * @param offset Number of elements to skip at the beginning of the array
+        //  * @param count Number of vec2s to iterate over. If 0 iterates over entire array
+        //  * @param fn Function to call for each vector in the array
+        //  * @param arg additional argument to pass to fn
+        //  * @returns a
+        //  */
+        // public static forEach(a: Float32Array, stride: number, offset: number, count: number,
+        //     fn: (a: vec2, b: vec2, arg: any) => void, arg: any): Float32Array { return; }
+        // /**
+        //  * Perform some operation over an array of vec2s.
+        //  *
+        //  * @param a the array of vectors to iterate over
+        //  * @param stride Number of elements between the start of each vec2. If 0 assumes tightly packed
+        //  * @param offset Number of elements to skip at the beginning of the array
+        //  * @param count Number of vec2s to iterate over. If 0 iterates over entire array
+        //  * @param fn Function to call for each vector in the array
+        //  * @returns a
+        //  */
+        // public static forEach(a: Float32Array, stride: number, offset: number, count: number,
+        //     fn: (a: vec2, b: vec2) => void): Float32Array {
+        // }
+        /**
+         * Returns a string representation of a vector
+         *
+         * @param a vector to represent as a string
+         * @returns string representation of the vector
+         */
+        static str(a) {
+            return "vec2(" + a[0] + ", " + a[1] + ")";
+        }
+        /**
+         * Returns whether or not the vectors exactly have the same elements in the same position (when compared with ===)
+         *
+         * @param {Vec2} a The first vector.
+         * @param {Vec2} b The second vector.
+         * @returns {boolean} True if the vectors are equal, false otherwise.
+         */
+        static exactEquals(a, b) {
+            return a[0] === b[0] && a[1] === b[1];
+        }
+        /**
+         * Returns whether or not the vectors have approximately the same elements in the same position.
+         *
+         * @param {Vec2} a The first vector.
+         * @param {Vec2} b The second vector.
+         * @returns {boolean} True if the vectors are equal, false otherwise.
+         */
+        static equals(a, b) {
+            let a0 = a[0], a1 = a[1];
+            let b0 = b[0], b1 = b[1];
+            return Math.abs(a0 - b0) <= EPSILON && Math.abs(a1 - b1) <= EPSILON;
+        }
+    }
+    Vec2.Recycle = [];
+
+    class Vec4 extends Float32Array {
+        constructor(x = 0, y = 0, z = 0, w = 0) {
+            super(4);
+            this[0] = x;
+            this[1] = y;
+            this[2] = z;
+            this[3] = w;
+        }
+        get x() {
+            return this[0];
+        }
+        set x(value) {
+            this[0] = value;
+        }
+        get y() {
+            return this[1];
+        }
+        set y(value) {
+            this[1] = value;
+        }
+        get z() {
+            return this[2];
+        }
+        set z(value) {
+            this[2] = value;
+        }
+        get w() {
+            return this[3];
+        }
+        set w(value) {
+            this[3] = value;
+        }
+        static create(x = 0, y = 0, z = 0, w = 0) {
+            if (Vec4.Recycle && Vec4.Recycle.length > 0) {
+                let item = Vec4.Recycle.pop();
+                item[0] = x;
+                item[1] = y;
+                item[2] = z;
+                item[3] = w;
+                return item;
+            }
+            else {
+                let item = new Vec4(x, y, z, w);
+                // item[0]=x;
+                // item[1]=y;
+                // item[2]=z;
+                // item[3]=w;
+                return item;
+            }
+        }
+        static clone(from) {
+            if (Vec4.Recycle.length > 0) {
+                let item = Vec4.Recycle.pop();
+                Vec4.copy(from, item);
+                return item;
+            }
+            else {
+                let item = new Vec4(from[0], from[1], from[2], from[3]);
+                // item[0]=from[0];
+                // item[1]=from[1];
+                // item[2]=from[2];
+                // item[3]=from[3];
+                return item;
+            }
+        }
+        static recycle(item) {
+            Vec4.Recycle.push(item);
+        }
+        static disposeRecycledItems() {
+            Vec4.Recycle.length = 0;
+        }
+        /**
+         * Copy the values from one vec4 to another
+         *
+         * @param out the receiving vector
+         * @param a the source vector
+         * @returns out
+         */
+        static copy(a, out) {
+            out[0] = a[0];
+            out[1] = a[1];
+            out[2] = a[2];
+            out[3] = a[3];
+            return out;
+        }
+        /**
+         * Adds two vec4's
+         *
+         * @param out the receiving vector
+         * @param a the first operand
+         * @param b the second operand
+         * @returns out
+         */
+        static add(out, a, b) {
+            out[0] = a[0] + b[0];
+            out[1] = a[1] + b[1];
+            out[2] = a[2] + b[2];
+            out[3] = a[3] + b[3];
+            return out;
+        }
+        /**
+         * Subtracts vector b from vector a
+         *
+         * @param a the first operand
+         * @param b the second operand
+         * @param out the receiving vector
+         * @returns out
+         */
+        static subtract(a, b, out) {
+            out[0] = a[0] - b[0];
+            out[1] = a[1] - b[1];
+            out[2] = a[2] - b[2];
+            out[3] = a[3] - b[3];
+            return out;
+        }
+        /**
+         * Multiplies two vec4's
+         *
+         * @param a the first operand
+         * @param b the second operand
+         * @param out the receiving vector         *
+         * @returns out
+         */
+        static multiply(a, b, out) {
+            out[0] = a[0] * b[0];
+            out[1] = a[1] * b[1];
+            out[2] = a[2] * b[2];
+            out[3] = a[3] * b[3];
+            return out;
+        }
+        /**
+         * Divides two vec4's
+         *
+         * @param out the receiving vector
+         * @param a the first operand
+         * @param b the second operand
+         * @returns out
+         */
+        static divide(a, b, out) {
+            out[0] = a[0] / b[0];
+            out[1] = a[1] / b[1];
+            out[2] = a[2] / b[2];
+            out[3] = a[3] / b[3];
+            return out;
+        }
+        /**
+         * Math.ceil the components of a vec4
+         *
+         * @param {Vec4} a vector to ceil
+         * @param {Vec4} out the receiving vector
+         * @returns {Vec4} out
+         */
+        static ceil(a, out) {
+            out[0] = Math.ceil(a[0]);
+            out[1] = Math.ceil(a[1]);
+            out[2] = Math.ceil(a[2]);
+            out[3] = Math.ceil(a[3]);
+            return out;
+        }
+        /**
+         * Math.floor the components of a vec4
+         *
+         * @param {Vec4} a vector to floor
+         * @param {Vec4} out the receiving vector         *
+         * @returns {Vec4} out
+         */
+        static floor(a, out) {
+            out[0] = Math.floor(a[0]);
+            out[1] = Math.floor(a[1]);
+            out[2] = Math.floor(a[2]);
+            out[3] = Math.floor(a[3]);
+            return out;
+        }
+        /**
+         * Returns the minimum of two vec4's
+         *
+         * @param out the receiving vector
+         * @param a the first operand
+         * @param b the second operand
+         * @returns out
+         */
+        static min(a, b, out) {
+            out[0] = Math.min(a[0], b[0]);
+            out[1] = Math.min(a[1], b[1]);
+            out[2] = Math.min(a[2], b[2]);
+            out[3] = Math.min(a[3], b[3]);
+            return out;
+        }
+        /**
+         * Returns the maximum of two vec4's
+         *
+         * @param out the receiving vector
+         * @param a the first operand
+         * @param b the second operand
+         * @returns out
+         */
+        static max(a, b, out) {
+            out[0] = Math.max(a[0], b[0]);
+            out[1] = Math.max(a[1], b[1]);
+            out[2] = Math.max(a[2], b[2]);
+            out[3] = Math.max(a[3], b[3]);
+            return out;
+        }
+        /**
+         * Math.round the components of a vec4
+         *
+         * @param {Vec4} out the receiving vector
+         * @param {Vec4} a vector to round
+         * @returns {Vec4} out
+         */
+        static round(a, out) {
+            out[0] = Math.round(a[0]);
+            out[1] = Math.round(a[1]);
+            out[2] = Math.round(a[2]);
+            out[3] = Math.round(a[3]);
+            return out;
+        }
+        /**
+         * Scales a vec4 by a scalar number
+         *
+         * @param out the receiving vector
+         * @param a the vector to scale
+         * @param b amount to scale the vector by
+         * @returns out
+         */
+        static scale(a, b, out) {
+            out[0] = a[0] * b;
+            out[1] = a[1] * b;
+            out[2] = a[2] * b;
+            out[3] = a[3] * b;
+            return out;
+        }
+        /**
+         * Adds two vec4's after scaling the second operand by a scalar value
+         *
+         * @param out the receiving vector
+         * @param a the first operand
+         * @param b the second operand
+         * @param scale the amount to scale b by before adding
+         * @returns out
+         */
+        static scaleAndAdd(a, b, scale, out) {
+            out[0] = a[0] + b[0] * scale;
+            out[1] = a[1] + b[1] * scale;
+            out[2] = a[2] + b[2] * scale;
+            out[3] = a[3] + b[3] * scale;
+            return out;
+        }
+        /**
+         * Calculates the euclidian distance between two vec4's
+         *
+         * @param a the first operand
+         * @param b the second operand
+         * @returns distance between a and b
+         */
+        static distance(a, b) {
+            let x = b[0] - a[0];
+            let y = b[1] - a[1];
+            let z = b[2] - a[2];
+            let w = b[3] - a[3];
+            return Math.sqrt(x * x + y * y + z * z + w * w);
+        }
+        /**
+         * Calculates the squared euclidian distance between two vec4's
+         *
+         * @param a the first operand
+         * @param b the second operand
+         * @returns squared distance between a and b
+         */
+        static squaredDistance(a, b) {
+            let x = b[0] - a[0];
+            let y = b[1] - a[1];
+            let z = b[2] - a[2];
+            let w = b[3] - a[3];
+            return x * x + y * y + z * z + w * w;
+        }
+        /**
+         * Calculates the length of a vec4
+         *
+         * @param a vector to calculate length of
+         * @returns length of a
+         */
+        static length_(a) {
+            let x = a[0];
+            let y = a[1];
+            let z = a[2];
+            let w = a[3];
+            return Math.sqrt(x * x + y * y + z * z + w * w);
+        }
+        /**
+         * Calculates the squared length of a vec4
+         *
+         * @param a vector to calculate squared length of
+         * @returns squared length of a
+         */
+        static squaredLength(a) {
+            let x = a[0];
+            let y = a[1];
+            let z = a[2];
+            let w = a[3];
+            return x * x + y * y + z * z + w * w;
+        }
+        /**
+         * Negates the components of a vec4
+         *
+         * @param out the receiving vector
+         * @param a vector to negate
+         * @returns out
+         */
+        static negate(a, out) {
+            out[0] = -a[0];
+            out[1] = -a[1];
+            out[2] = -a[2];
+            out[3] = -a[3];
+            return out;
+        }
+        /**
+         * Returns the inverse of the components of a vec4
+         *
+         * @param out the receiving vector
+         * @param a vector to invert
+         * @returns out
+         */
+        static inverse(a, out) {
+            out[0] = 1.0 / a[0];
+            out[1] = 1.0 / a[1];
+            out[2] = 1.0 / a[2];
+            out[3] = 1.0 / a[3];
+            return out;
+        }
+        /**
+         * Normalize a vec4
+         *
+         * @param out the receiving vector
+         * @param a vector to normalize
+         * @returns out
+         */
+        static normalize(a, out) {
+            let x = a[0];
+            let y = a[1];
+            let z = a[2];
+            let w = a[3];
+            let len = x * x + y * y + z * z + w * w;
+            if (len > 0) {
+                len = 1 / Math.sqrt(len);
+                out[0] = x * len;
+                out[1] = y * len;
+                out[2] = z * len;
+                out[3] = w * len;
+            }
+            return out;
+        }
+        /**
+         * Calculates the dot product of two vec4's
+         *
+         * @param a the first operand
+         * @param b the second operand
+         * @returns dot product of a and b
+         */
+        static dot(a, b) {
+            return a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
+        }
+        /**
+         * Performs a linear interpolation between two vec4's
+         *
+         * @param out the receiving vector
+         * @param lhs the first operand
+         * @param rhs the second operand
+         * @param lerp interpolation amount between the two inputs
+         * @returns out
+         */
+        static lerp(lhs, rhs, lerp$$1, out) {
+            let ax = lhs[0];
+            let ay = lhs[1];
+            let az = lhs[2];
+            let aw = lhs[3];
+            out[0] = ax + lerp$$1 * (rhs[0] - ax);
+            out[1] = ay + lerp$$1 * (rhs[1] - ay);
+            out[2] = az + lerp$$1 * (rhs[2] - az);
+            out[3] = aw + lerp$$1 * (rhs[3] - aw);
+            return out;
+        }
+        /**
+         * Generates a random vector with the given scale
+         *
+         * @param out the receiving vector
+         * @param scale length of the resulting vector. If ommitted, a unit vector will be returned
+         * @returns out
+         */
+        static random(scale, out) {
+            scale = scale || 1.0;
+            //TODO: This is a pretty awful way of doing this. Find something better.
+            out[0] = Math.random();
+            out[1] = Math.random();
+            out[2] = Math.random();
+            out[3] = Math.random();
+            Vec4.normalize(out, out);
+            Vec4.scale(out, scale, out);
+            return out;
+        }
+        /**
+         * Transforms the vec4 with a Mat4.
+         *
+         * @param out the receiving vector
+         * @param a the vector to transform
+         * @param m matrix to transform with
+         * @returns out
+         */
+        static transformMat4(a, m, out) {
+            let x = a[0], y = a[1], z = a[2], w = a[3];
+            out[0] = m[0] * x + m[4] * y + m[8] * z + m[12] * w;
+            out[1] = m[1] * x + m[5] * y + m[9] * z + m[13] * w;
+            out[2] = m[2] * x + m[6] * y + m[10] * z + m[14] * w;
+            out[3] = m[3] * x + m[7] * y + m[11] * z + m[15] * w;
+            return out;
+        }
+        /**
+         * Transforms the vec4 with a Quat
+         *
+         * @param out the receiving vector
+         * @param a the vector to transform
+         * @param q Quaternion to transform with
+         * @returns out
+         */
+        static transformQuat(a, q, out) {
+            let x = a[0], y = a[1], z = a[2];
+            let qx = q[0], qy = q[1], qz = q[2], qw = q[3];
+            // calculate Quat * vec
+            let ix = qw * x + qy * z - qz * y;
+            let iy = qw * y + qz * x - qx * z;
+            let iz = qw * z + qx * y - qy * x;
+            let iw = -qx * x - qy * y - qz * z;
+            // calculate result * inverse Quat
+            out[0] = ix * qw + iw * -qx + iy * -qz - iz * -qy;
+            out[1] = iy * qw + iw * -qy + iz * -qx - ix * -qz;
+            out[2] = iz * qw + iw * -qz + ix * -qy - iy * -qx;
+            out[3] = a[3];
+            return out;
+        }
+        // /**
+        //  * Perform some operation over an array of vec4s.
+        //  *
+        //  * @param a the array of vectors to iterate over
+        //  * @param stride Number of elements between the start of each vec4. If 0 assumes tightly packed
+        //  * @param offset Number of elements to skip at the beginning of the array
+        //  * @param count Number of vec4s to iterate over. If 0 iterates over entire array
+        //  * @param fn Function to call for each vector in the array
+        //  * @param arg additional argument to pass to fn
+        //  * @returns a
+        //  * @function
+        //  */
+        // public static forEach(a: Float32Array, stride: number, offset: number, count: number,
+        //                       fn: (a: vec4, b: vec4, arg: any) => void, arg: any): Float32Array;
+        // /**
+        //  * Perform some operation over an array of vec4s.
+        //  *
+        //  * @param a the array of vectors to iterate over
+        //  * @param stride Number of elements between the start of each vec4. If 0 assumes tightly packed
+        //  * @param offset Number of elements to skip at the beginning of the array
+        //  * @param count Number of vec4s to iterate over. If 0 iterates over entire array
+        //  * @param fn Function to call for each vector in the array
+        //  * @returns a
+        //  * @function
+        //  */
+        // public static forEach(a: Float32Array, stride: number, offset: number, count: number,
+        //                       fn: (a: vec4, b: vec4) => void): Float32Array;
+        /**
+         * Returns a string representation of a vector
+         *
+         * @param a vector to represent as a string
+         * @returns string representation of the vector
+         */
+        static str(a) {
+            return "vec4(" + a[0] + ", " + a[1] + ", " + a[2] + ", " + a[3] + ")";
+        }
+        /**
+         * Returns whether or not the vectors have exactly the same elements in the same position (when compared with ===)
+         *
+         * @param {Vec4} a The first vector.
+         * @param {Vec4} b The second vector.
+         * @returns {boolean} True if the vectors are equal, false otherwise.
+         */
+        static exactEquals(a, b) {
+            return a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3];
+        }
+        /**
+         * Returns whether or not the vectors have approximately the same elements in the same position.
+         *
+         * @param {Vec4} a The first vector.
+         * @param {Vec4} b The second vector.
+         * @returns {boolean} True if the vectors are equal, false otherwise.
+         */
+        static equals(a, b) {
+            let a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3];
+            let b0 = b[0], b1 = b[1], b2 = b[2], b3 = b[3];
+            return (Math.abs(a0 - b0) <= EPSILON * Math.max(1.0, Math.abs(a0), Math.abs(b0)) &&
+                Math.abs(a1 - b1) <= EPSILON * Math.max(1.0, Math.abs(a1), Math.abs(b1)) &&
+                Math.abs(a2 - b2) <= EPSILON * Math.max(1.0, Math.abs(a2), Math.abs(b2)) &&
+                Math.abs(a3 - b3) <= EPSILON * Math.max(1.0, Math.abs(a3), Math.abs(b3)));
+        }
+    }
+    Vec4.Recycle = [];
+
+    const textureRegexp = /([_0-9a-zA-Z]+)[ ]*\([ ]*'(.+)'[ ]*,[ ]*([0-9a-zA-Z]+)[ ]*\)[ ]*=[ ]*'(.+)'[ ]*\{[ ]*([a-zA-Z]*)[ ]*([a-zA-Z]*)[ ]*\}/;
+    const vector4regexp = /([_0-9a-zA-Z]+)[ ]*\([ ]*'(.+)'[ ]*,[ ]*([0-9a-zA-Z]+)[ ]*\)[ ]*=[ ]*\([ ]*([0-9.-]+)[ ]*,[ ]*([0-9.-]+)[ ]*,[ ]*([0-9.-]+)[ ]*,[ ]*([0-9.-]+)[ ]*\)/;
+    const vector3regexp = /([_0-9a-zA-Z]+)[ ]*\([ ]*'(.+)'[ ]*,[ ]*([0-9a-zA-Z]+)[ ]*\)[ ]*=[ ]*\([ ]*([0-9.-]+)[ ]*,[ ]*([0-9.-]+)[ ]*,[ ]*([0-9.-]+)[ ]*\)/;
+    const vector2regexp = /([_0-9a-zA-Z]+)[ ]*\([ ]*'(.+)'[ ]*,[ ]*([0-9a-zA-Z]+)[ ]*\)[ ]*=[ ]*\([ ]*([0-9.-]+)[ ]*,[ ]*([0-9.-]+)[ ]*\)/;
+    const floatRegexp = /([_0-9a-zA-Z]+)[ ]*\([ ]*'(.+)'[ ]*,[ ]*([0-9a-zA-Z]+)[ ]*\)[ ]*=[ ]*([0-9.-]+)/;
+    const rangeRegexp = /([_0-9a-zA-Z]+)[ ]*\([ ]*'(.+)'[ ]*,[ ]*([0-9a-zA-Z]+)[ ]*\([ ]*([0-9.-]+)[ ]*,[ ]*([0-9.-]+)[ ]*\)[ ]*\)[ ]*=[ ]*([0-9.-]+)/;
+    function getShaderLayerFromStr(strLayer) {
+        switch (strLayer) {
+            case "Background":
+                return RenderLayerEnum.Background;
+            case "transparent":
+                return RenderLayerEnum.Transparent;
+            case "Geometry":
+                return RenderLayerEnum.Geometry;
+        }
+    }
+    class LoadShader {
+        constructor() {
+            LoadShader.drawtypeDic["base"] = DrawTypeEnum.BASE;
+            LoadShader.drawtypeDic["fog"] = DrawTypeEnum.FOG;
+            LoadShader.drawtypeDic["skin"] = DrawTypeEnum.SKIN;
+            LoadShader.drawtypeDic["skin_fog"] = DrawTypeEnum.SKIN | DrawTypeEnum.FOG;
+            LoadShader.drawtypeDic["lightmap"] = DrawTypeEnum.LIGHTMAP;
+            LoadShader.drawtypeDic["lightmap_fog"] = DrawTypeEnum.LIGHTMAP | DrawTypeEnum.FOG;
+            LoadShader.drawtypeDic["instance"] = DrawTypeEnum.INSTANCe;
+        }
+        load(url, onFinish, onProgress) {
+            let name = getFileName(url);
+            let shader = new Shader({ name: name, URL: url });
+            loadText(url).then(txt => {
+                let json = JSON.parse(txt);
+                let layer = getShaderLayerFromStr(json.layer || "Geometry");
+                let queue = json.queue != null ? json.queue : 0;
+                let defUniform = LoadShader.parseProperties(json.properties, name);
+                let features = json.feature != null ? [...json.feature, "base"] : ["base"];
+                let index = url.lastIndexOf("/");
+                let shaderurl = url.substring(0, index + 1);
+                LoadShader.ParseShaderPass(features, json.passes, shaderurl, name).then(progamArr => {
+                    shader.layer = layer;
+                    shader.queue = queue;
+                    shader.mapUniformDef = defUniform;
+                    shader.passes = progamArr;
+                });
+            });
+            return shader;
+        }
+        static parseProperties(properties, name) {
+            let mapUniformDef = {};
+            for (let index in properties) {
+                let property = properties[index];
+                //检测字符串格式有无错误
+                let words = property.match(floatRegexp);
+                if (words == null)
+                    words = property.match(rangeRegexp);
+                if (words == null)
+                    words = property.match(vector4regexp);
+                if (words == null)
+                    words = property.match(vector3regexp);
+                if (words == null)
+                    words = property.match(vector2regexp);
+                if (words == null)
+                    words = property.match(textureRegexp);
+                if (words == null) {
+                    let errorMsg = "ERROR:  parse shader(" +
+                        name +
+                        " )Property json Error! \n" +
+                        " Info:" +
+                        property +
+                        "check match failed.";
+                    console.error(errorMsg);
+                    return null;
+                }
+                if (words != null && words.length >= 4) {
+                    let key = words[1];
+                    let showName = words[2];
+                    let type = words[3].toLowerCase();
+                    switch (type) {
+                        case "float":
+                            mapUniformDef[key] = { type: UniformTypeEnum.FLOAT, value: parseFloat(words[4]) };
+                            break;
+                        case "range":
+                            //this.mapUniformDef[key] = { type: type, min: parseFloat(words[4]), max: parseFloat(words[5]), value: parseFloat(words[6]) };
+                            mapUniformDef[key] = { type: UniformTypeEnum.FLOAT, value: parseFloat(words[6]) };
+                            break;
+                        case "vector2":
+                            let vector2 = Vec2.create(parseFloat(words[4]), parseFloat(words[5]));
+                            mapUniformDef[key] = { type: UniformTypeEnum.FLOAT_VEC2, value: vector2 };
+                            break;
+                        case "vector3":
+                            let vector3 = Vec3.create(parseFloat(words[4]), parseFloat(words[5]), parseFloat(words[6]));
+                            mapUniformDef[key] = { type: UniformTypeEnum.FLOAT_VEC3, value: vector3 };
+                            break;
+                        case "vector4":
+                        case "color":
+                            let _vector = Vec4.create(parseFloat(words[4]), parseFloat(words[5]), parseFloat(words[6]), parseFloat(words[7]));
+                            mapUniformDef[key] = { type: UniformTypeEnum.FLOAT_VEC4, value: _vector };
+                            break;
+                        case "texture":
+                            mapUniformDef[key] = { type: UniformTypeEnum.TEXTURE, value: null }; //words[4]
+                            break;
+                        case "cubetexture":
+                            mapUniformDef[key] = { type: UniformTypeEnum.TEXTURE, value: null };
+                            break;
+                        default:
+                            let errorMsg = "ERROR: parse shader(" +
+                                name +
+                                " )Property json Error! \n" +
+                                "Info: unknown type : " +
+                                type;
+                            console.error(errorMsg);
+                            return null;
+                    }
+                }
+            }
+            return mapUniformDef;
+        }
+        static ParseShaderPass(features, json, shaderFolderUrl, name) {
+            let passes = {};
+            let featureArr = [];
+            for (let i = 0; i < features.length; i++) {
+                let type = features[i];
+                let featureStr = getFeaturShderStr(type);
+                let taskArr = [];
+                for (let i = 0; i < json.length; i++) {
+                    let passJson = json[i];
+                    let vsurl = shaderFolderUrl + passJson.vs + ".vs.glsl";
+                    let fsurl = shaderFolderUrl + passJson.fs + ".fs.glsl";
+                    let vstask = loadText(vsurl);
+                    let fstask = loadText(fsurl);
+                    let protask = Promise.all([vstask, fstask]).then(str => {
+                        let vsStr = featureStr + str[0];
+                        let fsStr = featureStr + str[1];
+                        return GlRender.createProgram({
+                            program: {
+                                vs: vsStr,
+                                fs: fsStr,
+                                name: passJson.vs + "_" + passJson.fs,
+                            },
+                            states: passJson.state,
+                        });
+                    });
+                    taskArr.push(protask);
+                }
+                let feature = Promise.all(taskArr).then(programArr => {
+                    passes[type] = programArr;
+                });
+                featureArr.push(feature);
+            }
+            return Promise.all(featureArr).then(() => passes);
+        }
+    }
+    LoadShader.drawtypeDic = {};
+
+    var loadShader = /*#__PURE__*/Object.freeze({
+        LoadShader: LoadShader
+    });
 
 })));
 //# sourceMappingURL=dome.js.map

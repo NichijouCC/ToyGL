@@ -22,6 +22,7 @@ import {
 } from "twebgl";
 import { RenderLayerEnum } from "../ec/ec";
 import { AutoUniform } from "./autoUniform";
+import { UniformTypeEnum } from "../resources/assets/shader";
 export { IprogramInfo, IgeometryInfo, IgeometryOptions, IprogramOptions };
 
 // export interface IshaderOptions extends IprogramOptions {
@@ -96,15 +97,25 @@ export class GlRender {
         geometry: IgeometryInfo,
         program: IprogramInfo,
         uniforms?: { [name: string]: any },
+        defUniforms?:{ [key: string]: { type: UniformTypeEnum; value: any } },
         instancecount?: number,
     ): void {
         // setProgram(this.context, program);
         setGeometryAndProgramWithCached(this.context, geometry, program);
         //set uniforms
-        for (const key in program.uniformsDic) {
-            let func = this.autoUniform && this.autoUniform.autoUniforms[key];
-            let value = func ? func() : uniforms[key];
-            program.uniformsDic[key].setter(value);
+        let uniformsDic=program.bassProgram.uniformsDic;
+        for (const key in uniformsDic) {
+            if(uniforms[key]!=null)
+            {
+                uniformsDic[key].setter(uniforms[key]);
+            }else if(this.autoUniform && this.autoUniform.autoUniforms[key])
+            {
+                let value = this.autoUniform.autoUniforms[key]();
+                uniformsDic[key].setter(value);
+            }else
+            {
+                uniformsDic[key].setter(defUniforms&&defUniforms[key].value);
+            }
         }
         drawBufferInfo(this.context, geometry, instancecount);
     }

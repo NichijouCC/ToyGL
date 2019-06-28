@@ -21,6 +21,7 @@ import { getAssetExtralName } from "./base/helper";
 export class AssetLoader {
     static RegisterAssetLoader(extral: string, factory: () => IassetLoader) {
         // this.ExtendNameDic[extral] = type;
+        console.warn("loader type:",extral);
         this.RESLoadDic[extral] = factory;
     }
     //private static ExtendNameDic: { [name: string]: AssetExtralEnum } = {};
@@ -39,11 +40,11 @@ export class AssetLoader {
     // private static RESExtensionLoadDic: { [ExtralName: string]: () => IassetLoader } = {};
 
     static async addLoader() {
-        import("./loader/loadTxt").then(mod => {
+        await import("./loader/loadTxt").then(mod => {
             this.RegisterAssetLoader(".txt", () => new mod.LoadTxt());
         });
-        import("./loader/loadTxt").then(mod => {
-            this.RegisterAssetLoader(".txt", () => new mod.LoadTxt());
+        await import("./loader/loadShader").then(mod => {
+            this.RegisterAssetLoader(".shader.json", () => new mod.LoadShader());
         });
     }
 }

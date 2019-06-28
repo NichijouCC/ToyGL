@@ -64,7 +64,7 @@ export class GameScreen {
     // static divcontiner: HTMLDivElement;
     static init(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
-        // this.OnResizeCanvas();
+        this.OnResizeCanvas();
         // window.onresize = () => {
         //     this.OnResizeCanvas();
         // };
@@ -81,8 +81,8 @@ export class GameScreen {
         console.warn("canvas resize!");
         // this._windowWidth = window.innerWidth;
         // this._windowHeight = window.innerHeight;
-        this._windowWidth = this.canvas.parentElement.clientWidth;
-        this._windowHeight = this.canvas.parentElement.clientHeight;
+        this._windowWidth = this.canvas.clientWidth;
+        this._windowHeight = this.canvas.clientHeight;
 
         let pixelRatio = window.devicePixelRatio || 1;
         this.canvaswidth = pixelRatio * this.scale * this._windowWidth;

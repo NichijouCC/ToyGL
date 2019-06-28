@@ -1,5 +1,5 @@
 precision lowp float;
-uniform lowp sampler2D _MainTex;
+// uniform lowp sampler2D _MainTex;
 uniform lowp vec4 _MainColor;
 uniform lowp float _AlphaCut;
 varying mediump vec2 xlv_TEXCOORD0;
@@ -23,27 +23,18 @@ varying lowp float factor;
 
 void main() 
 {
-    lowp vec4 basecolor = texture2D(_MainTex, xlv_TEXCOORD0);
+    // lowp vec4 basecolor = texture2D(_MainTex, xlv_TEXCOORD0);
+    lowp vec4 basecolor =vec4(1,1,1,1);
     if(basecolor.a < _AlphaCut)
         discard;
     lowp vec4 fristColor=basecolor*_MainColor;
     lowp vec4 emission = fristColor;
 
     //----------------------------------------------------------
-    //light
-    calcCOLOR();
     
     #ifdef LIGHTMAP
     lowp vec4 lightmap = texture2D(_LightmapTex, lightmap_TEXCOORD);
     emission.xyz *= decode_hdr(lightmap);
-    if(hasLight){ // have light
-        fristColor = fristColor * xlv_COLOR ;
-        emission = emission + mix(vec4(1.0, 1.0, 1.0, 1.0), fristColor, fristColor.wwww);
-    }
-    #else
-	if(hasLight){ // have light
-        emission = (fristColor * xlv_COLOR) + (fristColor * vec4(fixedAmbient,1.0));
-    }
     #endif
 
     #ifdef FOG
