@@ -6,6 +6,7 @@ import {
     IprogramOptions,
     ItexImageDataOption,
     ItextureInfo,
+    ItexViewDataOption,
 } from "twebgl/dist/types/type";
 
 import {
@@ -21,11 +22,20 @@ import {
     createTextureFromImageSource,
     setProgramUniforms,
     setClear,
+    createTextureFromTypedArray,
 } from "twebgl";
 import { RenderLayerEnum } from "../ec/ec";
 import { AutoUniform } from "./autoUniform";
 import { UniformTypeEnum } from "../resources/assets/shader";
-export { IprogramInfo, IgeometryInfo, IgeometryOptions, IprogramOptions,ItextureInfo,ItexImageDataOption};
+export {
+    IprogramInfo,
+    IgeometryInfo,
+    IgeometryOptions,
+    IprogramOptions,
+    ItextureInfo,
+    ItexImageDataOption,
+    ItexViewDataOption,
+};
 
 // export interface IshaderOptions extends IprogramOptions {
 //     layer?: RenderLayerEnum;
@@ -87,8 +97,11 @@ export class GlRender {
         return info;
     }
 
-    static createTextureFromImg(img: TexImageSource,texop?:ItexImageDataOption): ItextureInfo {
-        return createTextureFromImageSource(this.context, img,texop);
+    static createTextureFromImg(img: TexImageSource, texop?: ItexImageDataOption): ItextureInfo {
+        return createTextureFromImageSource(this.context, img, texop);
+    }
+    static createTextureFromViewData(viewData: ArrayBufferView, texop: ItexViewDataOption) {
+        return createTextureFromTypedArray(this.context, viewData, texop);
     }
 
     static setGeometryAndProgram(geometry: IgeometryInfo, program: IprogramInfo) {
@@ -99,24 +112,21 @@ export class GlRender {
         geometry: IgeometryInfo,
         program: IprogramInfo,
         uniforms?: { [name: string]: any },
-        defUniforms?:{ [key: string]: { type: UniformTypeEnum; value: any } },
+        defUniforms?: { [key: string]: { type: UniformTypeEnum; value: any } },
         instancecount?: number,
     ): void {
         // setProgram(this.context, program);
         setGeometryAndProgramWithCached(this.context, geometry, program);
         //set uniforms
-        let uniformsDic=program.bassProgram.uniformsDic;
+        let uniformsDic = program.bassProgram.uniformsDic;
         for (const key in uniformsDic) {
-            if(uniforms[key]!=null)
-            {
+            if (uniforms[key] != null) {
                 uniformsDic[key].setter(uniforms[key]);
-            }else if(this.autoUniform && this.autoUniform.autoUniforms[key])
-            {
+            } else if (this.autoUniform && this.autoUniform.autoUniforms[key]) {
                 let value = this.autoUniform.autoUniforms[key]();
                 uniformsDic[key].setter(value);
-            }else
-            {
-                uniformsDic[key].setter(defUniforms&&defUniforms[key].value);
+            } else {
+                uniformsDic[key].setter(defUniforms && defUniforms[key].value);
             }
         }
         drawBufferInfo(this.context, geometry, instancecount);

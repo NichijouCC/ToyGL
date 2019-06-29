@@ -28,7 +28,6 @@ export class ToyGL {
         this.scene = new Scene(render);
         GameScreen.init(canvas);
 
-
         this.loop = new Loop();
         this.loop.update = this.frameUpdate;
     }

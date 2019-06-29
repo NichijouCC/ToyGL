@@ -19,6 +19,11 @@ export class Mat4 extends Float32Array {
             return item;
         }
     }
+
+    public static fromArray(array: number[]) {
+        if (array.length != 16) return null;
+        return new Float32Array(array);
+    }
     public static clone(from: Mat4): Mat4 {
         if (Mat4.Recycle.length > 0) {
             let item = Mat4.Recycle.pop();

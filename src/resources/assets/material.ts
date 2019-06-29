@@ -1,8 +1,10 @@
-import { Texture } from './texture';
+import { Texture } from "./texture";
 import { ToyAsset, ItoyAsset } from "../base/toyAsset";
 import { RenderLayerEnum } from "../../ec/ec";
 import { Shader, IshaderInfo } from "./shader";
 import { Color } from "../../mathD/color";
+import { Vec4 } from "../../mathD/vec4";
+import { Vec3 } from "../../mathD/vec3";
 
 export class Material extends ToyAsset {
     constructor(param?: ItoyAsset) {
@@ -30,14 +32,20 @@ export class Material extends ToyAsset {
         return this._layer || (this._program && this._program.layer) || RenderLayerEnum.Geometry;
     }
 
-    setColor(uniform: string, color: Color) {
-        this.uniforms[uniform] = color;
+    setColor(key: string, value: Color) {
+        this.uniforms[key] = value;
     }
-
-    setTexture(unfiorm:string,tex:Texture)
-    {
-        this.uniforms[unfiorm]=tex;
+    setTexture(key: string, value: Texture) {
+        this.uniforms[key] = value;
     }
-
+    setVector4(key: string, value: Vec4) {
+        this.uniforms[key] = value;
+    }
+    setVector3(key: string, value: Vec3) {
+        this.uniforms[key] = value;
+    }
+    setFloat(key: string, value: number) {
+        this.uniforms[key] = value;
+    }
     dispose(): void {}
 }

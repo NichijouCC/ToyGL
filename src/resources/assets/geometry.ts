@@ -2,7 +2,7 @@ import { ToyAsset, ItoyAsset } from "../base/toyAsset";
 import { GlRender, IgeometryInfo, IgeometryOptions } from "../../render/glRender";
 
 export class Geometry extends ToyAsset {
-    constructor(param: ItoyAsset) {
+    constructor(param?: ItoyAsset) {
         super(param);
     }
     dispose(): void {}

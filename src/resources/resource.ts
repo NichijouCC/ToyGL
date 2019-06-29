@@ -19,18 +19,18 @@ import { getAssetExtralName } from "./base/helper";
  */
 
 export class AssetLoader {
-    static RegisterAssetLoader(extral: string, factory: () => IassetLoader) {
+    static RegisterAssetLoader(extral: string, factory: IassetLoader) {
         // this.ExtendNameDic[extral] = type;
-        console.warn("loader type:",extral);
+        console.warn("loader type:", extral);
         this.RESLoadDic[extral] = factory;
     }
     //private static ExtendNameDic: { [name: string]: AssetExtralEnum } = {};
-    private static RESLoadDic: { [ExtralName: string]: () => IassetLoader } = {};
+    private static RESLoadDic: { [ExtralName: string]: IassetLoader } = {};
 
     static getAssetLoader(url: string): IassetLoader {
         let extralType = getAssetExtralName(url);
         let factory = this.RESLoadDic[extralType];
-        return factory && factory();
+        return factory;
     }
     // //-------------------资源加载拓展
     // static RegisterAssetExtensionLoader(extral: string, factory: () => IassetLoader) {
@@ -41,14 +41,17 @@ export class AssetLoader {
 
     static async addLoader() {
         await import("./loader/loadTxt").then(mod => {
-            this.RegisterAssetLoader(".txt", () => new mod.LoadTxt());
+            this.RegisterAssetLoader(".txt", new mod.LoadTxt());
         });
         await import("./loader/loadShader").then(mod => {
-            this.RegisterAssetLoader(".shader.json", () => new mod.LoadShader());
+            this.RegisterAssetLoader(".shader.json", new mod.LoadShader());
         });
         await import("./loader/loadTexture").then(mod => {
-            this.RegisterAssetLoader(".png", () => new mod.LoadTextureSample());
-            this.RegisterAssetLoader(".jpg", () => new mod.LoadTextureSample());
+            this.RegisterAssetLoader(".png", new mod.LoadTextureSample());
+            this.RegisterAssetLoader(".jpg", new mod.LoadTextureSample());
+        });
+        await import("./glTF/loadglTF").then(mod => {
+            this.RegisterAssetLoader(".gltf", new mod.LoadGlTF());
         });
     }
 }

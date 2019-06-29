@@ -63,37 +63,41 @@ export class LoadShader implements IassetLoader {
         let name = getFileName(url);
 
         let shader: Shader = new Shader({ name: name, URL: url });
-        loadText(url).then(txt => {
-            let json = JSON.parse(txt) as IshaderJson;
-            let layer = getShaderLayerFromStr(json.layer || "Geometry");
-            let queue = json.queue != null ? json.queue : 0;
-            let defUniform = LoadShader.parseProperties(json.properties, name);
-            let features = json.feature != null ? [...json.feature, "base"] : ["base"];
+        loadText(url)
+            .then(txt => {
+                let json = JSON.parse(txt) as IshaderJson;
+                let layer = getShaderLayerFromStr(json.layer || "Geometry");
+                let queue = json.queue != null ? json.queue : 0;
+                let defUniform = LoadShader.parseProperties(json.properties, name);
+                let features = json.feature != null ? [...json.feature, "base"] : ["base"];
 
-            let index = url.lastIndexOf("/");
-            let shaderurl = url.substring(0, index + 1);
-            LoadShader.ParseShaderPass(features, json.passes, shaderurl, name).then(progamArr => {
-                shader.layer = layer;
-                shader.queue = queue;
-                shader.mapUniformDef = defUniform;
-                shader.passes = progamArr;
+                let index = url.lastIndexOf("/");
+                let shaderurl = url.substring(0, index + 1);
+                LoadShader.ParseShaderPass(features, json.passes, shaderurl, name)
+                    .then(progamArr => {
+                        shader.layer = layer;
+                        shader.queue = queue;
+                        shader.mapUniformDef = defUniform;
+                        shader.passes = progamArr;
 
-                if (onFinish) {
-                    onFinish(shader, { url: url, loadState: LoadEnum.Success });
-                }
-            }).catch(error=>{
-                let errorMsg = "ERROR: parse shader Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + error.message;
+                        if (onFinish) {
+                            onFinish(shader, { url: url, loadState: LoadEnum.Success });
+                        }
+                    })
+                    .catch(error => {
+                        let errorMsg =
+                            "ERROR: parse shader Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + error.message;
+                        if (onFinish) {
+                            onFinish(shader, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
+                        }
+                    });
+            })
+            .catch(err => {
+                let errorMsg = "ERROR: Load shader Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
                 if (onFinish) {
                     onFinish(shader, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
                 }
             });
-
-        }).catch(err=>{
-            let errorMsg = "ERROR: Load shader Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
-            if (onFinish) {
-                onFinish(shader, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
-            }
-        });
         return shader;
     }
 

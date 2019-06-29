@@ -1,42 +1,19 @@
-namespace web3d
-{
-    export class BufferviewNode
-    {
-        view:ArrayBufferView;
-        byteStride?:number;
-        
-    }
-    
-    export class ParseBufferViewNode
-    {
-        static parse(index:number,loader:LoadGlTF):Promise<BufferviewNode>
-        {
-            let bundle=loader.bundle;
-            if(bundle.bufferviewNodeCache[index])
-            {
-                return Promise.resolve(bundle.bufferviewNodeCache[index]);
-            }else
-            {
-                
-                let bufferview=bundle.gltf.bufferViews[index];
-                let node=new BufferviewNode();
-                if(bufferview.byteStride!=null)
-                {
-                    node.byteStride=bufferview.byteStride;
-                }
-                let bufferindex=bufferview.buffer;
-                return ParseBufferNode.parse(bufferindex,loader).then((buffer)=>{
-                    node.view=new Uint8Array(buffer,bufferview.byteOffset,bufferview.byteLength);
-                    //---------------add to cache
-                    bundle.bufferviewNodeCache[index]=node;
-                    return node;
-                });
-    
-            }
-    
-            
-    
-    
+import { ParseBufferNode } from "./parseBufferNode";
+import { IgltfJson, IgltfBufferview } from "./loadglTF";
+
+export class ParseBufferViewNode {
+    static parse(index: number, gltf: IgltfJson): Promise<IgltfBufferview> {
+        if (gltf.cache.bufferviewNodeCache[index]) {
+            return Promise.resolve(gltf.cache.bufferviewNodeCache[index]);
+        } else {
+            let bufferview = gltf.bufferViews[index];
+            let bufferindex = bufferview.buffer;
+            return ParseBufferNode.parse(bufferindex, gltf).then(buffer => {
+                let viewbuffer = new Uint8Array(buffer, bufferview.byteOffset, bufferview.byteLength);
+                let stride = bufferview.byteStride;
+                gltf.cache.bufferviewNodeCache[index] = { buffer: viewbuffer, byteStride: stride };
+                return gltf.cache.bufferviewNodeCache[index];
+            });
         }
     }
 }

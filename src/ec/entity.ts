@@ -1,4 +1,4 @@
-import { Transform } from './components/transform';
+import { Transform } from "./components/transform";
 import { Ientity, Icomponent, EC, Irender, CullingMask } from "./ec";
 
 export class Entity implements Ientity {
@@ -10,7 +10,7 @@ export class Entity implements Ientity {
 
     constructor(name: string = null, compsArr: string[] = null) {
         this.guid = newId();
-        this.name = name || "newEntity";
+        this.name = name != null ? name : "newEntity";
         this.beActive = true;
 
         if (compsArr != null) {
@@ -23,8 +23,7 @@ export class Entity implements Ientity {
         }
     }
 
-    get transForm():Transform
-    {
+    get transForm(): Transform {
         return this.getCompByName("Transform") as Transform;
     }
 

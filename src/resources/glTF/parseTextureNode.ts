@@ -1,85 +1,82 @@
-namespace web3d
-{
-    export class ParseTextureNode
-    {
-        static parse(index:number,loader:LoadGlTF):Promise<Texture|null> 
-        {
-            let bundle=loader.bundle;
-            if(bundle.textrueNodeCache[index])
-            {
-                return Promise.resolve(bundle.textrueNodeCache[index]);
-            }else
-            {
-                if(bundle.gltf.textures==null) return null;
-                let node=bundle.gltf.textures[index];
-                if(bundle.gltf.images==null) return null;
-                let imageNode=bundle.gltf.images[node.source];
-                let asset:Texture;
-                if(imageNode.uri!=null)
-                {
-                    asset=loader.loadDependAsset(bundle.rootURL+"/"+imageNode.uri) as Texture;
-                    if(node.sampler)
-                    {
-                        let samplerinfo=bundle.gltf.samplers[node.sampler];
-                        if(samplerinfo.wrapS!=null)
-                        {
-                            asset.samplerInfo.wrap_s=samplerinfo.wrapS;
+import { Texture } from "../assets/texture";
+import { loadImg } from "../../io/loadtool";
+import { LoadTextureSample } from "../loader/loadTexture";
+import { GlRender, ItexImageDataOption, ItexViewDataOption } from "../../render/glRender";
+import { ParseBufferViewNode } from "./parseBufferViewNode";
+import { IgltfJson } from "./loadglTF";
+
+export class ParseTextureNode {
+    static parse(index: number, gltf: IgltfJson): Promise<Texture | null> {
+        if (gltf.cache.textrueNodeCache[index]) {
+            return Promise.resolve(gltf.cache.textrueNodeCache[index]);
+        } else {
+            if (gltf.textures == null) return null;
+            let node = gltf.textures[index];
+            if (gltf.images == null) return null;
+            let imageNode = gltf.images[node.source];
+
+            if (imageNode.uri != null) {
+                let imagUrl = gltf.rootURL + "/" + imageNode.uri;
+                let texture: Texture = new Texture({ name: name, URL: imagUrl });
+                return loadImg(imagUrl).then(img => {
+                    texture.width = img.width;
+                    texture.height = img.height;
+
+                    let texOp: ItexImageDataOption = {};
+                    if (node.sampler) {
+                        let samplerinfo = gltf.samplers[node.sampler];
+                        if (samplerinfo.wrapS != null) {
+                            texOp.wrapS = samplerinfo.wrapS;
                         }
-                        if(samplerinfo.wrapT)
-                        {
-                            asset.samplerInfo.wrap_s=samplerinfo.wrapT;
+                        if (samplerinfo.wrapT) {
+                            texOp.wrapT = samplerinfo.wrapT;
                         }
-                        if(samplerinfo.magFilter)
-                        {
-                            asset.samplerInfo.max_filter=samplerinfo.magFilter;
+                        if (samplerinfo.magFilter) {
+                            texOp.filterMax = samplerinfo.magFilter;
                         }
-                        if(samplerinfo.minFilter)
-                        {
-                            asset.samplerInfo.min_filter=samplerinfo.minFilter;
+                        if (samplerinfo.minFilter) {
+                            texOp.filterMin = samplerinfo.minFilter;
                         }
                     }
-                    bundle.textrueNodeCache[index]=asset;
+                    let imaginfo = GlRender.createTextureFromImg(img, texOp);
+                    texture.texture = imaginfo.texture;
+                    texture.texDes = imaginfo.texDes;
 
-                    return Promise.resolve(asset);
-                }else
-                {
-                    return  ParseBufferViewNode.parse(imageNode.bufferView,loader).then((viewnode)=>{
+                    gltf.cache.textrueNodeCache[index] = texture;
+                    return texture;
+                });
+            } else {
+                let texture: Texture = new Texture({ name: name });
+                return ParseBufferViewNode.parse(imageNode.bufferView, gltf).then(viewnode => {
                     //    let bob=new Blob([viewnode.view], { type: imageNode.mimeType })
                     //    let url = URL.createObjectURL(bob);
                     //    asset= loader.loadDependAsset(url) as Texture;
-                        asset=new Texture();
-                        asset.imageData=viewnode.view as Uint8Array;
-                        
-                       if(node.sampler)
-                       {
-                           let samplerinfo=bundle.gltf.samplers[node.sampler];
-                           if(samplerinfo.wrapS!=null)
-                           {
-                               asset.samplerInfo.wrap_s=samplerinfo.wrapS;
-                           }
-                           if(samplerinfo.wrapT)
-                           {
-                               asset.samplerInfo.wrap_s=samplerinfo.wrapT;
-                           }
-                           if(samplerinfo.magFilter)
-                           {
-                               asset.samplerInfo.max_filter=samplerinfo.magFilter;
-                           }
-                           if(samplerinfo.minFilter)
-                           {
-                               asset.samplerInfo.min_filter=samplerinfo.minFilter;
-                           }
-                       }
-                       asset.applyToGLTarget();
-                    //    bundle.textrueNodeCache[index]=asset;
+                    let texOp: ItexViewDataOption = { width: 100, height: 100 }; //todo
+                    if (node.sampler) {
+                        let samplerinfo = gltf.samplers[node.sampler];
+                        if (samplerinfo.wrapS != null) {
+                            texOp.wrapS = samplerinfo.wrapS;
+                        }
+                        if (samplerinfo.wrapT) {
+                            texOp.wrapT = samplerinfo.wrapT;
+                        }
+                        if (samplerinfo.magFilter) {
+                            texOp.filterMax = samplerinfo.magFilter;
+                        }
+                        if (samplerinfo.minFilter) {
+                            texOp.filterMin = samplerinfo.minFilter;
+                        }
+                    }
+                    let imaginfo = GlRender.createTextureFromViewData(viewnode.buffer, texOp);
+                    texture.texture = imaginfo.texture;
+                    texture.texDes = imaginfo.texDes;
 
-                       return asset;
-                    });
-                }
-                // let asset=assetMgr.load(bundle.rootURL+"/"+uri.uri) as Texture;
+                    gltf.cache.textrueNodeCache[index] = texture;
 
+                    return texture;
+                });
             }
-    
+            // let asset=assetMgr.load(bundle.rootURL+"/"+uri.uri) as Texture;
         }
     }
 }

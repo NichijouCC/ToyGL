@@ -30,3 +30,9 @@ export function getAssetExtralName(url: string): string {
     let extname = filename.substr(index);
     return extname;
 }
+
+export function getAssetFlode(url: string): string {
+    let filei = url.lastIndexOf("/");
+    let file = url.substr(0, filei);
+    return file;
+}

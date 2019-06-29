@@ -1,9 +1,9 @@
-import { GlRender } from './../../render/glRender';
+import { GlRender } from "./../../render/glRender";
 import { IassetLoader, IassetLoadInfo, Iasset } from "../type";
 import { getFileName } from "../base/helper";
 import { Texture } from "../assets/texture";
 import { loadImg, loadText } from "../../io/loadtool";
-import { LoadEnum } from '../base/loadEnum';
+import { LoadEnum } from "../base/loadEnum";
 
 export class LoadTextureSample implements IassetLoader {
     load(
@@ -12,31 +12,31 @@ export class LoadTextureSample implements IassetLoader {
         onProgress: (progress: number) => void,
     ): Iasset {
         let name = getFileName(url);
-        let texture: Texture = new Texture({name:name,URL:url});
-        loadImg(url).then((img)=>{
-            texture.width=img.width;
-            texture.height=img.height;
-            let imaginfo =GlRender.createTextureFromImg(img);
-            texture.texture=imaginfo.texture;
-            texture.texDes=imaginfo.texDes;
+        let texture: Texture = new Texture({ name: name, URL: url });
+        loadImg(url)
+            .then(img => {
+                texture.width = img.width;
+                texture.height = img.height;
+                let imaginfo = GlRender.createTextureFromImg(img);
+                texture.texture = imaginfo.texture;
+                texture.texDes = imaginfo.texDes;
 
-            if (onFinish) {
-                onFinish(texture, { url: url, loadState: LoadEnum.Success });
-            }
-        }).catch((err)=>{
-            let errorMsg = "ERROR: Load Image Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
-            if (onFinish) {
-                onFinish(texture, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
-            }
-        });
+                if (onFinish) {
+                    onFinish(texture, { url: url, loadState: LoadEnum.Success });
+                }
+            })
+            .catch(err => {
+                let errorMsg = "ERROR: Load Image Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
+                if (onFinish) {
+                    onFinish(texture, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
+                }
+            });
         return texture;
     }
 }
 
-export interface ItextureDesJson
-{
-    texture:string;
-
+export interface ItextureDesJson {
+    texture: string;
 }
 export class LoadTextureDes implements IassetLoader {
     load(
@@ -45,39 +45,40 @@ export class LoadTextureDes implements IassetLoader {
         onProgress: (progress: number) => void,
     ): Iasset {
         let name = getFileName(url);
-        let texture: Texture = new Texture({name:name,URL:url});
+        let texture: Texture = new Texture({ name: name, URL: url });
         //-------------load image des
-        loadText(url).then((txt)=>{
-            let desjson = JSON.parse(txt);
-            let imgName = desjson.texture;
-            let desname = getFileName(url);
+        loadText(url)
+            .then(txt => {
+                let desjson = JSON.parse(txt);
+                let imgName = desjson.texture;
+                let desname = getFileName(url);
 
-            let imgurl = url.replace(desname, imgName);
-            loadImg(imgurl).then((img)=>{
-                texture.width=img.width;
-                texture.height=img.height;
-                let imaginfo =GlRender.createTextureFromImg(img);
-                texture.texture=imaginfo.texture;
-                texture.texDes=imaginfo.texDes;
-                
-                if (onFinish) {
-                    onFinish(texture, { url: url, loadState: LoadEnum.Success });
-                }
-            }).catch((err)=>{
-                let errorMsg = "ERROR: Load Image Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
-                if (onFinish) {
-                    onFinish(texture, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
-                }
-            });
+                let imgurl = url.replace(desname, imgName);
+                loadImg(imgurl)
+                    .then(img => {
+                        texture.width = img.width;
+                        texture.height = img.height;
+                        let imaginfo = GlRender.createTextureFromImg(img);
+                        texture.texture = imaginfo.texture;
+                        texture.texDes = imaginfo.texDes;
 
-            }).catch((err)=>{
-                let errorMsg =
-                "ERROR: Load Image Des Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
-                
+                        if (onFinish) {
+                            onFinish(texture, { url: url, loadState: LoadEnum.Success });
+                        }
+                    })
+                    .catch(err => {
+                        let errorMsg =
+                            "ERROR: Load Image Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
+                        if (onFinish) {
+                            onFinish(texture, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
+                        }
+                    });
+            })
+            .catch(err => {
+                let errorMsg = "ERROR: Load Image Des Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
             });
         return texture;
     }
-
 
     // private static parse(tex: Texture, image: HTMLImageElement, Desjson: any, keepOrigeData = true) {
     //     let texop = this.getFromDesJson(Desjson);
