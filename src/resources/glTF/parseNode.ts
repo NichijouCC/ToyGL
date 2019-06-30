@@ -10,10 +10,11 @@ import { Mesh } from "../../ec/components/mesh";
 
 export class ParseNode {
     static parse(index: number, gltf: IgltfJson): Promise<Transform> {
+        console.warn("parse node:", index);
         let node = gltf.nodes[index];
 
         let name = node.name || "node" + index;
-        let trans = new Entity(name).transForm;
+        let trans = new Entity(name).transform;
 
         if (node.matrix) {
             trans.localMatrix = Mat4.fromArray(node.matrix);
@@ -44,6 +45,8 @@ export class ParseNode {
                     let mesh = entity.getCompByName("Mesh") as Mesh;
                     mesh.geometry = item.geometry;
                     mesh.material = item.material;
+
+                    trans.addChild(entity.transform);
                 }
             });
             allTask.push(task);

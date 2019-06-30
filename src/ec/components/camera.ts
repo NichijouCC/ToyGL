@@ -20,7 +20,7 @@ export enum ClearEnum {
 @EC.RegComp
 export class Camera implements Icomponent {
     entity: Ientity;
-    projectionType: ProjectionEnum = ProjectionEnum.PERSPECTIVE;
+    projectionType: ProjectionEnum = ProjectionEnum.ORTHOGRAPH;
     //perspective 透视投影
     fov: number = Math.PI * 0.25; //透视投影的fov//verticle field of view
 
@@ -58,6 +58,7 @@ export class Camera implements Icomponent {
     cullingMask: CullingMask = CullingMask.default;
     update(frameState: IframeState): void {
         frameState.cameraList.push(this);
+        this.restToDirty();
     }
 
     private _viewMatrix: Mat4 = Mat4.create();

@@ -3,6 +3,7 @@ import { Vec3 } from "../../mathD/vec3";
 import { Quat } from "../../mathD/quat";
 import { Mat4 } from "../../mathD/mat4";
 import { IframeState } from "../../scene/frameState";
+import { Entity } from "../entity";
 
 enum DirtyFlagEnum {
     WWORLD_POS = 0b000100,
@@ -14,7 +15,7 @@ enum DirtyFlagEnum {
 
 @EC.RegComp
 export class Transform implements Icomponent {
-    entity: Ientity;
+    entity: Entity;
     parent: Transform;
     children: Transform[] = [];
     dirtyFlag: number = 0;
@@ -145,13 +146,29 @@ export class Transform implements Icomponent {
     }
 
     /**
+     * 获取世界坐标系下当前z轴的朝向
+     */
+    getForwardInWorld(out: Vec3) {
+        Mat4.transformVector3(Vec3.FORWARD, this.worldMatrix, out);
+        Vec3.normalize(out, out);
+    }
+    getRightInWorld(out: Vec3) {
+        Mat4.transformVector3(Vec3.RIGHT, this.worldMatrix, out);
+        Vec3.normalize(out, out);
+    }
+    getUpInWorld(out: Vec3) {
+        Mat4.transformVector3(Vec3.UP, this.worldMatrix, out);
+        Vec3.normalize(out, out);
+    }
+
+    /**
      * 通知子节点需要计算worldmatrix
      * @param node
      */
     private static NotifyChildSelfDirty(node: Transform) {
         for (let key in node.children) {
             let child = node.children[key];
-            if (child.dirtyFlag & DirtyFlagEnum.WORLDMAT) {
+            if (!(child.dirtyFlag & DirtyFlagEnum.WORLDMAT)) {
                 child.dirtyFlag = child.dirtyFlag | DirtyFlagEnum.WORLDMAT;
                 this.NotifyChildSelfDirty(child);
             }

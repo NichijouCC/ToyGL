@@ -777,8 +777,8 @@
             }
             newData.componentSize = orginData.componentSize ? orginData.componentSize : guessNumComponentsFromName(attName);
             newData.normalize = orginData.normalize != null ? orginData.normalize : false;
-            newData.bytesOffset = orginData.bytesOffset ? orginData.bytesOffset : 0;
-            newData.bytesStride = orginData.bytesStride ? orginData.bytesStride : 0;
+            newData.bytesOffset = orginData.offsetInBytes ? orginData.offsetInBytes : 0;
+            newData.bytesStride = orginData.strideInBytes ? orginData.strideInBytes : 0;
             newData.drawType = orginData.drawType ? orginData.drawType : GlConstants.STATIC_DRAW;
             newData.divisor = orginData.divisor;
             if (orginData.count == null) {
@@ -804,7 +804,7 @@
         }
         return vertexdata;
     }
-    var uvRE = /uv/;
+    var uvRE = /(uv|texcoord)/;
     var colorRE = /color/;
     function guessNumComponentsFromName(name, length) {
         if (length === void 0) { length = null; }
@@ -1963,24 +1963,46 @@
         };
         return __assign.apply(this, arguments);
     };
+
+    function createTextureFromTypedArray(gl, data, texOP) {
+        // deduceTextureTypedArrayOption(gl, data, texOP);
+        var target = (texOP && texOP.target) || gl.TEXTURE_2D;
+        var pixelFormat = (texOP && texOP.pixelFormat) || gl.RGBA;
+        var pixelDatatype = (texOP && texOP.pixelDatatype) || gl.UNSIGNED_BYTE;
+        var filterMax = (texOP && texOP.filterMax) || gl.LINEAR;
+        var filterMin = (texOP && texOP.filterMin) || gl.LINEAR;
+        var wrapS = (texOP && texOP.wrapS) || gl.CLAMP_TO_EDGE;
+        var wrapT = (texOP && texOP.wrapT) || gl.CLAMP_TO_EDGE;
+        var tex = gl.createTexture();
+        gl.bindTexture(target, tex);
+        gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, filterMax);
+        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, filterMin);
+        gl.texParameteri(target, gl.TEXTURE_WRAP_S, wrapS);
+        gl.texParameteri(target, gl.TEXTURE_WRAP_T, wrapT);
+        gl.texImage2D(target, 0, pixelFormat, texOP.width, texOP.height, 0, pixelFormat, pixelDatatype, data);
+        return {
+            texture: tex,
+            texDes: __assign({}, texOP, { target: target, pixelFormat: pixelFormat, pixelDatatype: pixelDatatype, filterMin: filterMin, filterMax: filterMax, wrapS: wrapS, wrapT: wrapT }),
+        };
+    }
     function createTextureFromImageSource(gl, data, texOP) {
         var tex = gl.createTexture();
-        var target = texOP && texOP.target || gl.TEXTURE_2D;
-        var pixelFormat = texOP && texOP.pixelFormat || gl.RGBA;
-        var pixelDatatype = texOP && texOP.pixelDatatype || gl.UNSIGNED_BYTE;
-        var filterMax = texOP && texOP.filterMax || gl.LINEAR;
-        var filterMin = texOP && texOP.filterMin || gl.LINEAR;
-        var wrapS = texOP && texOP.wrapS || gl.CLAMP_TO_EDGE;
-        var wrapT = texOP && texOP.wrapT || gl.CLAMP_TO_EDGE;
+        var target = (texOP && texOP.target) || gl.TEXTURE_2D;
+        var pixelFormat = (texOP && texOP.pixelFormat) || gl.RGBA;
+        var pixelDatatype = (texOP && texOP.pixelDatatype) || gl.UNSIGNED_BYTE;
+        var filterMax = (texOP && texOP.filterMax) || gl.LINEAR;
+        var filterMin = (texOP && texOP.filterMin) || gl.LINEAR;
+        var wrapS = (texOP && texOP.wrapS) || gl.CLAMP_TO_EDGE;
+        var wrapT = (texOP && texOP.wrapT) || gl.CLAMP_TO_EDGE;
         gl.bindTexture(target, tex);
-        gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, texOP && texOP.filterMax || gl.LINEAR);
-        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, texOP && texOP.filterMin || gl.LINEAR);
-        gl.texParameteri(target, gl.TEXTURE_WRAP_S, texOP && texOP.wrapS || gl.CLAMP_TO_EDGE);
-        gl.texParameteri(target, gl.TEXTURE_WRAP_T, texOP && texOP.wrapT || gl.CLAMP_TO_EDGE);
+        gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, (texOP && texOP.filterMax) || gl.LINEAR);
+        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, (texOP && texOP.filterMin) || gl.LINEAR);
+        gl.texParameteri(target, gl.TEXTURE_WRAP_S, (texOP && texOP.wrapS) || gl.CLAMP_TO_EDGE);
+        gl.texParameteri(target, gl.TEXTURE_WRAP_T, (texOP && texOP.wrapT) || gl.CLAMP_TO_EDGE);
         gl.texImage2D(target, 0, pixelFormat, pixelFormat, pixelDatatype, data);
         return {
             texture: tex,
-            texDes: __assign({}, texOP, { target: target, pixelFormat: pixelFormat, pixelDatatype: pixelDatatype, filterMin: filterMin, filterMax: filterMax, wrapS: wrapS, wrapT: wrapT })
+            texDes: __assign({}, texOP, { target: target, pixelFormat: pixelFormat, pixelDatatype: pixelDatatype, filterMin: filterMin, filterMax: filterMax, wrapS: wrapS, wrapT: wrapT }),
         };
     }
 
@@ -2103,6 +2125,9 @@
         }
         static createTextureFromImg(img, texop) {
             return createTextureFromImageSource(this.context, img, texop);
+        }
+        static createTextureFromViewData(viewData, texop) {
+            return createTextureFromTypedArray(this.context, viewData, texop);
         }
         static setGeometryAndProgram(geometry, program) {
             setGeometryAndProgramWithCached(this.context, geometry, program);
@@ -2870,6 +2895,11 @@
                 item[15] = 1;
                 return item;
             }
+        }
+        static fromArray(array) {
+            if (array.length != 16)
+                return null;
+            return new Float32Array(array);
         }
         static clone(from) {
             if (Mat4.Recycle.length > 0) {
@@ -5017,7 +5047,7 @@
     })(ClearEnum || (ClearEnum = {}));
     let Camera = class Camera {
         constructor() {
-            this.projectionType = ProjectionEnum.PERSPECTIVE;
+            this.projectionType = ProjectionEnum.ORTHOGRAPH;
             //perspective 透视投影
             this.fov = Math.PI * 0.25; //透视投影的fov//verticle field of view
             /**
@@ -5070,6 +5100,7 @@
         }
         update(frameState) {
             frameState.cameraList.push(this);
+            this.restToDirty();
         }
         get ViewMatrix() {
             if (this.needComputeViewMat) {
@@ -5135,10 +5166,10 @@
             return this._matrixNormalToworld;
         }
         get matrixModelView() {
-            return Mat4.multiply(this.matrixModel, this.curCamera.ViewProjectMatrix, this._matrixMV);
+            return Mat4.multiply(this.curCamera.ViewProjectMatrix, this.matrixModel, this._matrixMV);
         }
         get matrixModelViewProject() {
-            return Mat4.multiply(this.matrixModel, this.curCamera.ViewProjectMatrix, this._matMVP);
+            return Mat4.multiply(this.curCamera.ViewProjectMatrix, this.matrixModel, this._matMVP);
         }
         get matrixView() {
             return this.curCamera.ViewMatrix;
@@ -5266,57 +5297,6 @@
         DrawTypeEnum[DrawTypeEnum["NOFOG"] = 3] = "NOFOG";
         DrawTypeEnum[DrawTypeEnum["NOLIGHTMAP"] = 5] = "NOLIGHTMAP";
     })(DrawTypeEnum || (DrawTypeEnum = {}));
-
-    class Entity {
-        constructor(name = null, compsArr = null) {
-            this.maskLayer = CullingMask.default;
-            this.components = {};
-            this.guid = newId();
-            this.name = name || "newEntity";
-            this.beActive = true;
-            if (compsArr != null) {
-                for (let i = 0; i < compsArr.length; i++) {
-                    this.addCompByName(compsArr[i]);
-                }
-            }
-            if (this.components["Transform"] == null) {
-                this.addCompByName("Transform");
-            }
-        }
-        get transForm() {
-            return this.getCompByName("Transform");
-        }
-        addCompByName(name) {
-            let comp = EC.NewComponent(name);
-            this.components[name] = comp;
-            comp.entity = this;
-            return comp;
-        }
-        getCompByName(compName) {
-            return this.components[compName];
-        }
-        addComp(comp) {
-            this.components[comp.constructor.name] = comp;
-            comp.entity = this;
-            return comp;
-        }
-        removeCompByName(name) {
-            if (this.components[name]) {
-                this.components[name].dispose();
-                delete this.components[name];
-            }
-        }
-        dispose() {
-            for (let key in this.components) {
-                this.components[key].dispose();
-            }
-            this.components = null;
-        }
-    }
-    function newId() {
-        return newId.prototype.id++;
-    }
-    newId.prototype.id = -1;
 
     class Mat3 extends Float32Array {
         static create() {
@@ -6793,6 +6773,438 @@
     Quat.Recycle = [];
     Quat.norot = Quat.create();
 
+    var MouseKeyEnum;
+    (function (MouseKeyEnum) {
+        MouseKeyEnum["Left"] = "MouseLeft";
+        MouseKeyEnum["Middle"] = "MouseMiddle";
+        MouseKeyEnum["Right"] = "MouseRight";
+        MouseKeyEnum["None"] = "MouseNone";
+    })(MouseKeyEnum || (MouseKeyEnum = {}));
+    var MouseEventEnum;
+    (function (MouseEventEnum) {
+        MouseEventEnum["Up"] = "mouseUp";
+        MouseEventEnum["Down"] = "mouseDown";
+        MouseEventEnum["Move"] = "mouseMove";
+        MouseEventEnum["Rotate"] = "mouseRotate";
+    })(MouseEventEnum || (MouseEventEnum = {}));
+    class ClickEvent {
+    }
+    class Mouse {
+        static init(canvas) {
+            this.keyDic[0] = MouseKeyEnum.Left;
+            this.keyDic[1] = MouseKeyEnum.Middle;
+            this.keyDic[2] = MouseKeyEnum.Right;
+            /**
+             * 屏蔽网页原生鼠标事件
+             */
+            document.oncontextmenu = e => {
+                return false;
+            };
+            // canvas.onmousedown=(ev: MouseEvent) => {
+            //     this.OnMouseDown(ev);
+            // };
+            // canvas.onmouseup=(ev: MouseEvent) => {
+            //     this.OnMouseUp(ev);
+            // };
+            // canvas.onmousemove=(ev: MouseEvent) => {
+            //     this.OnMouseMove(ev);
+            // };
+            // canvas.onmousewheel=(ev: MouseEvent) => {
+            //     this.OnMouseWheel(ev);
+            // };
+            // canvas.onmouseout=(ev: MouseEvent) => {
+            //     this.OnMouseOut(ev);
+            // };
+            // canvas.onmouseenter=(ev: MouseEvent) => {
+            //     this.OnMouseEnter(ev);
+            // };
+            canvas.addEventListener("mousedown", (ev) => {
+                let key = ev.button;
+                let keyEnum = this.keyDic[key];
+                this.StateInfo[keyEnum] = true;
+                let event = this.getClickEventByMouseEvent(ev);
+                this.executeMouseEvent(keyEnum, MouseEventEnum.Down, event);
+                this.executeMouseEvent(MouseKeyEnum.None, MouseEventEnum.Up, event);
+            });
+            canvas.addEventListener("mouseup", (ev) => {
+                let key = ev.button;
+                let keyEnum = this.keyDic[key];
+                this.StateInfo[keyEnum] = false;
+                let event = this.getClickEventByMouseEvent(ev);
+                this.executeMouseEvent(keyEnum, MouseEventEnum.Up, event);
+                this.executeMouseEvent(MouseKeyEnum.None, MouseEventEnum.Up, event);
+            });
+            canvas.addEventListener("mousemove", (ev) => {
+                let event = this.getClickEventByMouseEvent(ev);
+                this.executeMouseEvent(MouseKeyEnum.None, MouseEventEnum.Move, event);
+            });
+            canvas.addEventListener("mousewheel", (ev) => {
+                let event = this.getClickEventByMouseEvent(ev);
+                this.executeMouseEvent(MouseKeyEnum.None, MouseEventEnum.Rotate, event);
+            });
+        }
+        static executeMouseEvent(key, event, ev) {
+            if (this.MouseEvent[key] == null)
+                return;
+            let funcArr = this.MouseEvent[key][event];
+            if (funcArr == null)
+                return;
+            for (let key in funcArr) {
+                let func = funcArr[key];
+                func(ev);
+            }
+        }
+        static getClickEventByMouseEvent(ev) {
+            let event = new ClickEvent();
+            event.pointx = ev.offsetX; //鼠标指针相对于目标节点内边位置的X坐标
+            event.pointy = ev.offsetY; //鼠标指针相对于目标节点内边位置的Y坐标
+            // Input.mousePosition.x = ev.offsetX;
+            // Input.mousePosition.y = ev.offsetY;
+            event.movementX = ev.movementX;
+            event.movementY = ev.movementY;
+            event.rotateDelta = ev.detail | ev.wheelDelta;
+            return event;
+        }
+    }
+    Mouse.StateInfo = {};
+    Mouse.MouseEvent = {};
+    Mouse.keyDic = {};
+
+    var KeyCodeEnum;
+    (function (KeyCodeEnum) {
+        KeyCodeEnum["A"] = "A";
+        KeyCodeEnum["B"] = "B";
+        KeyCodeEnum["C"] = "C";
+        KeyCodeEnum["D"] = "D";
+        KeyCodeEnum["E"] = "E";
+        KeyCodeEnum["F"] = "F";
+        KeyCodeEnum["G"] = "G";
+        KeyCodeEnum["H"] = "H";
+        KeyCodeEnum["I"] = "I";
+        KeyCodeEnum["J"] = "J";
+        KeyCodeEnum["K"] = "K";
+        KeyCodeEnum["L"] = "L";
+        KeyCodeEnum["M"] = "M";
+        KeyCodeEnum["N"] = "N";
+        KeyCodeEnum["O"] = "O";
+        KeyCodeEnum["P"] = "P";
+        KeyCodeEnum["Q"] = "Q";
+        KeyCodeEnum["R"] = "R";
+        KeyCodeEnum["S"] = "S";
+        KeyCodeEnum["T"] = "T";
+        KeyCodeEnum["U"] = "U";
+        KeyCodeEnum["V"] = "V";
+        KeyCodeEnum["W"] = "W";
+        KeyCodeEnum["X"] = "X";
+        KeyCodeEnum["Y"] = "Y";
+        KeyCodeEnum["Z"] = "Z";
+        KeyCodeEnum["SPACE"] = " ";
+        KeyCodeEnum["ESC"] = "ESC";
+    })(KeyCodeEnum || (KeyCodeEnum = {}));
+    var KeyCodeEventEnum;
+    (function (KeyCodeEventEnum) {
+        KeyCodeEventEnum["Up"] = "KeyUp";
+        KeyCodeEventEnum["Down"] = "KeyDown";
+    })(KeyCodeEventEnum || (KeyCodeEventEnum = {}));
+    class Keyboard {
+        static init() {
+            this.initKeyCodeMap();
+            document.onkeydown = (ev) => {
+                this.OnKeyDown(ev);
+            };
+            document.onkeyup = (ev) => {
+                this.OnKeyUp(ev);
+            };
+            // document.addEventListener("keydown", (ev: KeyboardEvent) => {
+            //     this.OnKeyDown(ev);
+            // }, false);
+            // document.addEventListener("keyup", (ev: KeyboardEvent) => {
+            //     this.OnKeyUp(ev);
+            // }, false);
+        }
+        static OnKeyDown(ev) {
+            let key = ev.keyCode;
+            let keystr = ev.key.toUpperCase(); //safari浏览器不支持keypress事件中的key属性
+            this.StateInfo[keystr] = true;
+            this.executeKeyboardEvent(keystr, KeyCodeEventEnum.Down, ev);
+            this.excuteAnyKeyEvent(KeyCodeEventEnum.Down, ev);
+        }
+        static OnKeyUp(ev) {
+            let key = ev.keyCode;
+            let keystr = ev.key.toUpperCase(); //safari浏览器不支持keypress事件中的key属性
+            this.StateInfo[keystr] = false;
+            this.executeKeyboardEvent(keystr, KeyCodeEventEnum.Up, ev);
+            this.excuteAnyKeyEvent(KeyCodeEventEnum.Up, ev);
+        }
+        static executeKeyboardEvent(key, event, ev) {
+            if (this.KeyEvent[key] == null)
+                return;
+            let funcArr = this.KeyEvent[key][event];
+            for (let key in funcArr) {
+                let func = funcArr[key];
+                func(ev);
+            }
+        }
+        static excuteAnyKeyEvent(event, ev) {
+            let fucArr = this.anyKeyEvent[event];
+            if (fucArr == null)
+                return;
+            for (let key in fucArr) {
+                let func = fucArr[key];
+                func(ev);
+            }
+        }
+        static initKeyCodeMap() {
+            this.KeyCodeDic[65] = "A";
+            this.KeyCodeDic[66] = "B";
+            this.KeyCodeDic[67] = "C";
+            this.KeyCodeDic[68] = "D";
+            this.KeyCodeDic[69] = "E";
+            this.KeyCodeDic[70] = "F";
+            this.KeyCodeDic[71] = "G";
+            this.KeyCodeDic[72] = "H";
+            this.KeyCodeDic[73] = "I";
+            this.KeyCodeDic[74] = "J";
+            this.KeyCodeDic[75] = "K";
+            this.KeyCodeDic[76] = "L";
+            this.KeyCodeDic[77] = "M";
+            this.KeyCodeDic[78] = "N";
+            this.KeyCodeDic[79] = "O";
+            this.KeyCodeDic[80] = "P";
+            this.KeyCodeDic[81] = "Q";
+            this.KeyCodeDic[82] = "R";
+            this.KeyCodeDic[83] = "S";
+            this.KeyCodeDic[84] = "T";
+            this.KeyCodeDic[85] = "U";
+            this.KeyCodeDic[86] = "V";
+            this.KeyCodeDic[87] = "W";
+            this.KeyCodeDic[88] = "X";
+            this.KeyCodeDic[89] = "Y";
+            this.KeyCodeDic[90] = "Z";
+            this.KeyCodeDic[32] = "SPACE";
+            this.KeyCodeDic[27] = "ESC";
+        }
+    }
+    Keyboard.KeyCodeDic = {};
+    Keyboard.StateInfo = {};
+    Keyboard.KeyEvent = {};
+    Keyboard.anyKeyEvent = {};
+    Keyboard.keyDic = {};
+
+    /**
+     * 对应mouseevent 的button
+     */
+    class Input {
+        // static mousePosition: Vec2 = Vec2.create();
+        static init(canvas) {
+            Mouse.init(canvas);
+            Keyboard.init();
+        }
+        static getKeyDown(key) {
+            let state = Keyboard.StateInfo[key];
+            return state || false;
+        }
+        static getMouseDown(key) {
+            let state = Mouse.StateInfo[key];
+            return state || false;
+        }
+        static addMouseEventListener(eventType, func, key = MouseKeyEnum.None) {
+            if (Mouse.MouseEvent[key] == null) {
+                Mouse.MouseEvent[key] = {};
+            }
+            if (Mouse.MouseEvent[key][eventType] == null) {
+                Mouse.MouseEvent[key][eventType] = [];
+            }
+            Mouse.MouseEvent[key][eventType].push(func);
+        }
+        //    static addMouseWheelEventListener(func:(ev:MouseWheelEvent)=>void)
+        //    {
+        //        let key=MouseKeyEnum.None;
+        //        let ev=MouseEventEnum.Rotate;
+        //        if(Mouse.MouseEvent[key]==null)
+        //        {
+        //            Mouse.MouseEvent[key]={};
+        //        }
+        //        if(Mouse.MouseEvent[key][ev]==null)
+        //        {
+        //            Mouse.MouseEvent[key][ev]=[];
+        //        }
+        //        Mouse.MouseEvent[key][ev].push(func);
+        //    }
+        static addKeyCodeEventListener(eventType, func, key = null) {
+            if (key == null) {
+                if (Keyboard.anyKeyEvent[eventType] == null) {
+                    Keyboard.anyKeyEvent[eventType] = [];
+                }
+                Keyboard.anyKeyEvent[eventType].push(func);
+            }
+            else {
+                if (Keyboard.KeyEvent[key] == null) {
+                    Keyboard.KeyEvent[key] = {};
+                }
+                if (Keyboard.KeyEvent[key][eventType] == null) {
+                    Keyboard.KeyEvent[key][eventType] = [];
+                }
+                Keyboard.KeyEvent[key][eventType].push(func);
+            }
+        }
+    }
+
+    let CameraController = class CameraController {
+        constructor() {
+            this.moveSpeed = 0.2;
+            this.movemul = 5;
+            this.wheelSpeed = 1;
+            this.rotateSpeed = 0.1;
+            this.keyMap = {};
+            this.beRightClick = false;
+            this.rotAngle = Vec3.create();
+            this.inverseDir = -1;
+            this.moveVector = Vec3.create();
+            this.camrot = Quat.create();
+        }
+        update(frameState) {
+            this.doMove(frameState.deltaTime);
+        }
+        dispose() { }
+        active() {
+            Quat.ToEuler(this.entity.transform.localRotation, this.rotAngle);
+            Input.addMouseEventListener(MouseEventEnum.Move, ev => {
+                if (Input.getMouseDown(MouseKeyEnum.Right)) {
+                    this.doRotate(ev.movementX, ev.movementY);
+                }
+            });
+            Input.addKeyCodeEventListener(KeyCodeEventEnum.Up, ev => {
+                this.moveSpeed = 0.2;
+            });
+            Input.addMouseEventListener(MouseEventEnum.Rotate, ev => {
+                this.doMouseWheel(ev);
+            });
+            // Input.addMouseWheelEventListener((ev)=>{
+            //     this.doMouseWheel(ev);
+            // })
+        }
+        doMove(delta) {
+            if (this.entity.getCompByName("Camera") == null)
+                return;
+            if (Input.getMouseDown(MouseKeyEnum.Right)) {
+                if (Input.getKeyDown(KeyCodeEnum.A)) {
+                    this.moveSpeed += this.movemul * delta;
+                    this.entity.transform.getRightInWorld(this.moveVector);
+                    Vec3.scale(this.moveVector, -1 * this.moveSpeed * delta, this.moveVector);
+                    // vec3.scale(this.moveVector,this.inverseDir,this.moveVector);
+                    Vec3.add(this.entity.transform.localPosition, this.moveVector, this.entity.transform.localPosition);
+                }
+                if (Input.getKeyDown(KeyCodeEnum.D)) {
+                    this.moveSpeed += this.movemul * delta;
+                    this.entity.transform.getRightInWorld(this.moveVector);
+                    Vec3.scale(this.moveVector, this.moveSpeed * delta, this.moveVector);
+                    // vec3.scale(this.moveVector,this.inverseDir,this.moveVector);
+                    Vec3.add(this.entity.transform.localPosition, this.moveVector, this.entity.transform.localPosition);
+                }
+                if (Input.getKeyDown(KeyCodeEnum.W)) {
+                    this.moveSpeed += this.movemul * delta;
+                    this.entity.transform.getForwardInWorld(this.moveVector);
+                    Vec3.scale(this.moveVector, this.moveSpeed * delta, this.moveVector);
+                    Vec3.scale(this.moveVector, this.inverseDir, this.moveVector);
+                    Vec3.add(this.entity.transform.localPosition, this.moveVector, this.entity.transform.localPosition);
+                }
+                if (Input.getKeyDown(KeyCodeEnum.S)) {
+                    this.moveSpeed += this.movemul * delta;
+                    this.entity.transform.getForwardInWorld(this.moveVector);
+                    Vec3.scale(this.moveVector, -1 * this.moveSpeed * delta, this.moveVector);
+                    Vec3.scale(this.moveVector, this.inverseDir, this.moveVector);
+                    Vec3.add(this.entity.transform.localPosition, this.moveVector, this.entity.transform.localPosition);
+                }
+                if (Input.getKeyDown(KeyCodeEnum.E)) {
+                    this.moveSpeed += this.movemul * delta;
+                    Vec3.scale(Vec3.UP, this.moveSpeed * delta, this.moveVector);
+                    Vec3.add(this.entity.transform.localPosition, this.moveVector, this.entity.transform.localPosition);
+                }
+                if (Input.getKeyDown(KeyCodeEnum.Q)) {
+                    this.moveSpeed += this.movemul * delta;
+                    Vec3.scale(Vec3.DOWN, this.moveSpeed * delta, this.moveVector);
+                    Vec3.add(this.entity.transform.localPosition, this.moveVector, this.entity.transform.localPosition);
+                }
+                this.entity.transform.markDirty();
+            }
+        }
+        doRotate(rotateX, rotateY) {
+            // this.rotAngle[0] += rotateY * this.rotateSpeed;
+            // this.rotAngle[1] += rotateX * this.rotateSpeed;
+            // this.rotAngle[0] %= 360;
+            // this.rotAngle[1] %= 360;
+            Quat.FromEuler(0, rotateX * this.rotateSpeed * this.inverseDir, 0, this.camrot);
+            Quat.multiply(this.camrot, this.entity.transform.localRotation, this.entity.transform.localRotation);
+            Quat.FromEuler(rotateY * this.rotateSpeed * this.inverseDir, 0, 0, this.camrot);
+            Quat.multiply(this.entity.transform.localRotation, this.camrot, this.entity.transform.localRotation);
+            this.entity.transform.markDirty();
+        }
+        doMouseWheel(ev) {
+            if (this.entity.getCompByName("Camera") == null)
+                return;
+            this.entity.transform.getForwardInWorld(this.moveVector);
+            Vec3.scale(this.moveVector, this.wheelSpeed * ev.rotateDelta * 0.01 * this.inverseDir, this.moveVector);
+            Vec3.add(this.entity.transform.localPosition, this.moveVector, this.entity.transform.localPosition);
+            this.entity.transform.markDirty();
+        }
+        Dispose() { }
+    };
+    CameraController = __decorate([
+        EC.RegComp
+    ], CameraController);
+
+    class Entity {
+        constructor(name = null, compsArr = null) {
+            this.maskLayer = CullingMask.default;
+            this.components = {};
+            this.guid = newId();
+            this.name = name != null ? name : "newEntity";
+            this.beActive = true;
+            if (compsArr != null) {
+                for (let i = 0; i < compsArr.length; i++) {
+                    this.addCompByName(compsArr[i]);
+                }
+            }
+            if (this.components["Transform"] == null) {
+                this.addCompByName("Transform");
+            }
+        }
+        get transform() {
+            return this.getCompByName("Transform");
+        }
+        addCompByName(name) {
+            let comp = EC.NewComponent(name);
+            this.components[name] = comp;
+            comp.entity = this;
+            return comp;
+        }
+        getCompByName(compName) {
+            return this.components[compName];
+        }
+        addComp(comp) {
+            this.components[comp.constructor.name] = comp;
+            comp.entity = this;
+            return comp;
+        }
+        removeCompByName(name) {
+            if (this.components[name]) {
+                this.components[name].dispose();
+                delete this.components[name];
+            }
+        }
+        dispose() {
+            for (let key in this.components) {
+                this.components[key].dispose();
+            }
+            this.components = null;
+        }
+    }
+    function newId() {
+        return newId.prototype.id++;
+    }
+    newId.prototype.id = -1;
+
     var Transform_1;
     var DirtyFlagEnum;
     (function (DirtyFlagEnum) {
@@ -6930,13 +7342,28 @@
             }
         }
         /**
+         * 获取世界坐标系下当前z轴的朝向
+         */
+        getForwardInWorld(out) {
+            Mat4.transformVector3(Vec3.FORWARD, this.worldMatrix, out);
+            Vec3.normalize(out, out);
+        }
+        getRightInWorld(out) {
+            Mat4.transformVector3(Vec3.RIGHT, this.worldMatrix, out);
+            Vec3.normalize(out, out);
+        }
+        getUpInWorld(out) {
+            Mat4.transformVector3(Vec3.UP, this.worldMatrix, out);
+            Vec3.normalize(out, out);
+        }
+        /**
          * 通知子节点需要计算worldmatrix
          * @param node
          */
         static NotifyChildSelfDirty(node) {
             for (let key in node.children) {
                 let child = node.children[key];
-                if (child.dirtyFlag & DirtyFlagEnum.WORLDMAT) {
+                if (!(child.dirtyFlag & DirtyFlagEnum.WORLDMAT)) {
                     child.dirtyFlag = child.dirtyFlag | DirtyFlagEnum.WORLDMAT;
                     this.NotifyChildSelfDirty(child);
                 }
@@ -7114,11 +7541,17 @@
             else {
                 canvas = element;
             }
+            Input.init(canvas);
             let render = new RenderMachine(canvas);
             this.scene = new Scene(render);
             GameScreen.init(canvas);
             this.loop = new Loop();
-            this.loop.update = this.frameUpdate;
+            this.loop.update = deltaTime => {
+                if (this.preUpdate) {
+                    this.preUpdate(deltaTime);
+                }
+                this.frameUpdate(deltaTime);
+            };
         }
     }
     class Loop {
@@ -7143,197 +7576,6 @@
         disActive() {
             this.beActive = false;
         }
-    }
-
-    class ResID {
-        static next() {
-            let next = ResID.idAll;
-            ResID.idAll++;
-            return next;
-        }
-    }
-    ResID.idAll = 0;
-    class ToyAsset {
-        constructor(param) {
-            this.guid = ResID.next();
-            this.name = (param && param.name) || "asset_" + this.guid;
-            this.URL = param && param.URL;
-            this.beDefaultAsset = (param && param.beDefaultAsset) || false;
-        }
-    }
-
-    class Geometry extends ToyAsset {
-        constructor(param) {
-            super(param);
-        }
-        dispose() { }
-        static fromCustomData(data) {
-            let geometry = GlRender.createGeometry(data);
-            let newAsset = new Geometry({ name: "custom_Mesh" });
-            newAsset.data = geometry;
-            return newAsset;
-        }
-    }
-
-    class DefGeometry {
-        static fromType(type) {
-            if (this.defGeometry[type] == null) {
-                let gemetryinfo;
-                switch (type) {
-                    case "quad":
-                        gemetryinfo = GlRender.createGeometry({
-                            atts: {
-                                aPos: [-0.5, -0.5, 0.5, -0.5, 0.5, 0, 0.5, 0.5, 0, 0.5, -0.5, 0],
-                                aUv: [0, 1, 0, 0, 1, 0, 1, 1],
-                            },
-                            indices: [0, 1, 2, 0, 3, 2],
-                        });
-                        break;
-                    default:
-                        console.warn("Unkowned default mesh type:", type);
-                        return null;
-                }
-                if (gemetryinfo != null) {
-                    this.defGeometry[type] = new Geometry({ name: "def_" + type, beDefaultAsset: true });
-                    this.defGeometry[type].data = gemetryinfo;
-                }
-            }
-            return this.defGeometry[type];
-        }
-    }
-    DefGeometry.defGeometry = {};
-
-    class Shader extends ToyAsset {
-        constructor(param) {
-            super(param);
-            this.layer = RenderLayerEnum.Geometry;
-            this.queue = 0;
-        }
-        static fromCustomData(data) {
-            let newAsset = new Shader({ name: "custom_shader" });
-            newAsset.layer = data.layer || RenderLayerEnum.Geometry;
-            newAsset.queue = data.queue != null ? data.queue : 0;
-            let features = data.feature != null ? [...data.feature, "base"] : ["base"];
-            let passes = data.passes;
-            let featurePasses = {};
-            for (let i = 0; i < features.length; i++) {
-                let type = features[i];
-                let featureStr = getFeaturShderStr(type);
-                let programArr = [];
-                for (let i = 0; i < passes.length; i++) {
-                    let passitem = passes[i];
-                    let program = GlRender.createProgram({
-                        program: {
-                            vs: featureStr + passitem.program.vs,
-                            fs: featureStr + passitem.program.fs,
-                            name: null,
-                        },
-                        states: passitem.states,
-                        uniforms: passitem.uniforms,
-                    });
-                    programArr.push(program);
-                }
-                featurePasses[type] = programArr;
-            }
-            newAsset.passes = featurePasses;
-            return newAsset;
-        }
-        dispose() { }
-    }
-    var UniformTypeEnum;
-    (function (UniformTypeEnum) {
-        UniformTypeEnum[UniformTypeEnum["FLOAT"] = 0] = "FLOAT";
-        UniformTypeEnum[UniformTypeEnum["FLOAT_VEC2"] = 1] = "FLOAT_VEC2";
-        UniformTypeEnum[UniformTypeEnum["FLOAT_VEC3"] = 2] = "FLOAT_VEC3";
-        UniformTypeEnum[UniformTypeEnum["FLOAT_VEC4"] = 3] = "FLOAT_VEC4";
-        UniformTypeEnum[UniformTypeEnum["TEXTURE"] = 4] = "TEXTURE";
-    })(UniformTypeEnum || (UniformTypeEnum = {}));
-    function getFeaturShderStr(type) {
-        switch (type) {
-            case "base":
-                return "";
-            case "fog":
-                return "#define FOG \n";
-            case "skin":
-                return "#define SKIN \n";
-            case "skin_fog":
-                return "#define SKIN \n" + "#define FOG \n";
-            case "lightmap":
-                return "#define LIGHTMAP \n";
-            case "lightmap_fog":
-                return "#define LIGHTMAP \n" + "#define FOG \n";
-            case "instance":
-                return "#define INSTANCE \n";
-        }
-    }
-
-    class DefShader {
-        static fromType(type) {
-            if (this.defShader[type] == null) {
-                switch (type) {
-                    case "color":
-                        let colorVs = "\
-                          attribute vec3 aPos;\
-                          void main()\
-                          {\
-                              highp vec4 tmplet_1=vec4(aPos.xyz,1.0);\
-                              gl_Position = tmplet_1;\
-                          }";
-                        let colorFs = "\
-                          uniform highp vec4 MainColor;\
-                          void main()\
-                          {\
-                              gl_FragData[0] = MainColor;\
-                          }";
-                        this.defShader[type] = Shader.fromCustomData({
-                            passes: [
-                                {
-                                    program: {
-                                        vs: colorVs,
-                                        fs: colorFs,
-                                        name: "defcolor",
-                                    },
-                                },
-                            ],
-                        });
-                        break;
-                    default:
-                        console.warn("Unkowned default shader type:", type);
-                        return null;
-                }
-            }
-            return this.defShader[type];
-        }
-    }
-    DefShader.defShader = {};
-
-    class Material extends ToyAsset {
-        constructor(param) {
-            super(param);
-            this.uniforms = {};
-            this._dirty = false;
-            this.queue = 0;
-        }
-        set shader(value) {
-            this._program = value;
-            this._dirty = true;
-        }
-        get shader() {
-            return this._program;
-        }
-        set layer(value) {
-            this._layer = value;
-        }
-        get layer() {
-            return this._layer || (this._program && this._program.layer) || RenderLayerEnum.Geometry;
-        }
-        setColor(uniform, color) {
-            this.uniforms[uniform] = color;
-        }
-        setTexture(unfiorm, tex) {
-            this.uniforms[unfiorm] = tex;
-        }
-        dispose() { }
     }
 
     var LoadEnum;
@@ -7368,6 +7610,11 @@
         let extname = filename.substr(index);
         return extname;
     }
+    function getAssetFlode(url) {
+        let filei = url.lastIndexOf("/");
+        let file = url.substr(0, filei);
+        return file;
+    }
 
     /**
      * 资源都继承web3dAsset 实现Iasset接口,有唯一ID
@@ -7393,7 +7640,7 @@
         static getAssetLoader(url) {
             let extralType = getAssetExtralName(url);
             let factory = this.RESLoadDic[extralType];
-            return factory && factory();
+            return factory;
         }
         // //-------------------资源加载拓展
         // static RegisterAssetExtensionLoader(extral: string, factory: () => IassetLoader) {
@@ -7403,14 +7650,17 @@
         static addLoader() {
             return __awaiter(this, void 0, void 0, function* () {
                 yield Promise.resolve().then(function () { return loadTxt; }).then(mod => {
-                    this.RegisterAssetLoader(".txt", () => new mod.LoadTxt());
+                    this.RegisterAssetLoader(".txt", new mod.LoadTxt());
                 });
                 yield Promise.resolve().then(function () { return loadShader; }).then(mod => {
-                    this.RegisterAssetLoader(".shader.json", () => new mod.LoadShader());
+                    this.RegisterAssetLoader(".shader.json", new mod.LoadShader());
                 });
                 yield Promise.resolve().then(function () { return loadTexture; }).then(mod => {
-                    this.RegisterAssetLoader(".png", () => new mod.LoadTextureSample());
-                    this.RegisterAssetLoader(".jpg", () => new mod.LoadTextureSample());
+                    this.RegisterAssetLoader(".png", new mod.LoadTextureSample());
+                    this.RegisterAssetLoader(".jpg", new mod.LoadTextureSample());
+                });
+                yield Promise.resolve().then(function () { return loadglTF; }).then(mod => {
+                    this.RegisterAssetLoader(".gltf", new mod.LoadGlTF());
                 });
             });
         }
@@ -7521,33 +7771,59 @@
     //new asset的时候还要检查重名资源,允许还是不允许都是麻烦—--->>>>>>>>>>>>>>>>>>>>>>>
     //<<<<<<<--------3.  资源本身的描述json，不会被作为资源被assetmgr管理起来-->>>
 
+    class LoadGltf {
+        static done(toy) {
+            let cubeUrl = "../res/glTF/Cube/Cube.gltf";
+            Resource.loadAsync(cubeUrl).then(model => {
+                let gltf = model;
+                let root = new Entity("rootTag");
+                toy.scene.addEntity(root);
+                gltf.roots.forEach(item => {
+                    root.transform.addChild(item.entity.transform);
+                    // toy.scene.addEntity();
+                });
+                let camobj = new Entity("cameobj", ["Camera", "CameraController"]);
+                let camCtr = camobj.getCompByName("CameraController");
+                let trans = camobj.getCompByName("Transform");
+                trans.localPosition.z = 15;
+                trans.markDirty();
+                toy.scene.addEntity(camobj);
+                camCtr.active();
+                let roty = 0;
+                toy.preUpdate = delta => {
+                    roty += delta * 0.01;
+                    Quat.FromEuler(0, roty, 0, root.transform.localRotation);
+                    root.transform.markDirty();
+                };
+            });
+        }
+    }
+
     window.onload = () => {
         let toy = new ToyGL();
         toy.initByHtmlElement(document.getElementById("canvas"));
         AssetLoader.addLoader().then(() => {
-            let geometry = DefGeometry.fromType("quad");
-            ///------------def shader
-            let shader = DefShader.fromType("color");
-            //-------------custom shader
-            let customeShader = Resource.load("../res/shader/base.shader.json");
-            let material = new Material();
-            material.shader = customeShader;
-            material.setColor("_MainColor", Color.create(1, 0, 0, 1));
-            //-----------load tex
-            let tex = Resource.load("../res/imgs/tes.png");
-            material.setTexture("_MainTex", tex);
-            let obj = new Entity();
-            let mesh = obj.addCompByName("Mesh");
-            mesh.geometry = geometry;
-            mesh.material = material;
-            toy.scene.addEntity(obj);
-            let camobj = new Entity("", ["Camera"]);
-            let trans = camobj.getCompByName("Transform");
-            trans.localPosition.z = 5;
-            trans.markDirty();
-            toy.scene.addEntity(camobj);
+            // Base.done(toy);
+            LoadGltf.done(toy);
         });
     };
+
+    class ResID {
+        static next() {
+            let next = ResID.idAll;
+            ResID.idAll++;
+            return next;
+        }
+    }
+    ResID.idAll = 0;
+    class ToyAsset {
+        constructor(param) {
+            this.guid = ResID.next();
+            this.name = (param && param.name) || "asset_" + this.guid;
+            this.URL = param && param.URL;
+            this.beDefaultAsset = (param && param.beDefaultAsset) || false;
+        }
+    }
 
     class TextAsset extends ToyAsset {
         constructor(name, url) {
@@ -7593,8 +7869,14 @@
             };
         });
     }
+    function loadJson(url, onProgress = null) {
+        return httpRequeset(url, ResponseTypeEnum.json, onProgress);
+    }
     function loadText(url, onProgress = null) {
         return httpRequeset(url, ResponseTypeEnum.text, onProgress);
+    }
+    function loadArrayBuffer(url, onProgress = null) {
+        return httpRequeset(url, ResponseTypeEnum.arraybuffer, onProgress);
     }
     function loadImg(url, onProgress = null) {
         return new Promise((resolve, reject) => {
@@ -7646,6 +7928,70 @@
     var loadTxt = /*#__PURE__*/Object.freeze({
         LoadTxt: LoadTxt
     });
+
+    class Shader extends ToyAsset {
+        constructor(param) {
+            super(param);
+            this.layer = RenderLayerEnum.Geometry;
+            this.queue = 0;
+        }
+        static fromCustomData(data) {
+            let newAsset = new Shader({ name: "custom_shader" });
+            newAsset.layer = data.layer || RenderLayerEnum.Geometry;
+            newAsset.queue = data.queue != null ? data.queue : 0;
+            let features = data.feature != null ? [...data.feature, "base"] : ["base"];
+            let passes = data.passes;
+            let featurePasses = {};
+            for (let i = 0; i < features.length; i++) {
+                let type = features[i];
+                let featureStr = getFeaturShderStr(type);
+                let programArr = [];
+                for (let i = 0; i < passes.length; i++) {
+                    let passitem = passes[i];
+                    let program = GlRender.createProgram({
+                        program: {
+                            vs: featureStr + passitem.program.vs,
+                            fs: featureStr + passitem.program.fs,
+                            name: null,
+                        },
+                        states: passitem.states,
+                        uniforms: passitem.uniforms,
+                    });
+                    programArr.push(program);
+                }
+                featurePasses[type] = programArr;
+            }
+            newAsset.passes = featurePasses;
+            return newAsset;
+        }
+        dispose() { }
+    }
+    var UniformTypeEnum;
+    (function (UniformTypeEnum) {
+        UniformTypeEnum[UniformTypeEnum["FLOAT"] = 0] = "FLOAT";
+        UniformTypeEnum[UniformTypeEnum["FLOAT_VEC2"] = 1] = "FLOAT_VEC2";
+        UniformTypeEnum[UniformTypeEnum["FLOAT_VEC3"] = 2] = "FLOAT_VEC3";
+        UniformTypeEnum[UniformTypeEnum["FLOAT_VEC4"] = 3] = "FLOAT_VEC4";
+        UniformTypeEnum[UniformTypeEnum["TEXTURE"] = 4] = "TEXTURE";
+    })(UniformTypeEnum || (UniformTypeEnum = {}));
+    function getFeaturShderStr(type) {
+        switch (type) {
+            case "base":
+                return "";
+            case "fog":
+                return "#define FOG \n";
+            case "skin":
+                return "#define SKIN \n";
+            case "skin_fog":
+                return "#define SKIN \n" + "#define FOG \n";
+            case "lightmap":
+                return "#define LIGHTMAP \n";
+            case "lightmap_fog":
+                return "#define LIGHTMAP \n" + "#define FOG \n";
+            case "instance":
+                return "#define INSTANCE \n";
+        }
+    }
 
     class Vec2 extends Float32Array {
         constructor(x = 0, y = 0) {
@@ -8696,7 +9042,8 @@
         load(url, onFinish, onProgress) {
             let name = getFileName(url);
             let shader = new Shader({ name: name, URL: url });
-            loadText(url).then(txt => {
+            loadText(url)
+                .then(txt => {
                 let json = JSON.parse(txt);
                 let layer = getShaderLayerFromStr(json.layer || "Geometry");
                 let queue = json.queue != null ? json.queue : 0;
@@ -8704,7 +9051,8 @@
                 let features = json.feature != null ? [...json.feature, "base"] : ["base"];
                 let index = url.lastIndexOf("/");
                 let shaderurl = url.substring(0, index + 1);
-                LoadShader.ParseShaderPass(features, json.passes, shaderurl, name).then(progamArr => {
+                LoadShader.ParseShaderPass(features, json.passes, shaderurl, name)
+                    .then(progamArr => {
                     shader.layer = layer;
                     shader.queue = queue;
                     shader.mapUniformDef = defUniform;
@@ -8712,13 +9060,15 @@
                     if (onFinish) {
                         onFinish(shader, { url: url, loadState: LoadEnum.Success });
                     }
-                }).catch(error => {
+                })
+                    .catch(error => {
                     let errorMsg = "ERROR: parse shader Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + error.message;
                     if (onFinish) {
                         onFinish(shader, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
                     }
                 });
-            }).catch(err => {
+            })
+                .catch(err => {
                 let errorMsg = "ERROR: Load shader Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
                 if (onFinish) {
                     onFinish(shader, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
@@ -8851,7 +9201,8 @@
         load(url, onFinish, onProgress) {
             let name = getFileName(url);
             let texture = new Texture({ name: name, URL: url });
-            loadImg(url).then((img) => {
+            loadImg(url)
+                .then(img => {
                 texture.width = img.width;
                 texture.height = img.height;
                 let imaginfo = GlRender.createTextureFromImg(img);
@@ -8860,7 +9211,8 @@
                 if (onFinish) {
                     onFinish(texture, { url: url, loadState: LoadEnum.Success });
                 }
-            }).catch((err) => {
+            })
+                .catch(err => {
                 let errorMsg = "ERROR: Load Image Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
                 if (onFinish) {
                     onFinish(texture, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
@@ -8874,12 +9226,14 @@
             let name = getFileName(url);
             let texture = new Texture({ name: name, URL: url });
             //-------------load image des
-            loadText(url).then((txt) => {
+            loadText(url)
+                .then(txt => {
                 let desjson = JSON.parse(txt);
                 let imgName = desjson.texture;
                 let desname = getFileName(url);
                 let imgurl = url.replace(desname, imgName);
-                loadImg(imgurl).then((img) => {
+                loadImg(imgurl)
+                    .then(img => {
                     texture.width = img.width;
                     texture.height = img.height;
                     let imaginfo = GlRender.createTextureFromImg(img);
@@ -8888,13 +9242,15 @@
                     if (onFinish) {
                         onFinish(texture, { url: url, loadState: LoadEnum.Success });
                     }
-                }).catch((err) => {
+                })
+                    .catch(err => {
                     let errorMsg = "ERROR: Load Image Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
                     if (onFinish) {
                         onFinish(texture, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
                     }
                 });
-            }).catch((err) => {
+            })
+                .catch(err => {
                 let errorMsg = "ERROR: Load Image Des Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
             });
             return texture;
@@ -8904,6 +9260,1237 @@
     var loadTexture = /*#__PURE__*/Object.freeze({
         LoadTextureSample: LoadTextureSample,
         LoadTextureDes: LoadTextureDes
+    });
+
+    class GltfAsset extends ToyAsset {
+        constructor(param) {
+            super(param);
+        }
+        dispose() { }
+    }
+
+    class BinReader {
+        constructor(buf, seek = 0) {
+            this._arrayBuffer = buf;
+            this._byteOffset = seek;
+            this._data = new DataView(buf, seek);
+        }
+        seek(seek) {
+            this._byteOffset = seek;
+        }
+        peek() {
+            return this._byteOffset;
+        }
+        getPosition() {
+            return this._byteOffset;
+        }
+        getLength() {
+            return this._data.byteLength;
+        }
+        canread() {
+            //LogManager.Warn(this._buf.byteLength + "  &&&&&&&&&&&   " + this._seek + "    " + this._buf.buffer.byteLength);
+            return this._data.byteLength - this._byteOffset;
+        }
+        skipBytes(len) {
+            this._byteOffset += len;
+        }
+        readString() {
+            let slen = this._data.getUint8(this._byteOffset);
+            this._byteOffset++;
+            let bs = "";
+            for (let i = 0; i < slen; i++) {
+                bs += String.fromCharCode(this._data.getUint8(this._byteOffset));
+                this._byteOffset++;
+            }
+            return bs;
+        }
+        readStrLenAndContent() {
+            let leng = this.readByte();
+            return this.readUint8ArrToString(leng);
+        }
+        static _decodeBufferToText(buffer) {
+            let result = "";
+            const length = buffer.byteLength;
+            for (let i = 0; i < length; i++) {
+                result += String.fromCharCode(buffer[i]);
+            }
+            return result;
+        }
+        static utf8ArrayToString(array) {
+            let ret = [];
+            for (let i = 0; i < array.length; i++) {
+                let cc = array[i];
+                if (cc == 0)
+                    break;
+                let ct = 0;
+                if (cc > 0xe0) {
+                    ct = (cc & 0x0f) << 12;
+                    cc = array[++i];
+                    ct |= (cc & 0x3f) << 6;
+                    cc = array[++i];
+                    ct |= cc & 0x3f;
+                    ret.push(String.fromCharCode(ct));
+                }
+                else if (cc > 0xc0) {
+                    ct = (cc & 0x1f) << 6;
+                    cc = array[++i];
+                    ct |= (cc & 0x3f) << 6;
+                    ret.push(String.fromCharCode(ct));
+                }
+                else if (cc > 0x80) {
+                    throw new Error("InvalidCharacterError");
+                }
+                else {
+                    ret.push(String.fromCharCode(array[i]));
+                }
+            }
+            return ret.join("");
+            //                let b = array[i];
+            //    if (b > 0 && b < 16)
+            //    {
+            //        uri += '%0' + b.toString(16);
+            //    }
+            //    else if (b > 16)
+            //    {
+            //        uri += '%' + b.toString(16);
+            //    }
+            //}
+            //return decodeURIComponent(uri);
+        }
+        // readStringUtf8(): string
+        // {
+        //     let length = this._data.getInt8(this._byteOffset);
+        //     this._byteOffset++;
+        //     let arr = new Uint8Array(length);
+        //     this.readUint8Array(arr);
+        //     return binReader.utf8ArrayToString(arr);
+        // }
+        readUint8ArrToString(length) {
+            let arr = this.readUint8Array(length);
+            return BinReader._decodeBufferToText(arr);
+        }
+        readSingle() {
+            let num = this._data.getFloat32(this._byteOffset, true);
+            this._byteOffset += 4;
+            return num;
+        }
+        readDouble() {
+            let num = this._data.getFloat64(this._byteOffset, true);
+            this._byteOffset += 8;
+            return num;
+        }
+        readInt8() {
+            let num = this._data.getInt8(this._byteOffset);
+            this._byteOffset += 1;
+            return num;
+        }
+        readUInt8() {
+            //LogManager.Warn(this._data.byteLength + "  @@@@@@@@@@@@@@@@@  " + this._seek);
+            let num = this._data.getUint8(this._byteOffset);
+            this._byteOffset += 1;
+            return num;
+        }
+        readInt16() {
+            //LogManager.Log(this._seek + "   " + this.length());
+            let num = this._data.getInt16(this._byteOffset, true);
+            this._byteOffset += 2;
+            return num;
+        }
+        readUInt16() {
+            let num = this._data.getUint16(this._byteOffset, true);
+            this._byteOffset += 2;
+            //LogManager.Warn("readUInt16 " + this._seek);
+            return num;
+        }
+        readInt32() {
+            let num = this._data.getInt32(this._byteOffset, true);
+            this._byteOffset += 4;
+            return num;
+        }
+        readUint32() {
+            let num = this._data.getUint32(this._byteOffset, true);
+            this._byteOffset += 4;
+            return num;
+        }
+        readUint8Array(length) {
+            const value = new Uint8Array(this._arrayBuffer, this._byteOffset, length);
+            this._byteOffset += length;
+            return value;
+        }
+        readUint8ArrayByOffset(target, offset, length = 0) {
+            if (length < 0)
+                length = target.length;
+            for (let i = 0; i < length; i++) {
+                target[i] = this._data.getUint8(offset);
+                offset++;
+            }
+            return target;
+        }
+        set position(value) {
+            this.seek(value);
+        }
+        get position() {
+            return this.peek();
+        }
+        readBoolean() {
+            return this.readUInt8() > 0;
+        }
+        readByte() {
+            return this.readUInt8();
+        }
+        // readBytes(target: Uint8Array = null, length: number = -1): Uint8Array
+        // {
+        //     return this.readUint8Array(target, length);
+        // }
+        readUnsignedShort() {
+            return this.readUInt16();
+        }
+        readUnsignedInt() {
+            return this.readUint32();
+        }
+        readFloat() {
+            return this.readSingle();
+        }
+        /// <summary>
+        /// 有符号 Byte
+        /// </summary>
+        readSymbolByte() {
+            return this.readInt8();
+        }
+        readShort() {
+            return this.readInt16();
+        }
+        readInt() {
+            return this.readInt32();
+        }
+    }
+
+    var AccessorComponentType;
+    (function (AccessorComponentType) {
+        /**
+         * Byte
+         */
+        AccessorComponentType[AccessorComponentType["BYTE"] = 5120] = "BYTE";
+        /**
+         * Unsigned Byte
+         */
+        AccessorComponentType[AccessorComponentType["UNSIGNED_BYTE"] = 5121] = "UNSIGNED_BYTE";
+        /**
+         * Short
+         */
+        AccessorComponentType[AccessorComponentType["SHORT"] = 5122] = "SHORT";
+        /**
+         * Unsigned Short
+         */
+        AccessorComponentType[AccessorComponentType["UNSIGNED_SHORT"] = 5123] = "UNSIGNED_SHORT";
+        /**
+         * Unsigned Int
+         */
+        AccessorComponentType[AccessorComponentType["UNSIGNED_INT"] = 5125] = "UNSIGNED_INT";
+        /**
+         * Float
+         */
+        AccessorComponentType[AccessorComponentType["FLOAT"] = 5126] = "FLOAT";
+    })(AccessorComponentType || (AccessorComponentType = {}));
+    /**
+     * Specifies if the attirbute is a scalar, vector, or matrix
+     */
+    var AccessorType;
+    (function (AccessorType) {
+        /**
+         * Scalar
+         */
+        AccessorType["SCALAR"] = "SCALAR";
+        /**
+         * Vector2
+         */
+        AccessorType["VEC2"] = "VEC2";
+        /**
+         * Vector3
+         */
+        AccessorType["VEC3"] = "VEC3";
+        /**
+         * Vector4
+         */
+        AccessorType["VEC4"] = "VEC4";
+        /**
+         * Matrix2x2
+         */
+        AccessorType["MAT2"] = "MAT2";
+        /**
+         * Matrix3x3
+         */
+        AccessorType["MAT3"] = "MAT3";
+        /**
+         * Matrix4x4
+         */
+        AccessorType["MAT4"] = "MAT4";
+    })(AccessorType || (AccessorType = {}));
+    /**
+     * The name of the node's TRS property to modify, or the weights of the Morph Targets it instantiates
+     */
+    var AnimationChannelTargetPath;
+    (function (AnimationChannelTargetPath) {
+        /**
+         * Translation
+         */
+        AnimationChannelTargetPath["TRANSLATION"] = "translation";
+        /**
+         * Rotation
+         */
+        AnimationChannelTargetPath["ROTATION"] = "rotation";
+        /**
+         * Scale
+         */
+        AnimationChannelTargetPath["SCALE"] = "scale";
+        /**
+         * Weights
+         */
+        AnimationChannelTargetPath["WEIGHTS"] = "weights";
+    })(AnimationChannelTargetPath || (AnimationChannelTargetPath = {}));
+    /**
+     * Interpolation algorithm
+     */
+    var AnimationSamplerInterpolation;
+    (function (AnimationSamplerInterpolation) {
+        /**
+         * The animated values are linearly interpolated between keyframes
+         */
+        AnimationSamplerInterpolation["LINEAR"] = "LINEAR";
+        /**
+         * The animated values remain constant to the output of the first keyframe, until the next keyframe
+         */
+        AnimationSamplerInterpolation["STEP"] = "STEP";
+        /**
+         * The animation's interpolation is computed using a cubic spline with specified tangents
+         */
+        AnimationSamplerInterpolation["CUBICSPLINE"] = "CUBICSPLINE";
+    })(AnimationSamplerInterpolation || (AnimationSamplerInterpolation = {}));
+    /**
+     * A camera's projection.  A node can reference a camera to apply a transform to place the camera in the scene
+     */
+    var CameraType;
+    (function (CameraType) {
+        /**
+         * A perspective camera containing properties to create a perspective projection matrix
+         */
+        CameraType["PERSPECTIVE"] = "perspective";
+        /**
+         * An orthographic camera containing properties to create an orthographic projection matrix
+         */
+        CameraType["ORTHOGRAPHIC"] = "orthographic";
+    })(CameraType || (CameraType = {}));
+    /**
+     * The mime-type of the image
+     */
+    var ImageMimeType;
+    (function (ImageMimeType) {
+        /**
+         * JPEG Mime-type
+         */
+        ImageMimeType["JPEG"] = "image/jpeg";
+        /**
+         * PNG Mime-type
+         */
+        ImageMimeType["PNG"] = "image/png";
+    })(ImageMimeType || (ImageMimeType = {}));
+    /**
+     * The alpha rendering mode of the material
+     */
+    var MaterialAlphaMode;
+    (function (MaterialAlphaMode) {
+        /**
+         * The alpha value is ignored and the rendered output is fully opaque
+         */
+        MaterialAlphaMode["OPAQUE"] = "OPAQUE";
+        /**
+         * The rendered output is either fully opaque or fully transparent depending on the alpha value and the specified alpha cutoff value
+         */
+        MaterialAlphaMode["MASK"] = "MASK";
+        /**
+         * The alpha value is used to composite the source and destination areas. The rendered output is combined with the background using the normal painting operation (i.e. the Porter and Duff over operator)
+         */
+        MaterialAlphaMode["BLEND"] = "BLEND";
+    })(MaterialAlphaMode || (MaterialAlphaMode = {}));
+    /**
+     * The type of the primitives to render
+     */
+    var MeshPrimitiveMode;
+    (function (MeshPrimitiveMode) {
+        /**
+         * Points
+         */
+        MeshPrimitiveMode[MeshPrimitiveMode["POINTS"] = 0] = "POINTS";
+        /**
+         * Lines
+         */
+        MeshPrimitiveMode[MeshPrimitiveMode["LINES"] = 1] = "LINES";
+        /**
+         * Line Loop
+         */
+        MeshPrimitiveMode[MeshPrimitiveMode["LINE_LOOP"] = 2] = "LINE_LOOP";
+        /**
+         * Line Strip
+         */
+        MeshPrimitiveMode[MeshPrimitiveMode["LINE_STRIP"] = 3] = "LINE_STRIP";
+        /**
+         * Triangles
+         */
+        MeshPrimitiveMode[MeshPrimitiveMode["TRIANGLES"] = 4] = "TRIANGLES";
+        /**
+         * Triangle Strip
+         */
+        MeshPrimitiveMode[MeshPrimitiveMode["TRIANGLE_STRIP"] = 5] = "TRIANGLE_STRIP";
+        /**
+         * Triangle Fan
+         */
+        MeshPrimitiveMode[MeshPrimitiveMode["TRIANGLE_FAN"] = 6] = "TRIANGLE_FAN";
+    })(MeshPrimitiveMode || (MeshPrimitiveMode = {}));
+    /**
+     * Magnification filter.  Valid values correspond to WebGL enums: 9728 (NEAREST) and 9729 (LINEAR)
+     */
+    var TextureMagFilter;
+    (function (TextureMagFilter) {
+        /**
+         * Nearest
+         */
+        TextureMagFilter[TextureMagFilter["NEAREST"] = 9728] = "NEAREST";
+        /**
+         * Linear
+         */
+        TextureMagFilter[TextureMagFilter["LINEAR"] = 9729] = "LINEAR";
+    })(TextureMagFilter || (TextureMagFilter = {}));
+    /**
+     * Minification filter.  All valid values correspond to WebGL enums
+     */
+    var TextureMinFilter;
+    (function (TextureMinFilter) {
+        /**
+         * Nearest
+         */
+        TextureMinFilter[TextureMinFilter["NEAREST"] = 9728] = "NEAREST";
+        /**
+         * Linear
+         */
+        TextureMinFilter[TextureMinFilter["LINEAR"] = 9729] = "LINEAR";
+        /**
+         * Nearest Mip-Map Nearest
+         */
+        TextureMinFilter[TextureMinFilter["NEAREST_MIPMAP_NEAREST"] = 9984] = "NEAREST_MIPMAP_NEAREST";
+        /**
+         * Linear Mipmap Nearest
+         */
+        TextureMinFilter[TextureMinFilter["LINEAR_MIPMAP_NEAREST"] = 9985] = "LINEAR_MIPMAP_NEAREST";
+        /**
+         * Nearest Mipmap Linear
+         */
+        TextureMinFilter[TextureMinFilter["NEAREST_MIPMAP_LINEAR"] = 9986] = "NEAREST_MIPMAP_LINEAR";
+        /**
+         * Linear Mipmap Linear
+         */
+        TextureMinFilter[TextureMinFilter["LINEAR_MIPMAP_LINEAR"] = 9987] = "LINEAR_MIPMAP_LINEAR";
+    })(TextureMinFilter || (TextureMinFilter = {}));
+    /**
+     * S (U) wrapping mode.  All valid values correspond to WebGL enums
+     */
+    var TextureWrapMode;
+    (function (TextureWrapMode) {
+        /**
+         * Clamp to Edge
+         */
+        TextureWrapMode[TextureWrapMode["CLAMP_TO_EDGE"] = 33071] = "CLAMP_TO_EDGE";
+        /**
+         * Mirrored Repeat
+         */
+        TextureWrapMode[TextureWrapMode["MIRRORED_REPEAT"] = 33648] = "MIRRORED_REPEAT";
+        /**
+         * Repeat
+         */
+        TextureWrapMode[TextureWrapMode["REPEAT"] = 10497] = "REPEAT";
+    })(TextureWrapMode || (TextureWrapMode = {}));
+
+    class ParseCameraNode {
+        static parse(index, gltf) {
+            let node = gltf.cameras[index];
+            let cam = new Camera();
+            switch (node.type) {
+                case CameraType.PERSPECTIVE:
+                    cam.projectionType = ProjectionEnum.PERSPECTIVE;
+                    let data = node.perspective;
+                    cam.fov = data.yfov;
+                    cam.near = data.znear;
+                    if (data.zfar) {
+                        cam.far = data.zfar;
+                    }
+                    // if (data.aspectRatio) {
+                    //     cam.aspest = data.aspectRatio;
+                    // }
+                    break;
+                case CameraType.ORTHOGRAPHIC:
+                    cam.projectionType = ProjectionEnum.ORTHOGRAPH;
+                    let datao = node.orthographic;
+                    cam.near = datao.znear;
+                    cam.far = datao.zfar;
+                    cam.size = datao.ymag;
+                    // cam.aspest = datao.xmag / datao.ymag;
+                    break;
+            }
+            return cam;
+        }
+    }
+
+    class Material extends ToyAsset {
+        constructor(param) {
+            super(param);
+            this.uniforms = {};
+            this._dirty = false;
+            this.queue = 0;
+        }
+        set shader(value) {
+            this._program = value;
+            this._dirty = true;
+        }
+        get shader() {
+            return this._program;
+        }
+        set layer(value) {
+            this._layer = value;
+        }
+        get layer() {
+            return this._layer || (this._program && this._program.layer) || RenderLayerEnum.Geometry;
+        }
+        setColor(key, value) {
+            this.uniforms[key] = value;
+        }
+        setTexture(key, value) {
+            this.uniforms[key] = value;
+        }
+        setVector4(key, value) {
+            this.uniforms[key] = value;
+        }
+        setVector3(key, value) {
+            this.uniforms[key] = value;
+        }
+        setFloat(key, value) {
+            this.uniforms[key] = value;
+        }
+        dispose() { }
+    }
+
+    class ParseBufferNode {
+        static parse(index, gltf) {
+            if (gltf.cache.bufferNodeCache[index]) {
+                return gltf.cache.bufferNodeCache[index];
+            }
+            else {
+                let bufferNode = gltf.buffers[index];
+                let url = gltf.rootURL + "/" + bufferNode.uri;
+                let task = loadArrayBuffer(url).then(buffer => {
+                    return buffer;
+                });
+                gltf.cache.bufferNodeCache[index] = task;
+                return task;
+            }
+        }
+    }
+
+    class ParseBufferViewNode {
+        static parse(index, gltf) {
+            if (gltf.cache.bufferviewNodeCache[index]) {
+                return gltf.cache.bufferviewNodeCache[index];
+            }
+            else {
+                let bufferview = gltf.bufferViews[index];
+                let bufferindex = bufferview.buffer;
+                let task = ParseBufferNode.parse(bufferindex, gltf).then(buffer => {
+                    console.warn("@@@@@view index:", index);
+                    let viewbuffer = new Uint8Array(buffer, bufferview.byteOffset, bufferview.byteLength);
+                    let stride = bufferview.byteStride;
+                    return { buffer: viewbuffer, byteStride: stride };
+                });
+                gltf.cache.bufferviewNodeCache[index] = task;
+                return task;
+            }
+        }
+    }
+
+    class ParseTextureNode {
+        static parse(index, gltf) {
+            if (gltf.cache.textrueNodeCache[index]) {
+                return gltf.cache.textrueNodeCache[index];
+            }
+            else {
+                if (gltf.textures == null)
+                    return null;
+                let node = gltf.textures[index];
+                if (gltf.images == null)
+                    return null;
+                let imageNode = gltf.images[node.source];
+                if (imageNode.uri != null) {
+                    let imagUrl = gltf.rootURL + "/" + imageNode.uri;
+                    let texture = new Texture({ name: name, URL: imagUrl });
+                    let task = loadImg(imagUrl).then(img => {
+                        texture.width = img.width;
+                        texture.height = img.height;
+                        let texOp = {};
+                        if (node.sampler) {
+                            let samplerinfo = gltf.samplers[node.sampler];
+                            if (samplerinfo.wrapS != null) {
+                                texOp.wrapS = samplerinfo.wrapS;
+                            }
+                            if (samplerinfo.wrapT) {
+                                texOp.wrapT = samplerinfo.wrapT;
+                            }
+                            if (samplerinfo.magFilter) {
+                                texOp.filterMax = samplerinfo.magFilter;
+                            }
+                            if (samplerinfo.minFilter) {
+                                texOp.filterMin = samplerinfo.minFilter;
+                            }
+                        }
+                        let imaginfo = GlRender.createTextureFromImg(img, texOp);
+                        texture.texture = imaginfo.texture;
+                        texture.texDes = imaginfo.texDes;
+                        return texture;
+                    });
+                    gltf.cache.textrueNodeCache[index] = task;
+                    return task;
+                }
+                else {
+                    let texture = new Texture({ name: name });
+                    let task = ParseBufferViewNode.parse(imageNode.bufferView, gltf).then(viewnode => {
+                        //    let bob=new Blob([viewnode.view], { type: imageNode.mimeType })
+                        //    let url = URL.createObjectURL(bob);
+                        //    asset= loader.loadDependAsset(url) as Texture;
+                        let texOp = { width: 100, height: 100 }; //todo
+                        if (node.sampler) {
+                            let samplerinfo = gltf.samplers[node.sampler];
+                            if (samplerinfo.wrapS != null) {
+                                texOp.wrapS = samplerinfo.wrapS;
+                            }
+                            if (samplerinfo.wrapT) {
+                                texOp.wrapT = samplerinfo.wrapT;
+                            }
+                            if (samplerinfo.magFilter) {
+                                texOp.filterMax = samplerinfo.magFilter;
+                            }
+                            if (samplerinfo.minFilter) {
+                                texOp.filterMin = samplerinfo.minFilter;
+                            }
+                        }
+                        let imaginfo = GlRender.createTextureFromViewData(viewnode.buffer, texOp);
+                        texture.texture = imaginfo.texture;
+                        texture.texDes = imaginfo.texDes;
+                        return texture;
+                    });
+                    gltf.cache.textrueNodeCache[index] = task;
+                    return task;
+                }
+                // let asset=assetMgr.load(bundle.rootURL+"/"+uri.uri) as Texture;
+            }
+        }
+    }
+
+    class DefShader {
+        static fromType(type) {
+            if (this.defShader[type] == null) {
+                switch (type) {
+                    case "color":
+                        let colorVs = "\
+                          attribute vec3 POSITION;\
+                          void main()\
+                          {\
+                              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
+                              gl_Position = tmplet_1;\
+                          }";
+                        let colorFs = "\
+                          uniform highp vec4 MainColor;\
+                          void main()\
+                          {\
+                              gl_FragData[0] = MainColor;\
+                          }";
+                        this.defShader[type] = Shader.fromCustomData({
+                            passes: [
+                                {
+                                    program: {
+                                        vs: colorVs,
+                                        fs: colorFs,
+                                        name: "defcolor",
+                                    },
+                                    states: {
+                                        enableCullFace: false,
+                                    },
+                                },
+                            ],
+                        });
+                        break;
+                    case "base":
+                        let baseVs = "\
+                          attribute vec3 POSITION;\
+                          uniform highp mat4 u_mat_mvp;\
+                          void main()\
+                          {\
+                              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
+                              gl_Position = u_mat_mvp * tmplet_1;\
+                          }";
+                        let baseFs = "\
+                          uniform highp vec4 MainColor;\
+                          void main()\
+                          {\
+                              gl_FragData[0] = MainColor;\
+                          }";
+                        this.defShader[type] = Shader.fromCustomData({
+                            passes: [
+                                {
+                                    program: {
+                                        vs: baseVs,
+                                        fs: baseFs,
+                                    },
+                                    states: {
+                                        enableCullFace: false,
+                                    },
+                                },
+                            ],
+                        });
+                        break;
+                    default:
+                        console.warn("Unkowned default shader type:", type);
+                        return null;
+                }
+            }
+            return this.defShader[type];
+        }
+    }
+    DefShader.defShader = {};
+
+    class ParseMaterialNode {
+        static parse(index, gltf) {
+            if (gltf.cache.materialNodeCache[index]) {
+                return gltf.cache.materialNodeCache[index];
+            }
+            else {
+                if (gltf.materials == null) {
+                    return Promise.resolve(null);
+                }
+                let node = gltf.materials[index];
+                let mat = new Material({ name: node.name });
+                let shader = DefShader.fromType("base");
+                mat.shader = shader;
+                mat.setColor("MainColor", Color.create());
+                //-------------loadshader
+                // let pbrShader = assetMgr.load("resource/shader/pbr_glTF.shader.json") as Shader;
+                // mat.setShader(pbrShader);
+                if (node.pbrMetallicRoughness) {
+                    let nodeMR = node.pbrMetallicRoughness;
+                    if (nodeMR.baseColorFactor) {
+                        let baseColorFactor = Vec4.create();
+                        Vec4.copy(nodeMR.baseColorFactor, baseColorFactor);
+                        mat.setVector4("u_BaseColorFactor", baseColorFactor);
+                    }
+                    if (nodeMR.metallicFactor != null) {
+                        mat.setFloat("u_metalFactor", nodeMR.metallicFactor);
+                    }
+                    if (nodeMR.roughnessFactor != null) {
+                        mat.setFloat("u_roughnessFactor", nodeMR.roughnessFactor);
+                    }
+                    if (nodeMR.baseColorTexture != null) {
+                        let tex = ParseTextureNode.parse(nodeMR.baseColorTexture.index, gltf).then(tex => {
+                            mat.setTexture("u_BaseColorSampler", tex);
+                        });
+                    }
+                    if (nodeMR.metallicRoughnessTexture) {
+                        let tex = ParseTextureNode.parse(nodeMR.metallicRoughnessTexture.index, gltf).then(tex => {
+                            mat.setTexture("u_MetallicRoughnessSampler", tex);
+                        });
+                    }
+                }
+                if (node.normalTexture) {
+                    let nodet = node.normalTexture;
+                    let tex = ParseTextureNode.parse(nodet.index, gltf).then(tex => {
+                        mat.setTexture("u_NormalSampler", tex);
+                    });
+                    // mat.setTexture("u_NormalSampler",tex);
+                    if (nodet.scale) {
+                        mat.setFloat("u_NormalScale", nodet.scale);
+                    }
+                }
+                if (node.emissiveTexture) {
+                    let nodet = node.emissiveTexture;
+                    let tex = ParseTextureNode.parse(nodet.index, gltf).then(tex => {
+                        mat.setTexture("u_EmissiveSampler", tex);
+                    });
+                }
+                if (node.emissiveFactor) {
+                    let ve3 = Vec3.create();
+                    Vec3.copy(node.emissiveFactor, ve3);
+                    mat.setVector3("u_EmissiveFactor", ve3);
+                }
+                if (node.occlusionTexture) {
+                    let nodet = node.occlusionTexture;
+                    if (nodet.strength) {
+                        mat.setFloat("u_OcclusionStrength", nodet.strength);
+                    }
+                }
+                // let brdfTex = assetMgr.load("resource/texture/brdfLUT.imgdes.json") as Texture;
+                // mat.setTexture("u_brdfLUT", brdfTex);
+                // let e_cubeDiff: CubeTexture = new CubeTexture();
+                // let e_diffuseArr: string[] = [];
+                // e_diffuseArr.push("resource/texture/papermill/diffuse/diffuse_right_0.jpg");
+                // e_diffuseArr.push("resource/texture/papermill/diffuse/diffuse_left_0.jpg");
+                // e_diffuseArr.push("resource/texture/papermill/diffuse/diffuse_top_0.jpg");
+                // e_diffuseArr.push("resource/texture/papermill/diffuse/diffuse_bottom_0.jpg");
+                // e_diffuseArr.push("resource/texture/papermill/diffuse/diffuse_front_0.jpg");
+                // e_diffuseArr.push("resource/texture/papermill/diffuse/diffuse_back_0.jpg");
+                // e_cubeDiff.groupCubeTexture(e_diffuseArr);
+                // let env_speTex = new CubeTexture();
+                // for (let i = 0; i < 10; i++) {
+                //     let urlarr = [];
+                //     urlarr.push("resource/texture/papermill/specular/specular_right_" + i + ".jpg");
+                //     urlarr.push("resource/texture/papermill/specular/specular_left_" + i + ".jpg");
+                //     urlarr.push("resource/texture/papermill/specular/specular_top_" + i + ".jpg");
+                //     urlarr.push("resource/texture/papermill/specular/specular_bottom_" + i + ".jpg");
+                //     urlarr.push("resource/texture/papermill/specular/specular_front_" + i + ".jpg");
+                //     urlarr.push("resource/texture/papermill/specular/specular_back_" + i + ".jpg");
+                //     env_speTex.groupMipmapCubeTexture(urlarr, i, 9);
+                // }
+                // mat.setCubeTexture("u_DiffuseEnvSampler", e_cubeDiff);
+                // mat.setCubeTexture("u_SpecularEnvSampler", env_speTex);
+                return Promise.resolve(mat);
+            }
+        }
+    }
+
+    class Geometry extends ToyAsset {
+        constructor(param) {
+            super(param);
+        }
+        dispose() { }
+        static fromCustomData(data) {
+            let geometry = GlRender.createGeometry(data);
+            let newAsset = new Geometry({ name: "custom_Mesh" });
+            newAsset.data = geometry;
+            return newAsset;
+        }
+    }
+
+    class ParseAccessorNode {
+        static parse(index, gltf) {
+            let arrayInfo = {};
+            // return new Promise<AccessorNode>((resolve,reject)=>{
+            let accessor = gltf.accessors[index];
+            arrayInfo.componentSize = this.getComponentSize(accessor.type);
+            arrayInfo.componentDataType = accessor.componentType;
+            arrayInfo.count = accessor.count;
+            arrayInfo.offsetInBytes = accessor.byteOffset;
+            arrayInfo.normalize = accessor.normalized;
+            if (accessor.bufferView != null) {
+                let viewindex = accessor.bufferView;
+                // let bufferview = gltf.bufferViews[viewindex];
+                // let bufferindex = bufferview.buffer;
+                // arrayInfo.strideInBytes = bufferview.byteStride;
+                // return ParseBufferNode.parse(bufferindex, gltf).then(buffer => {
+                //     let viewBuffer = new Uint8Array(buffer, bufferview.byteOffset, bufferview.byteLength);
+                //     arrayInfo.value = viewBuffer;
+                //     return arrayInfo;
+                // });
+                return ParseBufferViewNode.parse(viewindex, gltf).then(value => {
+                    console.warn("parse accessor:", index, value);
+                    arrayInfo.value = value.buffer;
+                    arrayInfo.strideInBytes = value.byteStride;
+                    return arrayInfo;
+                });
+            }
+            else {
+                let viewBuffer = this.GetTyedArryByLen(accessor.componentType, accessor.count);
+                arrayInfo.value = viewBuffer;
+                return Promise.resolve(arrayInfo);
+            }
+        }
+        static GetTyedArryByLen(componentType, Len) {
+            switch (componentType) {
+                case AccessorComponentType.BYTE:
+                    return new Int8Array(Len);
+                case AccessorComponentType.UNSIGNED_BYTE:
+                    return new Uint8Array(Len);
+                case AccessorComponentType.SHORT:
+                    return new Int16Array(Len);
+                case AccessorComponentType.UNSIGNED_SHORT:
+                    return new Uint16Array(Len);
+                case AccessorComponentType.UNSIGNED_INT:
+                    return new Uint32Array(Len);
+                case AccessorComponentType.FLOAT:
+                    return new Float32Array(Len);
+                default:
+                    throw new Error(`Invalid component type ${componentType}`);
+            }
+        }
+        static getComponentSize(type) {
+            switch (type) {
+                case "SCALAR":
+                    return 1;
+                case "VEC2":
+                    return 2;
+                case "VEC3":
+                    return 3;
+                case "VEC4":
+                case "MAT2":
+                    return 4;
+                case "MAT3":
+                    return 9;
+                case "MAT4":
+                    return 16;
+            }
+        }
+    }
+
+    class ParseMeshNode {
+        static parse(index, gltf) {
+            console.warn("parse mesh:", index);
+            if (gltf.cache.meshNodeCache[index]) {
+                return gltf.cache.meshNodeCache[index];
+            }
+            else {
+                let node = gltf.meshes[index];
+                let dataArr = [];
+                if (node.primitives) {
+                    for (let key in node.primitives) {
+                        let primitive = node.primitives[key];
+                        let data = this.parsePrimitive(primitive, gltf);
+                        dataArr.push(data);
+                    }
+                }
+                let task = Promise.all(dataArr).then(value => {
+                    //---------------add to cache
+                    return value;
+                });
+                gltf.cache.meshNodeCache[index] = task;
+                return task;
+            }
+        }
+        static parsePrimitive(node, gltf) {
+            return Promise.all([this.parseGeometry(node, gltf), this.parseMaterial(node, gltf)]).then(([geometry, material]) => {
+                return { geometry: geometry, material: material };
+            });
+        }
+        static parseMaterial(node, gltf) {
+            let matindex = node.material;
+            if (matindex != null) {
+                return ParseMaterialNode.parse(matindex, gltf);
+            }
+            else {
+                return Promise.resolve(null);
+            }
+        }
+        static parseGeometry(node, gltf) {
+            let attributes = node.attributes;
+            let index = node.indices;
+            let geometryOp = { atts: {} };
+            let taskAtts = [];
+            for (let attName in attributes) {
+                let attIndex = attributes[attName];
+                let attTask = ParseAccessorNode.parse(attIndex, gltf).then(arrayInfo => {
+                    console.warn("get accessor:", attIndex, arrayInfo);
+                    geometryOp.atts[attName] = arrayInfo;
+                });
+                taskAtts.push(attTask);
+            }
+            if (index != null) {
+                let indexTask = ParseAccessorNode.parse(index, gltf).then(arrayInfo => {
+                    geometryOp.indices = arrayInfo;
+                });
+                taskAtts.push(indexTask);
+            }
+            return Promise.all(taskAtts).then(() => {
+                let geometryInfo = GlRender.createGeometry(geometryOp);
+                let newGeometry = new Geometry();
+                newGeometry.data = geometryInfo;
+                this.getTypedValueArr(newGeometry, geometryOp);
+                return newGeometry;
+            });
+        }
+        static getTypedValueArr(newGeometry, geometryOp) {
+            for (const key in geometryOp.atts) {
+                const element = geometryOp.atts[key];
+                let strideInBytes = element.strideInBytes || this.getByteSize(element.componentDataType, element.componentSize);
+                let dataArr = [];
+                for (let i = 0; i < element.count; i++) {
+                    let value = this.GetTypedArry(element.componentDataType, element.value, i * strideInBytes + element.offsetInBytes, element.componentSize);
+                    dataArr.push(value);
+                }
+                newGeometry[key] = dataArr;
+            }
+            if (geometryOp.indices) {
+                const element = geometryOp.indices;
+                let strideInBytes = element.strideInBytes || this.getByteSize(element.componentDataType, element.componentSize);
+                let dataArr = [];
+                for (let i = 0; i < element.count; i++) {
+                    let value = this.GetTypedArry(element.componentDataType, element.value, i * strideInBytes + element.offsetInBytes, element.componentSize);
+                    dataArr.push(value);
+                }
+                newGeometry["indices"] = dataArr;
+            }
+            console.warn(newGeometry);
+        }
+        static GetTypedArry(componentType, bufferview, byteOffset, Len) {
+            let buffer = bufferview.buffer;
+            byteOffset = bufferview.byteOffset + (byteOffset || 0);
+            switch (componentType) {
+                case AccessorComponentType.BYTE:
+                    return new Int8Array(buffer, byteOffset, Len);
+                case AccessorComponentType.UNSIGNED_BYTE:
+                    return new Uint8Array(buffer, byteOffset, Len);
+                case AccessorComponentType.SHORT:
+                    return new Int16Array(buffer, byteOffset, Len);
+                case AccessorComponentType.UNSIGNED_SHORT:
+                    return new Uint16Array(buffer, byteOffset, Len);
+                case AccessorComponentType.UNSIGNED_INT:
+                    return new Uint32Array(buffer, byteOffset, Len);
+                case AccessorComponentType.FLOAT: {
+                    if ((byteOffset / 4) % 1 != 0) {
+                        console.error("??");
+                    }
+                    return new Float32Array(buffer, byteOffset, Len);
+                }
+                default:
+                    throw new Error(`Invalid component type ${componentType}`);
+            }
+        }
+        static getByteSize(componentType, componentSize) {
+            switch (componentType) {
+                case AccessorComponentType.BYTE:
+                    return componentSize * Int8Array.BYTES_PER_ELEMENT;
+                case AccessorComponentType.UNSIGNED_BYTE:
+                    return componentSize * Uint8Array.BYTES_PER_ELEMENT;
+                case AccessorComponentType.SHORT:
+                    return componentSize * Int16Array.BYTES_PER_ELEMENT;
+                case AccessorComponentType.UNSIGNED_SHORT:
+                    return componentSize * Uint16Array.BYTES_PER_ELEMENT;
+                case AccessorComponentType.UNSIGNED_INT:
+                    return componentSize * Uint32Array.BYTES_PER_ELEMENT;
+                case AccessorComponentType.FLOAT:
+                    return componentSize * Float32Array.BYTES_PER_ELEMENT;
+                default:
+                    throw new Error(`Invalid component type ${componentType}`);
+            }
+        }
+    }
+
+    class ParseNode {
+        static parse(index, gltf) {
+            console.warn("parse node:", index);
+            let node = gltf.nodes[index];
+            let name = node.name || "node" + index;
+            let trans = new Entity(name).transform;
+            if (node.matrix) {
+                trans.localMatrix = Mat4.fromArray(node.matrix);
+            }
+            if (node.translation) {
+                Vec3.copy(node.translation, trans.localPosition);
+                trans.markDirty();
+            }
+            if (node.rotation) {
+                Quat.copy(node.rotation, trans.localRotation);
+                trans.markDirty();
+            }
+            if (node.scale) {
+                Vec3.copy(node.scale, trans.localScale);
+                trans.markDirty();
+            }
+            if (node.camera != null) {
+                let cam = ParseCameraNode.parse(node.camera, gltf);
+                trans.entity.addComp(cam);
+            }
+            let allTask = [];
+            if (node.mesh != null) {
+                let task = ParseMeshNode.parse(node.mesh, gltf).then(primitives => {
+                    for (let item of primitives) {
+                        let entity = new Entity("subPrimitive", ["Mesh"]);
+                        let mesh = entity.getCompByName("Mesh");
+                        mesh.geometry = item.geometry;
+                        mesh.material = item.material;
+                        trans.addChild(entity.transform);
+                    }
+                });
+                allTask.push(task);
+            }
+            if (node.children) {
+                for (let i = 0; i < node.children.length; i++) {
+                    let nodeindex = node.children[i];
+                    let childTask = this.parse(nodeindex, gltf).then(child => {
+                        trans.addChild(child);
+                    });
+                    allTask.push(childTask);
+                }
+            }
+            return Promise.all(allTask).then(() => {
+                return trans;
+            });
+            // if (node.skin != null && node.mesh != null) {
+            //     let nodemeshdata: PrimitiveNode[] = bundle.meshNodeCache[node.mesh];
+            //     let skindata = bundle.skinNodeCache[node.skin];
+            //     for (let key in nodemeshdata) {
+            //         let data = nodemeshdata[key];
+            //         //-----------------------------
+            //         let obj = new GameObject();
+            //         trans.addChild(obj.transform);
+            //         let meshr = obj.addComponent<SkinMeshRender>("SkinMeshRender");
+            //         // let mat=assetMgr.load("resource/mat/diff.mat.json") as Material;
+            //         // meshr.material=mat;
+            //         meshr.mesh = data.mesh;
+            //         meshr.material = data.mat;
+            //         // meshr.joints=skindata.joints;
+            //         for (let i = 0; i < skindata.jointIndexs.length; i++) {
+            //             let trans = bundle.nodeDic[skindata.jointIndexs[i]];
+            //             if (trans == null) {
+            //                 console.error("解析gltf 异常！");
+            //             }
+            //             meshr.joints.push(trans);
+            //         }
+            //         meshr.bindPoses = skindata.inverseBindMat;
+            //         meshr.bindPlayer = bundle.bundleAnimator;
+            //     }
+            // } else
+        }
+    }
+
+    class ParseSceneNode {
+        static parse(index, gltf) {
+            let node = gltf.scenes[index];
+            let rootNodes = node.nodes.map(item => {
+                console.warn("root node:", item);
+                return ParseNode.parse(item, gltf);
+            });
+            return Promise.all(rootNodes);
+        }
+    }
+
+    class GltfNodeCache {
+        constructor() {
+            this.meshNodeCache = {};
+            this.bufferviewNodeCache = {};
+            this.bufferNodeCache = {};
+            this.materialNodeCache = {};
+            this.textrueNodeCache = {};
+            // beContainAnimation: boolean = false;
+            // skinNodeCache: { [index: number]: SkinNode } = {};
+            // animationNodeCache: { [index: number]: AnimationClip } = {};
+        }
+    }
+    class LoadGlTF {
+        load(url, onFinish, onProgress) {
+            let name = getFileName(url);
+            let asset = new GltfAsset({ name: name, URL: url });
+            this.onProgress = onProgress;
+            this.onFinish = onFinish;
+            this.loadAsync(url)
+                .then(gltfJson => {
+                let scene = gltfJson.scene ? gltfJson.scene : 0;
+                ParseSceneNode.parse(scene, gltfJson).then(trans => {
+                    asset.roots = trans;
+                    if (this.onFinish) {
+                        this.onFinish(asset, { loadState: LoadEnum.Success, url: url });
+                    }
+                });
+            })
+                .catch(error => {
+                let errorMsg = "ERROR: Load GLTFAsset Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + error.message;
+                console.error(errorMsg);
+            });
+            return asset;
+        }
+        static regExtension(type, extension) {
+            this.ExtensionDic[type] = extension;
+        }
+        getExtensionData(node, extendname) {
+            if (node.extensions == null)
+                return null;
+            let extension = LoadGlTF.ExtensionDic[extendname];
+            if (extension == null)
+                return null;
+            let info = node.extensions[extendname];
+            if (info == null)
+                return null;
+            return extension.load(info, this);
+        }
+        //------------------------------------load bundle asset
+        loadAsync(url) {
+            if (url.endsWith(".gltf")) {
+                return loadJson(url).then(json => {
+                    let gltfJson = json;
+                    gltfJson.cache = new GltfNodeCache();
+                    gltfJson.rootURL = getAssetFlode(url);
+                    return gltfJson;
+                });
+            }
+            else {
+                return this.loadglTFBin(url).then((value) => {
+                    let gltfJson = value.json;
+                    gltfJson.cache = new GltfNodeCache();
+                    gltfJson.rootURL = getAssetFlode(url);
+                    for (let i = 0; i < value.chunkbin.length; i++) {
+                        gltfJson.cache.bufferNodeCache[i] = Promise.resolve(value.chunkbin[i].buffer);
+                    }
+                    return gltfJson;
+                });
+            }
+        }
+        loadglTFBin(url) {
+            return __awaiter(this, void 0, void 0, function* () {
+                return loadArrayBuffer(url).then(bin => {
+                    const Binary = {
+                        Magic: 0x46546c67,
+                    };
+                    let breader = new BinReader(bin);
+                    let magic = breader.readUint32();
+                    if (magic !== Binary.Magic) {
+                        throw new Error("Unexpected magic: " + magic);
+                    }
+                    let version = breader.readUint32();
+                    if (version != 2) {
+                        throw new Error("Unsupported version:" + version);
+                    }
+                    let length = breader.readUint32();
+                    if (length !== breader.getLength()) {
+                        throw new Error("Length in header does not match actual data length: " + length + " != " + breader.getLength());
+                    }
+                    let ChunkFormat = {
+                        JSON: 0x4e4f534a,
+                        BIN: 0x004e4942,
+                    };
+                    // JSON chunk
+                    let chunkLength = breader.readUint32();
+                    let chunkFormat = breader.readUint32();
+                    if (chunkFormat !== ChunkFormat.JSON) {
+                        throw new Error("First chunk format is not JSON");
+                    }
+                    let _json = JSON.parse(breader.readUint8ArrToString(chunkLength));
+                    let _chunkbin = [];
+                    while (breader.canread() > 0) {
+                        const chunkLength = breader.readUint32();
+                        const chunkFormat = breader.readUint32();
+                        switch (chunkFormat) {
+                            case ChunkFormat.JSON:
+                                throw new Error("Unexpected JSON chunk");
+                            case ChunkFormat.BIN:
+                                _chunkbin.push(breader.readUint8Array(chunkLength));
+                                break;
+                            default:
+                                // ignore unrecognized chunkFormat
+                                breader.skipBytes(chunkLength);
+                                break;
+                        }
+                    }
+                    return { json: _json, chunkbin: _chunkbin };
+                });
+            });
+        }
+    }
+    //------------------extensions
+    LoadGlTF.ExtensionDic = {};
+
+    var loadglTF = /*#__PURE__*/Object.freeze({
+        GltfNodeCache: GltfNodeCache,
+        LoadGlTF: LoadGlTF
     });
 
 })));

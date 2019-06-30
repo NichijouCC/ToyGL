@@ -1,5 +1,5 @@
-attribute highp vec4 aPos;
-attribute mediump vec4 aUv;
+attribute highp vec4 POSITION;
+attribute mediump vec4 TEXCOORD_0;
 
 uniform highp mat4 u_mat_mvp;
 uniform mediump vec4 _MainTex_ST;  
@@ -63,8 +63,8 @@ highp vec4 calcVertex(highp vec4 srcVertex,lowp vec4 blendIndex,lowp vec4 blendW
 
 void main()
 {
-    xlv_TEXCOORD0 = aUv.xy * _MainTex_ST.xy + _MainTex_ST.zw;
-    highp vec4 position=vec4(aPos.xyz,1.0);
+    xlv_TEXCOORD0 = TEXCOORD_0.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+    highp vec4 position=vec4(POSITION.xyz,1.0);
 
     //----------------------------------------------------------
     #ifdef LIGHTMAP

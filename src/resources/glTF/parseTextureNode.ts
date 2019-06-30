@@ -8,7 +8,7 @@ import { IgltfJson } from "./loadglTF";
 export class ParseTextureNode {
     static parse(index: number, gltf: IgltfJson): Promise<Texture | null> {
         if (gltf.cache.textrueNodeCache[index]) {
-            return Promise.resolve(gltf.cache.textrueNodeCache[index]);
+            return gltf.cache.textrueNodeCache[index];
         } else {
             if (gltf.textures == null) return null;
             let node = gltf.textures[index];
@@ -18,7 +18,7 @@ export class ParseTextureNode {
             if (imageNode.uri != null) {
                 let imagUrl = gltf.rootURL + "/" + imageNode.uri;
                 let texture: Texture = new Texture({ name: name, URL: imagUrl });
-                return loadImg(imagUrl).then(img => {
+                let task = loadImg(imagUrl).then(img => {
                     texture.width = img.width;
                     texture.height = img.height;
 
@@ -42,12 +42,13 @@ export class ParseTextureNode {
                     texture.texture = imaginfo.texture;
                     texture.texDes = imaginfo.texDes;
 
-                    gltf.cache.textrueNodeCache[index] = texture;
                     return texture;
                 });
+                gltf.cache.textrueNodeCache[index] = task;
+                return task;
             } else {
                 let texture: Texture = new Texture({ name: name });
-                return ParseBufferViewNode.parse(imageNode.bufferView, gltf).then(viewnode => {
+                let task = ParseBufferViewNode.parse(imageNode.bufferView, gltf).then(viewnode => {
                     //    let bob=new Blob([viewnode.view], { type: imageNode.mimeType })
                     //    let url = URL.createObjectURL(bob);
                     //    asset= loader.loadDependAsset(url) as Texture;
@@ -71,10 +72,10 @@ export class ParseTextureNode {
                     texture.texture = imaginfo.texture;
                     texture.texDes = imaginfo.texDes;
 
-                    gltf.cache.textrueNodeCache[index] = texture;
-
                     return texture;
                 });
+                gltf.cache.textrueNodeCache[index] = task;
+                return task;
             }
             // let asset=assetMgr.load(bundle.rootURL+"/"+uri.uri) as Texture;
         }

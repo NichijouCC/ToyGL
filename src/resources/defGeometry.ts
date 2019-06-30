@@ -10,8 +10,8 @@ export class DefGeometry {
                 case "quad":
                     gemetryinfo = GlRender.createGeometry({
                         atts: {
-                            aPos: [-0.5, -0.5, 0.5, -0.5, 0.5, 0, 0.5, 0.5, 0, 0.5, -0.5, 0],
-                            aUv: [0, 1, 0, 0, 1, 0, 1, 1],
+                            POSITION: [-0.5, -0.5, 0.5, -0.5, 0.5, 0, 0.5, 0.5, 0, 0.5, -0.5, 0],
+                            TEXCOORD_0: [0, 1, 0, 0, 1, 0, 1, 1],
                         },
                         indices: [0, 1, 2, 0, 3, 2],
                     });

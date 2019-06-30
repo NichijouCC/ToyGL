@@ -24,11 +24,11 @@ export interface IgltfBufferview {
     byteStride: number;
 }
 export class GltfNodeCache {
-    meshNodeCache: { [index: number]: IgltfPrimitive[] } = {};
-    bufferviewNodeCache: { [index: number]: IgltfBufferview } = {};
-    bufferNodeCache: { [index: number]: ArrayBuffer } = {};
-    materialNodeCache: { [index: number]: Material } = {};
-    textrueNodeCache: { [index: number]: Texture } = {};
+    meshNodeCache: { [index: number]: Promise<IgltfPrimitive[]> } = {};
+    bufferviewNodeCache: { [index: number]: Promise<IgltfBufferview> } = {};
+    bufferNodeCache: { [index: number]: Promise<ArrayBuffer> } = {};
+    materialNodeCache: { [index: number]: Promise<Material> } = {};
+    textrueNodeCache: { [index: number]: Promise<Texture> } = {};
     // beContainAnimation: boolean = false;
     // skinNodeCache: { [index: number]: SkinNode } = {};
     // animationNodeCache: { [index: number]: AnimationClip } = {};
@@ -88,6 +88,7 @@ export class LoadGlTF implements IassetLoader {
         if (url.endsWith(".gltf")) {
             return loadJson(url).then(json => {
                 let gltfJson = json as any;
+                gltfJson.cache = new GltfNodeCache();
                 gltfJson.rootURL = getAssetFlode(url);
                 return gltfJson;
             });
@@ -98,7 +99,7 @@ export class LoadGlTF implements IassetLoader {
                 gltfJson.rootURL = getAssetFlode(url);
 
                 for (let i = 0; i < value.chunkbin.length; i++) {
-                    gltfJson.cache.bufferNodeCache[i] = value.chunkbin[i].buffer;
+                    gltfJson.cache.bufferNodeCache[i] = Promise.resolve(value.chunkbin[i].buffer);
                 }
                 return gltfJson;
             });

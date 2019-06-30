@@ -4,7 +4,7 @@ import { RenderMachine } from "./render/renderMachine";
 import { GameScreen } from "./gameScreen";
 import { Scene } from "./scene/scene";
 import { GlRender } from "./render/glRender";
-
+import { Input } from "./input/Inputmgr";
 export class ToyGL {
     private loop: Iloop;
     // assetMgr: IassetMgr;
@@ -24,14 +24,20 @@ export class ToyGL {
         } else {
             canvas = element;
         }
+        Input.init(canvas);
         let render = new RenderMachine(canvas);
         this.scene = new Scene(render);
         GameScreen.init(canvas);
 
         this.loop = new Loop();
-        this.loop.update = this.frameUpdate;
+        this.loop.update = deltaTime => {
+            if (this.preUpdate) {
+                this.preUpdate(deltaTime);
+            }
+            this.frameUpdate(deltaTime);
+        };
     }
-
+    preUpdate: (deltaTime: number) => void;
     private frameUpdate = (deltaTime: number) => {
         this.scene.update(deltaTime);
     };

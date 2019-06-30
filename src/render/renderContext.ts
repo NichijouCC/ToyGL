@@ -21,11 +21,11 @@ export class RenderContext {
     }
     private _matrixMV: Mat4 = Mat4.create();
     get matrixModelView(): Mat4 {
-        return Mat4.multiply(this.matrixModel, this.curCamera.ViewProjectMatrix, this._matrixMV);
+        return Mat4.multiply(this.curCamera.ViewProjectMatrix, this.matrixModel, this._matrixMV);
     }
     private _matMVP: Mat4 = Mat4.create();
     get matrixModelViewProject(): Mat4 {
-        return Mat4.multiply(this.matrixModel, this.curCamera.ViewProjectMatrix, this._matMVP);
+        return Mat4.multiply(this.curCamera.ViewProjectMatrix, this.matrixModel, this._matMVP);
     }
 
     get matrixView(): Mat4 {

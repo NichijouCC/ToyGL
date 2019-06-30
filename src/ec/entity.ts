@@ -23,7 +23,7 @@ export class Entity implements Ientity {
         }
     }
 
-    get transForm(): Transform {
+    get transform(): Transform {
         return this.getCompByName("Transform") as Transform;
     }
 
@@ -60,3 +60,5 @@ function newId(): number {
     return newId.prototype.id++;
 }
 newId.prototype.id = -1;
+
+export * from "./components/cameracontroller";

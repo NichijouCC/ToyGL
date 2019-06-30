@@ -2,6 +2,7 @@ import { AccessorComponentType } from "./gltfJsonStruct";
 import { ParseBufferNode } from "./parseBufferNode";
 import { IarrayInfo } from "twebgl/dist/types/type";
 import { IgltfJson } from "./loadglTF";
+import { ParseBufferViewNode } from "./parseBufferViewNode";
 
 export class ParseAccessorNode {
     static parse(index: number, gltf: IgltfJson): Promise<IarrayInfo> {
@@ -11,18 +12,28 @@ export class ParseAccessorNode {
 
         arrayInfo.componentSize = this.getComponentSize(accessor.type);
         arrayInfo.componentDataType = accessor.componentType;
-        arrayInfo.length = accessor.count;
+        arrayInfo.count = accessor.count;
+        arrayInfo.offsetInBytes = accessor.byteOffset;
+        arrayInfo.normalize = accessor.normalized;
 
         if (accessor.bufferView != null) {
             let viewindex = accessor.bufferView;
-            let bufferview = gltf.bufferViews[viewindex];
-            let bufferindex = bufferview.buffer;
-            arrayInfo.strideInBytes = bufferview.byteStride;
+            // let bufferview = gltf.bufferViews[viewindex];
+            // let bufferindex = bufferview.buffer;
+            // arrayInfo.strideInBytes = bufferview.byteStride;
 
-            ParseBufferNode.parse(bufferindex, gltf).then(buffer => {
-                let viewBuffer = new Uint8Array(buffer, bufferview.byteOffset, bufferview.byteLength);
+            // return ParseBufferNode.parse(bufferindex, gltf).then(buffer => {
+            //     let viewBuffer = new Uint8Array(buffer, bufferview.byteOffset, bufferview.byteLength);
 
-                arrayInfo.value = viewBuffer;
+            //     arrayInfo.value = viewBuffer;
+            //     return arrayInfo;
+            // });
+
+            return ParseBufferViewNode.parse(viewindex, gltf).then(value => {
+                console.warn("parse accessor:", index, value);
+
+                arrayInfo.value = value.buffer;
+                arrayInfo.strideInBytes = value.byteStride;
                 return arrayInfo;
             });
         } else {

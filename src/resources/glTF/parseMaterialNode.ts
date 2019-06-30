@@ -3,17 +3,22 @@ import { Vec4 } from "../../mathD/vec4";
 import { IgltfJson } from "./loadglTF";
 import { ParseTextureNode } from "./parseTextureNode";
 import { Vec3 } from "../../mathD/vec3";
+import { DefShader } from "../defShader";
+import { Color } from "../../mathD/color";
 
 export class ParseMaterialNode {
     static parse(index: number, gltf: IgltfJson): Promise<Material> {
         if (gltf.cache.materialNodeCache[index]) {
-            return Promise.resolve(gltf.cache.materialNodeCache[index]);
+            return gltf.cache.materialNodeCache[index];
         } else {
             if (gltf.materials == null) {
                 return Promise.resolve(null);
             }
             let node = gltf.materials[index];
             let mat = new Material({ name: node.name });
+            let shader = DefShader.fromType("base");
+            mat.shader = shader;
+            mat.setColor("MainColor", Color.create());
             //-------------loadshader
             // let pbrShader = assetMgr.load("resource/shader/pbr_glTF.shader.json") as Shader;
             // mat.setShader(pbrShader);

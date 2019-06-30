@@ -10,10 +10,10 @@ export class DefShader {
                 case "color":
                     let colorVs =
                         "\
-                          attribute vec3 aPos;\
+                          attribute vec3 POSITION;\
                           void main()\
                           {\
-                              highp vec4 tmplet_1=vec4(aPos.xyz,1.0);\
+                              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
                               gl_Position = tmplet_1;\
                           }";
 
@@ -31,6 +31,41 @@ export class DefShader {
                                     vs: colorVs,
                                     fs: colorFs,
                                     name: "defcolor",
+                                },
+                                states: {
+                                    enableCullFace: false,
+                                },
+                            },
+                        ],
+                    });
+                    break;
+                case "base":
+                    let baseVs =
+                        "\
+                          attribute vec3 POSITION;\
+                          uniform highp mat4 u_mat_mvp;\
+                          void main()\
+                          {\
+                              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
+                              gl_Position = u_mat_mvp * tmplet_1;\
+                          }";
+
+                    let baseFs =
+                        "\
+                          uniform highp vec4 MainColor;\
+                          void main()\
+                          {\
+                              gl_FragData[0] = MainColor;\
+                          }";
+                    this.defShader[type] = Shader.fromCustomData({
+                        passes: [
+                            {
+                                program: {
+                                    vs: baseVs,
+                                    fs: baseFs,
+                                },
+                                states: {
+                                    enableCullFace: false,
                                 },
                             },
                         ],
