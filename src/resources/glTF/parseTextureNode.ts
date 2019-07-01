@@ -4,6 +4,7 @@ import { LoadTextureSample } from "../loader/loadTexture";
 import { GlRender, ItexImageDataOption, ItexViewDataOption } from "../../render/glRender";
 import { ParseBufferViewNode } from "./parseBufferViewNode";
 import { IgltfJson } from "./loadglTF";
+import { TextureWrapMode } from "./gltfJsonStruct";
 
 export class ParseTextureNode {
     static parse(index: number, gltf: IgltfJson): Promise<Texture | null> {
@@ -19,9 +20,6 @@ export class ParseTextureNode {
                 let imagUrl = gltf.rootURL + "/" + imageNode.uri;
                 let texture: Texture = new Texture({ name: name, URL: imagUrl });
                 let task = loadImg(imagUrl).then(img => {
-                    texture.width = img.width;
-                    texture.height = img.height;
-
                     let texOp: ItexImageDataOption = {};
                     if (node.sampler) {
                         let samplerinfo = gltf.samplers[node.sampler];
@@ -38,6 +36,9 @@ export class ParseTextureNode {
                             texOp.filterMin = samplerinfo.minFilter;
                         }
                     }
+                    texOp.wrapS = TextureWrapMode.REPEAT;
+                    texOp.wrapT = TextureWrapMode.REPEAT;
+                    
                     let imaginfo = GlRender.createTextureFromImg(img, texOp);
                     texture.texture = imaginfo.texture;
                     texture.texDes = imaginfo.texDes;

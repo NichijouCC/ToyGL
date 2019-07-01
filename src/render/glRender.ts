@@ -113,10 +113,12 @@ export class GlRender {
         geometry: IgeometryInfo,
         program: IprogramInfo,
         uniforms?: { [name: string]: any },
-        defUniforms?: { [key: string]: { type: UniformTypeEnum; value: any } },
+        mapUniformDef?: { [key: string]: { type: UniformTypeEnum; value: any } },
         instancecount?: number,
     ): void {
         // setProgram(this.context, program);
+        // setProgram(this.context,program);
+        // setGeometry(this.context,geometry,program);
         setGeometryAndProgramWithCached(this.context, geometry, program);
         //set uniforms
         let uniformsDic = program.bassProgram.uniformsDic;
@@ -127,7 +129,7 @@ export class GlRender {
                 let value = this.autoUniform.autoUniforms[key]();
                 uniformsDic[key].setter(value);
             } else {
-                uniformsDic[key].setter(defUniforms && defUniforms[key].value);
+                uniformsDic[key].setter(mapUniformDef && mapUniformDef[key].value);
             }
         }
         drawBufferInfo(this.context, geometry, instancecount);
@@ -137,3 +139,52 @@ export class GlRender {
         return createGlBuffer(this.context, target, viewData);
     }
 }
+
+
+export class GlTextrue{
+    private static _white:ItextureInfo;
+    static get WHITE():ItextureInfo
+    {
+        if(this._white==null)
+        {
+            this._white= GlRender.createTextureFromViewData(new Uint8Array([255,255,255,255]),{width:1,height:1});
+        }
+        return this._white;
+    }
+    private static _grid:ItextureInfo;
+    static get GIRD():ItextureInfo
+    {
+        if(this._grid==null)
+        {
+            let width = 256;
+            let height = 256;
+            let data = new Uint8Array(width * width * 4);
+            for (let y = 0; y < height; y++)
+            {
+                for (let x = 0; x < width; x++)
+                {
+                    let seek = (y * width + x) * 4;
+
+                    if (((x - width * 0.5) * (y - height * 0.5)) > 0)
+                    {
+                        data[seek] = 0;
+                        data[seek + 1] = 0;
+                        data[seek + 2] = 0;
+                        data[seek + 3] = 255;
+                    }
+                    else
+                    {
+                        data[seek] = 255;
+                        data[seek + 1] = 0;
+                        data[seek + 2] = 0;
+                        data[seek + 3] = 255;
+                    }
+                }
+            }
+            this._grid= GlRender.createTextureFromViewData(data,{width:width,height:height});
+        }
+        return this._grid;
+    }
+
+}
+

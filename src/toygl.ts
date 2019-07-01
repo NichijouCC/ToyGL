@@ -75,4 +75,4 @@ export interface Iloop {
     update: (deltaTime: number) => void;
 }
 
-export * from "./ec/components/mesh";
+

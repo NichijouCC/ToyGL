@@ -74,7 +74,7 @@ export class ParseMeshNode {
             let newGeometry = new Geometry();
             newGeometry.data = geometryInfo;
 
-            // this.getTypedValueArr(newGeometry, geometryOp);
+            this.getTypedValueArr(newGeometry, geometryOp);
             return newGeometry;
         });
     }

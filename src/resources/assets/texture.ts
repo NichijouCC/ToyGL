@@ -1,13 +1,19 @@
+import { GlTextrue } from './../../render/glRender';
 import { ToyAsset, ItoyAsset } from "../base/toyAsset";
 import { ItextureInfo, ItexImageDataOption } from "../../render/glRender";
 
 export class Texture extends ToyAsset implements ItextureInfo {
-    texture: WebGLTexture;
+    // texture:WebGLTexture;
+    private _textrue:WebGLTexture
+    get texture(): WebGLTexture
+    {
+        return this._textrue||GlTextrue.WHITE;
+    }
+    set texture(value:WebGLTexture)
+    {
+        this._textrue=value;
+    }
     texDes: ItexImageDataOption;
-    imageData: TexImageSource;
-    width: number = 0;
-    height: number = 0;
-
     // samplerInfo: TextureOption = new TextureOption();
     constructor(param?: ItoyAsset) {
         super(param);

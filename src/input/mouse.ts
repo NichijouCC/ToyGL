@@ -35,11 +35,15 @@ export class Mouse {
     static StateInfo: { [key: string]: boolean } = {};
     static MouseEvent: { [key: string]: { [type: string]: Function[] } } = {};
 
-    private static readonly keyDic: { [key: number]: MouseKeyEnum } = {};
+    private static readonly keyDic: { [key: number]: MouseKeyEnum } = {
+        0:MouseKeyEnum.Left,
+        1:MouseKeyEnum.Middle,
+        2:MouseKeyEnum.Right
+    };
     static init(canvas: HTMLCanvasElement) {
-        this.keyDic[0] = MouseKeyEnum.Left;
-        this.keyDic[1] = MouseKeyEnum.Middle;
-        this.keyDic[2] = MouseKeyEnum.Right;
+        // this.keyDic[0] = MouseKeyEnum.Left;
+        // this.keyDic[1] = MouseKeyEnum.Middle;
+        // this.keyDic[2] = MouseKeyEnum.Right;
 
         /**
          * 屏蔽网页原生鼠标事件

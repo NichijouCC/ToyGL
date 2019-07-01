@@ -20,7 +20,7 @@ export enum ClearEnum {
 @EC.RegComp
 export class Camera implements Icomponent {
     entity: Ientity;
-    projectionType: ProjectionEnum = ProjectionEnum.ORTHOGRAPH;
+    projectionType: ProjectionEnum = ProjectionEnum.PERSPECTIVE;
     //perspective 透视投影
     fov: number = Math.PI * 0.25; //透视投影的fov//verticle field of view
 

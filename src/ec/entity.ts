@@ -61,4 +61,5 @@ function newId(): number {
 }
 newId.prototype.id = -1;
 
+export * from "./components/mesh";
 export * from "./components/cameracontroller";

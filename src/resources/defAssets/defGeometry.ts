@@ -1,5 +1,5 @@
-import { GlRender } from "../render/glRender";
-import { Geometry } from "./assets/geometry";
+import { GlRender } from "../../render/glRender";
+import { Geometry } from "../assets/geometry";
 
 export class DefGeometry {
     private static defGeometry: { [type: string]: Geometry } = {};

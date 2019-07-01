@@ -14,7 +14,7 @@ export class Shader extends ToyAsset {
     }
 
     static fromCustomData(data: IshaderOptions) {
-        let newAsset = new Shader({ name: "custom_shader" });
+        let newAsset = new Shader({ name: data.name||"custom_shader" });
         newAsset.layer = data.layer || RenderLayerEnum.Geometry;
         newAsset.queue = data.queue != null ? data.queue : 0;
 
@@ -40,10 +40,19 @@ export class Shader extends ToyAsset {
                 });
                 programArr.push(program);
             }
+
             featurePasses[type] = programArr;
         }
 
         newAsset.passes = featurePasses;
+        if(data.mapUniformDef!=null)
+        {
+            newAsset.mapUniformDef={};
+            for (const key in data.mapUniformDef) {
+                const _value = data.mapUniformDef[key];
+                newAsset.mapUniformDef[key]={value:_value,type:UniformTypeEnum.UNKOWN}
+            }
+        }
         return newAsset;
     }
     dispose(): void {}
@@ -62,6 +71,7 @@ export enum UniformTypeEnum {
     FLOAT_VEC3,
     FLOAT_VEC4,
     TEXTURE,
+    UNKOWN
 }
 
 export interface IshaderOptions {
@@ -69,6 +79,8 @@ export interface IshaderOptions {
     queue?: number;
     passes: IprogramOptions[];
     feature?: string[];
+    name?:string;
+    mapUniformDef?: { [key: string]:any };
 }
 
 export function getFeaturShderStr(type: string) {

@@ -884,8 +884,14 @@
         }
     }
     function setGeometry(gl, geometry, program) {
-        for (var attName in program.bassProgram.attsDic) {
-            program.bassProgram.attsDic[attName].setter(geometry.atts[attName]);
+        var programAtts = program.bassProgram.attsDic;
+        for (var attName in programAtts) {
+            if (geometry.atts[attName]) {
+                programAtts[attName].setter(geometry.atts[attName]);
+            }
+            else {
+                console.warn("program needed vertex attribute not contained in Geometry!!");
+            }
         }
         if (geometry.indices) {
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geometry.indices.glBuffer);
@@ -2138,8 +2144,10 @@
         static setGeometryAndProgram(geometry, program) {
             setGeometryAndProgramWithCached(this.context, geometry, program);
         }
-        static drawObject(geometry, program, uniforms, defUniforms, instancecount) {
+        static drawObject(geometry, program, uniforms, mapUniformDef, instancecount) {
             // setProgram(this.context, program);
+            // setProgram(this.context,program);
+            // setGeometry(this.context,geometry,program);
             setGeometryAndProgramWithCached(this.context, geometry, program);
             //set uniforms
             let uniformsDic = program.bassProgram.uniformsDic;
@@ -2152,13 +2160,47 @@
                     uniformsDic[key].setter(value);
                 }
                 else {
-                    uniformsDic[key].setter(defUniforms && defUniforms[key].value);
+                    uniformsDic[key].setter(mapUniformDef && mapUniformDef[key].value);
                 }
             }
             drawBufferInfo(this.context, geometry, instancecount);
         }
         static createBuffer(target, viewData) {
             return createGlBuffer(this.context, target, viewData);
+        }
+    }
+    class GlTextrue {
+        static get WHITE() {
+            if (this._white == null) {
+                this._white = GlRender.createTextureFromViewData(new Uint8Array([255, 255, 255, 255]), { width: 1, height: 1 });
+            }
+            return this._white;
+        }
+        static get GIRD() {
+            if (this._grid == null) {
+                let width = 256;
+                let height = 256;
+                let data = new Uint8Array(width * width * 4);
+                for (let y = 0; y < height; y++) {
+                    for (let x = 0; x < width; x++) {
+                        let seek = (y * width + x) * 4;
+                        if (((x - width * 0.5) * (y - height * 0.5)) > 0) {
+                            data[seek] = 0;
+                            data[seek + 1] = 0;
+                            data[seek + 2] = 0;
+                            data[seek + 3] = 255;
+                        }
+                        else {
+                            data[seek] = 255;
+                            data[seek + 1] = 0;
+                            data[seek + 2] = 0;
+                            data[seek + 3] = 255;
+                        }
+                    }
+                }
+                this._grid = GlRender.createTextureFromViewData(data, { width: width, height: height });
+            }
+            return this._grid;
         }
     }
 
@@ -5056,7 +5098,7 @@
     })(ClearEnum || (ClearEnum = {}));
     let Camera = class Camera {
         constructor() {
-            this.projectionType = ProjectionEnum.ORTHOGRAPH;
+            this.projectionType = ProjectionEnum.PERSPECTIVE;
             //perspective 透视投影
             this.fov = Math.PI * 0.25; //透视投影的fov//verticle field of view
             /**
@@ -5268,6 +5310,7 @@
                     this.camRenderList[cam.entity.guid] = new RenderList(cam);
                 }
                 let camrenderList = this.camRenderList[cam.entity.guid];
+                camrenderList.clear();
                 // let newList = this.filterRenderByCamera(renderList, cam);
                 for (let i = 0; i < renderList.length; i++) {
                     if (renderList[i].maskLayer & cam.cullingMask) {
@@ -5306,6 +5349,52 @@
         DrawTypeEnum[DrawTypeEnum["NOFOG"] = 3] = "NOFOG";
         DrawTypeEnum[DrawTypeEnum["NOLIGHTMAP"] = 5] = "NOLIGHTMAP";
     })(DrawTypeEnum || (DrawTypeEnum = {}));
+
+    let Mesh = class Mesh {
+        constructor() {
+            this.mask = CullingMask.default;
+        }
+        get geometry() {
+            return this._geometry;
+        }
+        set geometry(value) {
+            this._geometry = value;
+            this._renderDirty = true;
+        }
+        get material() {
+            return this._material;
+        }
+        set material(value) {
+            this._material = value;
+            this._renderDirty = true;
+        }
+        update(frameState) {
+            let currentRender = (this.render && this.updateRender()) || {
+                maskLayer: this.entity.maskLayer,
+                geometry: this._geometry,
+                // program: this._material.program,
+                // uniforms: this._material.uniforms,
+                material: this._material,
+                modelMatrix: this.entity.getCompByName("Transform").worldMatrix,
+            };
+            frameState.renderList.push(currentRender);
+        }
+        updateRender() {
+            if (this._renderDirty) {
+                this.render.geometry = this._geometry;
+                // this.render.program = this._material.program;
+                // this.render.uniforms = this._material.uniforms;
+                this.render.material = this._material;
+                this._renderDirty = false;
+            }
+            this.render.maskLayer = this.entity.maskLayer;
+            return this.render;
+        }
+        dispose() { }
+    };
+    Mesh = __decorate([
+        EC.RegComp
+    ], Mesh);
 
     class Mat3 extends Float32Array {
         static create() {
@@ -6800,9 +6889,9 @@
     }
     class Mouse {
         static init(canvas) {
-            this.keyDic[0] = MouseKeyEnum.Left;
-            this.keyDic[1] = MouseKeyEnum.Middle;
-            this.keyDic[2] = MouseKeyEnum.Right;
+            // this.keyDic[0] = MouseKeyEnum.Left;
+            // this.keyDic[1] = MouseKeyEnum.Middle;
+            // this.keyDic[2] = MouseKeyEnum.Right;
             /**
              * 屏蔽网页原生鼠标事件
              */
@@ -6877,7 +6966,11 @@
     }
     Mouse.StateInfo = {};
     Mouse.MouseEvent = {};
-    Mouse.keyDic = {};
+    Mouse.keyDic = {
+        0: MouseKeyEnum.Left,
+        1: MouseKeyEnum.Middle,
+        2: MouseKeyEnum.Right
+    };
 
     var KeyCodeEnum;
     (function (KeyCodeEnum) {
@@ -6917,7 +7010,7 @@
     })(KeyCodeEventEnum || (KeyCodeEventEnum = {}));
     class Keyboard {
         static init() {
-            this.initKeyCodeMap();
+            // this.initKeyCodeMap();
             document.onkeydown = (ev) => {
                 this.OnKeyDown(ev);
             };
@@ -6946,7 +7039,7 @@
             this.excuteAnyKeyEvent(KeyCodeEventEnum.Up, ev);
         }
         static executeKeyboardEvent(key, event, ev) {
-            if (this.KeyEvent[key] == null)
+            if (this.KeyEvent[key] = null)
                 return;
             let funcArr = this.KeyEvent[key][event];
             for (let key in funcArr) {
@@ -6994,7 +7087,36 @@
             this.KeyCodeDic[27] = "ESC";
         }
     }
-    Keyboard.KeyCodeDic = {};
+    Keyboard.KeyCodeDic = {
+        65: "A",
+        66: "B",
+        67: "C",
+        68: "D",
+        69: "E",
+        70: "F",
+        71: "G",
+        72: "H",
+        73: "I",
+        74: "J",
+        75: "K",
+        76: "L",
+        77: "M",
+        78: "N",
+        79: "O",
+        80: "P",
+        81: "Q",
+        82: "R",
+        83: "S",
+        84: "T",
+        85: "U",
+        86: "V",
+        87: "W",
+        88: "X",
+        89: "Y",
+        90: "Z",
+        32: "SPACE",
+        27: "ESC",
+    };
     Keyboard.StateInfo = {};
     Keyboard.KeyEvent = {};
     Keyboard.anyKeyEvent = {};
@@ -7483,52 +7605,6 @@
         }
     }
 
-    let Mesh = class Mesh {
-        constructor() {
-            this.mask = CullingMask.default;
-        }
-        get geometry() {
-            return this._geometry;
-        }
-        set geometry(value) {
-            this._geometry = value;
-            this._renderDirty = true;
-        }
-        get material() {
-            return this._material;
-        }
-        set material(value) {
-            this._material = value;
-            this._renderDirty = true;
-        }
-        update(frameState) {
-            let currentRender = (this.render && this.updateRender()) || {
-                maskLayer: this.entity.maskLayer,
-                geometry: this._geometry,
-                // program: this._material.program,
-                // uniforms: this._material.uniforms,
-                material: this._material,
-                modelMatrix: this.entity.getCompByName("Transform").worldMatrix,
-            };
-            frameState.renderList.push(currentRender);
-        }
-        updateRender() {
-            if (this._renderDirty) {
-                this.render.geometry = this._geometry;
-                // this.render.program = this._material.program;
-                // this.render.uniforms = this._material.uniforms;
-                this.render.material = this._material;
-                this._renderDirty = false;
-            }
-            this.render.maskLayer = this.entity.maskLayer;
-            return this.render;
-        }
-        dispose() { }
-    };
-    Mesh = __decorate([
-        EC.RegComp
-    ], Mesh);
-
     // import { IassetMgr } from "./resources/type";
     class ToyGL {
         constructor() {
@@ -7782,8 +7858,8 @@
 
     class LoadGltf {
         static done(toy) {
-            let CesiumMan = "../res/glTF/CesiumMan/glTF/CesiumMan.gltf";
-            Resource.loadAsync(CesiumMan).then(model => {
+            let apple = "../res/glTF/apple/AppleTree.gltf";
+            Resource.loadAsync(apple).then(model => {
                 let gltf = model;
                 let root = new Entity("rootTag");
                 toy.scene.addEntity(root);
@@ -7945,7 +8021,7 @@
             this.queue = 0;
         }
         static fromCustomData(data) {
-            let newAsset = new Shader({ name: "custom_shader" });
+            let newAsset = new Shader({ name: data.name || "custom_shader" });
             newAsset.layer = data.layer || RenderLayerEnum.Geometry;
             newAsset.queue = data.queue != null ? data.queue : 0;
             let features = data.feature != null ? [...data.feature, "base"] : ["base"];
@@ -7971,6 +8047,13 @@
                 featurePasses[type] = programArr;
             }
             newAsset.passes = featurePasses;
+            if (data.mapUniformDef != null) {
+                newAsset.mapUniformDef = {};
+                for (const key in data.mapUniformDef) {
+                    const _value = data.mapUniformDef[key];
+                    newAsset.mapUniformDef[key] = { value: _value, type: UniformTypeEnum.UNKOWN };
+                }
+            }
             return newAsset;
         }
         dispose() { }
@@ -7982,6 +8065,7 @@
         UniformTypeEnum[UniformTypeEnum["FLOAT_VEC3"] = 2] = "FLOAT_VEC3";
         UniformTypeEnum[UniformTypeEnum["FLOAT_VEC4"] = 3] = "FLOAT_VEC4";
         UniformTypeEnum[UniformTypeEnum["TEXTURE"] = 4] = "TEXTURE";
+        UniformTypeEnum[UniformTypeEnum["UNKOWN"] = 5] = "UNKOWN";
     })(UniformTypeEnum || (UniformTypeEnum = {}));
     function getFeaturShderStr(type) {
         switch (type) {
@@ -9197,11 +9281,15 @@
     });
 
     class Texture extends ToyAsset {
+        get texture() {
+            return this._textrue || GlTextrue.WHITE;
+        }
+        set texture(value) {
+            this._textrue = value;
+        }
         // samplerInfo: TextureOption = new TextureOption();
         constructor(param) {
             super(param);
-            this.width = 0;
-            this.height = 0;
         }
         dispose() { }
     }
@@ -9212,8 +9300,6 @@
             let texture = new Texture({ name: name, URL: url });
             loadImg(url)
                 .then(img => {
-                texture.width = img.width;
-                texture.height = img.height;
                 let imaginfo = GlRender.createTextureFromImg(img);
                 texture.texture = imaginfo.texture;
                 texture.texDes = imaginfo.texDes;
@@ -9243,8 +9329,6 @@
                 let imgurl = url.replace(desname, imgName);
                 loadImg(imgurl)
                     .then(img => {
-                    texture.width = img.width;
-                    texture.height = img.height;
                     let imaginfo = GlRender.createTextureFromImg(img);
                     texture.texture = imaginfo.texture;
                     texture.texDes = imaginfo.texDes;
@@ -9748,6 +9832,41 @@
         }
     }
 
+    class DefTextrue {
+        static get WHITE() {
+            if (this._white == null) {
+                this._white = this.createByType("white");
+            }
+            return this._white;
+        }
+        static get GIRD() {
+            if (this._grid == null) {
+                this._grid = this.createByType("grid");
+            }
+            return this._grid;
+        }
+        static createByType(type) {
+            let imaginfo;
+            switch (type) {
+                case "white":
+                    imaginfo = GlTextrue.WHITE;
+                    break;
+                case "grid":
+                    imaginfo = GlTextrue.GIRD;
+                    break;
+            }
+            if (imaginfo != null) {
+                let tex = new Texture();
+                tex.texture = imaginfo.texture;
+                tex.texDes = imaginfo.texDes;
+                return tex;
+            }
+            else {
+                return null;
+            }
+        }
+    }
+
     class Material extends ToyAsset {
         constructor(param) {
             super(param);
@@ -9839,8 +9958,6 @@
                     let imagUrl = gltf.rootURL + "/" + imageNode.uri;
                     let texture = new Texture({ name: name, URL: imagUrl });
                     let task = loadImg(imagUrl).then(img => {
-                        texture.width = img.width;
-                        texture.height = img.height;
                         let texOp = {};
                         if (node.sampler) {
                             let samplerinfo = gltf.samplers[node.sampler];
@@ -9857,6 +9974,8 @@
                                 texOp.filterMin = samplerinfo.minFilter;
                             }
                         }
+                        texOp.wrapS = TextureWrapMode.REPEAT;
+                        texOp.wrapT = TextureWrapMode.REPEAT;
                         let imaginfo = GlRender.createTextureFromImg(img, texOp);
                         texture.texture = imaginfo.texture;
                         texture.texDes = imaginfo.texDes;
@@ -9905,62 +10024,16 @@
             if (this.defShader[type] == null) {
                 switch (type) {
                     case "color":
-                        let colorVs = "\
-                          attribute vec3 POSITION;\
-                          void main()\
-                          {\
-                              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
-                              gl_Position = tmplet_1;\
-                          }";
-                        let colorFs = "\
-                          uniform highp vec4 MainColor;\
-                          void main()\
-                          {\
-                              gl_FragData[0] = MainColor;\
-                          }";
-                        this.defShader[type] = Shader.fromCustomData({
-                            passes: [
-                                {
-                                    program: {
-                                        vs: colorVs,
-                                        fs: colorFs,
-                                        name: "defcolor",
-                                    },
-                                    states: {
-                                        enableCullFace: false,
-                                    },
-                                },
-                            ],
-                        });
+                        this.defShader[type] = this.createColorShader();
                         break;
                     case "base":
-                        let baseVs = "\
-                          attribute vec3 POSITION;\
-                          uniform highp mat4 u_mat_mvp;\
-                          void main()\
-                          {\
-                              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
-                              gl_Position = u_mat_mvp * tmplet_1;\
-                          }";
-                        let baseFs = "\
-                          uniform highp vec4 MainColor;\
-                          void main()\
-                          {\
-                              gl_FragData[0] = MainColor;\
-                          }";
-                        this.defShader[type] = Shader.fromCustomData({
-                            passes: [
-                                {
-                                    program: {
-                                        vs: baseVs,
-                                        fs: baseFs,
-                                    },
-                                    states: {
-                                        enableCullFace: false,
-                                    },
-                                },
-                            ],
-                        });
+                        this.defShader[type] = this.createBaseShder();
+                        break;
+                    case "baseTex":
+                        this.defShader[type] = this.createBaseTexShder();
+                        break;
+                    case "alphaTex":
+                        this.defShader[type] = this.createAlphaTestShder();
                         break;
                     default:
                         console.warn("Unkowned default shader type:", type);
@@ -9968,6 +10041,145 @@
                 }
             }
             return this.defShader[type];
+        }
+        static createColorShader() {
+            let colorVs = "\
+          attribute vec3 POSITION;\
+          void main()\
+          {\
+              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
+              gl_Position = tmplet_1;\
+          }";
+            let colorFs = "\
+            uniform highp vec4 MainColor;\
+            void main()\
+            {\
+                gl_FragData[0] = MainColor;\
+            }";
+            return Shader.fromCustomData({
+                passes: [
+                    {
+                        program: {
+                            vs: colorVs,
+                            fs: colorFs,
+                            name: "defcolor",
+                        },
+                        states: {
+                            enableCullFace: false,
+                        },
+                    },
+                ],
+                name: "def_color"
+            });
+        }
+        static createBaseShder() {
+            let baseVs = "\
+          attribute vec3 POSITION;\
+          uniform highp mat4 u_mat_mvp;\
+          void main()\
+          {\
+              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
+              gl_Position = u_mat_mvp * tmplet_1;\
+          }";
+            let baseFs = "\
+            uniform highp vec4 MainColor;\
+            void main()\
+            {\
+                gl_FragData[0] = MainColor;\
+            }";
+            return Shader.fromCustomData({
+                passes: [
+                    {
+                        program: {
+                            vs: baseVs,
+                            fs: baseFs,
+                        },
+                        states: {
+                            enableCullFace: false,
+                        },
+                    },
+                ],
+                name: "def_base"
+            });
+        }
+        static createBaseTexShder() {
+            let baseVs = "\
+          attribute vec3 POSITION;\
+          attribute vec3 TEXCOORD_0;\
+          uniform highp mat4 u_mat_mvp;\
+          varying mediump vec2 xlv_TEXCOORD0;\
+          void main()\
+          {\
+              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
+              xlv_TEXCOORD0 = TEXCOORD_0.xy;\
+              gl_Position = u_mat_mvp * tmplet_1;\
+          }";
+            let baseFs = "\
+            uniform highp vec4 MainColor;\
+            varying mediump vec2 xlv_TEXCOORD0;\
+            uniform lowp sampler2D _MainTex;\
+            void main()\
+            {\
+                gl_FragData[0] = texture2D(_MainTex, xlv_TEXCOORD0);\
+            }";
+            return Shader.fromCustomData({
+                passes: [
+                    {
+                        program: {
+                            vs: baseVs,
+                            fs: baseFs,
+                        },
+                        states: {
+                            enableCullFace: false,
+                        },
+                    },
+                ],
+                name: "def_baseTex"
+            });
+        }
+        static createAlphaTestShder() {
+            let baseVs = "\
+          attribute vec3 POSITION;\
+          attribute vec2 TEXCOORD_0;\
+          uniform highp mat4 u_mat_mvp;\
+          varying mediump vec2 xlv_TEXCOORD0;\
+          void main()\
+          {\
+              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
+              xlv_TEXCOORD0 = TEXCOORD_0.xy;\
+              gl_Position = u_mat_mvp * tmplet_1;\
+          }";
+            let baseFs = "\
+            uniform highp vec4 MainColor;\
+            uniform lowp float _AlphaCut;\
+            varying mediump vec2 xlv_TEXCOORD0;\
+            uniform lowp sampler2D _MainTex;\
+            void main()\
+            {\
+                lowp vec4 basecolor = texture2D(_MainTex, xlv_TEXCOORD0);\
+                if(basecolor.a < _AlphaCut)\
+                {\
+                    discard;\
+                }\
+                gl_FragData[0] = basecolor;\
+            }";
+            return Shader.fromCustomData({
+                passes: [
+                    {
+                        program: {
+                            vs: baseVs,
+                            fs: baseFs,
+                        },
+                        states: {
+                            enableCullFace: false,
+                        },
+                    },
+                ],
+                mapUniformDef: {
+                    "_AlphaCut": 0.5
+                },
+                name: "def_alphaTex"
+            });
         }
     }
     DefShader.defShader = {};
@@ -9983,9 +10195,10 @@
                 }
                 let node = gltf.materials[index];
                 let mat = new Material({ name: node.name });
-                let shader = DefShader.fromType("base");
+                let shader = DefShader.fromType("alphaTex");
                 mat.shader = shader;
                 mat.setColor("MainColor", Color.create());
+                mat.setTexture("_MainTex", DefTextrue.GIRD);
                 //-------------loadshader
                 // let pbrShader = assetMgr.load("resource/shader/pbr_glTF.shader.json") as Shader;
                 // mat.setShader(pbrShader);
@@ -10005,6 +10218,8 @@
                     if (nodeMR.baseColorTexture != null) {
                         let tex = ParseTextureNode.parse(nodeMR.baseColorTexture.index, gltf).then(tex => {
                             mat.setTexture("u_BaseColorSampler", tex);
+                            mat.setTexture("_MainTex", tex);
+                            console.warn("@@@@@@@@@", mat);
                         });
                     }
                     if (nodeMR.metallicRoughnessTexture) {
@@ -10211,7 +10426,7 @@
                 let geometryInfo = GlRender.createGeometry(geometryOp);
                 let newGeometry = new Geometry();
                 newGeometry.data = geometryInfo;
-                // this.getTypedValueArr(newGeometry, geometryOp);
+                this.getTypedValueArr(newGeometry, geometryOp);
                 return newGeometry;
             });
         }

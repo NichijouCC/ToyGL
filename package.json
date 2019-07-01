@@ -50,6 +50,6 @@
     "typescript": "3.4.4"
   },
   "dependencies": {
-    "twebgl": "0.1.28"
+    "twebgl": "0.1.29"
   }
 }

@@ -28,6 +28,7 @@ export class RenderMachine {
             }
             let camrenderList = this.camRenderList[cam.entity.guid];
 
+            camrenderList.clear();
             // let newList = this.filterRenderByCamera(renderList, cam);
             for (let i = 0; i < renderList.length; i++) {
                 if (renderList[i].maskLayer & cam.cullingMask) {
@@ -63,7 +64,6 @@ export class RenderMachine {
         }
     }
 }
-
 
 export enum DrawTypeEnum {
     BASE = 0,

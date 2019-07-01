@@ -15,8 +15,6 @@ export class LoadTextureSample implements IassetLoader {
         let texture: Texture = new Texture({ name: name, URL: url });
         loadImg(url)
             .then(img => {
-                texture.width = img.width;
-                texture.height = img.height;
                 let imaginfo = GlRender.createTextureFromImg(img);
                 texture.texture = imaginfo.texture;
                 texture.texDes = imaginfo.texDes;
@@ -56,8 +54,6 @@ export class LoadTextureDes implements IassetLoader {
                 let imgurl = url.replace(desname, imgName);
                 loadImg(imgurl)
                     .then(img => {
-                        texture.width = img.width;
-                        texture.height = img.height;
                         let imaginfo = GlRender.createTextureFromImg(img);
                         texture.texture = imaginfo.texture;
                         texture.texDes = imaginfo.texDes;

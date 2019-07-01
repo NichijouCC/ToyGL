@@ -34,7 +34,36 @@ export enum KeyCodeEventEnum {
 }
 
 export class Keyboard {
-    private static readonly KeyCodeDic: { [keycode: number]: string } = {};
+    private static readonly KeyCodeDic: { [keycode: number]: string } = {
+        65: "A",
+        66: "B",
+        67: "C",
+        68: "D",
+        69: "E",
+        70: "F",
+        71: "G",
+        72: "H",
+        73: "I",
+        74: "J",
+        75: "K",
+        76: "L",
+        77: "M",
+        78: "N",
+        79: "O",
+        80: "P",
+        81: "Q",
+        82: "R",
+        83: "S",
+        84: "T",
+        85: "U",
+        86: "V",
+        87: "W",
+        88: "X",
+        89: "Y",
+        90: "Z",
+        32: "SPACE",
+        27: "ESC",
+    };
 
     static StateInfo: { [key: string]: boolean } = {};
     static KeyEvent: { [key: string]: { [evetType: string]: Function[] } } = {};
@@ -42,7 +71,7 @@ export class Keyboard {
 
     private static keyDic: { [key: number]: string } = {};
     static init() {
-        this.initKeyCodeMap();
+        // this.initKeyCodeMap();
 
         document.onkeydown = (ev: KeyboardEvent) => {
             this.OnKeyDown(ev);
@@ -62,7 +91,7 @@ export class Keyboard {
     private static OnKeyDown(ev: KeyboardEvent) {
         let key = ev.keyCode;
         let keystr = ev.key.toUpperCase(); //safari浏览器不支持keypress事件中的key属性
-        this.StateInfo[keystr] = true;
+        this.StateInfo[keystr]= true;
         this.executeKeyboardEvent(keystr, KeyCodeEventEnum.Down, ev);
 
         this.excuteAnyKeyEvent(KeyCodeEventEnum.Down, ev);
@@ -71,14 +100,14 @@ export class Keyboard {
     private static OnKeyUp(ev: KeyboardEvent) {
         let key = ev.keyCode;
         let keystr = ev.key.toUpperCase(); //safari浏览器不支持keypress事件中的key属性
-        this.StateInfo[keystr] = false;
+        this.StateInfo[keystr]= false;
         this.executeKeyboardEvent(keystr, KeyCodeEventEnum.Up, ev);
 
         this.excuteAnyKeyEvent(KeyCodeEventEnum.Up, ev);
     }
 
     private static executeKeyboardEvent(key: string, event: KeyCodeEventEnum, ev: KeyboardEvent) {
-        if (this.KeyEvent[key] == null) return;
+        if (this.KeyEvent[key]= null) return;
         let funcArr = this.KeyEvent[key][event];
         for (let key in funcArr) {
             let func = funcArr[key];
