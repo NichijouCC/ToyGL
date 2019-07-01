@@ -9,7 +9,6 @@ import { IarrayInfo } from "twebgl/dist/types/type";
 
 export class ParseMeshNode {
     static parse(index: number, gltf: IgltfJson): Promise<IgltfPrimitive[]> {
-        console.warn("parse mesh:", index);
         if (gltf.cache.meshNodeCache[index]) {
             return gltf.cache.meshNodeCache[index];
         } else {
@@ -60,8 +59,6 @@ export class ParseMeshNode {
         for (let attName in attributes) {
             let attIndex = attributes[attName];
             let attTask = ParseAccessorNode.parse(attIndex, gltf).then(arrayInfo => {
-                console.warn("get accessor:", attIndex, arrayInfo);
-
                 geometryOp.atts[attName] = arrayInfo;
             });
             taskAtts.push(attTask);
@@ -77,7 +74,7 @@ export class ParseMeshNode {
             let newGeometry = new Geometry();
             newGeometry.data = geometryInfo;
 
-            this.getTypedValueArr(newGeometry, geometryOp);
+            // this.getTypedValueArr(newGeometry, geometryOp);
             return newGeometry;
         });
     }

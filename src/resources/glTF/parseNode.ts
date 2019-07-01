@@ -10,7 +10,6 @@ import { Mesh } from "../../ec/components/mesh";
 
 export class ParseNode {
     static parse(index: number, gltf: IgltfJson): Promise<Transform> {
-        console.warn("parse node:", index);
         let node = gltf.nodes[index];
 
         let name = node.name || "node" + index;

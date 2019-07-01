@@ -6,7 +6,6 @@ export class ParseSceneNode {
     static parse(index: number, gltf: IgltfJson): Promise<Transform[]> {
         let node = gltf.scenes[index];
         let rootNodes = node.nodes.map(item => {
-            console.warn("root node:", item);
             return ParseNode.parse(item, gltf);
         });
         return Promise.all(rootNodes);

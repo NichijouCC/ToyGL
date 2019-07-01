@@ -2082,6 +2082,12 @@
             }
         }
     }
+    function createGlBuffer(gl, target, viewData) {
+        var buffer = gl.createBuffer();
+        gl.bindBuffer(target, buffer);
+        gl.bufferData(target, viewData, gl.STATIC_DRAW);
+        return buffer;
+    }
 
     // export interface IshaderOptions extends IprogramOptions {
     //     layer?: RenderLayerEnum;
@@ -2150,6 +2156,9 @@
                 }
             }
             drawBufferInfo(this.context, geometry, instancecount);
+        }
+        static createBuffer(target, viewData) {
+            return createGlBuffer(this.context, target, viewData);
         }
     }
 
@@ -7773,8 +7782,8 @@
 
     class LoadGltf {
         static done(toy) {
-            let cubeUrl = "../res/glTF/Cube/Cube.gltf";
-            Resource.loadAsync(cubeUrl).then(model => {
+            let CesiumMan = "../res/glTF/CesiumMan/glTF/CesiumMan.gltf";
+            Resource.loadAsync(CesiumMan).then(model => {
                 let gltf = model;
                 let root = new Entity("rootTag");
                 toy.scene.addEntity(root);
@@ -9803,10 +9812,10 @@
                 let bufferview = gltf.bufferViews[index];
                 let bufferindex = bufferview.buffer;
                 let task = ParseBufferNode.parse(bufferindex, gltf).then(buffer => {
-                    console.warn("@@@@@view index:", index);
                     let viewbuffer = new Uint8Array(buffer, bufferview.byteOffset, bufferview.byteLength);
                     let stride = bufferview.byteStride;
-                    return { buffer: viewbuffer, byteStride: stride };
+                    let glbuffer = bufferview.target && GlRender.createBuffer(bufferview.target, viewbuffer);
+                    return { viewBuffer: viewbuffer, byteStride: stride, glBuffer: glbuffer };
                 });
                 gltf.cache.bufferviewNodeCache[index] = task;
                 return task;
@@ -9878,7 +9887,7 @@
                                 texOp.filterMin = samplerinfo.minFilter;
                             }
                         }
-                        let imaginfo = GlRender.createTextureFromViewData(viewnode.buffer, texOp);
+                        let imaginfo = GlRender.createTextureFromViewData(viewnode.viewBuffer, texOp);
                         texture.texture = imaginfo.texture;
                         texture.texDes = imaginfo.texDes;
                         return texture;
@@ -10094,9 +10103,9 @@
                 //     return arrayInfo;
                 // });
                 return ParseBufferViewNode.parse(viewindex, gltf).then(value => {
-                    console.warn("parse accessor:", index, value);
-                    arrayInfo.value = value.buffer;
+                    arrayInfo.value = value.viewBuffer;
                     arrayInfo.strideInBytes = value.byteStride;
+                    arrayInfo.buffer = value.glBuffer;
                     return arrayInfo;
                 });
             }
@@ -10145,7 +10154,6 @@
 
     class ParseMeshNode {
         static parse(index, gltf) {
-            console.warn("parse mesh:", index);
             if (gltf.cache.meshNodeCache[index]) {
                 return gltf.cache.meshNodeCache[index];
             }
@@ -10189,7 +10197,6 @@
             for (let attName in attributes) {
                 let attIndex = attributes[attName];
                 let attTask = ParseAccessorNode.parse(attIndex, gltf).then(arrayInfo => {
-                    console.warn("get accessor:", attIndex, arrayInfo);
                     geometryOp.atts[attName] = arrayInfo;
                 });
                 taskAtts.push(attTask);
@@ -10204,7 +10211,7 @@
                 let geometryInfo = GlRender.createGeometry(geometryOp);
                 let newGeometry = new Geometry();
                 newGeometry.data = geometryInfo;
-                this.getTypedValueArr(newGeometry, geometryOp);
+                // this.getTypedValueArr(newGeometry, geometryOp);
                 return newGeometry;
             });
         }
@@ -10277,7 +10284,6 @@
 
     class ParseNode {
         static parse(index, gltf) {
-            console.warn("parse node:", index);
             let node = gltf.nodes[index];
             let name = node.name || "node" + index;
             let trans = new Entity(name).transform;
@@ -10357,7 +10363,6 @@
         static parse(index, gltf) {
             let node = gltf.scenes[index];
             let rootNodes = node.nodes.map(item => {
-                console.warn("root node:", item);
                 return ParseNode.parse(item, gltf);
             });
             return Promise.all(rootNodes);

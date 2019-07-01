@@ -14,7 +14,7 @@ export class LoadGltf {
         let box = "../res/glTF/BoxAnimated/glTF/BoxAnimated.gltf";
         let RiggedSimple = "../res/glTF/RiggedSimple/glTF/RiggedSimple.gltf";
 
-        Resource.loadAsync(cubeUrl).then(model => {
+        Resource.loadAsync(CesiumMan).then(model => {
             let gltf = model as GltfAsset;
 
             let root = new Entity("rootTag");

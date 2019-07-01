@@ -526,8 +526,10 @@ export interface IgltfBufferView extends IchildRootProperty {
      * The stride, in bytes
      */
     byteStride?: number;
-
-    cache?: ArrayBufferView;
+    /**
+     * The gltarget
+     */
+    target?: number;
 }
 /**
  * An orthographic camera containing properties to create an orthographic projection matrix

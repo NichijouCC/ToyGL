@@ -20,7 +20,8 @@ export interface IgltfPrimitive {
 }
 
 export interface IgltfBufferview {
-    buffer: Uint8Array;
+    viewBuffer?: Uint8Array;
+    glBuffer?: WebGLBuffer;
     byteStride: number;
 }
 export class GltfNodeCache {

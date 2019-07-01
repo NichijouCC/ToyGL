@@ -30,10 +30,9 @@ export class ParseAccessorNode {
             // });
 
             return ParseBufferViewNode.parse(viewindex, gltf).then(value => {
-                console.warn("parse accessor:", index, value);
-
-                arrayInfo.value = value.buffer;
+                arrayInfo.value = value.viewBuffer;
                 arrayInfo.strideInBytes = value.byteStride;
+                arrayInfo.buffer = value.glBuffer;
                 return arrayInfo;
             });
         } else {

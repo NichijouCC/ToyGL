@@ -23,6 +23,7 @@ import {
     setProgramUniforms,
     setClear,
     createTextureFromTypedArray,
+    createGlBuffer,
 } from "twebgl";
 import { RenderLayerEnum } from "../ec/ec";
 import { AutoUniform } from "./autoUniform";
@@ -130,5 +131,9 @@ export class GlRender {
             }
         }
         drawBufferInfo(this.context, geometry, instancecount);
+    }
+
+    static createBuffer(target: number, viewData: ArrayBufferView): WebGLBuffer {
+        return createGlBuffer(this.context, target, viewData);
     }
 }

@@ -68,7 +68,7 @@ export class ParseTextureNode {
                             texOp.filterMin = samplerinfo.minFilter;
                         }
                     }
-                    let imaginfo = GlRender.createTextureFromViewData(viewnode.buffer, texOp);
+                    let imaginfo = GlRender.createTextureFromViewData(viewnode.viewBuffer, texOp);
                     texture.texture = imaginfo.texture;
                     texture.texDes = imaginfo.texDes;
 
