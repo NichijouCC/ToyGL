@@ -1,8 +1,8 @@
 import { AccessorComponentType } from "./gltfJsonStruct";
 import { ParseBufferNode } from "./parseBufferNode";
-import { IarrayInfo } from "twebgl/dist/types/type";
 import { IgltfJson } from "./loadglTF";
 import { ParseBufferViewNode } from "./parseBufferViewNode";
+import { IarrayInfo } from "../../render/glRender";
 
 export class ParseAccessorNode {
     static parse(index: number, gltf: IgltfJson): Promise<IarrayInfo> {
@@ -13,27 +13,42 @@ export class ParseAccessorNode {
         arrayInfo.componentSize = this.getComponentSize(accessor.type);
         arrayInfo.componentDataType = accessor.componentType;
         arrayInfo.count = accessor.count;
-        arrayInfo.offsetInBytes = accessor.byteOffset;
         arrayInfo.normalize = accessor.normalized;
 
         if (accessor.bufferView != null) {
             let viewindex = accessor.bufferView;
-            // let bufferview = gltf.bufferViews[viewindex];
-            // let bufferindex = bufferview.buffer;
-            // arrayInfo.strideInBytes = bufferview.byteStride;
-
-            // return ParseBufferNode.parse(bufferindex, gltf).then(buffer => {
-            //     let viewBuffer = new Uint8Array(buffer, bufferview.byteOffset, bufferview.byteLength);
-
-            //     arrayInfo.value = viewBuffer;
-            //     return arrayInfo;
-            // });
+            
 
             return ParseBufferViewNode.parse(viewindex, gltf).then(value => {
-                arrayInfo.value = value.viewBuffer;
-                arrayInfo.strideInBytes = value.byteStride;
-                arrayInfo.buffer = value.glBuffer;
-                return arrayInfo;
+                if(accessor.sparse!=null)
+                {
+                    let cloneArr=value.viewBuffer.slice(accessor.byteOffset); 
+                    arrayInfo.offsetInBytes=0;
+                    arrayInfo.value=cloneArr;
+                    arrayInfo.strideInBytes = value.byteStride;
+
+                    let indicesInfo=accessor.sparse.indices;
+                    let valueInfo=accessor.sparse.values;
+                    Promise.all([
+                        ParseBufferViewNode.parse(indicesInfo.bufferView,gltf),
+                        ParseBufferNode.parse(valueInfo.bufferView,gltf)
+                    ]).then(
+                        (arr)=>{
+                            let indicesArr=this.getTypedArr(arr[0].viewBuffer,indicesInfo.byteOffset,indicesInfo.componentType,accessor.count);
+                            for(let i=0;i<indicesArr.length;i++)
+                            {
+                                let index=indicesArr[i];
+                            }
+                        }
+                    );
+                }else
+                {
+                    arrayInfo.offsetInBytes = accessor.byteOffset;
+                    arrayInfo.value = value.viewBuffer;
+                    arrayInfo.strideInBytes = value.byteStride;
+                    arrayInfo.buffer = value.glBuffer;
+                    return arrayInfo;
+                }
             });
         } else {
             let viewBuffer = this.GetTyedArryByLen(accessor.componentType, accessor.count);
@@ -76,6 +91,27 @@ export class ParseAccessorNode {
                 return 9;
             case "MAT4":
                 return 16;
+        }
+    }
+
+    private static getTypedArr(viewBuffer:Uint8Array,offset:number,componentType: AccessorComponentType,count?:number)
+    {
+        offset=offset!=null?offset:0;
+        switch (componentType) {
+            case AccessorComponentType.BYTE:
+                return new Int8Array(viewBuffer,offset,count);
+            case AccessorComponentType.UNSIGNED_BYTE:
+                return new Uint8Array(viewBuffer,offset,count);
+            case AccessorComponentType.SHORT:
+                return new Int16Array(viewBuffer,offset,count);
+            case AccessorComponentType.UNSIGNED_SHORT:
+                return new Uint16Array(viewBuffer,offset,count);
+            case AccessorComponentType.UNSIGNED_INT:
+                return new Uint32Array(viewBuffer,offset,count);
+            case AccessorComponentType.FLOAT:
+                return new Float32Array(viewBuffer,offset,count);
+            default:
+                throw new Error(`Invalid component type ${componentType}`);
         }
     }
 }

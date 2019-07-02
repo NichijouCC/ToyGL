@@ -7,6 +7,7 @@ import {
     ItexImageDataOption,
     ItextureInfo,
     ItexViewDataOption,
+    IarrayInfo,
 } from "twebgl/dist/types/type";
 
 import {
@@ -36,6 +37,7 @@ export {
     ItextureInfo,
     ItexImageDataOption,
     ItexViewDataOption,
+    IarrayInfo
 };
 
 // export interface IshaderOptions extends IprogramOptions {
