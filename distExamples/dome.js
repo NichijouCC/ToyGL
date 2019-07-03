@@ -7858,8 +7858,8 @@
 
     class LoadGltf {
         static done(toy) {
-            let apple = "../res/glTF/apple/AppleTree.gltf";
-            Resource.loadAsync(apple).then(model => {
+            let DamagedHelmet = "../res/glTF/DamagedHelmet/glTF/DamagedHelmet.gltf";
+            Resource.loadAsync(DamagedHelmet).then(model => {
                 let gltf = model;
                 let root = new Entity("rootTag");
                 toy.scene.addEntity(root);

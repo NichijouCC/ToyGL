@@ -13,12 +13,11 @@ export class LoadGltf {
         let duck = "../res/glTF/duck/Duck.gltf";
         let box = "../res/glTF/BoxAnimated/glTF/BoxAnimated.gltf";
         let RiggedSimple = "../res/glTF/RiggedSimple/glTF/RiggedSimple.gltf";
-        let Cerberus_LP="../res/glTF/Cerberus_LP/glTF/Cerberus_LP.gltf";
-        let DamagedHelmet="../res/glTF/DamagedHelmet/glTF/DamagedHelmet.gltf";
-        let drone="../res/glTF/drone/scene.gltf";
+        let cerberusLP = "../res/glTF/Cerberus_LP/glTF/Cerberus_LP.gltf";
+        let DamagedHelmet = "../res/glTF/DamagedHelmet/glTF/DamagedHelmet.gltf";
+        let drone = "../res/glTF/drone/scene.gltf";
 
-
-        Resource.loadAsync(apple).then(model => {
+        Resource.loadAsync(DamagedHelmet).then(model => {
             let gltf = model as GltfAsset;
 
             let root = new Entity("rootTag");

@@ -1,5 +1,4 @@
 import { AccessorComponentType } from "./gltfJsonStruct";
-import { ParseBufferNode } from "./parseBufferNode";
 import { IgltfJson } from "./loadglTF";
 import { ParseBufferViewNode } from "./parseBufferViewNode";
 import { IarrayInfo } from "../../render/glRender";
@@ -17,32 +16,41 @@ export class ParseAccessorNode {
 
         if (accessor.bufferView != null) {
             let viewindex = accessor.bufferView;
-            
 
             return ParseBufferViewNode.parse(viewindex, gltf).then(value => {
-                if(accessor.sparse!=null)
-                {
-                    let cloneArr=value.viewBuffer.slice(accessor.byteOffset); 
-                    arrayInfo.offsetInBytes=0;
-                    arrayInfo.value=cloneArr;
+                if (accessor.sparse != null) {
+                    let cloneArr = value.viewBuffer.slice(accessor.byteOffset);
+                    arrayInfo.offsetInBytes = 0;
+                    arrayInfo.value = cloneArr;
                     arrayInfo.strideInBytes = value.byteStride;
 
-                    let indicesInfo=accessor.sparse.indices;
-                    let valueInfo=accessor.sparse.values;
+                    let indicesInfo = accessor.sparse.indices;
+                    let valuesInfo = accessor.sparse.values;
                     Promise.all([
-                        ParseBufferViewNode.parse(indicesInfo.bufferView,gltf),
-                        ParseBufferNode.parse(valueInfo.bufferView,gltf)
-                    ]).then(
-                        (arr)=>{
-                            let indicesArr=this.getTypedArr(arr[0].viewBuffer,indicesInfo.byteOffset,indicesInfo.componentType,accessor.count);
-                            for(let i=0;i<indicesArr.length;i++)
-                            {
-                                let index=indicesArr[i];
+                        ParseBufferViewNode.parse(indicesInfo.bufferView, gltf),
+                        ParseBufferViewNode.parse(valuesInfo.bufferView, gltf),
+                    ]).then(arr => {
+                        let indicesArr = this.getTypedArr(
+                            arr[0].viewBuffer,
+                            indicesInfo.byteOffset,
+                            indicesInfo.componentType,
+                            accessor.count,
+                        );
+                        let valueArr = arr[1].viewBuffer;
+
+                        let elementByte = this.getBytesForAccessor(accessor.type, accessor.componentType);
+                        let realStride =
+                            arrayInfo.strideInBytes != null && arrayInfo.strideInBytes != 0
+                                ? arrayInfo.strideInBytes
+                                : elementByte;
+                        for (let i = 0; i < indicesArr.length; i++) {
+                            let index = indicesArr[i];
+                            for (let k = 0; k < elementByte; k++) {
+                                cloneArr[index * realStride + k] = valueArr[index * elementByte + k];
                             }
                         }
-                    );
-                }else
-                {
+                    });
+                } else {
                     arrayInfo.offsetInBytes = accessor.byteOffset;
                     arrayInfo.value = value.viewBuffer;
                     arrayInfo.strideInBytes = value.byteStride;
@@ -94,24 +102,53 @@ export class ParseAccessorNode {
         }
     }
 
-    private static getTypedArr(viewBuffer:Uint8Array,offset:number,componentType: AccessorComponentType,count?:number)
-    {
-        offset=offset!=null?offset:0;
+    private static getBytesForAccessor(type: string, componentType: AccessorComponentType): number {
+        let componentNumber = this.getComponentSize(type);
+        let byte = this.getbytesFormGLtype(componentType);
+        return componentNumber * byte;
+    }
+
+    private static getTypedArr(
+        viewBuffer: Uint8Array,
+        offset: number,
+        componentType: AccessorComponentType,
+        count?: number,
+    ) {
+        offset = offset != null ? offset : 0;
         switch (componentType) {
             case AccessorComponentType.BYTE:
-                return new Int8Array(viewBuffer,offset,count);
+                return new Int8Array(viewBuffer, offset, count);
             case AccessorComponentType.UNSIGNED_BYTE:
-                return new Uint8Array(viewBuffer,offset,count);
+                return new Uint8Array(viewBuffer, offset, count);
             case AccessorComponentType.SHORT:
-                return new Int16Array(viewBuffer,offset,count);
+                return new Int16Array(viewBuffer, offset, count);
             case AccessorComponentType.UNSIGNED_SHORT:
-                return new Uint16Array(viewBuffer,offset,count);
+                return new Uint16Array(viewBuffer, offset, count);
             case AccessorComponentType.UNSIGNED_INT:
-                return new Uint32Array(viewBuffer,offset,count);
+                return new Uint32Array(viewBuffer, offset, count);
             case AccessorComponentType.FLOAT:
-                return new Float32Array(viewBuffer,offset,count);
+                return new Float32Array(viewBuffer, offset, count);
             default:
                 throw new Error(`Invalid component type ${componentType}`);
+        }
+    }
+
+    private static getbytesFormGLtype(componentType: AccessorComponentType) {
+        switch (componentType) {
+            case AccessorComponentType.BYTE:
+                return 1;
+            case AccessorComponentType.UNSIGNED_BYTE:
+                return 1;
+            case AccessorComponentType.SHORT:
+                return 2;
+            case AccessorComponentType.UNSIGNED_SHORT:
+                return 2;
+            case AccessorComponentType.UNSIGNED_INT:
+                return 4;
+            case AccessorComponentType.FLOAT:
+                return 4;
+            default:
+                throw "unsupported AccessorComponentType to bytesPerElement";
         }
     }
 }
