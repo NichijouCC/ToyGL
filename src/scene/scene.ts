@@ -36,6 +36,10 @@ export class Scene {
     preUpdate:(deltatime: number)=>void;
 
     update(deltatime: number) {
+        if(this.preUpdate)
+        {
+            this.preUpdate(deltatime);
+        }
         this.frameState.reInit();
         this.frameState.deltaTime = deltatime;
         this.foreachRootNodes(node => {

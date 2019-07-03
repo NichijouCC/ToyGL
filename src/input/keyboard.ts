@@ -107,7 +107,7 @@ export class Keyboard {
     }
 
     private static executeKeyboardEvent(key: string, event: KeyCodeEventEnum, ev: KeyboardEvent) {
-        if (this.KeyEvent[key]= null) return;
+        if (this.KeyEvent[key]== null) return;
         let funcArr = this.KeyEvent[key][event];
         for (let key in funcArr) {
             let func = funcArr[key];

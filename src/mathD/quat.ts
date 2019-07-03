@@ -847,7 +847,7 @@ export class Quat extends Float32Array {
         out.y = -w1 * src[1] + x1 * src[2] + y1 * src[3] - z1 * src[0];
         out.z = -w1 * src[2] - x1 * src[1] + y1 * src[0] + z1 * src[3];
     }
-    static unitxyzToRotation(xAxis: Vec3, yAxis: Vec3, zAxis: Vec3, out: Quat) {
+    static fromUnitXYZ(xAxis: Vec3, yAxis: Vec3, zAxis: Vec3, out: Quat=Quat.create()) {
         var m11 = xAxis[0],
             m12 = yAxis[0],
             m13 = zAxis[0];
@@ -888,6 +888,7 @@ export class Quat extends Float32Array {
             out.y = (m23 + m32) / s;
             out.z = 0.25 * s;
         }
+        return out;
     }
     static lookat(pos: Vec3, targetpos: Vec3, out: Quat, up: Vec3 = Vec3.UP) {
         // let baseDir=Vec3.BACKWARD;
@@ -903,7 +904,7 @@ export class Quat extends Float32Array {
         Vec3.cross(dirz, dirx, diry);
         // Vec3.normalize(diry, diry);
 
-        this.unitxyzToRotation(dirx, diry, dirz, out);
+        this.fromUnitXYZ(dirx, diry, dirz, out);
 
         Vec3.recycle(dirx);
         Vec3.recycle(diry);

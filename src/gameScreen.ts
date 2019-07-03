@@ -18,46 +18,20 @@ export class GameScreen {
      * 屏幕(canvas)高度
      */
     static get Height() {
-        return GameScreen.canvasheight;
+        return this.canvasheight;
     }
     /**
      * 屏幕(canvas)宽度
      */
     static get Width() {
-        return GameScreen.canvaswidth;
+        return this.canvaswidth;
     }
 
-    private static _windowWidth: number;
-    private static _windowHeight: number;
-
-    /**
-     * 窗口宽度,一般用于html
-     */
-    static get windowWidth() {
-        return this._windowWidth;
-    }
-    /**
-     * 窗口高度,一般用于html
-     */
-    static get windowHeight() {
-        return this._windowHeight;
-    }
     /**
      * width/height
      */
     static get aspect() {
         return this.apset;
-    }
-    //#region canvas resize
-    private static scale: number = 1;
-    /**
-     * 修改canvas 缩放
-     * 可提升画面效果，消除闪烁(最好用mipmap解决)
-     * @param scale
-     */
-    static SetCanvasSize(scale: number) {
-        GameScreen.scale = scale;
-        this.OnResizeCanvas();
     }
 
     private static canvas: HTMLCanvasElement;
@@ -65,31 +39,22 @@ export class GameScreen {
     static init(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
         this.OnResizeCanvas();
-        // window.onresize = () => {
+        // canvas.onresize = () => {
         //     this.OnResizeCanvas();
         // };
+    }
 
-        // let divcontiner = document.createElement("div");
-        // divcontiner.className = "divContiner";
-        // divcontiner.style.overflow = "hidden";
-        // divcontiner.style.left = "0px";
-        // divcontiner.style.top = "0px";
-        // canvas.parentElement.appendChild(divcontiner);
-        // this.divcontiner = divcontiner;
+    static update()
+    {
+        if(this.canvasheight!=this.canvas.height||this.canvaswidth!=this.canvas.width)
+        {
+            this.OnResizeCanvas();
+        }
     }
     private static OnResizeCanvas() {
         console.warn("canvas resize!");
-        // this._windowWidth = window.innerWidth;
-        // this._windowHeight = window.innerHeight;
-        this._windowWidth = this.canvas.clientWidth;
-        this._windowHeight = this.canvas.clientHeight;
-
-        let pixelRatio = window.devicePixelRatio || 1;
-        this.canvaswidth = pixelRatio * this.scale * this._windowWidth;
-        this.canvasheight = pixelRatio * this.scale * this._windowHeight;
-
-        this.canvas.width = this.canvaswidth;
-        this.canvas.height = this.canvasheight;
+        this.canvaswidth = this.canvas.clientWidth;
+        this.canvasheight = this.canvas.clientHeight;
 
         this.apset = this.canvaswidth / this.canvasheight;
         for (let i = 0; i < this.resizeListenerArr.length; i++) {

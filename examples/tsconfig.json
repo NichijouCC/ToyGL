@@ -17,9 +17,6 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     // "declarationDir": "../exampesDist/types",
-    "outDir": "../exampesDist",
-    "typeRoots": [
-      "../dist/types"
-    ]
+    "outDir": "../exampesDist"
   }
 }

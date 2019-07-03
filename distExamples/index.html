@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <meta http-equiv="Access-Control-Allow-Origin" content="*" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
@@ -10,7 +11,19 @@
 </head>
 
 <body>
-    <canvas id="canvas" width="600px" height="600px" style="position: absolute"></canvas>
+    <canvas id="canvas" width="1000px" height="600px" style="position: absolute"></canvas>
+    <!-- <video id="video" src="http://34.85.85.140/live/test1.m3u8" width="500px"height="500px"></video> -->
 </body>
-
+<!-- <script src="https://cdn.jsdelivr.net/hls.js/latest/hls.min.js"></script>
+<script>
+  if(Hls.isSupported()) {
+    var video = document.getElementById('video');
+    var hls = new Hls();
+    hls.loadSource('http://34.85.85.140/live/test1.m3u8');
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED,function() {
+      video.play();
+  });
+ } -->
+</script>
 </html>

@@ -21,6 +21,7 @@ export class ToyGL {
             element.appendChild(canvas);
             canvas.style.width = "100%";
             canvas.style.height = "100%";
+            
         } else {
             canvas = element;
         }
@@ -31,6 +32,7 @@ export class ToyGL {
         GameScreen.init(canvas);
 
         new GameTimer().tick = deltaTime => {
+            GameScreen.update();
             scene.update(deltaTime);
         };
 

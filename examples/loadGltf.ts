@@ -4,6 +4,7 @@ import { GltfAsset } from "../src/resources/assets/gltfAsset";
 import { Entity } from "../src/ec/entity";
 import { CameraController } from "../src/ec/components/cameracontroller";
 import { Quat } from "../src/mathD/quat";
+import { Vec3 } from "../src/mathD/vec3";
 export class LoadGltf {
     static done(toy: ToyGL) {
         let cubeUrl = "../res/glTF/Cube/Cube.gltf";

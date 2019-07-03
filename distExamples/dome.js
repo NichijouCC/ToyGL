@@ -889,9 +889,6 @@
             if (geometry.atts[attName]) {
                 programAtts[attName].setter(geometry.atts[attName]);
             }
-            else {
-                console.warn("program needed vertex attribute not contained in Geometry!!");
-            }
         }
         if (geometry.indices) {
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, geometry.indices.glBuffer);
@@ -931,7 +928,7 @@
             gl._cachedViewPortY != y ||
             gl._cachedViewPortWidth != width ||
             gl._cachedViewPortHeight != height;
-        if (!bechanged) {
+        if (bechanged) {
             gl.viewport(x, y, width, height);
             gl._cachedViewPortX = x;
             gl._cachedViewPortY = y;
@@ -1970,46 +1967,115 @@
         return __assign.apply(this, arguments);
     };
 
-    function createTextureFromTypedArray(gl, data, texOP) {
+    function createTextureFromTypedArray(gl, texOP) {
         // deduceTextureTypedArrayOption(gl, data, texOP);
-        var target = (texOP && texOP.target) || gl.TEXTURE_2D;
-        var pixelFormat = (texOP && texOP.pixelFormat) || gl.RGBA;
-        var pixelDatatype = (texOP && texOP.pixelDatatype) || gl.UNSIGNED_BYTE;
-        var filterMax = (texOP && texOP.filterMax) || gl.LINEAR;
-        var filterMin = (texOP && texOP.filterMin) || gl.LINEAR;
-        var wrapS = (texOP && texOP.wrapS) || gl.CLAMP_TO_EDGE;
-        var wrapT = (texOP && texOP.wrapT) || gl.CLAMP_TO_EDGE;
         var tex = gl.createTexture();
-        gl.bindTexture(target, tex);
-        gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, filterMax);
-        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, filterMin);
-        gl.texParameteri(target, gl.TEXTURE_WRAP_S, wrapS);
-        gl.texParameteri(target, gl.TEXTURE_WRAP_T, wrapT);
-        gl.texImage2D(target, 0, pixelFormat, texOP.width, texOP.height, 0, pixelFormat, pixelDatatype, data);
+        var texDes = checkTextureOption(gl, texOP);
+        gl.bindTexture(texDes.target, tex);
+        gl.texParameteri(texDes.target, gl.TEXTURE_MAG_FILTER, texDes.filterMax);
+        gl.texParameteri(texDes.target, gl.TEXTURE_MIN_FILTER, texDes.filterMin);
+        gl.texParameteri(texDes.target, gl.TEXTURE_WRAP_S, texDes.wrapS);
+        gl.texParameteri(texDes.target, gl.TEXTURE_WRAP_T, texDes.wrapT);
+        if (texOP.mipmaps) {
+            for (var i = 0; i < texOP.mipmaps.length; i++) {
+                var levelData = texOP.mipmaps[i];
+                gl.texImage2D(texDes.target, i, texDes.pixelFormat, levelData.width, levelData.height, 0, texDes.pixelFormat, texDes.pixelDatatype, levelData.viewData);
+            }
+        }
+        else {
+            gl.texImage2D(texDes.target, 0, texDes.pixelFormat, texOP.width, texOP.height, 0, texDes.pixelFormat, texDes.pixelDatatype, texOP.viewData);
+            if (texDes.enableMipMap) {
+                gl.generateMipmap(texDes.target);
+            }
+        }
         return {
             texture: tex,
-            texDes: __assign({}, texOP, { target: target, pixelFormat: pixelFormat, pixelDatatype: pixelDatatype, filterMin: filterMin, filterMax: filterMax, wrapS: wrapS, wrapT: wrapT }),
+            texDes: texDes,
         };
     }
-    function createTextureFromImageSource(gl, data, texOP) {
+    function createTextureFromImageSource(gl, texOP) {
         var tex = gl.createTexture();
-        var target = (texOP && texOP.target) || gl.TEXTURE_2D;
-        var pixelFormat = (texOP && texOP.pixelFormat) || gl.RGBA;
-        var pixelDatatype = (texOP && texOP.pixelDatatype) || gl.UNSIGNED_BYTE;
-        var filterMax = (texOP && texOP.filterMax) || gl.LINEAR;
-        var filterMin = (texOP && texOP.filterMin) || gl.LINEAR;
-        var wrapS = (texOP && texOP.wrapS) || gl.CLAMP_TO_EDGE;
-        var wrapT = (texOP && texOP.wrapT) || gl.CLAMP_TO_EDGE;
-        gl.bindTexture(target, tex);
-        gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, (texOP && texOP.filterMax) || gl.LINEAR);
-        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, (texOP && texOP.filterMin) || gl.LINEAR);
-        gl.texParameteri(target, gl.TEXTURE_WRAP_S, (texOP && texOP.wrapS) || gl.CLAMP_TO_EDGE);
-        gl.texParameteri(target, gl.TEXTURE_WRAP_T, (texOP && texOP.wrapT) || gl.CLAMP_TO_EDGE);
-        gl.texImage2D(target, 0, pixelFormat, pixelFormat, pixelDatatype, data);
+        texOP.width = texOP.img.width;
+        texOP.height = texOP.img.height;
+        var texDes = checkTextureOption(gl, texOP);
+        gl.bindTexture(texDes.target, tex);
+        gl.texParameteri(texDes.target, gl.TEXTURE_MAG_FILTER, texDes.filterMax);
+        gl.texParameteri(texDes.target, gl.TEXTURE_MIN_FILTER, texDes.filterMin);
+        gl.texParameteri(texDes.target, gl.TEXTURE_WRAP_S, texDes.wrapS);
+        gl.texParameteri(texDes.target, gl.TEXTURE_WRAP_T, texDes.wrapT);
+        if (texOP.mipmaps != null) {
+            for (var i = 0; i < texOP.mipmaps.length; i++) {
+                var levelData = texOP.mipmaps[i];
+                gl.texImage2D(texDes.target, i, texDes.pixelFormat, texDes.pixelFormat, texDes.pixelDatatype, levelData.img);
+            }
+        }
+        else {
+            gl.texImage2D(texDes.target, 0, texDes.pixelFormat, texDes.pixelFormat, texDes.pixelDatatype, texOP.img);
+            if (texDes.enableMipMap) {
+                gl.generateMipmap(texDes.target);
+            }
+        }
         return {
             texture: tex,
-            texDes: __assign({}, texOP, { target: target, pixelFormat: pixelFormat, pixelDatatype: pixelDatatype, filterMin: filterMin, filterMax: filterMax, wrapS: wrapS, wrapT: wrapT }),
+            texDes: texDes,
         };
+    }
+    function isPowerOf2(value) {
+        return (value & (value - 1)) === 0;
+    }
+    function canGenerateMipmap(gl, width, height) {
+        if (!gl.beWebgl2) {
+            return isPowerOf2(width) && isPowerOf2(height);
+        }
+        return true;
+    }
+    function canWrapReapeat(gl, width, height) {
+        if (!gl.beWebgl2) {
+            return isPowerOf2(width) && isPowerOf2(height);
+        }
+        return true;
+    }
+    function filterFallback(gl, filter) {
+        if (filter === gl.NEAREST || filter === gl.NEAREST_MIPMAP_LINEAR || filter === gl.NEAREST_MIPMAP_NEAREST) {
+            return gl.NEAREST;
+        }
+        return gl.LINEAR;
+    }
+    function checkTextureOption(gl, texOP) {
+        var texdes = __assign({}, texOP);
+        texdes.target = (texOP && texOP.target) || gl.TEXTURE_2D;
+        texdes.pixelFormat = (texOP && texOP.pixelFormat) || gl.RGBA;
+        texdes.pixelDatatype = (texOP && texOP.pixelDatatype) || gl.UNSIGNED_BYTE;
+        var beCanWrapReapt = canWrapReapeat(gl, texdes.width, texdes.height);
+        var beCanGenerateMipmap = canGenerateMipmap(gl, texdes.width, texdes.height);
+        if (texdes.mipmaps != null) {
+            texdes.enableMipMap = true;
+        }
+        else {
+            texdes.enableMipMap = texOP.enableMipMap != false && beCanGenerateMipmap;
+        }
+        if (beCanWrapReapt) {
+            texdes.wrapS = (texOP && texOP.wrapS) || gl.REPEAT;
+            texdes.wrapT = (texOP && texOP.wrapT) || gl.REPEAT;
+        }
+        else {
+            texdes.wrapS = texdes.wrapT = gl.CLAMP_TO_EDGE;
+            if ((texOP && texOP.wrapS && texOP.wrapS == gl.REPEAT) || (texOP && texOP.wrapT && texOP.wrapT == gl.REPEAT)) {
+                console.warn("texture repeat need Img size be power of 2!");
+            }
+        }
+        if (texdes.enableMipMap) {
+            texdes.filterMax = (texOP && texOP.filterMax) || gl.LINEAR;
+            texdes.filterMin = (texOP && texOP.filterMin) || gl.NEAREST_MIPMAP_LINEAR;
+        }
+        else {
+            texdes.filterMax = texOP && texOP.filterMax ? filterFallback(gl, texOP.filterMax) : gl.LINEAR;
+            texdes.filterMin = texOP && texOP.filterMin ? filterFallback(gl, texOP.filterMax) : gl.LINEAR;
+            if (texOP && texOP.filterMin && (texOP.filterMin != gl.NEAREST || texOP.filterMin != gl.LINEAR)) {
+                console.warn("texture mimap filter need Img size be power of 2 And enable mimap option!");
+            }
+        }
+        return texdes;
     }
 
     WebGLRenderingContext.prototype.addExtension = function (extname) {
@@ -2104,6 +2170,7 @@
     class GlRender {
         static init(canvas, options = {}) {
             this.context = setUpWebgl(canvas, options);
+            this.canvas = canvas;
         }
         static get maxVertexAttribs() {
             if (this._maxVertexAttribs == null) {
@@ -2118,7 +2185,7 @@
             return this._maxTexturesImageUnits;
         }
         static setViewPort(viewport) {
-            setViewPortWithCached(this.context, viewport[0] * this.context.drawingBufferWidth, viewport[1] * this.context.drawingBufferHeight, viewport[2] * this.context.drawingBufferWidth, viewport[3] * this.context.drawingBufferHeight);
+            setViewPortWithCached(this.context, viewport[0] * this.canvas.width, viewport[1] * this.canvas.height, viewport[2] * this.canvas.width, viewport[3] * this.canvas.height);
         }
         static setClear(clearDepth, clearColor, clearStencil) {
             setClear(this.context, clearDepth, clearColor, clearStencil);
@@ -2136,10 +2203,10 @@
             return info;
         }
         static createTextureFromImg(img, texop) {
-            return createTextureFromImageSource(this.context, img, texop);
+            return createTextureFromImageSource(this.context, Object.assign({}, texop, { img: img }));
         }
-        static createTextureFromViewData(viewData, texop) {
-            return createTextureFromTypedArray(this.context, viewData, texop);
+        static createTextureFromViewData(viewData, width, height, texop) {
+            return createTextureFromTypedArray(this.context, Object.assign({}, texop, { viewData: viewData, width: width, height: height }));
         }
         static setGeometryAndProgram(geometry, program) {
             setGeometryAndProgramWithCached(this.context, geometry, program);
@@ -2172,7 +2239,7 @@
     class GlTextrue {
         static get WHITE() {
             if (this._white == null) {
-                this._white = GlRender.createTextureFromViewData(new Uint8Array([255, 255, 255, 255]), { width: 1, height: 1 });
+                this._white = GlRender.createTextureFromViewData(new Uint8Array([255, 255, 255, 255]), 1, 1);
             }
             return this._white;
         }
@@ -2198,7 +2265,7 @@
                         }
                     }
                 }
-                this._grid = GlRender.createTextureFromViewData(data, { width: width, height: height });
+                this._grid = GlRender.createTextureFromViewData(data, width, height);
             }
             return this._grid;
         }
@@ -2366,7 +2433,7 @@
          * @param rhs the second operand
          * @returns out
          */
-        static subtract(lhs, rhs, out) {
+        static subtract(lhs, rhs, out = Vec3.create()) {
             out[0] = lhs[0] - rhs[0];
             out[1] = lhs[1] - rhs[1];
             out[2] = lhs[2] - rhs[2];
@@ -2616,7 +2683,7 @@
          * @param rhs the second operand
          * @returns out
          */
-        static cross(lhs, rhs, out) {
+        static cross(lhs, rhs, out = Vec3.create()) {
             let ax = lhs[0], ay = lhs[1], az = lhs[2];
             let bx = rhs[0], by = rhs[1], bz = rhs[2];
             out[0] = ay * bz - az * by;
@@ -5014,25 +5081,13 @@
          * 屏幕(canvas)高度
          */
         static get Height() {
-            return GameScreen.canvasheight;
+            return this.canvasheight;
         }
         /**
          * 屏幕(canvas)宽度
          */
         static get Width() {
-            return GameScreen.canvaswidth;
-        }
-        /**
-         * 窗口宽度,一般用于html
-         */
-        static get windowWidth() {
-            return this._windowWidth;
-        }
-        /**
-         * 窗口高度,一般用于html
-         */
-        static get windowHeight() {
-            return this._windowHeight;
+            return this.canvaswidth;
         }
         /**
          * width/height
@@ -5040,41 +5095,23 @@
         static get aspect() {
             return this.apset;
         }
-        /**
-         * 修改canvas 缩放
-         * 可提升画面效果，消除闪烁(最好用mipmap解决)
-         * @param scale
-         */
-        static SetCanvasSize(scale) {
-            GameScreen.scale = scale;
-            this.OnResizeCanvas();
-        }
         // static divcontiner: HTMLDivElement;
         static init(canvas) {
             this.canvas = canvas;
             this.OnResizeCanvas();
-            // window.onresize = () => {
+            // canvas.onresize = () => {
             //     this.OnResizeCanvas();
             // };
-            // let divcontiner = document.createElement("div");
-            // divcontiner.className = "divContiner";
-            // divcontiner.style.overflow = "hidden";
-            // divcontiner.style.left = "0px";
-            // divcontiner.style.top = "0px";
-            // canvas.parentElement.appendChild(divcontiner);
-            // this.divcontiner = divcontiner;
+        }
+        static update() {
+            if (this.canvasheight != this.canvas.height || this.canvaswidth != this.canvas.width) {
+                this.OnResizeCanvas();
+            }
         }
         static OnResizeCanvas() {
             console.warn("canvas resize!");
-            // this._windowWidth = window.innerWidth;
-            // this._windowHeight = window.innerHeight;
-            this._windowWidth = this.canvas.clientWidth;
-            this._windowHeight = this.canvas.clientHeight;
-            let pixelRatio = window.devicePixelRatio || 1;
-            this.canvaswidth = pixelRatio * this.scale * this._windowWidth;
-            this.canvasheight = pixelRatio * this.scale * this._windowHeight;
-            this.canvas.width = this.canvaswidth;
-            this.canvas.height = this.canvasheight;
+            this.canvaswidth = this.canvas.clientWidth;
+            this.canvasheight = this.canvas.clientHeight;
             this.apset = this.canvaswidth / this.canvasheight;
             for (let i = 0; i < this.resizeListenerArr.length; i++) {
                 let fuc = this.resizeListenerArr[i];
@@ -5085,8 +5122,6 @@
             this.resizeListenerArr.push(fuc);
         }
     }
-    //#region canvas resize
-    GameScreen.scale = 1;
     GameScreen.resizeListenerArr = [];
 
     var ProjectionEnum;
@@ -6734,7 +6769,7 @@
             out.y = -w1 * src[1] + x1 * src[2] + y1 * src[3] - z1 * src[0];
             out.z = -w1 * src[2] - x1 * src[1] + y1 * src[0] + z1 * src[3];
         }
-        static unitxyzToRotation(xAxis, yAxis, zAxis, out) {
+        static fromUnitXYZ(xAxis, yAxis, zAxis, out = Quat.create()) {
             var m11 = xAxis[0], m12 = yAxis[0], m13 = zAxis[0];
             var m21 = xAxis[1], m22 = yAxis[1], m23 = zAxis[1];
             var m31 = xAxis[2], m32 = yAxis[2], m33 = zAxis[2];
@@ -6768,6 +6803,7 @@
                 out.y = (m23 + m32) / s;
                 out.z = 0.25 * s;
             }
+            return out;
         }
         static lookat(pos, targetpos, out, up = Vec3.UP) {
             // let baseDir=Vec3.BACKWARD;
@@ -6780,7 +6816,7 @@
             let diry = Vec3.create();
             Vec3.cross(dirz, dirx, diry);
             // Vec3.normalize(diry, diry);
-            this.unitxyzToRotation(dirx, diry, dirz, out);
+            this.fromUnitXYZ(dirx, diry, dirz, out);
             Vec3.recycle(dirx);
             Vec3.recycle(diry);
             Vec3.recycle(dirz);
@@ -7061,6 +7097,16 @@
             this.markDirty();
             return this;
         }
+        lookAtPoint(pos, up) {
+            let dirz = Vec3.subtract(this.worldPosition, pos);
+            let dirx = Vec3.cross(up || Vec3.UP, dirz);
+            let diry = Vec3.cross(dirz, dirx);
+            let quat = Quat.fromUnitXYZ(dirx, diry, dirz);
+            this.setworldRotation(quat);
+        }
+        lookAt(tran, up) {
+            this.lookAtPoint(tran.worldPosition, up);
+        }
         dispose() {
             this.parent = null;
             this.children = null;
@@ -7285,7 +7331,7 @@
             this.excuteAnyKeyEvent(KeyCodeEventEnum.Up, ev);
         }
         static executeKeyboardEvent(key, event, ev) {
-            if (this.KeyEvent[key] = null)
+            if (this.KeyEvent[key] == null)
                 return;
             let funcArr = this.KeyEvent[key][event];
             for (let key in funcArr) {
@@ -7616,6 +7662,9 @@
             }
         }
         update(deltatime) {
+            if (this.preUpdate) {
+                this.preUpdate(deltatime);
+            }
             this.frameState.reInit();
             this.frameState.deltaTime = deltatime;
             this.foreachRootNodes(node => {
@@ -7736,6 +7785,7 @@
             let scene = new Scene(render);
             GameScreen.init(canvas);
             new GameTimer().tick = deltaTime => {
+                GameScreen.update();
                 scene.update(deltaTime);
             };
             let toy = new ToyGL();
@@ -7937,42 +7987,6 @@
     //new asset的时候还要检查重名资源,允许还是不允许都是麻烦—--->>>>>>>>>>>>>>>>>>>>>>>
     //<<<<<<<--------3.  资源本身的描述json，不会被作为资源被assetmgr管理起来-->>>
 
-    class LoadGltf {
-        static done(toy) {
-            let DamagedHelmet = "../res/glTF/DamagedHelmet/glTF/DamagedHelmet.gltf";
-            Resource.loadAsync(DamagedHelmet).then(model => {
-                let gltf = model;
-                let root = new Entity("rootTag");
-                toy.scene.addEntity(root);
-                gltf.roots.forEach(item => {
-                    root.transform.addChild(item.entity.transform);
-                    // toy.scene.addEntity();
-                });
-                let camobj = new Entity("cameobj", ["Camera", "CameraController"]);
-                let camCtr = camobj.getCompByName("CameraController");
-                let trans = camobj.transform;
-                trans.localPosition.z = 15;
-                trans.markDirty();
-                toy.scene.addEntity(camobj);
-                camCtr.active();
-                let roty = 0;
-                toy.scene.preUpdate = delta => {
-                    roty += delta * 0.01;
-                    Quat.FromEuler(0, roty, 0, root.transform.localRotation);
-                    root.transform.markDirty();
-                };
-            });
-        }
-    }
-
-    window.onload = () => {
-        let toy = ToyGL.initByHtmlElement(document.getElementById("canvas"));
-        AssetLoader.addLoader().then(() => {
-            // Base.done(toy);
-            LoadGltf.done(toy);
-        });
-    };
-
     class ResID {
         static next() {
             let next = ResID.idAll;
@@ -7989,6 +8003,468 @@
             this.beDefaultAsset = (param && param.beDefaultAsset) || false;
         }
     }
+
+    class Geometry extends ToyAsset {
+        constructor(param) {
+            super(param);
+        }
+        dispose() { }
+        static fromCustomData(data) {
+            let geometry = GlRender.createGeometry(data);
+            let newAsset = new Geometry({ name: "custom_Mesh" });
+            newAsset.data = geometry;
+            return newAsset;
+        }
+    }
+
+    class DefGeometry {
+        static fromType(type) {
+            if (this.defGeometry[type] == null) {
+                let gemetryinfo;
+                switch (type) {
+                    case "quad":
+                        gemetryinfo = GlRender.createGeometry({
+                            atts: {
+                                POSITION: [-0.5, -0.5, 0, -0.5, 0.5, 0, 0.5, 0.5, 0, 0.5, -0.5, 0],
+                                TEXCOORD_0: [0, 1, 0, 0, 1, 0, 1, 1],
+                            },
+                            indices: [0, 2, 1, 0, 3, 2],
+                        });
+                        break;
+                    case "cube":
+                        gemetryinfo = this.createCube();
+                        break;
+                    default:
+                        console.warn("Unkowned default mesh type:", type);
+                        return null;
+                }
+                if (gemetryinfo != null) {
+                    this.defGeometry[type] = new Geometry({ name: "def_" + type, beDefaultAsset: true });
+                    this.defGeometry[type].data = gemetryinfo;
+                }
+            }
+            return this.defGeometry[type];
+        }
+        static createCube() {
+            let bassInf = { posarr: [], uvArray: [], indices: [] };
+            this.addQuad(bassInf, [-0.5, -0.5, 0.5,
+                -0.5, 0.5, 0.5,
+                0.5, 0.5, 0.5,
+                0.5, -0.5, 0.5
+            ], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //前
+            this.addQuad(bassInf, [-0.5, -0.5, -0.5,
+                -0.5, 0.5, -0.5,
+                0.5, 0.5, -0.5,
+                0.5, -0.5, -0.5
+            ], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //后
+            this.addQuad(bassInf, [-0.5, -0.5, 0.5,
+                -0.5, 0.5, 0.5,
+                -0.5, 0.5, -0.5,
+                -0.5, -0.5, -0.5
+            ], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //左
+            this.addQuad(bassInf, [0.5, -0.5, 0.5,
+                0.5, 0.5, 0.5,
+                0.5, 0.5, -0.5,
+                0.5, -0.5, -0.5
+            ], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //右
+            this.addQuad(bassInf, [-0.5, 0.5, 0.5,
+                -0.5, 0.5, -0.5,
+                0.5, 0.5, -0.5,
+                0.5, 0.5, 0.5
+            ], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //上
+            this.addQuad(bassInf, [-0.5, -0.5, 0.5,
+                -0.5, -0.5, -0.5,
+                0.5, -0.5, -0.5,
+                0.5, -0.5, 0.5
+            ], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //上
+            return GlRender.createGeometry({
+                atts: {
+                    POSITION: bassInf.posarr,
+                    TEXCOORD_0: bassInf.uvArray,
+                },
+                indices: bassInf.indices,
+            });
+        }
+        static addQuad(bassInf, posarr, uvArray, indices) {
+            let maxIndex = bassInf.posarr.length / 3;
+            for (let i = 0; i < posarr.length; i++) {
+                bassInf.posarr.push(posarr[i]);
+            }
+            for (let i = 0; i < uvArray.length; i++) {
+                bassInf.uvArray.push(uvArray[i]);
+            }
+            for (let i = 0; i < indices.length; i++) {
+                bassInf.indices.push(maxIndex + indices[i]);
+            }
+        }
+    }
+    DefGeometry.defGeometry = {};
+
+    class Texture extends ToyAsset {
+        get texture() {
+            return this._textrue || GlTextrue.WHITE;
+        }
+        set texture(value) {
+            this._textrue = value;
+        }
+        // samplerInfo: TextureOption = new TextureOption();
+        constructor(param) {
+            super(param);
+        }
+        dispose() { }
+    }
+
+    class DefTextrue {
+        static get WHITE() {
+            if (this._white == null) {
+                this._white = this.createByType("white");
+            }
+            return this._white;
+        }
+        static get GIRD() {
+            if (this._grid == null) {
+                this._grid = this.createByType("grid");
+            }
+            return this._grid;
+        }
+        static createByType(type) {
+            let imaginfo;
+            switch (type) {
+                case "white":
+                    imaginfo = GlTextrue.WHITE;
+                    break;
+                case "grid":
+                    imaginfo = GlTextrue.GIRD;
+                    break;
+            }
+            if (imaginfo != null) {
+                let tex = new Texture();
+                tex.texture = imaginfo.texture;
+                tex.texDes = imaginfo.texDes;
+                return tex;
+            }
+            else {
+                return null;
+            }
+        }
+    }
+
+    class Material extends ToyAsset {
+        constructor(param) {
+            super(param);
+            this.uniforms = {};
+            this._dirty = false;
+            this.queue = 0;
+        }
+        set shader(value) {
+            this._program = value;
+            this._dirty = true;
+        }
+        get shader() {
+            return this._program;
+        }
+        set layer(value) {
+            this._layer = value;
+        }
+        get layer() {
+            return this._layer || (this._program && this._program.layer) || RenderLayerEnum.Geometry;
+        }
+        setColor(key, value) {
+            this.uniforms[key] = value;
+        }
+        setTexture(key, value) {
+            this.uniforms[key] = value;
+        }
+        setVector4(key, value) {
+            this.uniforms[key] = value;
+        }
+        setVector3(key, value) {
+            this.uniforms[key] = value;
+        }
+        setFloat(key, value) {
+            this.uniforms[key] = value;
+        }
+        dispose() { }
+    }
+
+    class Shader extends ToyAsset {
+        constructor(param) {
+            super(param);
+            this.layer = RenderLayerEnum.Geometry;
+            this.queue = 0;
+        }
+        static fromCustomData(data) {
+            let newAsset = new Shader({ name: data.name || "custom_shader" });
+            newAsset.layer = data.layer || RenderLayerEnum.Geometry;
+            newAsset.queue = data.queue != null ? data.queue : 0;
+            let features = data.feature != null ? [...data.feature, "base"] : ["base"];
+            let passes = data.passes;
+            let featurePasses = {};
+            for (let i = 0; i < features.length; i++) {
+                let type = features[i];
+                let featureStr = getFeaturShderStr(type);
+                let programArr = [];
+                for (let i = 0; i < passes.length; i++) {
+                    let passitem = passes[i];
+                    let program = GlRender.createProgram({
+                        program: {
+                            vs: featureStr + passitem.program.vs,
+                            fs: featureStr + passitem.program.fs,
+                            name: null,
+                        },
+                        states: passitem.states,
+                        uniforms: passitem.uniforms,
+                    });
+                    programArr.push(program);
+                }
+                featurePasses[type] = programArr;
+            }
+            newAsset.passes = featurePasses;
+            if (data.mapUniformDef != null) {
+                newAsset.mapUniformDef = {};
+                for (const key in data.mapUniformDef) {
+                    const _value = data.mapUniformDef[key];
+                    newAsset.mapUniformDef[key] = { value: _value, type: UniformTypeEnum.UNKOWN };
+                }
+            }
+            return newAsset;
+        }
+        dispose() { }
+    }
+    var UniformTypeEnum;
+    (function (UniformTypeEnum) {
+        UniformTypeEnum[UniformTypeEnum["FLOAT"] = 0] = "FLOAT";
+        UniformTypeEnum[UniformTypeEnum["FLOAT_VEC2"] = 1] = "FLOAT_VEC2";
+        UniformTypeEnum[UniformTypeEnum["FLOAT_VEC3"] = 2] = "FLOAT_VEC3";
+        UniformTypeEnum[UniformTypeEnum["FLOAT_VEC4"] = 3] = "FLOAT_VEC4";
+        UniformTypeEnum[UniformTypeEnum["TEXTURE"] = 4] = "TEXTURE";
+        UniformTypeEnum[UniformTypeEnum["UNKOWN"] = 5] = "UNKOWN";
+    })(UniformTypeEnum || (UniformTypeEnum = {}));
+    function getFeaturShderStr(type) {
+        switch (type) {
+            case "base":
+                return "";
+            case "fog":
+                return "#define FOG \n";
+            case "skin":
+                return "#define SKIN \n";
+            case "skin_fog":
+                return "#define SKIN \n" + "#define FOG \n";
+            case "lightmap":
+                return "#define LIGHTMAP \n";
+            case "lightmap_fog":
+                return "#define LIGHTMAP \n" + "#define FOG \n";
+            case "instance":
+                return "#define INSTANCE \n";
+        }
+    }
+
+    class DefShader {
+        static fromType(type) {
+            if (this.defShader[type] == null) {
+                switch (type) {
+                    case "color":
+                        this.defShader[type] = this.createColorShader();
+                        break;
+                    case "base":
+                        this.defShader[type] = this.createBaseShder();
+                        break;
+                    case "baseTex":
+                        this.defShader[type] = this.createBaseTexShder();
+                        break;
+                    case "alphaTex":
+                        this.defShader[type] = this.createAlphaTestShder();
+                        break;
+                    default:
+                        console.warn("Unkowned default shader type:", type);
+                        return null;
+                }
+            }
+            return this.defShader[type];
+        }
+        static createColorShader() {
+            let colorVs = "\
+          attribute vec3 POSITION;\
+          void main()\
+          {\
+              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
+              gl_Position = tmplet_1;\
+          }";
+            let colorFs = "\
+            uniform highp vec4 MainColor;\
+            void main()\
+            {\
+                gl_FragData[0] = MainColor;\
+            }";
+            return Shader.fromCustomData({
+                passes: [
+                    {
+                        program: {
+                            vs: colorVs,
+                            fs: colorFs,
+                            name: "defcolor",
+                        },
+                        states: {
+                            enableCullFace: false,
+                        },
+                    },
+                ],
+                name: "def_color"
+            });
+        }
+        static createBaseShder() {
+            let baseVs = "\
+          attribute vec3 POSITION;\
+          uniform highp mat4 u_mat_mvp;\
+          void main()\
+          {\
+              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
+              gl_Position = u_mat_mvp * tmplet_1;\
+          }";
+            let baseFs = "\
+            uniform highp vec4 MainColor;\
+            void main()\
+            {\
+                gl_FragData[0] = MainColor;\
+            }";
+            return Shader.fromCustomData({
+                passes: [
+                    {
+                        program: {
+                            vs: baseVs,
+                            fs: baseFs,
+                        },
+                        states: {
+                            enableCullFace: false,
+                        },
+                    },
+                ],
+                name: "def_base"
+            });
+        }
+        static createBaseTexShder() {
+            let baseVs = "\
+          attribute vec3 POSITION;\
+          attribute vec3 TEXCOORD_0;\
+          uniform highp mat4 u_mat_mvp;\
+          varying mediump vec2 xlv_TEXCOORD0;\
+          void main()\
+          {\
+              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
+              xlv_TEXCOORD0 = TEXCOORD_0.xy;\
+              gl_Position = u_mat_mvp * tmplet_1;\
+          }";
+            let baseFs = "\
+            uniform highp vec4 MainColor;\
+            varying mediump vec2 xlv_TEXCOORD0;\
+            uniform lowp sampler2D _MainTex;\
+            void main()\
+            {\
+                gl_FragData[0] = texture2D(_MainTex, xlv_TEXCOORD0);\
+            }";
+            return Shader.fromCustomData({
+                passes: [
+                    {
+                        program: {
+                            vs: baseVs,
+                            fs: baseFs,
+                        },
+                        states: {
+                        // enableCullFace: false,
+                        },
+                    },
+                ],
+                name: "def_baseTex"
+            });
+        }
+        static createAlphaTestShder() {
+            let baseVs = "\
+          attribute vec3 POSITION;\
+          attribute vec2 TEXCOORD_0;\
+          uniform highp mat4 u_mat_mvp;\
+          varying mediump vec2 xlv_TEXCOORD0;\
+          void main()\
+          {\
+              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
+              xlv_TEXCOORD0 = TEXCOORD_0.xy;\
+              gl_Position = u_mat_mvp * tmplet_1;\
+          }";
+            let baseFs = "\
+            uniform highp vec4 MainColor;\
+            uniform lowp float _AlphaCut;\
+            varying mediump vec2 xlv_TEXCOORD0;\
+            uniform lowp sampler2D _MainTex;\
+            void main()\
+            {\
+                lowp vec4 basecolor = texture2D(_MainTex, xlv_TEXCOORD0);\
+                if(basecolor.a < _AlphaCut)\
+                {\
+                    discard;\
+                }\
+                gl_FragData[0] = basecolor;\
+            }";
+            return Shader.fromCustomData({
+                passes: [
+                    {
+                        program: {
+                            vs: baseVs,
+                            fs: baseFs,
+                        },
+                        states: {
+                            enableCullFace: false,
+                        },
+                    },
+                ],
+                mapUniformDef: {
+                    "_AlphaCut": 0.5
+                },
+                name: "def_alphaTex"
+            });
+        }
+    }
+    DefShader.defShader = {};
+
+    class Base {
+        static done(toy) {
+            let geometry = DefGeometry.fromType("quad");
+            ///------------def shader
+            let shader = DefShader.fromType("baseTex");
+            //-------------custom shader
+            let customeShader = Resource.load("../res/shader/base.shader.json");
+            let material = new Material();
+            material.shader = shader;
+            material.setColor("_MainColor", Color.create(1, 0, 0, 1));
+            //-----------def tex
+            let defTex = DefTextrue.GIRD;
+            //-----------load tex
+            let tex = Resource.load("../res/imgs/tes.png");
+            material.setTexture("_MainTex", defTex);
+            let obj = new Entity();
+            let mesh = obj.addCompByName("Mesh");
+            mesh.geometry = geometry;
+            mesh.material = material;
+            toy.scene.addEntity(obj);
+            let camobj = new Entity("", ["Camera"]);
+            let trans = camobj.transform;
+            trans.localPosition.z = 5;
+            trans.markDirty();
+            toy.scene.addEntity(camobj);
+            let roty = 0;
+            toy.scene.preUpdate = delta => {
+                roty += delta * 0.01;
+                Quat.FromEuler(0, roty, 0, obj.transform.localRotation);
+                obj.transform.markDirty();
+            };
+        }
+    }
+
+    window.onload = () => {
+        let toy = ToyGL.initByHtmlElement(document.getElementById("canvas"));
+        AssetLoader.addLoader().then(() => {
+            Base.done(toy);
+            // LoadGltf.done(toy);
+        });
+    };
 
     class TextAsset extends ToyAsset {
         constructor(name, url) {
@@ -8093,78 +8569,6 @@
     var loadTxt = /*#__PURE__*/Object.freeze({
         LoadTxt: LoadTxt
     });
-
-    class Shader extends ToyAsset {
-        constructor(param) {
-            super(param);
-            this.layer = RenderLayerEnum.Geometry;
-            this.queue = 0;
-        }
-        static fromCustomData(data) {
-            let newAsset = new Shader({ name: data.name || "custom_shader" });
-            newAsset.layer = data.layer || RenderLayerEnum.Geometry;
-            newAsset.queue = data.queue != null ? data.queue : 0;
-            let features = data.feature != null ? [...data.feature, "base"] : ["base"];
-            let passes = data.passes;
-            let featurePasses = {};
-            for (let i = 0; i < features.length; i++) {
-                let type = features[i];
-                let featureStr = getFeaturShderStr(type);
-                let programArr = [];
-                for (let i = 0; i < passes.length; i++) {
-                    let passitem = passes[i];
-                    let program = GlRender.createProgram({
-                        program: {
-                            vs: featureStr + passitem.program.vs,
-                            fs: featureStr + passitem.program.fs,
-                            name: null,
-                        },
-                        states: passitem.states,
-                        uniforms: passitem.uniforms,
-                    });
-                    programArr.push(program);
-                }
-                featurePasses[type] = programArr;
-            }
-            newAsset.passes = featurePasses;
-            if (data.mapUniformDef != null) {
-                newAsset.mapUniformDef = {};
-                for (const key in data.mapUniformDef) {
-                    const _value = data.mapUniformDef[key];
-                    newAsset.mapUniformDef[key] = { value: _value, type: UniformTypeEnum.UNKOWN };
-                }
-            }
-            return newAsset;
-        }
-        dispose() { }
-    }
-    var UniformTypeEnum;
-    (function (UniformTypeEnum) {
-        UniformTypeEnum[UniformTypeEnum["FLOAT"] = 0] = "FLOAT";
-        UniformTypeEnum[UniformTypeEnum["FLOAT_VEC2"] = 1] = "FLOAT_VEC2";
-        UniformTypeEnum[UniformTypeEnum["FLOAT_VEC3"] = 2] = "FLOAT_VEC3";
-        UniformTypeEnum[UniformTypeEnum["FLOAT_VEC4"] = 3] = "FLOAT_VEC4";
-        UniformTypeEnum[UniformTypeEnum["TEXTURE"] = 4] = "TEXTURE";
-        UniformTypeEnum[UniformTypeEnum["UNKOWN"] = 5] = "UNKOWN";
-    })(UniformTypeEnum || (UniformTypeEnum = {}));
-    function getFeaturShderStr(type) {
-        switch (type) {
-            case "base":
-                return "";
-            case "fog":
-                return "#define FOG \n";
-            case "skin":
-                return "#define SKIN \n";
-            case "skin_fog":
-                return "#define SKIN \n" + "#define FOG \n";
-            case "lightmap":
-                return "#define LIGHTMAP \n";
-            case "lightmap_fog":
-                return "#define LIGHTMAP \n" + "#define FOG \n";
-            case "instance":
-                return "#define INSTANCE \n";
-        }
-    }
 
     class Vec2 extends Float32Array {
         constructor(x = 0, y = 0) {
@@ -9360,20 +9764,6 @@
         LoadShader: LoadShader
     });
 
-    class Texture extends ToyAsset {
-        get texture() {
-            return this._textrue || GlTextrue.WHITE;
-        }
-        set texture(value) {
-            this._textrue = value;
-        }
-        // samplerInfo: TextureOption = new TextureOption();
-        constructor(param) {
-            super(param);
-        }
-        dispose() { }
-    }
-
     class LoadTextureSample {
         load(url, onFinish, onProgress) {
             let name = getFileName(url);
@@ -9912,79 +10302,6 @@
         }
     }
 
-    class DefTextrue {
-        static get WHITE() {
-            if (this._white == null) {
-                this._white = this.createByType("white");
-            }
-            return this._white;
-        }
-        static get GIRD() {
-            if (this._grid == null) {
-                this._grid = this.createByType("grid");
-            }
-            return this._grid;
-        }
-        static createByType(type) {
-            let imaginfo;
-            switch (type) {
-                case "white":
-                    imaginfo = GlTextrue.WHITE;
-                    break;
-                case "grid":
-                    imaginfo = GlTextrue.GIRD;
-                    break;
-            }
-            if (imaginfo != null) {
-                let tex = new Texture();
-                tex.texture = imaginfo.texture;
-                tex.texDes = imaginfo.texDes;
-                return tex;
-            }
-            else {
-                return null;
-            }
-        }
-    }
-
-    class Material extends ToyAsset {
-        constructor(param) {
-            super(param);
-            this.uniforms = {};
-            this._dirty = false;
-            this.queue = 0;
-        }
-        set shader(value) {
-            this._program = value;
-            this._dirty = true;
-        }
-        get shader() {
-            return this._program;
-        }
-        set layer(value) {
-            this._layer = value;
-        }
-        get layer() {
-            return this._layer || (this._program && this._program.layer) || RenderLayerEnum.Geometry;
-        }
-        setColor(key, value) {
-            this.uniforms[key] = value;
-        }
-        setTexture(key, value) {
-            this.uniforms[key] = value;
-        }
-        setVector4(key, value) {
-            this.uniforms[key] = value;
-        }
-        setVector3(key, value) {
-            this.uniforms[key] = value;
-        }
-        setFloat(key, value) {
-            this.uniforms[key] = value;
-        }
-        dispose() { }
-    }
-
     class ParseBufferNode {
         static parse(index, gltf) {
             if (gltf.cache.bufferNodeCache[index]) {
@@ -10039,7 +10356,7 @@
                     let texture = new Texture({ name: name, URL: imagUrl });
                     let task = loadImg(imagUrl).then(img => {
                         let texOp = {};
-                        if (node.sampler) {
+                        if (node.sampler != null) {
                             let samplerinfo = gltf.samplers[node.sampler];
                             if (samplerinfo.wrapS != null) {
                                 texOp.wrapS = samplerinfo.wrapS;
@@ -10054,8 +10371,6 @@
                                 texOp.filterMin = samplerinfo.minFilter;
                             }
                         }
-                        texOp.wrapS = TextureWrapMode.REPEAT;
-                        texOp.wrapT = TextureWrapMode.REPEAT;
                         let imaginfo = GlRender.createTextureFromImg(img, texOp);
                         texture.texture = imaginfo.texture;
                         texture.texDes = imaginfo.texDes;
@@ -10070,8 +10385,8 @@
                         //    let bob=new Blob([viewnode.view], { type: imageNode.mimeType })
                         //    let url = URL.createObjectURL(bob);
                         //    asset= loader.loadDependAsset(url) as Texture;
-                        let texOp = { width: 100, height: 100 }; //todo
-                        if (node.sampler) {
+                        let texOp = {}; //todo
+                        if (node.sampler != null) {
                             let samplerinfo = gltf.samplers[node.sampler];
                             if (samplerinfo.wrapS != null) {
                                 texOp.wrapS = samplerinfo.wrapS;
@@ -10086,7 +10401,7 @@
                                 texOp.filterMin = samplerinfo.minFilter;
                             }
                         }
-                        let imaginfo = GlRender.createTextureFromViewData(viewnode.viewBuffer, texOp);
+                        let imaginfo = GlRender.createTextureFromViewData(viewnode.viewBuffer, 100, 100, texOp);
                         texture.texture = imaginfo.texture;
                         texture.texDes = imaginfo.texDes;
                         return texture;
@@ -10098,171 +10413,6 @@
             }
         }
     }
-
-    class DefShader {
-        static fromType(type) {
-            if (this.defShader[type] == null) {
-                switch (type) {
-                    case "color":
-                        this.defShader[type] = this.createColorShader();
-                        break;
-                    case "base":
-                        this.defShader[type] = this.createBaseShder();
-                        break;
-                    case "baseTex":
-                        this.defShader[type] = this.createBaseTexShder();
-                        break;
-                    case "alphaTex":
-                        this.defShader[type] = this.createAlphaTestShder();
-                        break;
-                    default:
-                        console.warn("Unkowned default shader type:", type);
-                        return null;
-                }
-            }
-            return this.defShader[type];
-        }
-        static createColorShader() {
-            let colorVs = "\
-          attribute vec3 POSITION;\
-          void main()\
-          {\
-              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
-              gl_Position = tmplet_1;\
-          }";
-            let colorFs = "\
-            uniform highp vec4 MainColor;\
-            void main()\
-            {\
-                gl_FragData[0] = MainColor;\
-            }";
-            return Shader.fromCustomData({
-                passes: [
-                    {
-                        program: {
-                            vs: colorVs,
-                            fs: colorFs,
-                            name: "defcolor",
-                        },
-                        states: {
-                            enableCullFace: false,
-                        },
-                    },
-                ],
-                name: "def_color"
-            });
-        }
-        static createBaseShder() {
-            let baseVs = "\
-          attribute vec3 POSITION;\
-          uniform highp mat4 u_mat_mvp;\
-          void main()\
-          {\
-              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
-              gl_Position = u_mat_mvp * tmplet_1;\
-          }";
-            let baseFs = "\
-            uniform highp vec4 MainColor;\
-            void main()\
-            {\
-                gl_FragData[0] = MainColor;\
-            }";
-            return Shader.fromCustomData({
-                passes: [
-                    {
-                        program: {
-                            vs: baseVs,
-                            fs: baseFs,
-                        },
-                        states: {
-                            enableCullFace: false,
-                        },
-                    },
-                ],
-                name: "def_base"
-            });
-        }
-        static createBaseTexShder() {
-            let baseVs = "\
-          attribute vec3 POSITION;\
-          attribute vec3 TEXCOORD_0;\
-          uniform highp mat4 u_mat_mvp;\
-          varying mediump vec2 xlv_TEXCOORD0;\
-          void main()\
-          {\
-              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
-              xlv_TEXCOORD0 = TEXCOORD_0.xy;\
-              gl_Position = u_mat_mvp * tmplet_1;\
-          }";
-            let baseFs = "\
-            uniform highp vec4 MainColor;\
-            varying mediump vec2 xlv_TEXCOORD0;\
-            uniform lowp sampler2D _MainTex;\
-            void main()\
-            {\
-                gl_FragData[0] = texture2D(_MainTex, xlv_TEXCOORD0);\
-            }";
-            return Shader.fromCustomData({
-                passes: [
-                    {
-                        program: {
-                            vs: baseVs,
-                            fs: baseFs,
-                        },
-                        states: {
-                            enableCullFace: false,
-                        },
-                    },
-                ],
-                name: "def_baseTex"
-            });
-        }
-        static createAlphaTestShder() {
-            let baseVs = "\
-          attribute vec3 POSITION;\
-          attribute vec2 TEXCOORD_0;\
-          uniform highp mat4 u_mat_mvp;\
-          varying mediump vec2 xlv_TEXCOORD0;\
-          void main()\
-          {\
-              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
-              xlv_TEXCOORD0 = TEXCOORD_0.xy;\
-              gl_Position = u_mat_mvp * tmplet_1;\
-          }";
-            let baseFs = "\
-            uniform highp vec4 MainColor;\
-            uniform lowp float _AlphaCut;\
-            varying mediump vec2 xlv_TEXCOORD0;\
-            uniform lowp sampler2D _MainTex;\
-            void main()\
-            {\
-                lowp vec4 basecolor = texture2D(_MainTex, xlv_TEXCOORD0);\
-                if(basecolor.a < _AlphaCut)\
-                {\
-                    discard;\
-                }\
-                gl_FragData[0] = basecolor;\
-            }";
-            return Shader.fromCustomData({
-                passes: [
-                    {
-                        program: {
-                            vs: baseVs,
-                            fs: baseFs,
-                        },
-                        states: {
-                            enableCullFace: false,
-                        },
-                    },
-                ],
-                mapUniformDef: {
-                    "_AlphaCut": 0.5
-                },
-                name: "def_alphaTex"
-            });
-        }
-    }
-    DefShader.defShader = {};
 
     class ParseMaterialNode {
         static parse(index, gltf) {
@@ -10361,19 +10511,6 @@
                 // mat.setCubeTexture("u_SpecularEnvSampler", env_speTex);
                 return Promise.resolve(mat);
             }
-        }
-    }
-
-    class Geometry extends ToyAsset {
-        constructor(param) {
-            super(param);
-        }
-        dispose() { }
-        static fromCustomData(data) {
-            let geometry = GlRender.createGeometry(data);
-            let newAsset = new Geometry({ name: "custom_Mesh" });
-            newAsset.data = geometry;
-            return newAsset;
         }
     }
 

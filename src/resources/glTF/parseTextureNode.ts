@@ -1,7 +1,7 @@
 import { Texture } from "../assets/texture";
 import { loadImg } from "../../io/loadtool";
 import { LoadTextureSample } from "../loader/loadTexture";
-import { GlRender, ItexImageDataOption, ItexViewDataOption } from "../../render/glRender";
+import { GlRender, ItexImageDataOption, ItexViewDataOption, ItextureDesInfo } from "../../render/glRender";
 import { ParseBufferViewNode } from "./parseBufferViewNode";
 import { IgltfJson } from "./loadglTF";
 import { TextureWrapMode } from "./gltfJsonStruct";
@@ -20,8 +20,8 @@ export class ParseTextureNode {
                 let imagUrl = gltf.rootURL + "/" + imageNode.uri;
                 let texture: Texture = new Texture({ name: name, URL: imagUrl });
                 let task = loadImg(imagUrl).then(img => {
-                    let texOp: ItexImageDataOption = {};
-                    if (node.sampler) {
+                    let texOp: ItextureDesInfo = {};
+                    if (node.sampler!=null) {
                         let samplerinfo = gltf.samplers[node.sampler];
                         if (samplerinfo.wrapS != null) {
                             texOp.wrapS = samplerinfo.wrapS;
@@ -36,9 +36,7 @@ export class ParseTextureNode {
                             texOp.filterMin = samplerinfo.minFilter;
                         }
                     }
-                    texOp.wrapS = TextureWrapMode.REPEAT;
-                    texOp.wrapT = TextureWrapMode.REPEAT;
-                    
+
                     let imaginfo = GlRender.createTextureFromImg(img, texOp);
                     texture.texture = imaginfo.texture;
                     texture.texDes = imaginfo.texDes;
@@ -53,8 +51,8 @@ export class ParseTextureNode {
                     //    let bob=new Blob([viewnode.view], { type: imageNode.mimeType })
                     //    let url = URL.createObjectURL(bob);
                     //    asset= loader.loadDependAsset(url) as Texture;
-                    let texOp: ItexViewDataOption = { width: 100, height: 100 }; //todo
-                    if (node.sampler) {
+                    let texOp: ItextureDesInfo = {  }; //todo
+                    if (node.sampler!=null) {
                         let samplerinfo = gltf.samplers[node.sampler];
                         if (samplerinfo.wrapS != null) {
                             texOp.wrapS = samplerinfo.wrapS;
@@ -69,7 +67,7 @@ export class ParseTextureNode {
                             texOp.filterMin = samplerinfo.minFilter;
                         }
                     }
-                    let imaginfo = GlRender.createTextureFromViewData(viewnode.viewBuffer, texOp);
+                    let imaginfo = GlRender.createTextureFromViewData(viewnode.viewBuffer,100,100,texOp);
                     texture.texture = imaginfo.texture;
                     texture.texDes = imaginfo.texDes;
 

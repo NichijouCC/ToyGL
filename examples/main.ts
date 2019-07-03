@@ -6,7 +6,7 @@ import { Base } from "./bass";
 window.onload = () => {
     let toy = ToyGL.initByHtmlElement(document.getElementById("canvas") as HTMLCanvasElement);
     AssetLoader.addLoader().then(() => {
-        // Base.done(toy);
-        LoadGltf.done(toy);
+        Base.done(toy);
+        // LoadGltf.done(toy);
     });
 };

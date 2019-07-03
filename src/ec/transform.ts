@@ -257,6 +257,20 @@ export class Transform implements Icomponent {
         return this;
     }
 
+    lookAtPoint(pos:Vec3,up?:Vec3)
+    {
+        let dirz=Vec3.subtract(this.worldPosition,pos);
+        let dirx= Vec3.cross(up||Vec3.UP,dirz);
+        let diry=Vec3.cross(dirz,dirx);
+        let quat= Quat.fromUnitXYZ(dirx,diry,dirz);
+        this.setworldRotation(quat);
+    }
+
+    lookAt(tran:Transform,up?:Vec3)
+    {
+        this.lookAtPoint(tran.worldPosition,up);
+    }
+
     dispose(): void {
         this.parent = null;
         this.children = null;

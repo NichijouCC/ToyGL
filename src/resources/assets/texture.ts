@@ -1,4 +1,4 @@
-import { GlTextrue } from './../../render/glRender';
+import { GlTextrue, ItextureDesInfo } from './../../render/glRender';
 import { ToyAsset, ItoyAsset } from "../base/toyAsset";
 import { ItextureInfo, ItexImageDataOption } from "../../render/glRender";
 
@@ -13,7 +13,7 @@ export class Texture extends ToyAsset implements ItextureInfo {
     {
         this._textrue=value;
     }
-    texDes: ItexImageDataOption;
+    texDes: ItextureDesInfo;
     // samplerInfo: TextureOption = new TextureOption();
     constructor(param?: ItoyAsset) {
         super(param);

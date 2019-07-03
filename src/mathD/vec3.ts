@@ -122,7 +122,7 @@ export class Vec3 extends Float32Array {
      * @param rhs the second operand
      * @returns out
      */
-    public static subtract(lhs: Vec3, rhs: Vec3, out: Vec3): Vec3 {
+    public static subtract(lhs: Vec3, rhs: Vec3, out: Vec3=Vec3.create()): Vec3 {
         out[0] = lhs[0] - rhs[0];
         out[1] = lhs[1] - rhs[1];
         out[2] = lhs[2] - rhs[2];
@@ -390,7 +390,7 @@ export class Vec3 extends Float32Array {
      * @param rhs the second operand
      * @returns out
      */
-    public static cross(lhs: Vec3, rhs: Vec3, out: Vec3): Vec3 {
+    public static cross(lhs: Vec3, rhs: Vec3, out: Vec3=Vec3.create()): Vec3 {
         let ax = lhs[0],
             ay = lhs[1],
             az = lhs[2];

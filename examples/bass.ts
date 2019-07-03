@@ -9,6 +9,7 @@ import { Texture } from "../src/resources/assets/texture";
 import { Entity, Mesh } from "../src/ec/entity";
 import { ToyGL } from "../src/toygl";
 import { DefShader } from "../src/resources/defAssets/defShader";
+import { Quat } from "../src/mathD/quat";
 
 export class Base {
     static done(toy: ToyGL) {
@@ -42,5 +43,13 @@ export class Base {
         trans.localPosition.z = 5;
         trans.markDirty();
         toy.scene.addEntity(camobj);
+
+
+        let roty = 0;
+        toy.scene.preUpdate = delta => {
+            roty += delta * 0.01;
+            Quat.FromEuler(0, roty, 0, obj.transform.localRotation);
+            obj.transform.markDirty();
+        };
     }
 }
