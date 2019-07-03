@@ -3,7 +3,6 @@ import { Rect } from "../../mathD/rect";
 import { Color } from "../../mathD/color";
 import { IframeState } from "../../scene/frameState";
 import { Mat4 } from "../../mathD/mat4";
-import { Transform } from "./transform";
 import { GameScreen } from "../../gameScreen";
 
 export enum ProjectionEnum {
@@ -64,7 +63,7 @@ export class Camera implements Icomponent {
     private _viewMatrix: Mat4 = Mat4.create();
     get ViewMatrix(): Mat4 {
         if (this.needComputeViewMat) {
-            let camworld = (this.entity.getCompByName("Transform") as Transform).worldMatrix;
+            let camworld = this.entity.transform.worldMatrix;
             //视矩阵刚好是摄像机世界矩阵的逆
             Mat4.invert(camworld, this._viewMatrix);
             this.needComputeViewMat = false;

@@ -1,4 +1,4 @@
-import { Transform } from "./components/transform";
+import { Transform } from "./transform";
 import { Ientity, Icomponent, EC, Irender, CullingMask } from "./ec";
 
 export class Entity implements Ientity {
@@ -12,19 +12,18 @@ export class Entity implements Ientity {
         this.guid = newId();
         this.name = name != null ? name : "newEntity";
         this.beActive = true;
+        this._transform=EC.NewComponent("Transform") as Transform;
+        this._transform.entity=this;
 
         if (compsArr != null) {
             for (let i = 0; i < compsArr.length; i++) {
                 this.addCompByName(compsArr[i]);
             }
         }
-        if (this.components["Transform"] == null) {
-            this.addCompByName("Transform");
-        }
     }
-
+    private _transform:Transform;
     get transform(): Transform {
-        return this.getCompByName("Transform") as Transform;
+        return this._transform;
     }
 
     addCompByName(name: string): Icomponent {
@@ -61,5 +60,6 @@ function newId(): number {
 }
 newId.prototype.id = -1;
 
+export * from './transform'
 export * from "./components/mesh";
 export * from "./components/cameracontroller";

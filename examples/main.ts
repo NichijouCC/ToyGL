@@ -4,8 +4,7 @@ import { LoadGltf } from "./loadGltf";
 import { Base } from "./bass";
 
 window.onload = () => {
-    let toy = new ToyGL();
-    toy.initByHtmlElement(document.getElementById("canvas") as HTMLCanvasElement);
+    let toy = ToyGL.initByHtmlElement(document.getElementById("canvas") as HTMLCanvasElement);
     AssetLoader.addLoader().then(() => {
         // Base.done(toy);
         LoadGltf.done(toy);

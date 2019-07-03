@@ -1,47 +1,56 @@
 /**
  * The game time class.
  */
-export class GameTimer {
-    //#region 全局time 管控
-    private static beginTime: number;
-    private static lastTimer: number;
-    private static totalTime: number;
-    private static deltaTime: number;
-    static get Time() {
+export class GameTimer implements Itimer {
+    private beActive: boolean = false;
+    active() {
+        this.beActive = true;
+        this.frameUpdate();
+    }
+    disActive() {
+        this.beActive = false;
+    }
+    tick: (deltaTime: number) => void;
+    constructor()
+    {
+        this.active();
+    }
+    private  lastTimer: number;
+    private  totalTime: number;
+    private  deltaTime: number;
+    get Time() {
         return this.totalTime * 0.001;
     }
-    static get DeltaTime() {
+    get DeltaTime() {
         return this.deltaTime * this.TimeScale * 0.001;
     }
-    static get StartTime() {
-        return this.beginTime * 0.001;
-    }
-    static TimeScale: number = 1.0;
-    private static IntervalLoop: any;
-    private static update() {
+
+    TimeScale: number = 1.0;
+    private IntervalLoop: any;
+    private update() {
         let now = Date.now();
         this.deltaTime = now - this.lastTimer;
-        this.totalTime = now - this.beginTime;
         this.lastTimer = now;
 
         let realDetal = this.deltaTime * this.TimeScale;
-
-        for (let i = 0, len = this.updateList.length; i < len; i++) {
-            let func = this.updateList[i];
-            func(realDetal);
+        if(this.beActive!=null)
+        {
+            if(this.tick!=null)
+            {
+                this.tick(realDetal);
+            }
+            for(let i=0;i<this.updateList.length;i++)
+            {
+                this.updateList[i](realDetal);
+            }
         }
     }
 
-    public static Init() {
-        this.beginTime = Date.now();
-        this.frameUpdate();
-    }
-
-    private static updateList: Function[] = [];
-    static addListenToTimerUpdate(func: (delta: number) => void) {
+    private  updateList: Function[] = [];
+    addListenToTimerUpdate(func: (delta: number) => void) {
         this.updateList.push(func);
     }
-    static removeListenToTimerUpdate(func: () => void) {
+    removeListenToTimerUpdate(func: () => void) {
         this.updateList.forEach(item => {
             if (item == func) {
                 let index = this.updateList.indexOf(func);
@@ -50,13 +59,14 @@ export class GameTimer {
             }
         });
     }
-    static removeAllListener() {
+
+    removeAllListener() {
         this.updateList.length = 0;
     }
 
-    static FPS: number = 60;
-    private static _lastFrameRate: number;
-    private static frameUpdate() {
+    FPS: number = 60;
+    private _lastFrameRate: number;
+    private frameUpdate() {
         if (this.FPS != this._lastFrameRate) {
             //----------帧率被修改
             this.FPS = Math.min(this.FPS, 60);
@@ -79,4 +89,36 @@ export class GameTimer {
             }
         }
     }
+}
+
+export class Timer implements Itimer {
+    private beActive: boolean = false;
+    active() {
+        this.beActive = true;
+    }
+    disActive() {
+        this.beActive = false;
+    }
+    tick: (deltaTime: number) => void = () => {};
+
+    private _lastTime: number;
+    constructor() {
+        let func = () => {
+            let now = Date.now();
+            let deltaTime = now - this._lastTime || now;
+            this._lastTime = now;
+            if (this.beActive) {
+                this.tick(deltaTime);
+            }
+            requestAnimationFrame(func);
+        };
+        func();
+        this.beActive = true;
+    }
+}
+
+export interface Itimer {
+    active(): void;
+    disActive(): void;
+    tick: (deltaTime: number) => void;
 }

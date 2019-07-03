@@ -1,10 +1,11 @@
+import { Camera } from './../ec/components/camera';
 import { Entity } from "../ec/entity";
-import { Transform } from "../ec/components/transform";
+import { Transform } from "../ec/transform";
 import { FrameState, IframeState } from "./frameState";
 import { RenderMachine } from "../render/renderMachine";
 
 export class Scene {
-    private root: Transform = new Transform();
+    private root: Transform = new Entity().transform;
     private frameState: FrameState = new FrameState();
     private render: RenderMachine;
     constructor(render: RenderMachine) {
@@ -17,7 +18,13 @@ export class Scene {
     }
 
     addEntity(entity: Entity) {
-        this.root.addChild(entity.getCompByName("Transform") as Transform);
+        this.root.addChild(entity.transform);
+    }
+
+    addCamera():Camera
+    {
+       let entity= this.newEntity("camer",["Camera"]);
+        return entity.getCompByName("Camera") as Camera;
     }
 
     foreachRootNodes(func: (rootItem: Transform) => void) {
@@ -25,6 +32,8 @@ export class Scene {
             func(this.root.children[i]);
         }
     }
+
+    preUpdate:(deltatime: number)=>void;
 
     update(deltatime: number) {
         this.frameState.reInit();

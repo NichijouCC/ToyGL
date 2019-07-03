@@ -2,7 +2,6 @@ import { Resource } from "../src/resources/resource";
 import { ToyGL } from "../src/toygl";
 import { GltfAsset } from "../src/resources/assets/gltfAsset";
 import { Entity } from "../src/ec/entity";
-import { Transform } from "../src/ec/components/transform";
 import { CameraController } from "../src/ec/components/cameracontroller";
 import { Quat } from "../src/mathD/quat";
 export class LoadGltf {
@@ -29,7 +28,7 @@ export class LoadGltf {
 
             let camobj = new Entity("cameobj", ["Camera", "CameraController"]);
             let camCtr = camobj.getCompByName("CameraController") as CameraController;
-            let trans = camobj.getCompByName("Transform") as Transform;
+            let trans = camobj.transform;
             trans.localPosition.z = 15;
             trans.markDirty();
             toy.scene.addEntity(camobj);
@@ -37,7 +36,7 @@ export class LoadGltf {
             camCtr.active();
 
             let roty = 0;
-            toy.preUpdate = delta => {
+            toy.scene.preUpdate = delta => {
                 roty += delta * 0.01;
                 Quat.FromEuler(0, roty, 0, root.transform.localRotation);
                 root.transform.markDirty();

@@ -1,9 +1,9 @@
-import { EC, Icomponent, Ientity } from "../ec";
-import { Vec3 } from "../../mathD/vec3";
-import { Quat } from "../../mathD/quat";
-import { Mat4 } from "../../mathD/mat4";
-import { IframeState } from "../../scene/frameState";
-import { Entity } from "../entity";
+import { EC, Icomponent, Ientity } from "./ec";
+import { Vec3 } from "../mathD/vec3";
+import { Quat } from "../mathD/quat";
+import { Mat4 } from "../mathD/mat4";
+import { IframeState } from "../scene/frameState";
+import { Entity } from "./entity";
 
 enum DirtyFlagEnum {
     WWORLD_POS = 0b000100,
@@ -20,6 +20,7 @@ export class Transform implements Icomponent {
     children: Transform[] = [];
     dirtyFlag: number = 0;
 
+    private constructor(){};
     //------------------------local属性-------------------------------------------------------------
     //----------------------------------------------------------------------------------------------
     //localposition/localrot/localscale修改之后，markDirty 一下
@@ -28,7 +29,7 @@ export class Transform implements Icomponent {
     localRotation: Quat = Quat.create();
     localScale: Vec3 = Vec3.create(1, 1, 1);
     private _localMatrix: Mat4 = Mat4.create();
-    set localMatrix(value: Mat4) {
+    setlocalMatrix(value: Mat4) {
         this._localMatrix = value;
         Mat4.decompose(this._localMatrix, this.localScale, this.localRotation, this.localPosition);
         this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.LOCALMAT;
@@ -58,7 +59,7 @@ export class Transform implements Icomponent {
         }
         return this._worldPosition;
     }
-    set worldPosition(value: Vec3) {
+    setworldPosition(value: Vec3) {
         if (this.parent == null) {
             return;
         }
@@ -81,7 +82,7 @@ export class Transform implements Icomponent {
         }
         return this._worldRotation;
     }
-    set worldRotation(value: Quat) {
+    setworldRotation(value: Quat) {
         if (this.parent == null) {
             return;
         }
@@ -94,6 +95,7 @@ export class Transform implements Icomponent {
             Quat.recycle(invparentworldrot);
         }
         this.markDirty();
+        return this;
     }
 
     private _worldScale: Vec3 = Vec3.create(1, 1, 1);
@@ -104,7 +106,7 @@ export class Transform implements Icomponent {
         }
         return this._worldScale;
     }
-    set worldScale(value: Vec3) {
+    setworldScale(value: Vec3) {
         if (this.parent == null) {
             return;
         }
@@ -114,6 +116,7 @@ export class Transform implements Icomponent {
             Vec3.divide(value, this.parent.worldScale, this.localScale);
         }
         this.markDirty();
+        return this;
     }
 
     private _worldMatrix: Mat4 = Mat4.create();
@@ -126,39 +129,35 @@ export class Transform implements Icomponent {
         }
         return this._worldMatrix;
     }
-    set worldMatrix(value: Mat4) {
+
+    setworldMatrix(value: Mat4) {
         if (this.parent == null) {
             return;
         }
+        Mat4.copy(value,this._worldMatrix);
         if (this.parent.parent == null) {
+           
             Mat4.copy(value, this._localMatrix);
-            this.localMatrix = this._localMatrix;
+            this.setlocalMatrix(this._localMatrix);
         } else {
             let invparentworld = Mat4.create();
             Mat4.invert(this.parent.worldMatrix, invparentworld);
             Mat4.multiply(invparentworld, value, this._localMatrix);
-            this.localMatrix = this._localMatrix;
+            this.setlocalMatrix(this._localMatrix);
             Mat4.recycle(invparentworld);
-            this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLDMAT;
-            this.dirtyFlag =
-                this.dirtyFlag | DirtyFlagEnum.WORLD_ROTATION | DirtyFlagEnum.WORLD_SCALE | DirtyFlagEnum.WWORLD_POS;
         }
+        this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLDMAT;
+        this.dirtyFlag =
+            this.dirtyFlag | DirtyFlagEnum.WORLD_ROTATION | DirtyFlagEnum.WORLD_SCALE | DirtyFlagEnum.WWORLD_POS;
+
+        return this;
     }
 
-    /**
-     * 获取世界坐标系下当前z轴的朝向
-     */
-    getForwardInWorld(out: Vec3) {
-        Mat4.transformVector3(Vec3.FORWARD, this.worldMatrix, out);
-        Vec3.normalize(out, out);
-    }
-    getRightInWorld(out: Vec3) {
-        Mat4.transformVector3(Vec3.RIGHT, this.worldMatrix, out);
-        Vec3.normalize(out, out);
-    }
-    getUpInWorld(out: Vec3) {
-        Mat4.transformVector3(Vec3.UP, this.worldMatrix, out);
-        Vec3.normalize(out, out);
+    private _worldTolocalMatrix: Mat4 = Mat4.create();
+    get worldTolocalMatrix():Mat4
+    {
+        Mat4.invert(this.worldMatrix,this._worldTolocalMatrix);
+        return this._worldTolocalMatrix;
     }
 
     /**
@@ -222,8 +221,47 @@ export class Transform implements Icomponent {
     }
 
     update(frameState: IframeState): void {}
+
+
+
+
+    //-------易用性拓展
+    /**
+     * 获取世界坐标系下当前z轴的朝向
+     */
+    getForwardInWorld(out: Vec3) {
+        Mat4.transformVector3(Vec3.FORWARD, this.worldMatrix, out);
+        Vec3.normalize(out, out);
+    }
+    getRightInWorld(out: Vec3) {
+        Mat4.transformVector3(Vec3.RIGHT, this.worldMatrix, out);
+        Vec3.normalize(out, out);
+    }
+    getUpInWorld(out: Vec3) {
+        Mat4.transformVector3(Vec3.UP, this.worldMatrix, out);
+        Vec3.normalize(out, out);
+    }
+
+    moveInWorld(dir:Vec3,amount:number)
+    {
+        let dirInLocal=Vec3.create();
+        Mat4.transformVector3(dir,this.worldTolocalMatrix,dirInLocal);
+        Vec3.AddscaledVec(this.localPosition,dirInLocal,amount,this.localPosition);
+        this.markDirty();
+        return this;
+    }
+    moveInlocal(dir:Vec3,amount:number)
+    {
+        Vec3.AddscaledVec(this.localPosition,dir,amount,this.localPosition);
+        this.markDirty();
+        return this;
+    }
+
     dispose(): void {
         this.parent = null;
         this.children = null;
     }
+
+
+
 }

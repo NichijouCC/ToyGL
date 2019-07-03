@@ -8,7 +8,6 @@ import { Color } from "../src/mathD/color";
 import { Texture } from "../src/resources/assets/texture";
 import { Entity, Mesh } from "../src/ec/entity";
 import { ToyGL } from "../src/toygl";
-import { Transform } from "../src/ec/components/transform";
 import { DefShader } from "../src/resources/defAssets/defShader";
 
 export class Base {
@@ -39,7 +38,7 @@ export class Base {
         toy.scene.addEntity(obj);
 
         let camobj = new Entity("", ["Camera"]);
-        let trans = camobj.getCompByName("Transform") as Transform;
+        let trans = camobj.transform;
         trans.localPosition.z = 5;
         trans.markDirty();
         toy.scene.addEntity(camobj);

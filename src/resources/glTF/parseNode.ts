@@ -3,7 +3,7 @@ import { Mat4 } from "../../mathD/mat4";
 import { Vec3 } from "../../mathD/vec3";
 import { Quat } from "../../mathD/quat";
 import { ParseCameraNode } from "./parseCameraNode";
-import { Transform } from "../../ec/components/transform";
+import { Transform } from "../../ec/transform";
 import { ParseMeshNode } from "./parseMeshNode";
 import { IgltfJson } from "./loadglTF";
 import { Mesh } from "../../ec/components/mesh";
@@ -16,7 +16,7 @@ export class ParseNode {
         let trans = new Entity(name).transform;
 
         if (node.matrix) {
-            trans.localMatrix = Mat4.fromArray(node.matrix);
+            trans.setlocalMatrix(Mat4.fromArray(node.matrix));
         }
         if (node.translation) {
             Vec3.copy(node.translation, trans.localPosition);

@@ -2,7 +2,6 @@ import { Icomponent, Ientity, Irender, CullingMask, EC } from "../ec";
 import { Material } from "../../resources/assets/material";
 import { Geometry } from "../../resources/assets/geometry";
 import { IframeState, Irenderable } from "../../scene/frameState";
-import { Transform } from "./transform";
 
 @EC.RegComp
 export class Mesh implements Irender {
@@ -36,7 +35,7 @@ export class Mesh implements Irender {
             // program: this._material.program,
             // uniforms: this._material.uniforms,
             material: this._material,
-            modelMatrix: (this.entity.getCompByName("Transform") as Transform).worldMatrix,
+            modelMatrix: (this.entity.transform).worldMatrix,
         };
         frameState.renderList.push(currentRender);
     }

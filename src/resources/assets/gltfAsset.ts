@@ -1,5 +1,5 @@
 import { ToyAsset, ItoyAsset } from "../base/toyAsset";
-import { Transform } from "../../ec/components/transform";
+import { Transform } from "../../ec/transform";
 
 export class GltfAsset extends ToyAsset {
     constructor(param?: ItoyAsset) {

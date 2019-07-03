@@ -4764,6 +4764,10 @@
         return c > 3 && r && Object.defineProperty(target, key, r), r;
     }
 
+    function __metadata(metadataKey, metadataValue) {
+        if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(metadataKey, metadataValue);
+    }
+
     function __awaiter(thisArg, _arguments, P, generator) {
         return new (P || (P = Promise))(function (resolve, reject) {
             function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -5155,7 +5159,7 @@
         }
         get ViewMatrix() {
             if (this.needComputeViewMat) {
-                let camworld = this.entity.getCompByName("Transform").worldMatrix;
+                let camworld = this.entity.transform.worldMatrix;
                 //视矩阵刚好是摄像机世界矩阵的逆
                 Mat4.invert(camworld, this._viewMatrix);
                 this.needComputeViewMat = false;
@@ -5349,52 +5353,6 @@
         DrawTypeEnum[DrawTypeEnum["NOFOG"] = 3] = "NOFOG";
         DrawTypeEnum[DrawTypeEnum["NOLIGHTMAP"] = 5] = "NOLIGHTMAP";
     })(DrawTypeEnum || (DrawTypeEnum = {}));
-
-    let Mesh = class Mesh {
-        constructor() {
-            this.mask = CullingMask.default;
-        }
-        get geometry() {
-            return this._geometry;
-        }
-        set geometry(value) {
-            this._geometry = value;
-            this._renderDirty = true;
-        }
-        get material() {
-            return this._material;
-        }
-        set material(value) {
-            this._material = value;
-            this._renderDirty = true;
-        }
-        update(frameState) {
-            let currentRender = (this.render && this.updateRender()) || {
-                maskLayer: this.entity.maskLayer,
-                geometry: this._geometry,
-                // program: this._material.program,
-                // uniforms: this._material.uniforms,
-                material: this._material,
-                modelMatrix: this.entity.getCompByName("Transform").worldMatrix,
-            };
-            frameState.renderList.push(currentRender);
-        }
-        updateRender() {
-            if (this._renderDirty) {
-                this.render.geometry = this._geometry;
-                // this.render.program = this._material.program;
-                // this.render.uniforms = this._material.uniforms;
-                this.render.material = this._material;
-                this._renderDirty = false;
-            }
-            this.render.maskLayer = this.entity.maskLayer;
-            return this.render;
-        }
-        dispose() { }
-    };
-    Mesh = __decorate([
-        EC.RegComp
-    ], Mesh);
 
     class Mat3 extends Float32Array {
         static create() {
@@ -6871,6 +6829,294 @@
     Quat.Recycle = [];
     Quat.norot = Quat.create();
 
+    var Transform_1;
+    var DirtyFlagEnum;
+    (function (DirtyFlagEnum) {
+        DirtyFlagEnum[DirtyFlagEnum["WWORLD_POS"] = 4] = "WWORLD_POS";
+        DirtyFlagEnum[DirtyFlagEnum["WORLD_ROTATION"] = 8] = "WORLD_ROTATION";
+        DirtyFlagEnum[DirtyFlagEnum["WORLD_SCALE"] = 16] = "WORLD_SCALE";
+        DirtyFlagEnum[DirtyFlagEnum["LOCALMAT"] = 1] = "LOCALMAT";
+        DirtyFlagEnum[DirtyFlagEnum["WORLDMAT"] = 2] = "WORLDMAT";
+    })(DirtyFlagEnum || (DirtyFlagEnum = {}));
+    let Transform = Transform_1 = class Transform {
+        constructor() {
+            this.children = [];
+            this.dirtyFlag = 0;
+            //------------------------local属性-------------------------------------------------------------
+            //----------------------------------------------------------------------------------------------
+            //localposition/localrot/localscale修改之后，markDirty 一下
+            //----------------------------------------------------------------------------------------------
+            this.localPosition = Vec3.create();
+            this.localRotation = Quat.create();
+            this.localScale = Vec3.create(1, 1, 1);
+            this._localMatrix = Mat4.create();
+            //-------------------------world属性--------------------------------------------------------------
+            //------------------------------------------------------------------------------------------------
+            //得到worldmatrix后，不会立刻decompse得到worldpos/worldscale/worldort,而是dirty标记起来.
+            //setworld属性都是转换到setlocal属性
+            //------------------------------------------------------------------------------------------------
+            this._worldPosition = Vec3.create();
+            this._worldRotation = Quat.create();
+            this._worldScale = Vec3.create(1, 1, 1);
+            this._worldMatrix = Mat4.create();
+            this._worldTolocalMatrix = Mat4.create();
+        }
+        ;
+        setlocalMatrix(value) {
+            this._localMatrix = value;
+            Mat4.decompose(this._localMatrix, this.localScale, this.localRotation, this.localPosition);
+            this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.LOCALMAT;
+            this.dirtyFlag = this.dirtyFlag | DirtyFlagEnum.WORLDMAT;
+            Transform_1.NotifyChildSelfDirty(this);
+        }
+        get localMatrix() {
+            if (this.dirtyFlag & DirtyFlagEnum.LOCALMAT) {
+                Mat4.RTS(this.localPosition, this.localScale, this.localRotation, this._localMatrix);
+                this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.LOCALMAT;
+            }
+            return this._localMatrix;
+        }
+        get worldPosition() {
+            if (this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.WWORLD_POS)) {
+                Mat4.getTranslationing(this.worldMatrix, this._worldPosition);
+                this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WWORLD_POS;
+            }
+            return this._worldPosition;
+        }
+        setworldPosition(value) {
+            if (this.parent == null) {
+                return;
+            }
+            if (this.parent.parent == null) {
+                this.localPosition = value;
+            }
+            else {
+                let invparentworld = Mat4.create();
+                Mat4.invert(this.parent.worldMatrix, invparentworld);
+                Mat4.transformPoint(value, invparentworld, this.localPosition);
+                Mat4.recycle(invparentworld);
+            }
+            this.markDirty();
+        }
+        get worldRotation() {
+            if (this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.WORLD_ROTATION)) {
+                Mat4.getRotationing(this.worldMatrix, this._worldRotation, this.worldScale);
+                this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLD_ROTATION;
+            }
+            return this._worldRotation;
+        }
+        setworldRotation(value) {
+            if (this.parent == null) {
+                return;
+            }
+            if (this.parent.parent == null) {
+                this.localRotation = value;
+            }
+            else {
+                let invparentworldrot = Quat.create();
+                Quat.inverse(this.parent.worldRotation, invparentworldrot);
+                Quat.multiply(invparentworldrot, value, this.localRotation);
+                Quat.recycle(invparentworldrot);
+            }
+            this.markDirty();
+            return this;
+        }
+        get worldScale() {
+            if (this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.WORLD_SCALE)) {
+                Mat4.getScaling(this.worldMatrix, this._worldScale);
+                this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLD_SCALE;
+            }
+            return this._worldScale;
+        }
+        setworldScale(value) {
+            if (this.parent == null) {
+                return;
+            }
+            if (this.parent.parent == null) {
+                this.localScale = value;
+            }
+            else {
+                Vec3.divide(value, this.parent.worldScale, this.localScale);
+            }
+            this.markDirty();
+            return this;
+        }
+        get worldMatrix() {
+            if (this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.LOCALMAT)) {
+                Mat4.multiply(this.parent.worldMatrix, this.localMatrix, this._worldMatrix);
+                this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLDMAT;
+                this.dirtyFlag =
+                    this.dirtyFlag | DirtyFlagEnum.WORLD_ROTATION | DirtyFlagEnum.WORLD_SCALE | DirtyFlagEnum.WWORLD_POS;
+            }
+            return this._worldMatrix;
+        }
+        setworldMatrix(value) {
+            if (this.parent == null) {
+                return;
+            }
+            Mat4.copy(value, this._worldMatrix);
+            if (this.parent.parent == null) {
+                Mat4.copy(value, this._localMatrix);
+                this.setlocalMatrix(this._localMatrix);
+            }
+            else {
+                let invparentworld = Mat4.create();
+                Mat4.invert(this.parent.worldMatrix, invparentworld);
+                Mat4.multiply(invparentworld, value, this._localMatrix);
+                this.setlocalMatrix(this._localMatrix);
+                Mat4.recycle(invparentworld);
+            }
+            this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLDMAT;
+            this.dirtyFlag =
+                this.dirtyFlag | DirtyFlagEnum.WORLD_ROTATION | DirtyFlagEnum.WORLD_SCALE | DirtyFlagEnum.WWORLD_POS;
+            return this;
+        }
+        get worldTolocalMatrix() {
+            Mat4.invert(this.worldMatrix, this._worldTolocalMatrix);
+            return this._worldTolocalMatrix;
+        }
+        /**
+         * 通知子节点需要计算worldmatrix
+         * @param node
+         */
+        static NotifyChildSelfDirty(node) {
+            for (let key in node.children) {
+                let child = node.children[key];
+                if (!(child.dirtyFlag & DirtyFlagEnum.WORLDMAT)) {
+                    child.dirtyFlag = child.dirtyFlag | DirtyFlagEnum.WORLDMAT;
+                    this.NotifyChildSelfDirty(child);
+                }
+            }
+        }
+        /**
+         * 修改local属性后，标记dirty
+         */
+        markDirty() {
+            this.dirtyFlag = this.dirtyFlag | DirtyFlagEnum.LOCALMAT | DirtyFlagEnum.WORLDMAT;
+            Transform_1.NotifyChildSelfDirty(this);
+        }
+        ///------------------------------------------父子结构
+        /**
+         * 添加子物体实例
+         */
+        addChild(node) {
+            if (node.parent != null) {
+                node.parent.removeChild(node);
+            }
+            this.children.push(node);
+            node.parent = this;
+            node.markDirty();
+        }
+        /**
+         * 移除所有子物体
+         */
+        removeAllChild() {
+            //if(this.children==undefined||this.children.length==0) return;
+            if (this.children.length == 0)
+                return;
+            for (let i = 0, len = this.children.length; i < len; i++) {
+                this.children[i].parent = null;
+            }
+            this.children.length = 0;
+        }
+        /**
+         * 移除指定子物体
+         */
+        removeChild(node) {
+            if (node.parent != this || this.children.length == 0) {
+                throw new Error("not my child.");
+            }
+            let i = this.children.indexOf(node);
+            if (i >= 0) {
+                this.children.splice(i, 1);
+                node.parent = null;
+            }
+        }
+        update(frameState) { }
+        //-------易用性拓展
+        /**
+         * 获取世界坐标系下当前z轴的朝向
+         */
+        getForwardInWorld(out) {
+            Mat4.transformVector3(Vec3.FORWARD, this.worldMatrix, out);
+            Vec3.normalize(out, out);
+        }
+        getRightInWorld(out) {
+            Mat4.transformVector3(Vec3.RIGHT, this.worldMatrix, out);
+            Vec3.normalize(out, out);
+        }
+        getUpInWorld(out) {
+            Mat4.transformVector3(Vec3.UP, this.worldMatrix, out);
+            Vec3.normalize(out, out);
+        }
+        moveInWorld(dir, amount) {
+            let dirInLocal = Vec3.create();
+            Mat4.transformVector3(dir, this.worldTolocalMatrix, dirInLocal);
+            Vec3.AddscaledVec(this.localPosition, dirInLocal, amount, this.localPosition);
+            this.markDirty();
+            return this;
+        }
+        moveInlocal(dir, amount) {
+            Vec3.AddscaledVec(this.localPosition, dir, amount, this.localPosition);
+            this.markDirty();
+            return this;
+        }
+        dispose() {
+            this.parent = null;
+            this.children = null;
+        }
+    };
+    Transform = Transform_1 = __decorate([
+        EC.RegComp,
+        __metadata("design:paramtypes", [])
+    ], Transform);
+
+    let Mesh = class Mesh {
+        constructor() {
+            this.mask = CullingMask.default;
+        }
+        get geometry() {
+            return this._geometry;
+        }
+        set geometry(value) {
+            this._geometry = value;
+            this._renderDirty = true;
+        }
+        get material() {
+            return this._material;
+        }
+        set material(value) {
+            this._material = value;
+            this._renderDirty = true;
+        }
+        update(frameState) {
+            let currentRender = (this.render && this.updateRender()) || {
+                maskLayer: this.entity.maskLayer,
+                geometry: this._geometry,
+                // program: this._material.program,
+                // uniforms: this._material.uniforms,
+                material: this._material,
+                modelMatrix: (this.entity.transform).worldMatrix,
+            };
+            frameState.renderList.push(currentRender);
+        }
+        updateRender() {
+            if (this._renderDirty) {
+                this.render.geometry = this._geometry;
+                // this.render.program = this._material.program;
+                // this.render.uniforms = this._material.uniforms;
+                this.render.material = this._material;
+                this._renderDirty = false;
+            }
+            this.render.maskLayer = this.entity.maskLayer;
+            return this.render;
+        }
+        dispose() { }
+    };
+    Mesh = __decorate([
+        EC.RegComp
+    ], Mesh);
+
     var MouseKeyEnum;
     (function (MouseKeyEnum) {
         MouseKeyEnum["Left"] = "MouseLeft";
@@ -7292,17 +7538,16 @@
             this.guid = newId();
             this.name = name != null ? name : "newEntity";
             this.beActive = true;
+            this._transform = EC.NewComponent("Transform");
+            this._transform.entity = this;
             if (compsArr != null) {
                 for (let i = 0; i < compsArr.length; i++) {
                     this.addCompByName(compsArr[i]);
                 }
             }
-            if (this.components["Transform"] == null) {
-                this.addCompByName("Transform");
-            }
         }
         get transform() {
-            return this.getCompByName("Transform");
+            return this._transform;
         }
         addCompByName(name) {
             let comp = EC.NewComponent(name);
@@ -7336,224 +7581,6 @@
     }
     newId.prototype.id = -1;
 
-    var Transform_1;
-    var DirtyFlagEnum;
-    (function (DirtyFlagEnum) {
-        DirtyFlagEnum[DirtyFlagEnum["WWORLD_POS"] = 4] = "WWORLD_POS";
-        DirtyFlagEnum[DirtyFlagEnum["WORLD_ROTATION"] = 8] = "WORLD_ROTATION";
-        DirtyFlagEnum[DirtyFlagEnum["WORLD_SCALE"] = 16] = "WORLD_SCALE";
-        DirtyFlagEnum[DirtyFlagEnum["LOCALMAT"] = 1] = "LOCALMAT";
-        DirtyFlagEnum[DirtyFlagEnum["WORLDMAT"] = 2] = "WORLDMAT";
-    })(DirtyFlagEnum || (DirtyFlagEnum = {}));
-    let Transform = Transform_1 = class Transform {
-        constructor() {
-            this.children = [];
-            this.dirtyFlag = 0;
-            //------------------------local属性-------------------------------------------------------------
-            //----------------------------------------------------------------------------------------------
-            //localposition/localrot/localscale修改之后，markDirty 一下
-            //----------------------------------------------------------------------------------------------
-            this.localPosition = Vec3.create();
-            this.localRotation = Quat.create();
-            this.localScale = Vec3.create(1, 1, 1);
-            this._localMatrix = Mat4.create();
-            //-------------------------world属性--------------------------------------------------------------
-            //------------------------------------------------------------------------------------------------
-            //得到worldmatrix后，不会立刻decompse得到worldpos/worldscale/worldort,而是dirty标记起来.
-            //setworld属性都是转换到setlocal属性
-            //------------------------------------------------------------------------------------------------
-            this._worldPosition = Vec3.create();
-            this._worldRotation = Quat.create();
-            this._worldScale = Vec3.create(1, 1, 1);
-            this._worldMatrix = Mat4.create();
-        }
-        set localMatrix(value) {
-            this._localMatrix = value;
-            Mat4.decompose(this._localMatrix, this.localScale, this.localRotation, this.localPosition);
-            this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.LOCALMAT;
-            this.dirtyFlag = this.dirtyFlag | DirtyFlagEnum.WORLDMAT;
-            Transform_1.NotifyChildSelfDirty(this);
-        }
-        get localMatrix() {
-            if (this.dirtyFlag & DirtyFlagEnum.LOCALMAT) {
-                Mat4.RTS(this.localPosition, this.localScale, this.localRotation, this._localMatrix);
-                this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.LOCALMAT;
-            }
-            return this._localMatrix;
-        }
-        get worldPosition() {
-            if (this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.WWORLD_POS)) {
-                Mat4.getTranslationing(this.worldMatrix, this._worldPosition);
-                this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WWORLD_POS;
-            }
-            return this._worldPosition;
-        }
-        set worldPosition(value) {
-            if (this.parent == null) {
-                return;
-            }
-            if (this.parent.parent == null) {
-                this.localPosition = value;
-            }
-            else {
-                let invparentworld = Mat4.create();
-                Mat4.invert(this.parent.worldMatrix, invparentworld);
-                Mat4.transformPoint(value, invparentworld, this.localPosition);
-                Mat4.recycle(invparentworld);
-            }
-            this.markDirty();
-        }
-        get worldRotation() {
-            if (this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.WORLD_ROTATION)) {
-                Mat4.getRotationing(this.worldMatrix, this._worldRotation, this.worldScale);
-                this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLD_ROTATION;
-            }
-            return this._worldRotation;
-        }
-        set worldRotation(value) {
-            if (this.parent == null) {
-                return;
-            }
-            if (this.parent.parent == null) {
-                this.localRotation = value;
-            }
-            else {
-                let invparentworldrot = Quat.create();
-                Quat.inverse(this.parent.worldRotation, invparentworldrot);
-                Quat.multiply(invparentworldrot, value, this.localRotation);
-                Quat.recycle(invparentworldrot);
-            }
-            this.markDirty();
-        }
-        get worldScale() {
-            if (this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.WORLD_SCALE)) {
-                Mat4.getScaling(this.worldMatrix, this._worldScale);
-                this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLD_SCALE;
-            }
-            return this._worldScale;
-        }
-        set worldScale(value) {
-            if (this.parent == null) {
-                return;
-            }
-            if (this.parent.parent == null) {
-                this.localScale = value;
-            }
-            else {
-                Vec3.divide(value, this.parent.worldScale, this.localScale);
-            }
-            this.markDirty();
-        }
-        get worldMatrix() {
-            if (this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.LOCALMAT)) {
-                Mat4.multiply(this.parent.worldMatrix, this.localMatrix, this._worldMatrix);
-                this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLDMAT;
-                this.dirtyFlag =
-                    this.dirtyFlag | DirtyFlagEnum.WORLD_ROTATION | DirtyFlagEnum.WORLD_SCALE | DirtyFlagEnum.WWORLD_POS;
-            }
-            return this._worldMatrix;
-        }
-        set worldMatrix(value) {
-            if (this.parent == null) {
-                return;
-            }
-            if (this.parent.parent == null) {
-                Mat4.copy(value, this._localMatrix);
-                this.localMatrix = this._localMatrix;
-            }
-            else {
-                let invparentworld = Mat4.create();
-                Mat4.invert(this.parent.worldMatrix, invparentworld);
-                Mat4.multiply(invparentworld, value, this._localMatrix);
-                this.localMatrix = this._localMatrix;
-                Mat4.recycle(invparentworld);
-                this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLDMAT;
-                this.dirtyFlag =
-                    this.dirtyFlag | DirtyFlagEnum.WORLD_ROTATION | DirtyFlagEnum.WORLD_SCALE | DirtyFlagEnum.WWORLD_POS;
-            }
-        }
-        /**
-         * 获取世界坐标系下当前z轴的朝向
-         */
-        getForwardInWorld(out) {
-            Mat4.transformVector3(Vec3.FORWARD, this.worldMatrix, out);
-            Vec3.normalize(out, out);
-        }
-        getRightInWorld(out) {
-            Mat4.transformVector3(Vec3.RIGHT, this.worldMatrix, out);
-            Vec3.normalize(out, out);
-        }
-        getUpInWorld(out) {
-            Mat4.transformVector3(Vec3.UP, this.worldMatrix, out);
-            Vec3.normalize(out, out);
-        }
-        /**
-         * 通知子节点需要计算worldmatrix
-         * @param node
-         */
-        static NotifyChildSelfDirty(node) {
-            for (let key in node.children) {
-                let child = node.children[key];
-                if (!(child.dirtyFlag & DirtyFlagEnum.WORLDMAT)) {
-                    child.dirtyFlag = child.dirtyFlag | DirtyFlagEnum.WORLDMAT;
-                    this.NotifyChildSelfDirty(child);
-                }
-            }
-        }
-        /**
-         * 修改local属性后，标记dirty
-         */
-        markDirty() {
-            this.dirtyFlag = this.dirtyFlag | DirtyFlagEnum.LOCALMAT | DirtyFlagEnum.WORLDMAT;
-            Transform_1.NotifyChildSelfDirty(this);
-        }
-        ///------------------------------------------父子结构
-        /**
-         * 添加子物体实例
-         */
-        addChild(node) {
-            if (node.parent != null) {
-                node.parent.removeChild(node);
-            }
-            this.children.push(node);
-            node.parent = this;
-            node.markDirty();
-        }
-        /**
-         * 移除所有子物体
-         */
-        removeAllChild() {
-            //if(this.children==undefined||this.children.length==0) return;
-            if (this.children.length == 0)
-                return;
-            for (let i = 0, len = this.children.length; i < len; i++) {
-                this.children[i].parent = null;
-            }
-            this.children.length = 0;
-        }
-        /**
-         * 移除指定子物体
-         */
-        removeChild(node) {
-            if (node.parent != this || this.children.length == 0) {
-                throw new Error("not my child.");
-            }
-            let i = this.children.indexOf(node);
-            if (i >= 0) {
-                this.children.splice(i, 1);
-                node.parent = null;
-            }
-        }
-        update(frameState) { }
-        dispose() {
-            this.parent = null;
-            this.children = null;
-        }
-    };
-    Transform = Transform_1 = __decorate([
-        EC.RegComp
-    ], Transform);
-
     class FrameState {
         constructor() {
             this.renderList = [];
@@ -7567,7 +7594,7 @@
 
     class Scene {
         constructor(render) {
-            this.root = new Transform();
+            this.root = new Entity().transform;
             this.frameState = new FrameState();
             this.render = render;
         }
@@ -7577,7 +7604,11 @@
             return newobj;
         }
         addEntity(entity) {
-            this.root.addChild(entity.getCompByName("Transform"));
+            this.root.addChild(entity.transform);
+        }
+        addCamera() {
+            let entity = this.newEntity("camer", ["Camera"]);
+            return entity.getCompByName("Camera");
         }
         foreachRootNodes(func) {
             for (let i = 0; i < this.root.children.length; i++) {
@@ -7605,15 +7636,89 @@
         }
     }
 
+    /**
+     * The game time class.
+     */
+    class GameTimer {
+        constructor() {
+            this.beActive = false;
+            this.TimeScale = 1.0;
+            this.updateList = [];
+            this.FPS = 60;
+            this.active();
+        }
+        active() {
+            this.beActive = true;
+            this.frameUpdate();
+        }
+        disActive() {
+            this.beActive = false;
+        }
+        get Time() {
+            return this.totalTime * 0.001;
+        }
+        get DeltaTime() {
+            return this.deltaTime * this.TimeScale * 0.001;
+        }
+        update() {
+            let now = Date.now();
+            this.deltaTime = now - this.lastTimer;
+            this.lastTimer = now;
+            let realDetal = this.deltaTime * this.TimeScale;
+            if (this.beActive != null) {
+                if (this.tick != null) {
+                    this.tick(realDetal);
+                }
+                for (let i = 0; i < this.updateList.length; i++) {
+                    this.updateList[i](realDetal);
+                }
+            }
+        }
+        addListenToTimerUpdate(func) {
+            this.updateList.push(func);
+        }
+        removeListenToTimerUpdate(func) {
+            this.updateList.forEach(item => {
+                if (item == func) {
+                    let index = this.updateList.indexOf(func);
+                    this.updateList.splice(index, 1);
+                    return;
+                }
+            });
+        }
+        removeAllListener() {
+            this.updateList.length = 0;
+        }
+        frameUpdate() {
+            if (this.FPS != this._lastFrameRate) {
+                //----------帧率被修改
+                this.FPS = Math.min(this.FPS, 60);
+                this.FPS = Math.max(this.FPS, 0);
+                if (this.IntervalLoop != null) {
+                    clearInterval(this.IntervalLoop);
+                    this.IntervalLoop = null;
+                }
+                this._lastFrameRate = this.FPS;
+            }
+            if (this.FPS == 60) {
+                this.update();
+                requestAnimationFrame(this.frameUpdate.bind(this));
+            }
+            else {
+                if (this.IntervalLoop == null) {
+                    this.IntervalLoop = setInterval(() => {
+                        this.update();
+                        this.frameUpdate();
+                    }, 1000 / this.FPS);
+                }
+            }
+        }
+    }
+
     // import { IassetMgr } from "./resources/type";
     class ToyGL {
-        constructor() {
-            this.frameUpdate = (deltaTime) => {
-                this.scene.update(deltaTime);
-            };
-        }
         // setupRender(canvas: HTMLCanvasElement) {}
-        initByHtmlElement(element) {
+        static initByHtmlElement(element) {
             let canvas;
             if (element instanceof HTMLDivElement) {
                 canvas = document.createElement("canvas");
@@ -7628,38 +7733,14 @@
             }
             Input.init(canvas);
             let render = new RenderMachine(canvas);
-            this.scene = new Scene(render);
+            let scene = new Scene(render);
             GameScreen.init(canvas);
-            this.loop = new Loop();
-            this.loop.update = deltaTime => {
-                if (this.preUpdate) {
-                    this.preUpdate(deltaTime);
-                }
-                this.frameUpdate(deltaTime);
+            new GameTimer().tick = deltaTime => {
+                scene.update(deltaTime);
             };
-        }
-    }
-    class Loop {
-        constructor() {
-            this.update = () => { };
-            this.beActive = false;
-            let func = () => {
-                let now = Date.now();
-                let deltaTime = now - this._lastTime || now;
-                this._lastTime = now;
-                if (this.beActive) {
-                    this.update(deltaTime);
-                }
-                requestAnimationFrame(func);
-            };
-            func();
-            this.beActive = true;
-        }
-        active() {
-            this.beActive = true;
-        }
-        disActive() {
-            this.beActive = false;
+            let toy = new ToyGL();
+            toy.scene = scene;
+            return toy;
         }
     }
 
@@ -7869,13 +7950,13 @@
                 });
                 let camobj = new Entity("cameobj", ["Camera", "CameraController"]);
                 let camCtr = camobj.getCompByName("CameraController");
-                let trans = camobj.getCompByName("Transform");
+                let trans = camobj.transform;
                 trans.localPosition.z = 15;
                 trans.markDirty();
                 toy.scene.addEntity(camobj);
                 camCtr.active();
                 let roty = 0;
-                toy.preUpdate = delta => {
+                toy.scene.preUpdate = delta => {
                     roty += delta * 0.01;
                     Quat.FromEuler(0, roty, 0, root.transform.localRotation);
                     root.transform.markDirty();
@@ -7885,8 +7966,7 @@
     }
 
     window.onload = () => {
-        let toy = new ToyGL();
-        toy.initByHtmlElement(document.getElementById("canvas"));
+        let toy = ToyGL.initByHtmlElement(document.getElementById("canvas"));
         AssetLoader.addLoader().then(() => {
             // Base.done(toy);
             LoadGltf.done(toy);
@@ -10305,23 +10385,42 @@
             arrayInfo.componentSize = this.getComponentSize(accessor.type);
             arrayInfo.componentDataType = accessor.componentType;
             arrayInfo.count = accessor.count;
-            arrayInfo.offsetInBytes = accessor.byteOffset;
             arrayInfo.normalize = accessor.normalized;
             if (accessor.bufferView != null) {
                 let viewindex = accessor.bufferView;
-                // let bufferview = gltf.bufferViews[viewindex];
-                // let bufferindex = bufferview.buffer;
-                // arrayInfo.strideInBytes = bufferview.byteStride;
-                // return ParseBufferNode.parse(bufferindex, gltf).then(buffer => {
-                //     let viewBuffer = new Uint8Array(buffer, bufferview.byteOffset, bufferview.byteLength);
-                //     arrayInfo.value = viewBuffer;
-                //     return arrayInfo;
-                // });
                 return ParseBufferViewNode.parse(viewindex, gltf).then(value => {
-                    arrayInfo.value = value.viewBuffer;
-                    arrayInfo.strideInBytes = value.byteStride;
-                    arrayInfo.buffer = value.glBuffer;
-                    return arrayInfo;
+                    if (accessor.sparse != null) {
+                        let cloneArr = value.viewBuffer.slice(accessor.byteOffset);
+                        arrayInfo.offsetInBytes = 0;
+                        arrayInfo.value = cloneArr;
+                        arrayInfo.strideInBytes = value.byteStride;
+                        let indicesInfo = accessor.sparse.indices;
+                        let valuesInfo = accessor.sparse.values;
+                        Promise.all([
+                            ParseBufferViewNode.parse(indicesInfo.bufferView, gltf),
+                            ParseBufferViewNode.parse(valuesInfo.bufferView, gltf),
+                        ]).then(arr => {
+                            let indicesArr = this.getTypedArr(arr[0].viewBuffer, indicesInfo.byteOffset, indicesInfo.componentType, accessor.count);
+                            let valueArr = arr[1].viewBuffer;
+                            let elementByte = this.getBytesForAccessor(accessor.type, accessor.componentType);
+                            let realStride = arrayInfo.strideInBytes != null && arrayInfo.strideInBytes != 0
+                                ? arrayInfo.strideInBytes
+                                : elementByte;
+                            for (let i = 0; i < indicesArr.length; i++) {
+                                let index = indicesArr[i];
+                                for (let k = 0; k < elementByte; k++) {
+                                    cloneArr[index * realStride + k] = valueArr[index * elementByte + k];
+                                }
+                            }
+                        });
+                    }
+                    else {
+                        arrayInfo.offsetInBytes = accessor.byteOffset;
+                        arrayInfo.value = value.viewBuffer;
+                        arrayInfo.strideInBytes = value.byteStride;
+                        arrayInfo.buffer = value.glBuffer;
+                        return arrayInfo;
+                    }
                 });
             }
             else {
@@ -10363,6 +10462,48 @@
                     return 9;
                 case "MAT4":
                     return 16;
+            }
+        }
+        static getBytesForAccessor(type, componentType) {
+            let componentNumber = this.getComponentSize(type);
+            let byte = this.getbytesFormGLtype(componentType);
+            return componentNumber * byte;
+        }
+        static getTypedArr(viewBuffer, offset, componentType, count) {
+            offset = offset != null ? offset : 0;
+            switch (componentType) {
+                case AccessorComponentType.BYTE:
+                    return new Int8Array(viewBuffer, offset, count);
+                case AccessorComponentType.UNSIGNED_BYTE:
+                    return new Uint8Array(viewBuffer, offset, count);
+                case AccessorComponentType.SHORT:
+                    return new Int16Array(viewBuffer, offset, count);
+                case AccessorComponentType.UNSIGNED_SHORT:
+                    return new Uint16Array(viewBuffer, offset, count);
+                case AccessorComponentType.UNSIGNED_INT:
+                    return new Uint32Array(viewBuffer, offset, count);
+                case AccessorComponentType.FLOAT:
+                    return new Float32Array(viewBuffer, offset, count);
+                default:
+                    throw new Error(`Invalid component type ${componentType}`);
+            }
+        }
+        static getbytesFormGLtype(componentType) {
+            switch (componentType) {
+                case AccessorComponentType.BYTE:
+                    return 1;
+                case AccessorComponentType.UNSIGNED_BYTE:
+                    return 1;
+                case AccessorComponentType.SHORT:
+                    return 2;
+                case AccessorComponentType.UNSIGNED_SHORT:
+                    return 2;
+                case AccessorComponentType.UNSIGNED_INT:
+                    return 4;
+                case AccessorComponentType.FLOAT:
+                    return 4;
+                default:
+                    throw "unsupported AccessorComponentType to bytesPerElement";
             }
         }
     }
@@ -10503,7 +10644,7 @@
             let name = node.name || "node" + index;
             let trans = new Entity(name).transform;
             if (node.matrix) {
-                trans.localMatrix = Mat4.fromArray(node.matrix);
+                trans.setlocalMatrix(Mat4.fromArray(node.matrix));
             }
             if (node.translation) {
                 Vec3.copy(node.translation, trans.localPosition);

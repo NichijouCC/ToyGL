@@ -5,13 +5,13 @@ import { GameScreen } from "./gameScreen";
 import { Scene } from "./scene/scene";
 import { GlRender } from "./render/glRender";
 import { Input } from "./input/Inputmgr";
+import { GameTimer } from "./gameTimer";
 export class ToyGL {
-    private loop: Iloop;
     // assetMgr: IassetMgr;
     scene: Scene;
     // setupRender(canvas: HTMLCanvasElement) {}
 
-    initByHtmlElement(element: HTMLDivElement | HTMLCanvasElement) {
+    static initByHtmlElement(element: HTMLDivElement | HTMLCanvasElement):ToyGL {
         let canvas: HTMLCanvasElement;
         if (element instanceof HTMLDivElement) {
             canvas = document.createElement("canvas");
@@ -25,54 +25,21 @@ export class ToyGL {
             canvas = element;
         }
         Input.init(canvas);
+
         let render = new RenderMachine(canvas);
-        this.scene = new Scene(render);
+        let scene = new Scene(render);
         GameScreen.init(canvas);
 
-        this.loop = new Loop();
-        this.loop.update = deltaTime => {
-            if (this.preUpdate) {
-                this.preUpdate(deltaTime);
-            }
-            this.frameUpdate(deltaTime);
+        new GameTimer().tick = deltaTime => {
+            scene.update(deltaTime);
         };
-    }
-    preUpdate: (deltaTime: number) => void;
-    private frameUpdate = (deltaTime: number) => {
-        this.scene.update(deltaTime);
-    };
-}
 
-export class Loop implements Iloop {
-    active() {
-        this.beActive = true;
-    }
-    disActive() {
-        this.beActive = false;
-    }
-    update: (deltaTime: number) => void = () => {};
-
-    private beActive: boolean = false;
-    private _lastTime: number;
-    constructor() {
-        let func = () => {
-            let now = Date.now();
-            let deltaTime = now - this._lastTime || now;
-            this._lastTime = now;
-            if (this.beActive) {
-                this.update(deltaTime);
-            }
-            requestAnimationFrame(func);
-        };
-        func();
-        this.beActive = true;
+        let toy=new ToyGL();
+        toy.scene=scene;
+        return toy;
     }
 }
 
-export interface Iloop {
-    active(): void;
-    disActive(): void;
-    update: (deltaTime: number) => void;
-}
+
 
 
