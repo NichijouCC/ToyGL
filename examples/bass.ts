@@ -13,7 +13,7 @@ import { Quat } from "../src/mathD/quat";
 
 export class Base {
     static done(toy: ToyGL) {
-        let geometry = DefGeometry.fromType("quad");
+        let geometry = DefGeometry.fromType("cube");
 
         ///------------def shader
         let shader = DefShader.fromType("baseTex");
@@ -29,7 +29,7 @@ export class Base {
         //-----------load tex
         let tex = Resource.load("../res/imgs/tes.png") as Texture;
 
-        material.setTexture("_MainTex", defTex);
+        material.setTexture("_MainTex", tex);
 
         let obj = new Entity();
         let mesh = obj.addCompByName("Mesh") as Mesh;
@@ -43,7 +43,6 @@ export class Base {
         trans.localPosition.z = 5;
         trans.markDirty();
         toy.scene.addEntity(camobj);
-
 
         let roty = 0;
         toy.scene.preUpdate = delta => {

@@ -87,7 +87,7 @@ export class Vec4 extends Float32Array {
      * @param a the source vector
      * @returns out
      */
-    public static copy(a: Vec4 | number[], out: Vec4): Vec4 {
+    public static copy(a: Vec4 | number[], out: Vec4 = Vec4.create()): Vec4 {
         out[0] = a[0];
         out[1] = a[1];
         out[2] = a[2];
@@ -103,7 +103,7 @@ export class Vec4 extends Float32Array {
      * @param b the second operand
      * @returns out
      */
-    public static add(out: Vec4, a: Vec4, b: Vec4): Vec4 {
+    public static add(a: Vec4, b: Vec4, out: Vec4 = Vec4.create()): Vec4 {
         out[0] = a[0] + b[0];
         out[1] = a[1] + b[1];
         out[2] = a[2] + b[2];
@@ -119,7 +119,7 @@ export class Vec4 extends Float32Array {
      * @param out the receiving vector
      * @returns out
      */
-    public static subtract(a: Vec4, b: Vec4, out: Vec4): Vec4 {
+    public static subtract(a: Vec4, b: Vec4, out: Vec4 = Vec4.create()): Vec4 {
         out[0] = a[0] - b[0];
         out[1] = a[1] - b[1];
         out[2] = a[2] - b[2];
@@ -135,7 +135,7 @@ export class Vec4 extends Float32Array {
      * @param out the receiving vector         *
      * @returns out
      */
-    public static multiply(a: Vec4, b: Vec4, out: Vec4): Vec4 {
+    public static multiply(a: Vec4, b: Vec4, out: Vec4 = Vec4.create()): Vec4 {
         out[0] = a[0] * b[0];
         out[1] = a[1] * b[1];
         out[2] = a[2] * b[2];
@@ -151,7 +151,7 @@ export class Vec4 extends Float32Array {
      * @param b the second operand
      * @returns out
      */
-    public static divide(a: Vec4, b: Vec4, out: Vec4): Vec4 {
+    public static divide(a: Vec4, b: Vec4, out: Vec4 = Vec4.create()): Vec4 {
         out[0] = a[0] / b[0];
         out[1] = a[1] / b[1];
         out[2] = a[2] / b[2];
@@ -166,7 +166,7 @@ export class Vec4 extends Float32Array {
      * @param {Vec4} out the receiving vector
      * @returns {Vec4} out
      */
-    public static ceil(a: Vec4, out: Vec4): Vec4 {
+    public static ceil(a: Vec4, out: Vec4 = Vec4.create()): Vec4 {
         out[0] = Math.ceil(a[0]);
         out[1] = Math.ceil(a[1]);
         out[2] = Math.ceil(a[2]);
@@ -181,7 +181,7 @@ export class Vec4 extends Float32Array {
      * @param {Vec4} out the receiving vector         *
      * @returns {Vec4} out
      */
-    public static floor(a: Vec4, out: Vec4): Vec4 {
+    public static floor(a: Vec4, out: Vec4 = Vec4.create()): Vec4 {
         out[0] = Math.floor(a[0]);
         out[1] = Math.floor(a[1]);
         out[2] = Math.floor(a[2]);
@@ -197,7 +197,7 @@ export class Vec4 extends Float32Array {
      * @param b the second operand
      * @returns out
      */
-    public static min(a: Vec4, b: Vec4, out: Vec4): Vec4 {
+    public static min(a: Vec4, b: Vec4, out: Vec4 = Vec4.create()): Vec4 {
         out[0] = Math.min(a[0], b[0]);
         out[1] = Math.min(a[1], b[1]);
         out[2] = Math.min(a[2], b[2]);
@@ -213,7 +213,7 @@ export class Vec4 extends Float32Array {
      * @param b the second operand
      * @returns out
      */
-    public static max(a: Vec4, b: Vec4, out: Vec4): Vec4 {
+    public static max(a: Vec4, b: Vec4, out: Vec4 = Vec4.create()): Vec4 {
         out[0] = Math.max(a[0], b[0]);
         out[1] = Math.max(a[1], b[1]);
         out[2] = Math.max(a[2], b[2]);
@@ -228,7 +228,7 @@ export class Vec4 extends Float32Array {
      * @param {Vec4} a vector to round
      * @returns {Vec4} out
      */
-    public static round(a: Vec4, out: Vec4): Vec4 {
+    public static round(a: Vec4, out: Vec4 = Vec4.create()): Vec4 {
         out[0] = Math.round(a[0]);
         out[1] = Math.round(a[1]);
         out[2] = Math.round(a[2]);
@@ -244,7 +244,7 @@ export class Vec4 extends Float32Array {
      * @param b amount to scale the vector by
      * @returns out
      */
-    public static scale(a: Vec4, b: number, out: Vec4): Vec4 {
+    public static scale(a: Vec4, b: number, out: Vec4 = Vec4.create()): Vec4 {
         out[0] = a[0] * b;
         out[1] = a[1] * b;
         out[2] = a[2] * b;
@@ -261,7 +261,7 @@ export class Vec4 extends Float32Array {
      * @param scale the amount to scale b by before adding
      * @returns out
      */
-    public static scaleAndAdd(a: Vec4, b: Vec4, scale: number, out: Vec4): Vec4 {
+    public static scaleAndAdd(a: Vec4, b: Vec4, scale: number, out: Vec4 = Vec4.create()): Vec4 {
         out[0] = a[0] + b[0] * scale;
         out[1] = a[1] + b[1] * scale;
         out[2] = a[2] + b[2] * scale;
@@ -333,7 +333,7 @@ export class Vec4 extends Float32Array {
      * @param a vector to negate
      * @returns out
      */
-    public static negate(a: Vec4, out: Vec4): Vec4 {
+    public static negate(a: Vec4, out: Vec4 = Vec4.create()): Vec4 {
         out[0] = -a[0];
         out[1] = -a[1];
         out[2] = -a[2];
@@ -348,7 +348,7 @@ export class Vec4 extends Float32Array {
      * @param a vector to invert
      * @returns out
      */
-    public static inverse(a: Vec4, out: Vec4): Vec4 {
+    public static inverse(a: Vec4, out: Vec4 = Vec4.create()): Vec4 {
         out[0] = 1.0 / a[0];
         out[1] = 1.0 / a[1];
         out[2] = 1.0 / a[2];
@@ -363,7 +363,7 @@ export class Vec4 extends Float32Array {
      * @param a vector to normalize
      * @returns out
      */
-    public static normalize(a: Vec4, out: Vec4): Vec4 {
+    public static normalize(a: Vec4, out: Vec4 = Vec4.create()): Vec4 {
         let x = a[0];
         let y = a[1];
         let z = a[2];
@@ -399,7 +399,7 @@ export class Vec4 extends Float32Array {
      * @param lerp interpolation amount between the two inputs
      * @returns out
      */
-    public static lerp(lhs: Vec4, rhs: Vec4, lerp: number, out: Vec4): Vec4 {
+    public static lerp(lhs: Vec4, rhs: Vec4, lerp: number, out: Vec4 = Vec4.create()): Vec4 {
         let ax = lhs[0];
         let ay = lhs[1];
         let az = lhs[2];
@@ -418,7 +418,7 @@ export class Vec4 extends Float32Array {
      * @param scale length of the resulting vector. If ommitted, a unit vector will be returned
      * @returns out
      */
-    public static random(scale: number, out: Vec4): Vec4 {
+    public static random(scale: number, out: Vec4 = Vec4.create()): Vec4 {
         scale = scale || 1.0;
 
         //TODO: This is a pretty awful way of doing this. Find something better.
@@ -439,7 +439,7 @@ export class Vec4 extends Float32Array {
      * @param m matrix to transform with
      * @returns out
      */
-    public static transformMat4(a: Vec4, m: Mat4, out: Vec4): Vec4 {
+    public static transformMat4(a: Vec4, m: Mat4, out: Vec4 = Vec4.create()): Vec4 {
         let x = a[0],
             y = a[1],
             z = a[2],
@@ -460,7 +460,7 @@ export class Vec4 extends Float32Array {
      * @returns out
      */
 
-    public static transformQuat(a: Vec4, q: Quat, out: Vec4): Vec4 {
+    public static transformQuat(a: Vec4, q: Quat, out: Vec4 = Vec4.create()): Vec4 {
         let x = a[0],
             y = a[1],
             z = a[2];

@@ -1,0 +1,99 @@
+import { Vec3 } from "../mathD/vec3";
+import { Mesh } from "../ec/entity";
+import { Geometry } from "../resources/assets/geometry";
+import { Mat4 } from "../mathD/mat4";
+
+export class Bounds {
+    maxPoint: Vec3 = Vec3.create();
+    minPoint: Vec3 = Vec3.create();
+    // centerPoint: Vec3 = Vec3.create();
+
+    setMaxPoint(pos: Vec3) {
+        Vec3.copy(pos, this.maxPoint);
+    }
+    setMinPoint(pos: Vec3) {
+        Vec3.copy(pos, this.minPoint);
+    }
+
+    setFromPoints(pos: Vec3[]): Bounds {
+        for (let key in pos) {
+            Vec3.min(this.minPoint, pos[key], this.minPoint);
+            Vec3.max(this.maxPoint, pos[key], this.maxPoint);
+        }
+        // Vec3.center(this.minPoint, this.maxPoint, this.centerPoint);
+        return this;
+    }
+
+    // setFromMesh(geometry: Geometry): Bounds {
+    //     let points = geometry.data.atts[]
+    //     this.setFromPoints(points);
+    //     return this;
+    // }
+
+    addAABB(box: Bounds) {
+        Vec3.min(this.minPoint, box.minPoint, this.minPoint);
+        Vec3.max(this.maxPoint, box.maxPoint, this.maxPoint);
+        // Vec3.center(this.minPoint, this.maxPoint, this.centerPoint);
+    }
+
+    beEmpty(): boolean {
+        return (
+            this.minPoint[0] > this.maxPoint[0] ||
+            this.minPoint[1] > this.maxPoint[1] ||
+            this.minPoint[2] > this.maxPoint[2]
+        );
+    }
+
+    containPoint(point: Vec3): boolean {
+        return (
+            point[0] >= this.minPoint[0] &&
+            point[0] <= this.maxPoint[0] &&
+            point[1] >= this.minPoint[1] &&
+            point[1] <= this.maxPoint[1] &&
+            point[2] >= this.minPoint[2] &&
+            point[2] <= this.maxPoint[2]
+        );
+    }
+
+    intersect(box: Bounds): boolean {
+        let interMin = box.minPoint;
+        let interMax = box.maxPoint;
+
+        if (this.minPoint[0] > interMax[0]) return false;
+        if (this.minPoint[1] > interMax[1]) return false;
+        if (this.minPoint[2] > interMax[2]) return false;
+        if (this.maxPoint[0] > interMin[0]) return false;
+        if (this.maxPoint[1] > interMin[1]) return false;
+        if (this.maxPoint[2] > interMin[2]) return false;
+
+        return true;
+    }
+
+    applyMatrix(mat: Mat4) {
+        if (this.beEmpty()) return;
+        let min = Vec3.create();
+        let max = Vec3.create();
+        min[0] += mat[12];
+        max[0] += mat[12];
+        min[1] += mat[13];
+        max[1] += mat[13];
+        min[2] += mat[14];
+        max[2] += mat[14];
+
+        for (let i = 0; i < 3; i++) {
+            for (let k = 0; k < 3; k++) {
+                if (mat[k + i * 4] > 0) {
+                    min[i] += mat[k + i * 4] * this.minPoint[i];
+                    max[i] += mat[k + i * 4] * this.maxPoint[i];
+                } else {
+                    min[i] += mat[k + i * 4] * this.maxPoint[i];
+                    max[i] += mat[k + i * 4] * this.minPoint[i];
+                }
+            }
+        }
+        Vec3.recycle(this.minPoint);
+        Vec3.recycle(this.maxPoint);
+        this.minPoint = min;
+        this.maxPoint = max;
+    }
+}

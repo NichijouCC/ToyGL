@@ -80,7 +80,7 @@ export class Quat extends Float32Array {
      * @returns out
      * @function
      */
-    public static copy(a: Quat | number[], out: Quat): Quat {
+    public static copy(a: Quat | number[], out: Quat = Quat.create()): Quat {
         out[0] = a[0];
         out[1] = a[1];
         out[2] = a[2];
@@ -94,7 +94,7 @@ export class Quat extends Float32Array {
      * @param out the receiving Quaternion
      * @returns out
      */
-    public static identity(out: Quat): Quat {
+    public static identity(out: Quat = Quat.create()): Quat {
         out[0] = 0;
         out[1] = 0;
         out[2] = 0;
@@ -140,7 +140,7 @@ export class Quat extends Float32Array {
      * @returns out
      * @function
      */
-    public static add(a: Quat, b: Quat, out: Quat): Quat {
+    public static add(a: Quat, b: Quat, out: Quat = Quat.create()): Quat {
         out[0] = a[0] + b[0];
         out[1] = a[1] + b[1];
         out[2] = a[2] + b[2];
@@ -156,7 +156,7 @@ export class Quat extends Float32Array {
      * @param b the second operand
      * @returns out
      */
-    public static multiply(a: Quat, b: Quat, out: Quat): Quat {
+    public static multiply(a: Quat, b: Quat, out: Quat = Quat.create()): Quat {
         let ax = a[0],
             ay = a[1],
             az = a[2],
@@ -182,7 +182,7 @@ export class Quat extends Float32Array {
      * @returns out
      * @function
      */
-    public static scale(a: Quat, b: number, out: Quat): Quat {
+    public static scale(a: Quat, b: number, out: Quat = Quat.create()): Quat {
         out[0] = a[0] * b;
         out[1] = a[1] * b;
         out[2] = a[2] * b;
@@ -228,7 +228,7 @@ export class Quat extends Float32Array {
      * @returns out
      * @function
      */
-    public static normalize(src: Quat, out: Quat): Quat {
+    public static normalize(src: Quat, out: Quat = Quat.create()): Quat {
         let x = src[0];
         let y = src[1];
         let z = src[2];
@@ -266,7 +266,7 @@ export class Quat extends Float32Array {
      * @returns out
      * @function
      */
-    public static lerp(a: Quat, b: Quat, t: number, out: Quat): Quat {
+    public static lerp(a: Quat, b: Quat, t: number, out: Quat = Quat.create()): Quat {
         let ax = a[0];
         let ay = a[1];
         let az = a[2];
@@ -287,7 +287,7 @@ export class Quat extends Float32Array {
      * @param t interpolation amount between the two inputs
      * @returns out
      */
-    public static slerp(a: Quat, b: Quat, t: number, out: Quat): Quat {
+    public static slerp(a: Quat, b: Quat, t: number, out: Quat = Quat.create()): Quat {
         // benchmarks:
         //    http://jsperf.com/Quaternion-slerp-implementations
         let ax = a[0],
@@ -348,7 +348,7 @@ export class Quat extends Float32Array {
      * @param {number} t interpolation amount
      * @returns {Quat} out
      */
-    public static sqlerp(a: Quat, b: Quat, c: Quat, d: Quat, t: number, out: Quat): Quat {
+    public static sqlerp(a: Quat, b: Quat, c: Quat, d: Quat, t: number, out: Quat = Quat.create()): Quat {
         let temp1 = Quat.create();
         let temp2 = Quat.create();
 
@@ -366,7 +366,7 @@ export class Quat extends Float32Array {
      * @param a Quat to calculate inverse of
      * @returns out
      */
-    public static inverse(a: Quat, out: Quat): Quat {
+    public static inverse(a: Quat, out: Quat = Quat.create()): Quat {
         let a0 = a[0],
             a1 = a[1],
             a2 = a[2],
@@ -390,7 +390,7 @@ export class Quat extends Float32Array {
      * @param a Quat to calculate conjugate of
      * @returns out
      */
-    public static conjugate(out: Quat, a: Quat): Quat {
+    public static conjugate(a: Quat, out: Quat = Quat.create()): Quat {
         out[0] = -a[0];
         out[1] = -a[1];
         out[2] = -a[2];
@@ -416,7 +416,7 @@ export class Quat extends Float32Array {
      * @param rad angle (in radians) to rotate
      * @returns out
      */
-    public static rotateX(a: Quat, rad: number, out: Quat): Quat {
+    public static rotateX(a: Quat, rad: number, out: Quat = Quat.create()): Quat {
         rad *= 0.5;
 
         let ax = a[0],
@@ -441,7 +441,7 @@ export class Quat extends Float32Array {
      * @param rad angle (in radians) to rotate
      * @returns out
      */
-    public static rotateY(a: Quat, rad: number, out: Quat): Quat {
+    public static rotateY(a: Quat, rad: number, out: Quat = Quat.create()): Quat {
         rad *= 0.5;
 
         let ax = a[0],
@@ -466,7 +466,7 @@ export class Quat extends Float32Array {
      * @param rad angle (in radians) to rotate
      * @returns out
      */
-    public static rotateZ(a: Quat, rad: number, out: Quat): Quat {
+    public static rotateZ(a: Quat, rad: number, out: Quat = Quat.create()): Quat {
         rad *= 0.5;
 
         let ax = a[0],
@@ -494,7 +494,7 @@ export class Quat extends Float32Array {
      * @returns out
      * @function
      */
-    public static fromMat3(m: Mat3, out: Quat): Quat {
+    public static fromMat3(m: Mat3, out: Quat = Quat.create()): Quat {
         // Algorithm in Ken Shoemake's article in 1987 SIGGRAPH course notes
         // article "Quaternion Calculus and Fast Animation".
         let fTrace = m[0] + m[4] + m[8];
@@ -538,7 +538,7 @@ export class Quat extends Float32Array {
      * @param up    the vector representing the local "up" direction
      * @returns out
      */
-    public static setAxes(view: Vec3, right: Vec3, up: Vec3, out: Quat): Quat {
+    public static setAxes(view: Vec3, right: Vec3, up: Vec3, out: Quat = Quat.create()): Quat {
         let matr = Mat3.create();
 
         matr[0] = right[0];
@@ -567,7 +567,7 @@ export class Quat extends Float32Array {
      * @param a Quat to calculate W component of
      * @returns out
      */
-    public static calculateW(a: Quat, out: Quat): Quat {
+    public static calculateW(a: Quat, out: Quat = Quat.create()): Quat {
         let x = a[0],
             y = a[1],
             z = a[2];
@@ -637,7 +637,7 @@ export class Quat extends Float32Array {
      * @returns {Quat} out
      * @function
      */
-    static FromEuler(x: number, y: number, z: number, out: Quat): Quat {
+    static FromEuler(x: number, y: number, z: number, out: Quat = Quat.create()): Quat {
         x *= (0.5 * Math.PI) / 180;
         y *= (0.5 * Math.PI) / 180;
         z *= (0.5 * Math.PI) / 180;
@@ -682,7 +682,7 @@ export class Quat extends Float32Array {
      * @param rad （弧度）the angle in radians
      * @returns out
      **/
-    public static AxisAngle(axis: Vec3, rad: number, out: Quat): Quat {
+    public static AxisAngle(axis: Vec3, rad: number, out: Quat = Quat.create()): Quat {
         rad = rad * 0.5;
         let s = Math.sin(rad);
         out[0] = s * axis[0];
@@ -703,7 +703,7 @@ export class Quat extends Float32Array {
      * @param to the destination vector
      * @returns out
      */
-    public static rotationTo(from: Vec3, to: Vec3, out: Quat): Quat {
+    public static rotationTo(from: Vec3, to: Vec3, out: Quat = Quat.create()): Quat {
         let tmpVec3 = Vec3.create();
         let xUnitVec3 = Vec3.RIGHT;
         let yUnitVec3 = Vec3.UP;
@@ -730,7 +730,7 @@ export class Quat extends Float32Array {
             return Quat.normalize(out, out);
         }
     }
-    static myLookRotation(dir: Vec3, out: Quat, up: Vec3 = Vec3.UP) {
+    static myLookRotation(dir: Vec3, out: Quat = Quat.create(), up: Vec3 = Vec3.UP) {
         if (Vec3.exactEquals(dir, Vec3.ZERO)) {
             console.log("Zero direction in MyLookRotation");
             return Quat.norot;
@@ -755,7 +755,7 @@ export class Quat extends Float32Array {
     //  * @param out
     //  * @param up
     //  */
-    // static lookat(pos: Vec3, targetpos: Vec3, out: Quat,up:Vec3=Vec3.UP)
+    // static lookat(pos: Vec3, targetpos: Vec3, out: Quat = Quat.create(),up:Vec3=Vec3.UP)
     // {
     //     let baseDir=Vec3.BACKWARD;
 
@@ -847,7 +847,7 @@ export class Quat extends Float32Array {
         out.y = -w1 * src[1] + x1 * src[2] + y1 * src[3] - z1 * src[0];
         out.z = -w1 * src[2] - x1 * src[1] + y1 * src[0] + z1 * src[3];
     }
-    static fromUnitXYZ(xAxis: Vec3, yAxis: Vec3, zAxis: Vec3, out: Quat=Quat.create()) {
+    static fromUnitXYZ(xAxis: Vec3, yAxis: Vec3, zAxis: Vec3, out: Quat = Quat.create()) {
         var m11 = xAxis[0],
             m12 = yAxis[0],
             m13 = zAxis[0];
@@ -890,7 +890,7 @@ export class Quat extends Float32Array {
         }
         return out;
     }
-    static lookat(pos: Vec3, targetpos: Vec3, out: Quat, up: Vec3 = Vec3.UP) {
+    static lookat(pos: Vec3, targetpos: Vec3, out: Quat = Quat.create(), up: Vec3 = Vec3.UP) {
         // let baseDir=Vec3.BACKWARD;
         let dirz = Vec3.create();
         Vec3.subtract(pos, targetpos, dirz);
@@ -940,7 +940,7 @@ export class Quat extends Float32Array {
      * @param to
      * @param out
      */
-    static fromToRotation(from: Vec3, to: Vec3, out: Quat) {
+    static fromToRotation(from: Vec3, to: Vec3, out: Quat = Quat.create()) {
         let dir1 = Vec3.create();
         let dir2 = Vec3.create();
 

@@ -84,7 +84,7 @@ export class Mat4 extends Float32Array {
      * @param src the source matrix
      * @returns out
      */
-    public static copy(src: Mat4, out: Mat4): Mat4 {
+    public static copy(src: Mat4, out: Mat4 = Mat4.create()): Mat4 {
         out[0] = src[0];
         out[1] = src[1];
         out[2] = src[2];
@@ -110,7 +110,7 @@ export class Mat4 extends Float32Array {
      * @param out the receiving matrix
      * @returns out
      */
-    public static identity(out: Mat4): Mat4 {
+    public static identity(out: Mat4 = Mat4.create()): Mat4 {
         out[0] = 1;
         out[1] = 0;
         out[2] = 0;
@@ -137,7 +137,7 @@ export class Mat4 extends Float32Array {
      * @param a the source matrix
      * @returns out
      */
-    public static transpose(a: Mat4, out: Mat4): Mat4 {
+    public static transpose(a: Mat4, out: Mat4 = Mat4.create()): Mat4 {
         // If we are transposing ourselves we can skip a few steps but have to cache some values
         if (out === a) {
             let a01 = a[1],
@@ -188,7 +188,7 @@ export class Mat4 extends Float32Array {
      * @param a the source matrix
      * @returns out
      */
-    public static invert(a: Mat4, out: Mat4): Mat4 | null {
+    public static invert(a: Mat4, out: Mat4 = Mat4.create()): Mat4 | null {
         let a00 = a[0],
             a01 = a[1],
             a02 = a[2],
@@ -254,7 +254,7 @@ export class Mat4 extends Float32Array {
      * @param a the source matrix
      * @returns out
      */
-    public static adjoint(a: Mat4, out: Mat4): Mat4 {
+    public static adjoint(a: Mat4, out: Mat4 = Mat4.create()): Mat4 {
         let a00 = a[0],
             a01 = a[1],
             a02 = a[2],
@@ -340,7 +340,7 @@ export class Mat4 extends Float32Array {
      * @param rhs the second operand
      * @returns out
      */
-    public static multiply(lhs: Mat4, rhs: Mat4, out: Mat4): Mat4 {
+    public static multiply(lhs: Mat4, rhs: Mat4, out: Mat4 = Mat4.create()): Mat4 {
         let a00 = lhs[0],
             a01 = lhs[1],
             a02 = lhs[2],
@@ -405,7 +405,7 @@ export class Mat4 extends Float32Array {
      * @param v vector to translate by
      * @returns out
      */
-    public static translate(a: Mat4, v: Vec3, out: Mat4): Mat4 {
+    public static translate(a: Mat4, v: Vec3, out: Mat4 = Mat4.create()): Mat4 {
         let x = v[0],
             y = v[1],
             z = v[2];
@@ -471,7 +471,7 @@ export class Mat4 extends Float32Array {
      * @param v the Vec3 to scale the matrix by
      * @returns out
      **/
-    public static scale(a: Mat4, v: Vec3, out: Mat4): Mat4 {
+    public static scale(a: Mat4, v: Vec3, out: Mat4 = Mat4.create()): Mat4 {
         let x = v[0],
             y = v[1],
             z = v[2];
@@ -504,7 +504,7 @@ export class Mat4 extends Float32Array {
      * @param axis the axis to rotate around
      * @returns out
      */
-    public static rotate(a: Mat4, rad: number, axis: Vec3, out: Mat4): Mat4 {
+    public static rotate(a: Mat4, rad: number, axis: Vec3, out: Mat4 = Mat4.create()): Mat4 {
         let x = axis[0],
             y = axis[1],
             z = axis[2];
@@ -603,7 +603,7 @@ export class Mat4 extends Float32Array {
      * @param rad the angle to rotate the matrix by
      * @returns out
      */
-    public static rotateX(a: Mat4, rad: number, out: Mat4): Mat4 {
+    public static rotateX(a: Mat4, rad: number, out: Mat4 = Mat4.create()): Mat4 {
         let s = Math.sin(rad);
         let c = Math.cos(rad);
         let a10 = a[4];
@@ -647,7 +647,7 @@ export class Mat4 extends Float32Array {
      * @param rad the angle to rotate the matrix by
      * @returns out
      */
-    public static rotateY(a: Mat4, rad: number, out: Mat4): Mat4 {
+    public static rotateY(a: Mat4, rad: number, out: Mat4 = Mat4.create()): Mat4 {
         let s = Math.sin(rad);
         let c = Math.cos(rad);
         let a00 = a[0];
@@ -691,7 +691,7 @@ export class Mat4 extends Float32Array {
      * @param rad the angle to rotate the matrix by
      * @returns out
      */
-    public static rotateZ(a: Mat4, rad: number, out: Mat4): Mat4 {
+    public static rotateZ(a: Mat4, rad: number, out: Mat4 = Mat4.create()): Mat4 {
         let s = Math.sin(rad);
         let c = Math.cos(rad);
         let a00 = a[0];
@@ -738,7 +738,7 @@ export class Mat4 extends Float32Array {
      * @param {Vec3} v Translation vector
      * @returns {Mat4} out
      */
-    public static fromTranslation(v: Vec3, out: Mat4): Mat4 {
+    public static fromTranslation(v: Vec3, out: Mat4 = Mat4.create()): Mat4 {
         out[0] = 1;
         out[1] = 0;
         out[2] = 0;
@@ -769,7 +769,7 @@ export class Mat4 extends Float32Array {
      * @param {Vec3} v Scaling vector
      * @returns {Mat4} out
      */
-    public static fromScaling(v: Vec3, out: Mat4): Mat4 {
+    public static fromScaling(v: Vec3, out: Mat4 = Mat4.create()): Mat4 {
         out[0] = v[0];
         out[1] = 0;
         out[2] = 0;
@@ -801,7 +801,7 @@ export class Mat4 extends Float32Array {
      * @param {Vec3} axis the axis to rotate around
      * @returns {Mat4} out
      */
-    public static fromRotation(rad: number, axis: Vec3, out: Mat4): Mat4 {
+    public static fromRotation(rad: number, axis: Vec3, out: Mat4 = Mat4.create()): Mat4 {
         let x = axis[0],
             y = axis[1],
             z = axis[2];
@@ -854,7 +854,7 @@ export class Mat4 extends Float32Array {
      * @param {number} rad the angle to rotate the matrix by
      * @returns {Mat4} out
      */
-    public static fromXRotation(rad: number, out: Mat4): Mat4 {
+    public static fromXRotation(rad: number, out: Mat4 = Mat4.create()): Mat4 {
         let s = Math.sin(rad);
         let c = Math.cos(rad);
 
@@ -889,7 +889,7 @@ export class Mat4 extends Float32Array {
      * @param {number} rad the angle to rotate the matrix by
      * @returns {Mat4} out
      */
-    public static fromYRotation(rad: number, out: Mat4): Mat4 {
+    public static fromYRotation(rad: number, out: Mat4 = Mat4.create()): Mat4 {
         let s = Math.sin(rad);
         let c = Math.cos(rad);
 
@@ -924,7 +924,7 @@ export class Mat4 extends Float32Array {
      * @param {number} rad the angle to rotate the matrix by
      * @returns {Mat4} out
      */
-    public static fromZRotation(rad: number, out: Mat4): Mat4 {
+    public static fromZRotation(rad: number, out: Mat4 = Mat4.create()): Mat4 {
         let s = Math.sin(rad);
         let c = Math.cos(rad);
 
@@ -1055,7 +1055,13 @@ export class Mat4 extends Float32Array {
      * @param {Vec3} o The origin vector around which to scale and rotate
      * @returns {Mat4} out
      */
-    public static fromRotationTranslationScaleOrigin(q: Quat, v: Vec3, s: Vec3, o: Vec3, out: Mat4): Mat4 {
+    public static fromRotationTranslationScaleOrigin(
+        q: Quat,
+        v: Vec3,
+        s: Vec3,
+        o: Vec3,
+        out: Mat4 = Mat4.create(),
+    ): Mat4 {
         // Quaternion math
         let x = q[0],
             y = q[1],
@@ -1111,7 +1117,7 @@ export class Mat4 extends Float32Array {
      *
      * @returns {Mat4} out
      */
-    public static fromQuat(q: Quat, out: Mat4): Mat4 {
+    public static fromQuat(q: Quat, out: Mat4 = Mat4.create()): Mat4 {
         let x = q[0],
             y = q[1],
             z = q[2],
@@ -1172,7 +1178,7 @@ export class Mat4 extends Float32Array {
         top: number,
         near: number,
         far: number,
-        out: Mat4,
+        out: Mat4 = Mat4.create(),
     ): Mat4 {
         let rl = 1 / (right - left);
         let tb = 1 / (top - bottom);
@@ -1205,7 +1211,7 @@ export class Mat4 extends Float32Array {
      * @param up Vec3 pointing up
      * @returns out
      */
-    public static lookAt(eye: Vec3, center: Vec3, up: Vec3, out: Mat4): Mat4 {
+    public static lookAt(eye: Vec3, center: Vec3, up: Vec3, out: Mat4 = Mat4.create()): Mat4 {
         let x0: number = void 0,
             x1: number = void 0,
             x2: number = void 0,
@@ -1425,7 +1431,7 @@ export class Mat4 extends Float32Array {
      * @param {Mat4} b the second operand
      * @returns {Mat4} out
      */
-    public static add(a: Mat4, b: Mat4, out: Mat4): Mat4 {
+    public static add(a: Mat4, b: Mat4, out: Mat4 = Mat4.create()): Mat4 {
         out[0] = a[0] + b[0];
         out[1] = a[1] + b[1];
         out[2] = a[2] + b[2];
@@ -1453,7 +1459,7 @@ export class Mat4 extends Float32Array {
      * @param {Mat4} rhs the second operand
      * @returns {Mat4} out
      */
-    public static subtract(lhs: Mat4, rhs: Mat4, out: Mat4): Mat4 {
+    public static subtract(lhs: Mat4, rhs: Mat4, out: Mat4 = Mat4.create()): Mat4 {
         out[0] = lhs[0] - rhs[0];
         out[1] = lhs[1] - rhs[1];
         out[2] = lhs[2] - rhs[2];
@@ -1481,7 +1487,7 @@ export class Mat4 extends Float32Array {
      * @param {Mat4} b the second operand
      * @returns {Mat4} out
      */
-    //public static sub(out: mat4, a: mat4, b: mat4): mat4;
+    //public static sub(out: Mat4=Mat4.create(), a: mat4, b: mat4): mat4;
 
     /**
      * Multiply each element of the matrix by a scalar.
@@ -1491,7 +1497,7 @@ export class Mat4 extends Float32Array {
      * @param {number} b amount to scale the matrix's elements by
      * @returns {Mat4} out
      */
-    public static multiplyScalar(a: Mat4, b: number, out: Mat4): Mat4 {
+    public static multiplyScalar(a: Mat4, b: number, out: Mat4 = Mat4.create()): Mat4 {
         out[0] = a[0] * b;
         out[1] = a[1] * b;
         out[2] = a[2] * b;
@@ -1520,7 +1526,7 @@ export class Mat4 extends Float32Array {
      * @param {number} scale the amount to scale b's elements by before adding
      * @returns {Mat4} out
      */
-    public static multiplyScalarAndAdd(a: Mat4, b: Mat4, scale: number, out: Mat4): Mat4 {
+    public static multiplyScalarAndAdd(a: Mat4, b: Mat4, scale: number, out: Mat4 = Mat4.create()): Mat4 {
         out[0] = a[0] + b[0] * scale;
         out[1] = a[1] + b[1] * scale;
         out[2] = a[2] + b[2] * scale;
@@ -1682,7 +1688,13 @@ export class Mat4 extends Float32Array {
     //  * @param far Far bound of the frustum
     //  * @returns out
     //  */
-    public static projectPerspectiveLH(fovy: number, aspect: number, near: number, far: number, out: Mat4): Mat4 {
+    public static projectPerspectiveLH(
+        fovy: number,
+        aspect: number,
+        near: number,
+        far: number,
+        out: Mat4 = Mat4.create(),
+    ): Mat4 {
         let f = 1.0 / Math.tan(fovy / 2);
         let nf = 1 / (near - far);
         out[0] = f / aspect;
@@ -1711,7 +1723,7 @@ export class Mat4 extends Float32Array {
      * @param zfar 远视点距离
      * @returns {Mat4} out
      */
-    // static project_PerspectiveLH(fov: number, aspect: number, znear: number, zfar: number, out: mat4)
+    // static project_PerspectiveLH(fov: number, aspect: number, znear: number, zfar: number, out: Mat4=Mat4.create())
     // {
     //     let tan = 1.0 / (Math.tan(fov * 0.5));
     //     let nf=zfar / (znear - zfar);
@@ -1736,7 +1748,7 @@ export class Mat4 extends Float32Array {
     //  * @param far Far bound of the frustum
     //  * @returns out
     //  */
-    // public static ortho(out: mat4, left: number, right: number,
+    // public static ortho(out: Mat4=Mat4.create(), left: number, right: number,
     //     bottom: number, top: number, near: number, far: number): mat4{
     //         let lr = 1 / (left - right);
     //         let bt = 1 / (bottom - top);
@@ -1759,7 +1771,13 @@ export class Mat4 extends Float32Array {
     //         out[15] = 1;
     //         return out;
     //       }
-    public static projectOrthoLH(width: number, height: number, near: number, far: number, out: Mat4): Mat4 {
+    public static projectOrthoLH(
+        width: number,
+        height: number,
+        near: number,
+        far: number,
+        out: Mat4 = Mat4.create(),
+    ): Mat4 {
         let lr = -1 / width;
         let bt = -1 / height;
         let nf = 1 / (near - far);
@@ -1789,7 +1807,7 @@ export class Mat4 extends Float32Array {
      * @param zfar 远视点
      * @param out
      */
-    // static project_OrthoLH(width: number, height: number, znear: number, zfar: number, out: mat4)
+    // static project_OrthoLH(width: number, height: number, znear: number, zfar: number, out: Mat4=Mat4.create())
     // {
     //     let hw = 2.0 / width;
     //     let hh = 2.0 / height;
@@ -1818,7 +1836,7 @@ export class Mat4 extends Float32Array {
      * @param rot Rotation Quaternion
      * @param out
      */
-    static RTS(pos: Vec3, scale: Vec3, rot: Quat, out: Mat4): Mat4 {
+    static RTS(pos: Vec3, scale: Vec3, rot: Quat, out: Mat4 = Mat4.create()): Mat4 {
         let x = rot[0],
             y = rot[1],
             z = rot[2],
@@ -1874,7 +1892,7 @@ export class Mat4 extends Float32Array {
      * @param v Translation vector
      * @returns out
      */
-    public static RT(q: Quat, v: Vec3, out: Mat4): Mat4 {
+    public static RT(q: Quat, v: Vec3, out: Mat4 = Mat4.create()): Mat4 {
         // Quaternion math
         let x = q[0],
             y = q[1],

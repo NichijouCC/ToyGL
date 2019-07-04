@@ -12,8 +12,8 @@ export class Entity implements Ientity {
         this.guid = newId();
         this.name = name != null ? name : "newEntity";
         this.beActive = true;
-        this._transform=EC.NewComponent("Transform") as Transform;
-        this._transform.entity=this;
+        this._transform = EC.NewComponent("Transform") as Transform;
+        this._transform.entity = this;
 
         if (compsArr != null) {
             for (let i = 0; i < compsArr.length; i++) {
@@ -21,7 +21,7 @@ export class Entity implements Ientity {
             }
         }
     }
-    private _transform:Transform;
+    private _transform: Transform;
     get transform(): Transform {
         return this._transform;
     }
@@ -60,6 +60,6 @@ function newId(): number {
 }
 newId.prototype.id = -1;
 
-export * from './transform'
+export * from "./transform";
 export * from "./components/mesh";
 export * from "./components/cameracontroller";

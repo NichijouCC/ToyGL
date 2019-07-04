@@ -20,7 +20,7 @@ export class Transform implements Icomponent {
     children: Transform[] = [];
     dirtyFlag: number = 0;
 
-    private constructor(){};
+    private constructor() {}
     //------------------------local属性-------------------------------------------------------------
     //----------------------------------------------------------------------------------------------
     //localposition/localrot/localscale修改之后，markDirty 一下
@@ -134,9 +134,8 @@ export class Transform implements Icomponent {
         if (this.parent == null) {
             return;
         }
-        Mat4.copy(value,this._worldMatrix);
+        Mat4.copy(value, this._worldMatrix);
         if (this.parent.parent == null) {
-           
             Mat4.copy(value, this._localMatrix);
             this.setlocalMatrix(this._localMatrix);
         } else {
@@ -154,9 +153,8 @@ export class Transform implements Icomponent {
     }
 
     private _worldTolocalMatrix: Mat4 = Mat4.create();
-    get worldTolocalMatrix():Mat4
-    {
-        Mat4.invert(this.worldMatrix,this._worldTolocalMatrix);
+    get worldTolocalMatrix(): Mat4 {
+        Mat4.invert(this.worldMatrix, this._worldTolocalMatrix);
         return this._worldTolocalMatrix;
     }
 
@@ -222,9 +220,6 @@ export class Transform implements Icomponent {
 
     update(frameState: IframeState): void {}
 
-
-
-
     //-------易用性拓展
     /**
      * 获取世界坐标系下当前z轴的朝向
@@ -242,40 +237,37 @@ export class Transform implements Icomponent {
         Vec3.normalize(out, out);
     }
 
-    moveInWorld(dir:Vec3,amount:number)
-    {
-        let dirInLocal=Vec3.create();
-        Mat4.transformVector3(dir,this.worldTolocalMatrix,dirInLocal);
-        Vec3.AddscaledVec(this.localPosition,dirInLocal,amount,this.localPosition);
+    moveInWorld(dir: Vec3, amount: number) {
+        let dirInLocal = Vec3.create();
+        Mat4.transformVector3(dir, this.worldTolocalMatrix, dirInLocal);
+        Vec3.AddscaledVec(this.localPosition, dirInLocal, amount, this.localPosition);
         this.markDirty();
         return this;
     }
-    moveInlocal(dir:Vec3,amount:number)
-    {
-        Vec3.AddscaledVec(this.localPosition,dir,amount,this.localPosition);
+    moveInlocal(dir: Vec3, amount: number) {
+        Vec3.AddscaledVec(this.localPosition, dir, amount, this.localPosition);
         this.markDirty();
         return this;
     }
 
-    lookAtPoint(pos:Vec3,up?:Vec3)
-    {
-        let dirz=Vec3.subtract(this.worldPosition,pos);
-        let dirx= Vec3.cross(up||Vec3.UP,dirz);
-        let diry=Vec3.cross(dirz,dirx);
-        let quat= Quat.fromUnitXYZ(dirx,diry,dirz);
+    lookAtPoint(pos: Vec3, up?: Vec3) {
+        let dirz = Vec3.subtract(this.worldPosition, pos);
+        Vec3.normalize(dirz, dirz);
+        let dirx = Vec3.cross(up || Vec3.UP, dirz);
+        let diry = Vec3.cross(dirz, dirx);
+        let quat = Quat.fromUnitXYZ(dirx, diry, dirz);
         this.setworldRotation(quat);
+        Vec3.recycle(dirz);
+        Vec3.recycle(dirx);
+        Vec3.recycle(diry);
     }
 
-    lookAt(tran:Transform,up?:Vec3)
-    {
-        this.lookAtPoint(tran.worldPosition,up);
+    lookAt(tran: Transform, up?: Vec3) {
+        this.lookAtPoint(tran.worldPosition, up);
     }
 
     dispose(): void {
         this.parent = null;
         this.children = null;
     }
-
-
-
 }

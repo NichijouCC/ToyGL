@@ -4,20 +4,20 @@ import { Color } from "../../mathD/color";
 
 export class DefShader {
     private static defShader: { [type: string]: Shader } = {};
-    static fromType(type: "color"|"base"|"baseTex"|"alphaTex"): Shader {
+    static fromType(type: "color" | "base" | "baseTex" | "alphaTex"): Shader {
         if (this.defShader[type] == null) {
             switch (type) {
                 case "color":
-                    this.defShader[type] =this.createColorShader();
+                    this.defShader[type] = this.createColorShader();
                     break;
                 case "base":
-                    this.defShader[type] =this.createBaseShder();
+                    this.defShader[type] = this.createBaseShder();
                     break;
                 case "baseTex":
-                    this.defShader[type]=this.createBaseTexShder();
+                    this.defShader[type] = this.createBaseTexShder();
                     break;
                 case "alphaTex":
-                    this.defShader[type]=this.createAlphaTestShder();
+                    this.defShader[type] = this.createAlphaTestShder();
                     break;
                 default:
                     console.warn("Unkowned default shader type:", type);
@@ -27,10 +27,9 @@ export class DefShader {
         return this.defShader[type];
     }
 
-    private static createColorShader()
-    {
+    private static createColorShader() {
         let colorVs =
-        "\
+            "\
           attribute vec3 POSITION;\
           void main()\
           {\
@@ -58,14 +57,13 @@ export class DefShader {
                     },
                 },
             ],
-            name:"def_color"
+            name: "def_color",
         });
     }
 
-    private static createBaseShder()
-    {
+    private static createBaseShder() {
         let baseVs =
-        "\
+            "\
           attribute vec3 POSITION;\
           uniform highp mat4 u_mat_mvp;\
           void main()\
@@ -93,14 +91,13 @@ export class DefShader {
                     },
                 },
             ],
-            name:"def_base"
+            name: "def_base",
         });
     }
 
-    private static createBaseTexShder()
-    {
+    private static createBaseTexShder() {
         let baseVs =
-        "\
+            "\
           attribute vec3 POSITION;\
           attribute vec3 TEXCOORD_0;\
           uniform highp mat4 u_mat_mvp;\
@@ -133,13 +130,12 @@ export class DefShader {
                     },
                 },
             ],
-            name:"def_baseTex"
+            name: "def_baseTex",
         });
     }
-    private static createAlphaTestShder()
-    {
+    private static createAlphaTestShder() {
         let baseVs =
-        "\
+            "\
           attribute vec3 POSITION;\
           attribute vec2 TEXCOORD_0;\
           uniform highp mat4 u_mat_mvp;\
@@ -178,10 +174,10 @@ export class DefShader {
                     },
                 },
             ],
-            mapUniformDef:{
-                "_AlphaCut":0.5
+            mapUniformDef: {
+                _AlphaCut: 0.5,
             },
-            name:"def_alphaTex"
+            name: "def_alphaTex",
         });
     }
 }

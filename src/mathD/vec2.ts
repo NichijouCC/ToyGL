@@ -62,7 +62,7 @@ export class Vec2 extends Float32Array {
      * @param a the source vector
      * @returns out
      */
-    public static copy(a: Vec2 | number[], out: Vec2): Vec2 {
+    public static copy(a: Vec2 | number[], out: Vec2 = Vec2.create()): Vec2 {
         out[0] = a[0];
         out[1] = a[1];
         return out;
@@ -76,7 +76,7 @@ export class Vec2 extends Float32Array {
      * @param b the second operand
      * @returns out
      */
-    public static add(a: Vec2, b: Vec2, out: Vec2): Vec2 {
+    public static add(a: Vec2, b: Vec2, out: Vec2 = Vec2.create()): Vec2 {
         out[0] = a[0] + b[0];
         out[1] = a[1] + b[1];
         return out;
@@ -90,7 +90,7 @@ export class Vec2 extends Float32Array {
      * @param b the second operand
      * @returns out
      */
-    public static subtract(a: Vec2, b: Vec2, out: Vec2): Vec2 {
+    public static subtract(a: Vec2, b: Vec2, out: Vec2 = Vec2.create()): Vec2 {
         out[0] = a[0] - b[0];
         out[1] = a[1] - b[1];
         return out;
@@ -104,7 +104,7 @@ export class Vec2 extends Float32Array {
      * @param b the second operand
      * @returns out
      */
-    public static multiply(a: Vec2, b: Vec2, out: Vec2): Vec2 {
+    public static multiply(a: Vec2, b: Vec2, out: Vec2 = Vec2.create()): Vec2 {
         out[0] = a[0] * b[0];
         out[1] = a[1] * b[1];
         return out;
@@ -118,7 +118,7 @@ export class Vec2 extends Float32Array {
      * @param b the second operand
      * @returns out
      */
-    //public static mul(a: vec2, b: vec2,out: vec2): vec2 { return; }
+    //public static mul(a: vec2, b: vec2,out: Vec2 = Vec2.create()): vec2 { return; }
 
     /**
      * Divides two vec2's
@@ -128,7 +128,7 @@ export class Vec2 extends Float32Array {
      * @param b the second operand
      * @returns out
      */
-    public static divide(a: Vec2, b: Vec2, out: Vec2): Vec2 {
+    public static divide(a: Vec2, b: Vec2, out: Vec2 = Vec2.create()): Vec2 {
         out[0] = a[0] / b[0];
         out[1] = a[1] / b[1];
         return out;
@@ -142,7 +142,7 @@ export class Vec2 extends Float32Array {
      * @param b the second operand
      * @returns out
      */
-    //public static div(a: vec2, b: vec2,out: vec2): vec2 { return; }
+    //public static div(a: vec2, b: vec2,out: Vec2 = Vec2.create()): vec2 { return; }
 
     /**
      * Math.ceil the components of a vec2
@@ -151,7 +151,7 @@ export class Vec2 extends Float32Array {
      * @param {Vec2} a vector to ceil
      * @returns {Vec2} out
      */
-    public static ceil(a: Vec2, out: Vec2): Vec2 {
+    public static ceil(a: Vec2, out: Vec2 = Vec2.create()): Vec2 {
         out[0] = Math.ceil(a[0]);
         out[1] = Math.ceil(a[1]);
         return out;
@@ -164,7 +164,7 @@ export class Vec2 extends Float32Array {
      * @param {Vec2} a vector to floor
      * @returns {Vec2} out
      */
-    public static floor(a: Vec2, out: Vec2): Vec2 {
+    public static floor(a: Vec2, out: Vec2 = Vec2.create()): Vec2 {
         out[0] = Math.floor(a[0]);
         out[1] = Math.floor(a[1]);
         return out;
@@ -178,7 +178,7 @@ export class Vec2 extends Float32Array {
      * @param b the second operand
      * @returns out
      */
-    public static min(a: Vec2, b: Vec2, out: Vec2): Vec2 {
+    public static min(a: Vec2, b: Vec2, out: Vec2 = Vec2.create()): Vec2 {
         out[0] = Math.min(a[0], b[0]);
         out[1] = Math.min(a[1], b[1]);
         return out;
@@ -192,7 +192,7 @@ export class Vec2 extends Float32Array {
      * @param b the second operand
      * @returns out
      */
-    public static max(a: Vec2, b: Vec2, out: Vec2): Vec2 {
+    public static max(a: Vec2, b: Vec2, out: Vec2 = Vec2.create()): Vec2 {
         out[0] = Math.max(a[0], b[0]);
         out[1] = Math.max(a[1], b[1]);
         return out;
@@ -205,7 +205,7 @@ export class Vec2 extends Float32Array {
      * @param {Vec2} a vector to round
      * @returns {Vec2} out
      */
-    public static round(a: Vec2, out: Vec2): Vec2 {
+    public static round(a: Vec2, out: Vec2 = Vec2.create()): Vec2 {
         out[0] = Math.round(a[0]);
         out[1] = Math.round(a[1]);
         return out;
@@ -219,13 +219,13 @@ export class Vec2 extends Float32Array {
      * @param b amount to scale the vector by
      * @returns out
      */
-    public static scale(a: Vec2, b: number, out: Vec2): Vec2 {
+    public static scale(a: Vec2, b: number, out: Vec2 = Vec2.create()): Vec2 {
         out[0] = a[0] * b;
         out[1] = a[1] * b;
         return out;
     }
 
-    public static scaleByVec2(a: Vec2, b: Vec2, out: Vec2): Vec2 {
+    public static scaleByVec2(a: Vec2, b: Vec2, out: Vec2 = Vec2.create()): Vec2 {
         out[0] = a[0] * b[0];
         out[1] = a[1] * b[1];
         return out;
@@ -239,7 +239,7 @@ export class Vec2 extends Float32Array {
      * @param scale the amount to scale b by before adding
      * @returns out
      */
-    public static scaleAndAdd(a: Vec2, b: Vec2, scale: number, out: Vec2): Vec2 {
+    public static scaleAndAdd(a: Vec2, b: Vec2, scale: number, out: Vec2 = Vec2.create()): Vec2 {
         out[0] = a[0] + b[0] * scale;
         out[1] = a[1] + b[1] * scale;
         return out;
@@ -336,7 +336,7 @@ export class Vec2 extends Float32Array {
      * @param a vector to negate
      * @returns out
      */
-    public static negate(a: Vec2, out: Vec2): Vec2 {
+    public static negate(a: Vec2, out: Vec2 = Vec2.create()): Vec2 {
         out[0] = -a[0];
         out[1] = -a[1];
         return out;
@@ -349,7 +349,7 @@ export class Vec2 extends Float32Array {
      * @param a vector to invert
      * @returns out
      */
-    public static inverse(a: Vec2, out: Vec2): Vec2 {
+    public static inverse(a: Vec2, out: Vec2 = Vec2.create()): Vec2 {
         out[0] = 1.0 / a[0];
         out[1] = 1.0 / a[1];
         return out;
@@ -362,7 +362,7 @@ export class Vec2 extends Float32Array {
      * @param a vector to normalize
      * @returns out
      */
-    public static normalize(a: Vec2, out: Vec2): Vec2 {
+    public static normalize(a: Vec2, out: Vec2 = Vec2.create()): Vec2 {
         let x = a[0],
             y = a[1];
         let len = x * x + y * y;
@@ -411,7 +411,7 @@ export class Vec2 extends Float32Array {
      * @param lerp interpolation amount between the two inputs
      * @returns out
      */
-    public static lerp(from: Vec2, to: Vec2, lerp: number, out: Vec2): Vec2 {
+    public static lerp(from: Vec2, to: Vec2, lerp: number, out: Vec2 = Vec2.create()): Vec2 {
         let ax = from[0],
             ay = from[1];
         out[0] = ax + lerp * (to[0] - ax);
@@ -426,7 +426,7 @@ export class Vec2 extends Float32Array {
      * @param scale Length of the resulting vector. If ommitted, a unit vector will be returned
      * @returns out
      */
-    public static random(scale: number = 1, out: Vec2): Vec2 {
+    public static random(scale: number = 1, out: Vec2 = Vec2.create()): Vec2 {
         scale = scale || 1.0;
         let r = Math.random() * 2.0 * Math.PI;
         out[0] = Math.cos(r) * scale;
@@ -442,7 +442,7 @@ export class Vec2 extends Float32Array {
     //  * @param m matrix to transform with
     //  * @returns out
     //  */
-    // public static transformMat2(out: vec2, a: vec2, m: mat2): vec2 {
+    // public static transformMat2(out: Vec2 = Vec2.create(), a: vec2, m: mat2): vec2 {
     //     let x = a[0],
     //     y = a[1];
     //     out[0] = m[0] * x + m[2] * y;
@@ -458,7 +458,7 @@ export class Vec2 extends Float32Array {
      * @param m matrix to transform with
      * @returns out
      */
-    public static transformMat2d(a: Vec2, m: Mat2d, out: Vec2): Vec2 {
+    public static transformMat2d(a: Vec2, m: Mat2d, out: Vec2 = Vec2.create()): Vec2 {
         let x = a[0],
             y = a[1];
         out[0] = m[0] * x + m[2] * y + m[4];
@@ -475,7 +475,7 @@ export class Vec2 extends Float32Array {
     //  * @param m matrix to transform with
     //  * @returns out
     //  */
-    // public static transformMat3(out: vec2, a: vec2, m: mat3): vec2 {
+    // public static transformMat3(out: Vec2 = Vec2.create(), a: vec2, m: mat3): vec2 {
     //     let x = a[0],
     //     y = a[1];
     //     out[0] = m[0] * x + m[3] * y + m[6];
@@ -493,7 +493,7 @@ export class Vec2 extends Float32Array {
      * @param m matrix to transform with
      * @returns out
      */
-    public static transformMat4(a: Vec2, m: Mat4, out: Vec2): Vec2 {
+    public static transformMat4(a: Vec2, m: Mat4, out: Vec2 = Vec2.create()): Vec2 {
         let x = a[0];
         let y = a[1];
         out[0] = m[0] * x + m[4] * y + m[12];

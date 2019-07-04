@@ -39,7 +39,7 @@ export {
     ItexImageDataOption,
     ItexViewDataOption,
     IarrayInfo,
-    ItextureDesInfo
+    ItextureDesInfo,
 };
 
 // export interface IshaderOptions extends IprogramOptions {
@@ -52,11 +52,11 @@ export {
 
 export class GlRender {
     private static context: WebGLRenderingContext;
-    private static canvas:HTMLCanvasElement;
+    private static canvas: HTMLCanvasElement;
     static autoUniform: AutoUniform;
     static init(canvas: HTMLCanvasElement, options: IcontextOptions = {}) {
         this.context = setUpWebgl(canvas, options);
-        this.canvas=canvas;
+        this.canvas = canvas;
     }
 
     //---------------------capacities
@@ -99,16 +99,27 @@ export class GlRender {
     }
 
     static createProgram(op: IprogramOptions): IprogramInfo {
+        op.states = op.states || {};
         let info = createProgramInfo(this.context, op);
         // info.layer = op.layer || RenderLayerEnum.Geometry;
         return info;
     }
 
     static createTextureFromImg(img: TexImageSource, texop?: ItextureDesInfo): ItextureInfo {
-        return createTextureFromImageSource(this.context,{...texop,img:img});
+        return createTextureFromImageSource(this.context, { ...texop, img: img });
     }
-    static createTextureFromViewData(viewData: ArrayBufferView,width:number,height:number ,texop?: ItextureDesInfo) {
-        return createTextureFromTypedArray(this.context,{...texop,viewData:viewData,width:width,height:height});
+    static createTextureFromViewData(
+        viewData: ArrayBufferView,
+        width: number,
+        height: number,
+        texop?: ItextureDesInfo,
+    ) {
+        return createTextureFromTypedArray(this.context, {
+            ...texop,
+            viewData: viewData,
+            width: width,
+            height: height,
+        });
     }
 
     static setGeometryAndProgram(geometry: IgeometryInfo, program: IprogramInfo) {
@@ -146,40 +157,30 @@ export class GlRender {
     }
 }
 
-
-export class GlTextrue{
-    private static _white:ItextureInfo;
-    static get WHITE():ItextureInfo
-    {
-        if(this._white==null)
-        {
-            this._white= GlRender.createTextureFromViewData(new Uint8Array([255,255,255,255]),1,1);
+export class GlTextrue {
+    private static _white: ItextureInfo;
+    static get WHITE(): ItextureInfo {
+        if (this._white == null) {
+            this._white = GlRender.createTextureFromViewData(new Uint8Array([255, 255, 255, 255]), 1, 1);
         }
         return this._white;
     }
-    private static _grid:ItextureInfo;
-    static get GIRD():ItextureInfo
-    {
-        if(this._grid==null)
-        {
+    private static _grid: ItextureInfo;
+    static get GIRD(): ItextureInfo {
+        if (this._grid == null) {
             let width = 256;
             let height = 256;
             let data = new Uint8Array(width * width * 4);
-            for (let y = 0; y < height; y++)
-            {
-                for (let x = 0; x < width; x++)
-                {
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
                     let seek = (y * width + x) * 4;
 
-                    if (((x - width * 0.5) * (y - height * 0.5)) > 0)
-                    {
+                    if ((x - width * 0.5) * (y - height * 0.5) > 0) {
                         data[seek] = 0;
                         data[seek + 1] = 0;
                         data[seek + 2] = 0;
                         data[seek + 3] = 255;
-                    }
-                    else
-                    {
+                    } else {
                         data[seek] = 255;
                         data[seek + 1] = 0;
                         data[seek + 2] = 0;
@@ -187,10 +188,8 @@ export class GlTextrue{
                     }
                 }
             }
-            this._grid= GlRender.createTextureFromViewData(data,width,height);
+            this._grid = GlRender.createTextureFromViewData(data, width, height);
         }
         return this._grid;
     }
-
 }
-

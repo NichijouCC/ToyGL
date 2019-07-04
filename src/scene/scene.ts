@@ -1,4 +1,4 @@
-import { Camera } from './../ec/components/camera';
+import { Camera } from "./../ec/components/camera";
 import { Entity } from "../ec/entity";
 import { Transform } from "../ec/transform";
 import { FrameState, IframeState } from "./frameState";
@@ -21,9 +21,8 @@ export class Scene {
         this.root.addChild(entity.transform);
     }
 
-    addCamera():Camera
-    {
-       let entity= this.newEntity("camer",["Camera"]);
+    addCamera(): Camera {
+        let entity = this.newEntity("camer", ["Camera"]);
         return entity.getCompByName("Camera") as Camera;
     }
 
@@ -33,11 +32,10 @@ export class Scene {
         }
     }
 
-    preUpdate:(deltatime: number)=>void;
+    preUpdate: (deltatime: number) => void;
 
     update(deltatime: number) {
-        if(this.preUpdate)
-        {
+        if (this.preUpdate) {
             this.preUpdate(deltatime);
         }
         this.frameState.reInit();

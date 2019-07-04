@@ -1031,13 +1031,13 @@
     }
     function setProgramStatesWithCached(gl, state) {
         //---------------------------cullface
-        setCullFaceStateWithCached(gl, state.enableCullFace != false, state.cullBack != false);
+        setCullFaceStateWithCached(gl, state.enableCullFace, state.cullBack);
         //----------------depth
-        setDepthStateWithCached(gl, state.depthWrite != false, state.depthTest != false);
+        setDepthStateWithCached(gl, state.depthWrite, state.depthTest);
         //------------------------blend
-        setBlendStateWithCached(gl, state.enableBlend == true, state.blendEquation || gl.FUNC_ADD, state.blendSrc || gl.SRC_ALPHA, state.blendDst || gl.ONE_MINUS_SRC_ALPHA);
+        setBlendStateWithCached(gl, state.enableBlend, state.blendEquation, state.blendSrc, state.blendDst);
         //-------------------------stencil
-        setStencilStateWithCached(gl, state.enableStencilTest == true, state.stencilFunc || gl.ALWAYS, state.stencilRefValue || 1, state.stencilMask || 0xff, state.stencilFail || gl.KEEP, state.stencilPassZfail || gl.REPLACE, state.stencilFaileZpass || gl.KEEP);
+        setStencilStateWithCached(gl, state.enableStencilTest, state.stencilFunc, state.stencilRefValue, state.stencilMask, state.stencilFail, state.stencilPassZfail, state.stencilFaileZpass);
     }
     // /**
     //  *
@@ -2198,6 +2198,7 @@
             return info;
         }
         static createProgram(op) {
+            op.states = op.states || {};
             let info = createProgramInfo(this.context, op);
             // info.layer = op.layer || RenderLayerEnum.Geometry;
             return info;
@@ -2251,7 +2252,7 @@
                 for (let y = 0; y < height; y++) {
                     for (let x = 0; x < width; x++) {
                         let seek = (y * width + x) * 4;
-                        if (((x - width * 0.5) * (y - height * 0.5)) > 0) {
+                        if ((x - width * 0.5) * (y - height * 0.5) > 0) {
                             data[seek] = 0;
                             data[seek + 1] = 0;
                             data[seek + 2] = 0;
@@ -2402,7 +2403,7 @@
          * @param src the source vector
          * @returns out
          */
-        static copy(from, out) {
+        static copy(from, out = Vec3.create()) {
             out[0] = from[0];
             out[1] = from[1];
             out[2] = from[2];
@@ -2416,7 +2417,7 @@
          * @param rhs the second operand
          * @returns out
          */
-        static add(lhs, rhs, out) {
+        static add(lhs, rhs, out = Vec3.create()) {
             out[0] = lhs[0] + rhs[0];
             out[1] = lhs[1] + rhs[1];
             out[2] = lhs[2] + rhs[2];
@@ -2447,13 +2448,13 @@
          * @param b the second operand
          * @returns out
          */
-        static multiply(a, b, out) {
+        static multiply(a, b, out = Vec3.create()) {
             out[0] = a[0] * b[0];
             out[1] = a[1] * b[1];
             out[2] = a[2] * b[2];
             return out;
         }
-        static center(a, b, out) {
+        static center(a, b, out = Vec3.create()) {
             this.add(a, b, out);
             this.scale(out, 0.5, out);
             return out;
@@ -2466,7 +2467,7 @@
          * @param b the second operand
          * @returns out
          */
-        static divide(a, b, out) {
+        static divide(a, b, out = Vec3.create()) {
             out[0] = a[0] / b[0];
             out[1] = a[1] / b[1];
             out[2] = a[2] / b[2];
@@ -2479,7 +2480,7 @@
          * @param {Vec3} a vector to ceil
          * @returns {Vec3} out
          */
-        static ceil(out, a) {
+        static ceil(out = Vec3.create(), a) {
             out[0] = Math.ceil(a[0]);
             out[1] = Math.ceil(a[1]);
             out[2] = Math.ceil(a[2]);
@@ -2492,7 +2493,7 @@
          * @param {Vec3} a vector to floor
          * @returns {Vec3} out
          */
-        static floor(out, a) {
+        static floor(out = Vec3.create(), a) {
             out[0] = Math.floor(a[0]);
             out[1] = Math.floor(a[1]);
             out[2] = Math.floor(a[2]);
@@ -2506,7 +2507,7 @@
          * @param b the second operand
          * @returns out
          */
-        static min(a, b, out) {
+        static min(a, b, out = Vec3.create()) {
             out[0] = Math.min(a[0], b[0]);
             out[1] = Math.min(a[1], b[1]);
             out[2] = Math.min(a[2], b[2]);
@@ -2520,7 +2521,7 @@
          * @param b the second operand
          * @returns out
          */
-        static max(out, a, b) {
+        static max(out = Vec3.create(), a, b) {
             out[0] = Math.max(a[0], b[0]);
             out[1] = Math.max(a[1], b[1]);
             out[2] = Math.max(a[2], b[2]);
@@ -2533,7 +2534,7 @@
          * @param {Vec3} a vector to round
          * @returns {Vec3} out
          */
-        static round(out, a) {
+        static round(out = Vec3.create(), a) {
             out[0] = Math.round(a[0]);
             out[1] = Math.round(a[1]);
             out[2] = Math.round(a[2]);
@@ -2547,7 +2548,7 @@
          * @param b amount to scale the vector by
          * @returns out
          */
-        static scale(a, b, out) {
+        static scale(a, b, out = Vec3.create()) {
             out[0] = a[0] * b;
             out[1] = a[1] * b;
             out[2] = a[2] * b;
@@ -2562,7 +2563,7 @@
          * @param scale the amount to scale b by before adding
          * @returns out
          */
-        static AddscaledVec(lhs, rhs, scale, out) {
+        static AddscaledVec(lhs, rhs, scale, out = Vec3.create()) {
             out[0] = lhs[0] + rhs[0] * scale;
             out[1] = lhs[1] + rhs[1] * scale;
             out[2] = lhs[2] + rhs[2] * scale;
@@ -2625,7 +2626,7 @@
          * @param a vector to negate
          * @returns out
          */
-        static negate(a, out) {
+        static negate(a, out = Vec3.create()) {
             out[0] = -a[0];
             out[1] = -a[1];
             out[2] = -a[2];
@@ -2638,7 +2639,7 @@
          * @param a vector to invert
          * @returns out
          */
-        static inverse(a, out) {
+        static inverse(a, out = Vec3.create()) {
             out[0] = 1.0 / a[0];
             out[1] = 1.0 / a[1];
             out[2] = 1.0 / a[2];
@@ -2651,7 +2652,7 @@
          * @param src vector to normalize
          * @returns out
          */
-        static normalize(src, out) {
+        static normalize(src, out = Vec3.create()) {
             let x = src[0];
             let y = src[1];
             let z = src[2];
@@ -2700,7 +2701,7 @@
          * @param lerp interpolation amount between the two inputs
          * @returns out
          */
-        static lerp(lhs, rhs, lerp$$1, out) {
+        static lerp(lhs, rhs, lerp$$1, out = Vec3.create()) {
             let ax = lhs[0];
             let ay = lhs[1];
             let az = lhs[2];
@@ -2720,7 +2721,7 @@
          * @param {number} t interpolation amount between the two inputs
          * @returns {Vec3} out
          */
-        static hermite(out, a, b, c, d, t) {
+        static hermite(a, b, c, d, t, out = Vec3.create()) {
             let factorTimes2 = t * t;
             let factor1 = factorTimes2 * (2 * t - 3) + 1;
             let factor2 = factorTimes2 * (t - 2) + t;
@@ -2742,7 +2743,7 @@
          * @param {number} t interpolation amount between the two inputs
          * @returns {Vec3} out
          */
-        static bezier(out, a, b, c, d, t) {
+        static bezier(a, b, c, d, t, out = Vec3.create()) {
             let inverseFactor = 1 - t;
             let inverseFactorTimesTwo = inverseFactor * inverseFactor;
             let factorTimes2 = t * t;
@@ -2762,7 +2763,7 @@
          * @param [scale] Length of the resulting vector. If omitted, a unit vector will be returned
          * @returns out
          */
-        static random(out, scale = 1) {
+        static random(scale = 1, out = Vec3.create()) {
             scale = scale || 1.0;
             let r = Math.random() * 2.0 * Math.PI;
             let z = Math.random() * 2.0 - 1.0;
@@ -2780,7 +2781,7 @@
         //  * @param m the 3x3 matrix to transform with
         //  * @returns out
         //  */
-        // public static transformMat3(out: vec3, a: vec3, m: mat3): vec3{
+        // public static transformMat3(out: Vec3 = Vec3.create(), a: vec3, m: mat3): vec3{
         //     let x = a[0],
         //     y = a[1],
         //     z = a[2];
@@ -2799,7 +2800,7 @@
         //  * @param m matrix to transform with
         //  * @returns out
         //  */
-        // public static transformMat4(out: vec3, a: vec3, m: mat4): vec3{
+        // public static transformMat4(out: Vec3 = Vec3.create(), a: vec3, m: mat4): vec3{
         //     let x = a[0],
         //         y = a[1],
         //         z = a[2];
@@ -2818,7 +2819,7 @@
          * @param q Quaternion to transform with
          * @returns out
          */
-        static transformQuat(out, a, q) {
+        static transformQuat(a, q, out = Vec3.create()) {
             // benchmarks: http://jsperf.com/Quaternion-transform-vec3-implementations
             let x = a[0], y = a[1], z = a[2];
             let qx = q[0], qy = q[1], qz = q[2], qw = q[3];
@@ -2841,7 +2842,7 @@
          * @param c The angle of rotation
          * @returns out
          */
-        static rotateX(out, a, b, c) {
+        static rotateX(a, b, c, out = Vec3.create()) {
             let p = [], r = [];
             //Translate point to the origin
             p[0] = a[0] - b[0];
@@ -2865,7 +2866,7 @@
          * @param c The angle of rotation
          * @returns out
          */
-        static rotateY(out, a, b, c) {
+        static rotateY(a, b, c, out = Vec3.create()) {
             let p = [], r = [];
             //Translate point to the origin
             p[0] = a[0] - b[0];
@@ -2889,7 +2890,7 @@
          * @param c The angle of rotation
          * @returns out
          */
-        static rotateZ(out, a, b, c) {
+        static rotateZ(a, b, c, out = Vec3.create()) {
             let p = [], r = [];
             //Translate point to the origin
             p[0] = a[0] - b[0];
@@ -3079,7 +3080,7 @@
          * @param src the source matrix
          * @returns out
          */
-        static copy(src, out) {
+        static copy(src, out = Mat4.create()) {
             out[0] = src[0];
             out[1] = src[1];
             out[2] = src[2];
@@ -3104,7 +3105,7 @@
          * @param out the receiving matrix
          * @returns out
          */
-        static identity(out) {
+        static identity(out = Mat4.create()) {
             out[0] = 1;
             out[1] = 0;
             out[2] = 0;
@@ -3130,7 +3131,7 @@
          * @param a the source matrix
          * @returns out
          */
-        static transpose(a, out) {
+        static transpose(a, out = Mat4.create()) {
             // If we are transposing ourselves we can skip a few steps but have to cache some values
             if (out === a) {
                 let a01 = a[1], a02 = a[2], a03 = a[3];
@@ -3176,7 +3177,7 @@
          * @param a the source matrix
          * @returns out
          */
-        static invert(a, out) {
+        static invert(a, out = Mat4.create()) {
             let a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3];
             let a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7];
             let a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11];
@@ -3224,7 +3225,7 @@
          * @param a the source matrix
          * @returns out
          */
-        static adjoint(a, out) {
+        static adjoint(a, out = Mat4.create()) {
             let a00 = a[0], a01 = a[1], a02 = a[2], a03 = a[3];
             let a10 = a[4], a11 = a[5], a12 = a[6], a13 = a[7];
             let a20 = a[8], a21 = a[9], a22 = a[10], a23 = a[11];
@@ -3281,7 +3282,7 @@
          * @param rhs the second operand
          * @returns out
          */
-        static multiply(lhs, rhs, out) {
+        static multiply(lhs, rhs, out = Mat4.create()) {
             let a00 = lhs[0], a01 = lhs[1], a02 = lhs[2], a03 = lhs[3];
             let a10 = lhs[4], a11 = lhs[5], a12 = lhs[6], a13 = lhs[7];
             let a20 = lhs[8], a21 = lhs[9], a22 = lhs[10], a23 = lhs[11];
@@ -3326,7 +3327,7 @@
          * @param v vector to translate by
          * @returns out
          */
-        static translate(a, v, out) {
+        static translate(a, v, out = Mat4.create()) {
             let x = v[0], y = v[1], z = v[2];
             let a00 = void 0, a01 = void 0, a02 = void 0, a03 = void 0;
             let a10 = void 0, a11 = void 0, a12 = void 0, a13 = void 0;
@@ -3377,7 +3378,7 @@
          * @param v the Vec3 to scale the matrix by
          * @returns out
          **/
-        static scale(a, v, out) {
+        static scale(a, v, out = Mat4.create()) {
             let x = v[0], y = v[1], z = v[2];
             out[0] = a[0] * x;
             out[1] = a[1] * x;
@@ -3406,7 +3407,7 @@
          * @param axis the axis to rotate around
          * @returns out
          */
-        static rotate(a, rad, axis, out) {
+        static rotate(a, rad, axis, out = Mat4.create()) {
             let x = axis[0], y = axis[1], z = axis[2];
             let len = Math.sqrt(x * x + y * y + z * z);
             let s = void 0, c = void 0, t = void 0;
@@ -3478,7 +3479,7 @@
          * @param rad the angle to rotate the matrix by
          * @returns out
          */
-        static rotateX(a, rad, out) {
+        static rotateX(a, rad, out = Mat4.create()) {
             let s = Math.sin(rad);
             let c = Math.cos(rad);
             let a10 = a[4];
@@ -3519,7 +3520,7 @@
          * @param rad the angle to rotate the matrix by
          * @returns out
          */
-        static rotateY(a, rad, out) {
+        static rotateY(a, rad, out = Mat4.create()) {
             let s = Math.sin(rad);
             let c = Math.cos(rad);
             let a00 = a[0];
@@ -3560,7 +3561,7 @@
          * @param rad the angle to rotate the matrix by
          * @returns out
          */
-        static rotateZ(a, rad, out) {
+        static rotateZ(a, rad, out = Mat4.create()) {
             let s = Math.sin(rad);
             let c = Math.cos(rad);
             let a00 = a[0];
@@ -3604,7 +3605,7 @@
          * @param {Vec3} v Translation vector
          * @returns {Mat4} out
          */
-        static fromTranslation(v, out) {
+        static fromTranslation(v, out = Mat4.create()) {
             out[0] = 1;
             out[1] = 0;
             out[2] = 0;
@@ -3634,7 +3635,7 @@
          * @param {Vec3} v Scaling vector
          * @returns {Mat4} out
          */
-        static fromScaling(v, out) {
+        static fromScaling(v, out = Mat4.create()) {
             out[0] = v[0];
             out[1] = 0;
             out[2] = 0;
@@ -3665,7 +3666,7 @@
          * @param {Vec3} axis the axis to rotate around
          * @returns {Mat4} out
          */
-        static fromRotation(rad, axis, out) {
+        static fromRotation(rad, axis, out = Mat4.create()) {
             let x = axis[0], y = axis[1], z = axis[2];
             let len = Math.sqrt(x * x + y * y + z * z);
             let s = void 0, c = void 0, t = void 0;
@@ -3709,7 +3710,7 @@
          * @param {number} rad the angle to rotate the matrix by
          * @returns {Mat4} out
          */
-        static fromXRotation(rad, out) {
+        static fromXRotation(rad, out = Mat4.create()) {
             let s = Math.sin(rad);
             let c = Math.cos(rad);
             // Perform axis-specific matrix multiplication
@@ -3742,7 +3743,7 @@
          * @param {number} rad the angle to rotate the matrix by
          * @returns {Mat4} out
          */
-        static fromYRotation(rad, out) {
+        static fromYRotation(rad, out = Mat4.create()) {
             let s = Math.sin(rad);
             let c = Math.cos(rad);
             // Perform axis-specific matrix multiplication
@@ -3775,7 +3776,7 @@
          * @param {number} rad the angle to rotate the matrix by
          * @returns {Mat4} out
          */
-        static fromZRotation(rad, out) {
+        static fromZRotation(rad, out = Mat4.create()) {
             let s = Math.sin(rad);
             let c = Math.cos(rad);
             // Perform axis-specific matrix multiplication
@@ -3899,7 +3900,7 @@
          * @param {Vec3} o The origin vector around which to scale and rotate
          * @returns {Mat4} out
          */
-        static fromRotationTranslationScaleOrigin(q, v, s, o, out) {
+        static fromRotationTranslationScaleOrigin(q, v, s, o, out = Mat4.create()) {
             // Quaternion math
             let x = q[0], y = q[1], z = q[2], w = q[3];
             let x2 = x + x;
@@ -3946,7 +3947,7 @@
          *
          * @returns {Mat4} out
          */
-        static fromQuat(q, out) {
+        static fromQuat(q, out = Mat4.create()) {
             let x = q[0], y = q[1], z = q[2], w = q[3];
             let x2 = x + x;
             let y2 = y + y;
@@ -3990,7 +3991,7 @@
          * @param far Far bound of the frustum
          * @returns out
          */
-        static frustum(left, right, bottom, top, near, far, out) {
+        static frustum(left, right, bottom, top, near, far, out = Mat4.create()) {
             let rl = 1 / (right - left);
             let tb = 1 / (top - bottom);
             let nf = 1 / (near - far);
@@ -4021,7 +4022,7 @@
          * @param up Vec3 pointing up
          * @returns out
          */
-        static lookAt(eye, center, up, out) {
+        static lookAt(eye, center, up, out = Mat4.create()) {
             let x0 = void 0, x1 = void 0, x2 = void 0, y0 = void 0, y1 = void 0, y2 = void 0, z0 = void 0, z1 = void 0, z2 = void 0, len = void 0;
             let eyex = eye[0];
             let eyey = eye[1];
@@ -4203,7 +4204,7 @@
          * @param {Mat4} b the second operand
          * @returns {Mat4} out
          */
-        static add(a, b, out) {
+        static add(a, b, out = Mat4.create()) {
             out[0] = a[0] + b[0];
             out[1] = a[1] + b[1];
             out[2] = a[2] + b[2];
@@ -4230,7 +4231,7 @@
          * @param {Mat4} rhs the second operand
          * @returns {Mat4} out
          */
-        static subtract(lhs, rhs, out) {
+        static subtract(lhs, rhs, out = Mat4.create()) {
             out[0] = lhs[0] - rhs[0];
             out[1] = lhs[1] - rhs[1];
             out[2] = lhs[2] - rhs[2];
@@ -4257,7 +4258,7 @@
          * @param {Mat4} b the second operand
          * @returns {Mat4} out
          */
-        //public static sub(out: mat4, a: mat4, b: mat4): mat4;
+        //public static sub(out: Mat4=Mat4.create(), a: mat4, b: mat4): mat4;
         /**
          * Multiply each element of the matrix by a scalar.
          *
@@ -4266,7 +4267,7 @@
          * @param {number} b amount to scale the matrix's elements by
          * @returns {Mat4} out
          */
-        static multiplyScalar(a, b, out) {
+        static multiplyScalar(a, b, out = Mat4.create()) {
             out[0] = a[0] * b;
             out[1] = a[1] * b;
             out[2] = a[2] * b;
@@ -4294,7 +4295,7 @@
          * @param {number} scale the amount to scale b's elements by before adding
          * @returns {Mat4} out
          */
-        static multiplyScalarAndAdd(a, b, scale, out) {
+        static multiplyScalarAndAdd(a, b, scale, out = Mat4.create()) {
             out[0] = a[0] + b[0] * scale;
             out[1] = a[1] + b[1] * scale;
             out[2] = a[2] + b[2] * scale;
@@ -4417,7 +4418,7 @@
         //  * @param far Far bound of the frustum
         //  * @returns out
         //  */
-        static projectPerspectiveLH(fovy, aspect, near, far, out) {
+        static projectPerspectiveLH(fovy, aspect, near, far, out = Mat4.create()) {
             let f = 1.0 / Math.tan(fovy / 2);
             let nf = 1 / (near - far);
             out[0] = f / aspect;
@@ -4446,7 +4447,7 @@
          * @param zfar 远视点距离
          * @returns {Mat4} out
          */
-        // static project_PerspectiveLH(fov: number, aspect: number, znear: number, zfar: number, out: mat4)
+        // static project_PerspectiveLH(fov: number, aspect: number, znear: number, zfar: number, out: Mat4=Mat4.create())
         // {
         //     let tan = 1.0 / (Math.tan(fov * 0.5));
         //     let nf=zfar / (znear - zfar);
@@ -4471,7 +4472,7 @@
         //  * @param far Far bound of the frustum
         //  * @returns out
         //  */
-        // public static ortho(out: mat4, left: number, right: number,
+        // public static ortho(out: Mat4=Mat4.create(), left: number, right: number,
         //     bottom: number, top: number, near: number, far: number): mat4{
         //         let lr = 1 / (left - right);
         //         let bt = 1 / (bottom - top);
@@ -4494,7 +4495,7 @@
         //         out[15] = 1;
         //         return out;
         //       }
-        static projectOrthoLH(width, height, near, far, out) {
+        static projectOrthoLH(width, height, near, far, out = Mat4.create()) {
             let lr = -1 / width;
             let bt = -1 / height;
             let nf = 1 / (near - far);
@@ -4524,7 +4525,7 @@
          * @param zfar 远视点
          * @param out
          */
-        // static project_OrthoLH(width: number, height: number, znear: number, zfar: number, out: mat4)
+        // static project_OrthoLH(width: number, height: number, znear: number, zfar: number, out: Mat4=Mat4.create())
         // {
         //     let hw = 2.0 / width;
         //     let hh = 2.0 / height;
@@ -4552,7 +4553,7 @@
          * @param rot Rotation Quaternion
          * @param out
          */
-        static RTS(pos, scale, rot, out) {
+        static RTS(pos, scale, rot, out = Mat4.create()) {
             let x = rot[0], y = rot[1], z = rot[2], w = rot[3];
             let x2 = x + x;
             let y2 = y + y;
@@ -4602,7 +4603,7 @@
          * @param v Translation vector
          * @returns out
          */
-        static RT(q, v, out) {
+        static RT(q, v, out = Mat4.create()) {
             // Quaternion math
             let x = q[0], y = q[1], z = q[2], w = q[3];
             let x2 = x + x;
@@ -6100,7 +6101,7 @@
          * @returns out
          * @function
          */
-        static copy(a, out) {
+        static copy(a, out = Quat.create()) {
             out[0] = a[0];
             out[1] = a[1];
             out[2] = a[2];
@@ -6113,7 +6114,7 @@
          * @param out the receiving Quaternion
          * @returns out
          */
-        static identity(out) {
+        static identity(out = Quat.create()) {
             out[0] = 0;
             out[1] = 0;
             out[2] = 0;
@@ -6158,7 +6159,7 @@
          * @returns out
          * @function
          */
-        static add(a, b, out) {
+        static add(a, b, out = Quat.create()) {
             out[0] = a[0] + b[0];
             out[1] = a[1] + b[1];
             out[2] = a[2] + b[2];
@@ -6173,7 +6174,7 @@
          * @param b the second operand
          * @returns out
          */
-        static multiply(a, b, out) {
+        static multiply(a, b, out = Quat.create()) {
             let ax = a[0], ay = a[1], az = a[2], aw = a[3];
             let bx = b[0], by = b[1], bz = b[2], bw = b[3];
             out[0] = ax * bw + aw * bx + ay * bz - az * by;
@@ -6191,7 +6192,7 @@
          * @returns out
          * @function
          */
-        static scale(a, b, out) {
+        static scale(a, b, out = Quat.create()) {
             out[0] = a[0] * b;
             out[1] = a[1] * b;
             out[2] = a[2] * b;
@@ -6234,7 +6235,7 @@
          * @returns out
          * @function
          */
-        static normalize(src, out) {
+        static normalize(src, out = Quat.create()) {
             let x = src[0];
             let y = src[1];
             let z = src[2];
@@ -6270,7 +6271,7 @@
          * @returns out
          * @function
          */
-        static lerp(a, b, t, out) {
+        static lerp(a, b, t, out = Quat.create()) {
             let ax = a[0];
             let ay = a[1];
             let az = a[2];
@@ -6290,7 +6291,7 @@
          * @param t interpolation amount between the two inputs
          * @returns out
          */
-        static slerp(a, b, t, out) {
+        static slerp(a, b, t, out = Quat.create()) {
             // benchmarks:
             //    http://jsperf.com/Quaternion-slerp-implementations
             let ax = a[0], ay = a[1], az = a[2], aw = a[3];
@@ -6338,7 +6339,7 @@
          * @param {number} t interpolation amount
          * @returns {Quat} out
          */
-        static sqlerp(a, b, c, d, t, out) {
+        static sqlerp(a, b, c, d, t, out = Quat.create()) {
             let temp1 = Quat.create();
             let temp2 = Quat.create();
             Quat.slerp(a, d, t, temp1);
@@ -6353,7 +6354,7 @@
          * @param a Quat to calculate inverse of
          * @returns out
          */
-        static inverse(a, out) {
+        static inverse(a, out = Quat.create()) {
             let a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3];
             let dot = a0 * a0 + a1 * a1 + a2 * a2 + a3 * a3;
             let invDot = dot ? 1.0 / dot : 0;
@@ -6372,7 +6373,7 @@
          * @param a Quat to calculate conjugate of
          * @returns out
          */
-        static conjugate(out, a) {
+        static conjugate(a, out = Quat.create()) {
             out[0] = -a[0];
             out[1] = -a[1];
             out[2] = -a[2];
@@ -6396,7 +6397,7 @@
          * @param rad angle (in radians) to rotate
          * @returns out
          */
-        static rotateX(a, rad, out) {
+        static rotateX(a, rad, out = Quat.create()) {
             rad *= 0.5;
             let ax = a[0], ay = a[1], az = a[2], aw = a[3];
             let bx = Math.sin(rad), bw = Math.cos(rad);
@@ -6414,7 +6415,7 @@
          * @param rad angle (in radians) to rotate
          * @returns out
          */
-        static rotateY(a, rad, out) {
+        static rotateY(a, rad, out = Quat.create()) {
             rad *= 0.5;
             let ax = a[0], ay = a[1], az = a[2], aw = a[3];
             let by = Math.sin(rad), bw = Math.cos(rad);
@@ -6432,7 +6433,7 @@
          * @param rad angle (in radians) to rotate
          * @returns out
          */
-        static rotateZ(a, rad, out) {
+        static rotateZ(a, rad, out = Quat.create()) {
             rad *= 0.5;
             let ax = a[0], ay = a[1], az = a[2], aw = a[3];
             let bz = Math.sin(rad), bw = Math.cos(rad);
@@ -6453,7 +6454,7 @@
          * @returns out
          * @function
          */
-        static fromMat3(m, out) {
+        static fromMat3(m, out = Quat.create()) {
             // Algorithm in Ken Shoemake's article in 1987 SIGGRAPH course notes
             // article "Quaternion Calculus and Fast Animation".
             let fTrace = m[0] + m[4] + m[8];
@@ -6496,7 +6497,7 @@
          * @param up    the vector representing the local "up" direction
          * @returns out
          */
-        static setAxes(view, right, up, out) {
+        static setAxes(view, right, up, out = Quat.create()) {
             let matr = Mat3.create();
             matr[0] = right[0];
             matr[3] = right[1];
@@ -6520,7 +6521,7 @@
          * @param a Quat to calculate W component of
          * @returns out
          */
-        static calculateW(a, out) {
+        static calculateW(a, out = Quat.create()) {
             let x = a[0], y = a[1], z = a[2];
             out[0] = x;
             out[1] = y;
@@ -6582,7 +6583,7 @@
          * @returns {Quat} out
          * @function
          */
-        static FromEuler(x, y, z, out) {
+        static FromEuler(x, y, z, out = Quat.create()) {
             x *= (0.5 * Math.PI) / 180;
             y *= (0.5 * Math.PI) / 180;
             z *= (0.5 * Math.PI) / 180;
@@ -6616,7 +6617,7 @@
          * @param rad （弧度）the angle in radians
          * @returns out
          **/
-        static AxisAngle(axis, rad, out) {
+        static AxisAngle(axis, rad, out = Quat.create()) {
             rad = rad * 0.5;
             let s = Math.sin(rad);
             out[0] = s * axis[0];
@@ -6636,7 +6637,7 @@
          * @param to the destination vector
          * @returns out
          */
-        static rotationTo(from, to, out) {
+        static rotationTo(from, to, out = Quat.create()) {
             let tmpVec3 = Vec3.create();
             let xUnitVec3 = Vec3.RIGHT;
             let yUnitVec3 = Vec3.UP;
@@ -6665,7 +6666,7 @@
                 return Quat.normalize(out, out);
             }
         }
-        static myLookRotation(dir, out, up = Vec3.UP) {
+        static myLookRotation(dir, out = Quat.create(), up = Vec3.UP) {
             if (Vec3.exactEquals(dir, Vec3.ZERO)) {
                 console.log("Zero direction in MyLookRotation");
                 return Quat.norot;
@@ -6691,7 +6692,7 @@
         //  * @param out
         //  * @param up
         //  */
-        // static lookat(pos: Vec3, targetpos: Vec3, out: Quat,up:Vec3=Vec3.UP)
+        // static lookat(pos: Vec3, targetpos: Vec3, out: Quat = Quat.create(),up:Vec3=Vec3.UP)
         // {
         //     let baseDir=Vec3.BACKWARD;
         //     let dir = Vec3.create();
@@ -6805,7 +6806,7 @@
             }
             return out;
         }
-        static lookat(pos, targetpos, out, up = Vec3.UP) {
+        static lookat(pos, targetpos, out = Quat.create(), up = Vec3.UP) {
             // let baseDir=Vec3.BACKWARD;
             let dirz = Vec3.create();
             Vec3.subtract(pos, targetpos, dirz);
@@ -6842,7 +6843,7 @@
          * @param to
          * @param out
          */
-        static fromToRotation(from, to, out) {
+        static fromToRotation(from, to, out = Quat.create()) {
             let dir1 = Vec3.create();
             let dir2 = Vec3.create();
             Vec3.normalize(from, dir1);
@@ -6897,7 +6898,6 @@
             this._worldMatrix = Mat4.create();
             this._worldTolocalMatrix = Mat4.create();
         }
-        ;
         setlocalMatrix(value) {
             this._localMatrix = value;
             Mat4.decompose(this._localMatrix, this.localScale, this.localRotation, this.localPosition);
@@ -7099,10 +7099,14 @@
         }
         lookAtPoint(pos, up) {
             let dirz = Vec3.subtract(this.worldPosition, pos);
+            Vec3.normalize(dirz, dirz);
             let dirx = Vec3.cross(up || Vec3.UP, dirz);
             let diry = Vec3.cross(dirz, dirx);
             let quat = Quat.fromUnitXYZ(dirx, diry, dirz);
             this.setworldRotation(quat);
+            Vec3.recycle(dirz);
+            Vec3.recycle(dirx);
+            Vec3.recycle(diry);
         }
         lookAt(tran, up) {
             this.lookAtPoint(tran.worldPosition, up);
@@ -7142,7 +7146,7 @@
                 // program: this._material.program,
                 // uniforms: this._material.uniforms,
                 material: this._material,
-                modelMatrix: (this.entity.transform).worldMatrix,
+                modelMatrix: this.entity.transform.worldMatrix,
             };
             frameState.renderList.push(currentRender);
         }
@@ -7883,104 +7887,6 @@
     }
     //private static ExtendNameDic: { [name: string]: AssetExtralEnum } = {};
     AssetLoader.RESLoadDic = {};
-    class Resource {
-        static getAssetLoadInfo(url) {
-            if (this.loadMap[url]) {
-                return this.loadMap[url].loadinfo;
-            }
-            else {
-                return null;
-            }
-        }
-        /**
-         * 加载资源
-         * @param url 地址
-         * @param onFinish  load回调]
-         */
-        static load(url, onFinish = null, onProgress = null) {
-            if (this.loadMap[url]) {
-                if (onFinish) {
-                    switch (this.loadMap[url].loadinfo.loadState) {
-                        case LoadEnum.Success:
-                        case LoadEnum.Failed:
-                            onFinish(this.loadMap[url].asset, this.loadMap[url].loadinfo);
-                            break;
-                        case LoadEnum.Loading:
-                            if (this.loadingUrl[url] == null) {
-                                this.loadingUrl[url] = [];
-                            }
-                            this.loadingUrl[url].push(onFinish);
-                            break;
-                        default:
-                        case LoadEnum.None:
-                            console.error("load error 为啥出现这种情况！");
-                            break;
-                    }
-                }
-                return this.loadMap[url].asset;
-            }
-            else {
-                let factory = AssetLoader.getAssetLoader(url);
-                let _state = { url: url, loadState: LoadEnum.None };
-                this.loadMap[url] = { asset: null, loadinfo: _state };
-                if (factory == null) {
-                    let errorMsg = "ERROR: load Asset error. INfo: not have Load Func to handle (" +
-                        getAssetExtralName(url) +
-                        ") type File.  load URL:" +
-                        url;
-                    _state.err = new Error(errorMsg);
-                    console.error(errorMsg);
-                    if (onFinish) {
-                        onFinish(null, _state);
-                    }
-                    return null;
-                }
-                else {
-                    let asset = factory.load(url, (asset, state) => {
-                        //-------------------------------存进资源存储map
-                        _state.loadState = state.loadState;
-                        //---------------------回调事件
-                        if (onFinish) {
-                            onFinish(asset, state);
-                        }
-                        //------------------监听此资源loadfinish的事件
-                        let arr = this.loadingUrl[url];
-                        this.loadingUrl[url] = null;
-                        delete this.loadingUrl[url]; //set loadingUrl null
-                        if (arr) {
-                            arr.forEach(func => {
-                                func(asset, state);
-                            });
-                        }
-                    }, onProgress);
-                    _state.loadState = LoadEnum.Loading;
-                    this.loadMap[url].asset = asset;
-                    return asset;
-                }
-            }
-        }
-        static loadAsync(url) {
-            return new Promise((resolve, reject) => {
-                this.load(url, (asset, loadInfo) => {
-                    if (loadInfo.loadState == LoadEnum.Success) {
-                        resolve(asset);
-                    }
-                    else {
-                        reject(new Error("Load Failed."));
-                    }
-                });
-            });
-        }
-    }
-    //#endregion
-    /**
-     * 调用load方法就会塞到这里面来
-     */
-    Resource.loadMap = {};
-    /**
-     * load同一个资源监听回调
-     */
-    Resource.loadingUrl = {}; //
     //<<<<<<<--------1.  new出来的自己管理,如果进行管控,assetmgr必然持有该资源的引用。当用该资源的对象被释放,该对象对该资源的引用也就没了,但是assetmgr持有它的引用，资源也就是没被释放;
     //释放对象的时候我们又不能对资源进行释放，不然其他对象使用该资源就会报错，对于new出的资源,没被使用就会被系统自动释放或者自己释放-------------------->>>>>>>>>
     //<<<<<<<------- 2.  资源的name不作为asset的标识.不然造成一大堆麻烦。如果允许重名资源在assetmgr获取资源的需要通过bundlename /assetname才能正确获取资源,bundlename于asset来说不一定有;
@@ -8046,37 +7952,17 @@
             return this.defGeometry[type];
         }
         static createCube() {
-            let bassInf = { posarr: [], uvArray: [], indices: [] };
-            this.addQuad(bassInf, [-0.5, -0.5, 0.5,
-                -0.5, 0.5, 0.5,
-                0.5, 0.5, 0.5,
-                0.5, -0.5, 0.5
-            ], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //前
-            this.addQuad(bassInf, [-0.5, -0.5, -0.5,
-                -0.5, 0.5, -0.5,
-                0.5, 0.5, -0.5,
-                0.5, -0.5, -0.5
-            ], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //后
-            this.addQuad(bassInf, [-0.5, -0.5, 0.5,
-                -0.5, 0.5, 0.5,
-                -0.5, 0.5, -0.5,
-                -0.5, -0.5, -0.5
-            ], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //左
-            this.addQuad(bassInf, [0.5, -0.5, 0.5,
-                0.5, 0.5, 0.5,
-                0.5, 0.5, -0.5,
-                0.5, -0.5, -0.5
-            ], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //右
-            this.addQuad(bassInf, [-0.5, 0.5, 0.5,
-                -0.5, 0.5, -0.5,
-                0.5, 0.5, -0.5,
-                0.5, 0.5, 0.5
-            ], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //上
-            this.addQuad(bassInf, [-0.5, -0.5, 0.5,
-                -0.5, -0.5, -0.5,
-                0.5, -0.5, -0.5,
-                0.5, -0.5, 0.5
-            ], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //上
+            let bassInf = {
+                posarr: [],
+                uvArray: [],
+                indices: [],
+            };
+            this.addQuad(bassInf, [-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //前
+            this.addQuad(bassInf, [-0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //后
+            this.addQuad(bassInf, [-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //左
+            this.addQuad(bassInf, [0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //右
+            this.addQuad(bassInf, [-0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //上
+            this.addQuad(bassInf, [-0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //上
             return GlRender.createGeometry({
                 atts: {
                     POSITION: bassInf.posarr,
@@ -8099,55 +7985,6 @@
         }
     }
     DefGeometry.defGeometry = {};
-
-    class Texture extends ToyAsset {
-        get texture() {
-            return this._textrue || GlTextrue.WHITE;
-        }
-        set texture(value) {
-            this._textrue = value;
-        }
-        // samplerInfo: TextureOption = new TextureOption();
-        constructor(param) {
-            super(param);
-        }
-        dispose() { }
-    }
-
-    class DefTextrue {
-        static get WHITE() {
-            if (this._white == null) {
-                this._white = this.createByType("white");
-            }
-            return this._white;
-        }
-        static get GIRD() {
-            if (this._grid == null) {
-                this._grid = this.createByType("grid");
-            }
-            return this._grid;
-        }
-        static createByType(type) {
-            let imaginfo;
-            switch (type) {
-                case "white":
-                    imaginfo = GlTextrue.WHITE;
-                    break;
-                case "grid":
-                    imaginfo = GlTextrue.GIRD;
-                    break;
-            }
-            if (imaginfo != null) {
-                let tex = new Texture();
-                tex.texture = imaginfo.texture;
-                tex.texDes = imaginfo.texDes;
-                return tex;
-            }
-            else {
-                return null;
-            }
-        }
-    }
 
     class Material extends ToyAsset {
         constructor(param) {
@@ -8309,7 +8146,7 @@
                         },
                     },
                 ],
-                name: "def_color"
+                name: "def_color",
             });
         }
         static createBaseShder() {
@@ -8339,7 +8176,7 @@
                         },
                     },
                 ],
-                name: "def_base"
+                name: "def_base",
             });
         }
         static createBaseTexShder() {
@@ -8374,7 +8211,7 @@
                         },
                     },
                 ],
-                name: "def_baseTex"
+                name: "def_baseTex",
             });
         }
         static createAlphaTestShder() {
@@ -8416,44 +8253,88 @@
                     },
                 ],
                 mapUniformDef: {
-                    "_AlphaCut": 0.5
+                    _AlphaCut: 0.5,
                 },
-                name: "def_alphaTex"
+                name: "def_alphaTex",
             });
         }
     }
     DefShader.defShader = {};
 
-    class Base {
+    class Texture extends ToyAsset {
+        get texture() {
+            return this._textrue || GlTextrue.WHITE;
+        }
+        set texture(value) {
+            this._textrue = value;
+        }
+        // samplerInfo: TextureOption = new TextureOption();
+        constructor(param) {
+            super(param);
+        }
+        dispose() { }
+    }
+
+    class DefTextrue {
+        static get WHITE() {
+            if (this._white == null) {
+                this._white = this.createByType("white");
+            }
+            return this._white;
+        }
+        static get GIRD() {
+            if (this._grid == null) {
+                this._grid = this.createByType("grid");
+            }
+            return this._grid;
+        }
+        static createByType(type) {
+            let imaginfo;
+            switch (type) {
+                case "white":
+                    imaginfo = GlTextrue.WHITE;
+                    break;
+                case "grid":
+                    imaginfo = GlTextrue.GIRD;
+                    break;
+            }
+            if (imaginfo != null) {
+                let tex = new Texture();
+                tex.texture = imaginfo.texture;
+                tex.texDes = imaginfo.texDes;
+                return tex;
+            }
+            else {
+                return null;
+            }
+        }
+    }
+
+    class LookAt {
         static done(toy) {
-            let geometry = DefGeometry.fromType("quad");
-            ///------------def shader
-            let shader = DefShader.fromType("baseTex");
-            //-------------custom shader
-            let customeShader = Resource.load("../res/shader/base.shader.json");
-            let material = new Material();
-            material.shader = shader;
-            material.setColor("_MainColor", Color.create(1, 0, 0, 1));
-            //-----------def tex
-            let defTex = DefTextrue.GIRD;
-            //-----------load tex
-            let tex = Resource.load("../res/imgs/tes.png");
-            material.setTexture("_MainTex", defTex);
-            let obj = new Entity();
-            let mesh = obj.addCompByName("Mesh");
+            let geometry = DefGeometry.fromType("cube");
+            let centerEnity = toy.scene.newEntity("center", ["Mesh"]);
+            let rotEntity = toy.scene.newEntity("center", ["Mesh"]);
+            let mesh = centerEnity.getCompByName("Mesh");
             mesh.geometry = geometry;
-            mesh.material = material;
-            toy.scene.addEntity(obj);
-            let camobj = new Entity("", ["Camera"]);
-            let trans = camobj.transform;
-            trans.localPosition.z = 5;
-            trans.markDirty();
-            toy.scene.addEntity(camobj);
-            let roty = 0;
+            mesh.material = new Material();
+            mesh.material.shader = DefShader.fromType("baseTex");
+            mesh.material.setTexture("_MainTex", DefTextrue.GIRD);
+            let rotMesh = rotEntity.getCompByName("Mesh");
+            rotMesh.geometry = geometry;
+            rotMesh.material = mesh.material;
+            rotMesh.entity.transform.localScale.z = 3;
+            let cam = toy.scene.addCamera();
+            cam.entity.transform.localPosition.y = 20;
+            cam.entity.transform.localRotation = Quat.FromEuler(-90, 0, 0);
+            cam.entity.transform.markDirty();
+            let rot = 0;
             toy.scene.preUpdate = delta => {
-                roty += delta * 0.01;
-                Quat.FromEuler(0, roty, 0, obj.transform.localRotation);
-                obj.transform.markDirty();
+                rot += delta * 0.1;
+                rotEntity.transform.localPosition.x = 10 * Math.cos((rot * Math.PI) / 180);
+                rotEntity.transform.localPosition.z = 10 * Math.sin((rot * Math.PI) / 180);
+                rotEntity.transform.markDirty();
+                rotEntity.transform.lookAtPoint(Vec3.ZERO);
             };
         }
     }
@@ -8461,8 +8342,9 @@
     window.onload = () => {
         let toy = ToyGL.initByHtmlElement(document.getElementById("canvas"));
         AssetLoader.addLoader().then(() => {
-            Base.done(toy);
+            // Base.done(toy);
             // LoadGltf.done(toy);
+            LookAt.done(toy);
         });
     };
 
@@ -8628,7 +8510,7 @@
          * @param a the source vector
          * @returns out
          */
-        static copy(a, out) {
+        static copy(a, out = Vec2.create()) {
             out[0] = a[0];
             out[1] = a[1];
             return out;
@@ -8641,7 +8523,7 @@
          * @param b the second operand
          * @returns out
          */
-        static add(a, b, out) {
+        static add(a, b, out = Vec2.create()) {
             out[0] = a[0] + b[0];
             out[1] = a[1] + b[1];
             return out;
@@ -8654,7 +8536,7 @@
          * @param b the second operand
          * @returns out
          */
-        static subtract(a, b, out) {
+        static subtract(a, b, out = Vec2.create()) {
             out[0] = a[0] - b[0];
             out[1] = a[1] - b[1];
             return out;
@@ -8667,7 +8549,7 @@
          * @param b the second operand
          * @returns out
          */
-        static multiply(a, b, out) {
+        static multiply(a, b, out = Vec2.create()) {
             out[0] = a[0] * b[0];
             out[1] = a[1] * b[1];
             return out;
@@ -8680,7 +8562,7 @@
          * @param b the second operand
          * @returns out
          */
-        //public static mul(a: vec2, b: vec2,out: vec2): vec2 { return; }
+        //public static mul(a: vec2, b: vec2,out: Vec2 = Vec2.create()): vec2 { return; }
         /**
          * Divides two vec2's
          *
@@ -8689,7 +8571,7 @@
          * @param b the second operand
          * @returns out
          */
-        static divide(a, b, out) {
+        static divide(a, b, out = Vec2.create()) {
             out[0] = a[0] / b[0];
             out[1] = a[1] / b[1];
             return out;
@@ -8702,7 +8584,7 @@
          * @param b the second operand
          * @returns out
          */
-        //public static div(a: vec2, b: vec2,out: vec2): vec2 { return; }
+        //public static div(a: vec2, b: vec2,out: Vec2 = Vec2.create()): vec2 { return; }
         /**
          * Math.ceil the components of a vec2
          *
@@ -8710,7 +8592,7 @@
          * @param {Vec2} a vector to ceil
          * @returns {Vec2} out
          */
-        static ceil(a, out) {
+        static ceil(a, out = Vec2.create()) {
             out[0] = Math.ceil(a[0]);
             out[1] = Math.ceil(a[1]);
             return out;
@@ -8722,7 +8604,7 @@
          * @param {Vec2} a vector to floor
          * @returns {Vec2} out
          */
-        static floor(a, out) {
+        static floor(a, out = Vec2.create()) {
             out[0] = Math.floor(a[0]);
             out[1] = Math.floor(a[1]);
             return out;
@@ -8735,7 +8617,7 @@
          * @param b the second operand
          * @returns out
          */
-        static min(a, b, out) {
+        static min(a, b, out = Vec2.create()) {
             out[0] = Math.min(a[0], b[0]);
             out[1] = Math.min(a[1], b[1]);
             return out;
@@ -8748,7 +8630,7 @@
          * @param b the second operand
          * @returns out
          */
-        static max(a, b, out) {
+        static max(a, b, out = Vec2.create()) {
             out[0] = Math.max(a[0], b[0]);
             out[1] = Math.max(a[1], b[1]);
             return out;
@@ -8760,7 +8642,7 @@
          * @param {Vec2} a vector to round
          * @returns {Vec2} out
          */
-        static round(a, out) {
+        static round(a, out = Vec2.create()) {
             out[0] = Math.round(a[0]);
             out[1] = Math.round(a[1]);
             return out;
@@ -8773,12 +8655,12 @@
          * @param b amount to scale the vector by
          * @returns out
          */
-        static scale(a, b, out) {
+        static scale(a, b, out = Vec2.create()) {
             out[0] = a[0] * b;
             out[1] = a[1] * b;
             return out;
         }
-        static scaleByVec2(a, b, out) {
+        static scaleByVec2(a, b, out = Vec2.create()) {
             out[0] = a[0] * b[0];
             out[1] = a[1] * b[1];
             return out;
@@ -8792,7 +8674,7 @@
          * @param scale the amount to scale b by before adding
          * @returns out
          */
-        static scaleAndAdd(a, b, scale, out) {
+        static scaleAndAdd(a, b, scale, out = Vec2.create()) {
             out[0] = a[0] + b[0] * scale;
             out[1] = a[1] + b[1] * scale;
             return out;
@@ -8876,7 +8758,7 @@
          * @param a vector to negate
          * @returns out
          */
-        static negate(a, out) {
+        static negate(a, out = Vec2.create()) {
             out[0] = -a[0];
             out[1] = -a[1];
             return out;
@@ -8888,7 +8770,7 @@
          * @param a vector to invert
          * @returns out
          */
-        static inverse(a, out) {
+        static inverse(a, out = Vec2.create()) {
             out[0] = 1.0 / a[0];
             out[1] = 1.0 / a[1];
             return out;
@@ -8900,7 +8782,7 @@
          * @param a vector to normalize
          * @returns out
          */
-        static normalize(a, out) {
+        static normalize(a, out = Vec2.create()) {
             let x = a[0], y = a[1];
             let len = x * x + y * y;
             if (len > 0) {
@@ -8945,7 +8827,7 @@
          * @param lerp interpolation amount between the two inputs
          * @returns out
          */
-        static lerp(from, to, lerp$$1, out) {
+        static lerp(from, to, lerp$$1, out = Vec2.create()) {
             let ax = from[0], ay = from[1];
             out[0] = ax + lerp$$1 * (to[0] - ax);
             out[1] = ay + lerp$$1 * (to[1] - ay);
@@ -8958,7 +8840,7 @@
          * @param scale Length of the resulting vector. If ommitted, a unit vector will be returned
          * @returns out
          */
-        static random(scale = 1, out) {
+        static random(scale = 1, out = Vec2.create()) {
             scale = scale || 1.0;
             let r = Math.random() * 2.0 * Math.PI;
             out[0] = Math.cos(r) * scale;
@@ -8973,7 +8855,7 @@
         //  * @param m matrix to transform with
         //  * @returns out
         //  */
-        // public static transformMat2(out: vec2, a: vec2, m: mat2): vec2 {
+        // public static transformMat2(out: Vec2 = Vec2.create(), a: vec2, m: mat2): vec2 {
         //     let x = a[0],
         //     y = a[1];
         //     out[0] = m[0] * x + m[2] * y;
@@ -8988,7 +8870,7 @@
          * @param m matrix to transform with
          * @returns out
          */
-        static transformMat2d(a, m, out) {
+        static transformMat2d(a, m, out = Vec2.create()) {
             let x = a[0], y = a[1];
             out[0] = m[0] * x + m[2] * y + m[4];
             out[1] = m[1] * x + m[3] * y + m[5];
@@ -9003,7 +8885,7 @@
         //  * @param m matrix to transform with
         //  * @returns out
         //  */
-        // public static transformMat3(out: vec2, a: vec2, m: mat3): vec2 {
+        // public static transformMat3(out: Vec2 = Vec2.create(), a: vec2, m: mat3): vec2 {
         //     let x = a[0],
         //     y = a[1];
         //     out[0] = m[0] * x + m[3] * y + m[6];
@@ -9020,7 +8902,7 @@
          * @param m matrix to transform with
          * @returns out
          */
-        static transformMat4(a, m, out) {
+        static transformMat4(a, m, out = Vec2.create()) {
             let x = a[0];
             let y = a[1];
             out[0] = m[0] * x + m[4] * y + m[12];
@@ -9165,7 +9047,7 @@
          * @param a the source vector
          * @returns out
          */
-        static copy(a, out) {
+        static copy(a, out = Vec4.create()) {
             out[0] = a[0];
             out[1] = a[1];
             out[2] = a[2];
@@ -9180,7 +9062,7 @@
          * @param b the second operand
          * @returns out
          */
-        static add(out, a, b) {
+        static add(a, b, out = Vec4.create()) {
             out[0] = a[0] + b[0];
             out[1] = a[1] + b[1];
             out[2] = a[2] + b[2];
@@ -9195,7 +9077,7 @@
          * @param out the receiving vector
          * @returns out
          */
-        static subtract(a, b, out) {
+        static subtract(a, b, out = Vec4.create()) {
             out[0] = a[0] - b[0];
             out[1] = a[1] - b[1];
             out[2] = a[2] - b[2];
@@ -9210,7 +9092,7 @@
          * @param out the receiving vector         *
          * @returns out
          */
-        static multiply(a, b, out) {
+        static multiply(a, b, out = Vec4.create()) {
             out[0] = a[0] * b[0];
             out[1] = a[1] * b[1];
             out[2] = a[2] * b[2];
@@ -9225,7 +9107,7 @@
          * @param b the second operand
          * @returns out
          */
-        static divide(a, b, out) {
+        static divide(a, b, out = Vec4.create()) {
             out[0] = a[0] / b[0];
             out[1] = a[1] / b[1];
             out[2] = a[2] / b[2];
@@ -9239,7 +9121,7 @@
          * @param {Vec4} out the receiving vector
          * @returns {Vec4} out
          */
-        static ceil(a, out) {
+        static ceil(a, out = Vec4.create()) {
             out[0] = Math.ceil(a[0]);
             out[1] = Math.ceil(a[1]);
             out[2] = Math.ceil(a[2]);
@@ -9253,7 +9135,7 @@
          * @param {Vec4} out the receiving vector         *
          * @returns {Vec4} out
          */
-        static floor(a, out) {
+        static floor(a, out = Vec4.create()) {
             out[0] = Math.floor(a[0]);
             out[1] = Math.floor(a[1]);
             out[2] = Math.floor(a[2]);
@@ -9268,7 +9150,7 @@
          * @param b the second operand
          * @returns out
          */
-        static min(a, b, out) {
+        static min(a, b, out = Vec4.create()) {
             out[0] = Math.min(a[0], b[0]);
             out[1] = Math.min(a[1], b[1]);
             out[2] = Math.min(a[2], b[2]);
@@ -9283,7 +9165,7 @@
          * @param b the second operand
          * @returns out
          */
-        static max(a, b, out) {
+        static max(a, b, out = Vec4.create()) {
             out[0] = Math.max(a[0], b[0]);
             out[1] = Math.max(a[1], b[1]);
             out[2] = Math.max(a[2], b[2]);
@@ -9297,7 +9179,7 @@
          * @param {Vec4} a vector to round
          * @returns {Vec4} out
          */
-        static round(a, out) {
+        static round(a, out = Vec4.create()) {
             out[0] = Math.round(a[0]);
             out[1] = Math.round(a[1]);
             out[2] = Math.round(a[2]);
@@ -9312,7 +9194,7 @@
          * @param b amount to scale the vector by
          * @returns out
          */
-        static scale(a, b, out) {
+        static scale(a, b, out = Vec4.create()) {
             out[0] = a[0] * b;
             out[1] = a[1] * b;
             out[2] = a[2] * b;
@@ -9328,7 +9210,7 @@
          * @param scale the amount to scale b by before adding
          * @returns out
          */
-        static scaleAndAdd(a, b, scale, out) {
+        static scaleAndAdd(a, b, scale, out = Vec4.create()) {
             out[0] = a[0] + b[0] * scale;
             out[1] = a[1] + b[1] * scale;
             out[2] = a[2] + b[2] * scale;
@@ -9396,7 +9278,7 @@
          * @param a vector to negate
          * @returns out
          */
-        static negate(a, out) {
+        static negate(a, out = Vec4.create()) {
             out[0] = -a[0];
             out[1] = -a[1];
             out[2] = -a[2];
@@ -9410,7 +9292,7 @@
          * @param a vector to invert
          * @returns out
          */
-        static inverse(a, out) {
+        static inverse(a, out = Vec4.create()) {
             out[0] = 1.0 / a[0];
             out[1] = 1.0 / a[1];
             out[2] = 1.0 / a[2];
@@ -9424,7 +9306,7 @@
          * @param a vector to normalize
          * @returns out
          */
-        static normalize(a, out) {
+        static normalize(a, out = Vec4.create()) {
             let x = a[0];
             let y = a[1];
             let z = a[2];
@@ -9458,7 +9340,7 @@
          * @param lerp interpolation amount between the two inputs
          * @returns out
          */
-        static lerp(lhs, rhs, lerp$$1, out) {
+        static lerp(lhs, rhs, lerp$$1, out = Vec4.create()) {
             let ax = lhs[0];
             let ay = lhs[1];
             let az = lhs[2];
@@ -9476,7 +9358,7 @@
          * @param scale length of the resulting vector. If ommitted, a unit vector will be returned
          * @returns out
          */
-        static random(scale, out) {
+        static random(scale, out = Vec4.create()) {
             scale = scale || 1.0;
             //TODO: This is a pretty awful way of doing this. Find something better.
             out[0] = Math.random();
@@ -9495,7 +9377,7 @@
          * @param m matrix to transform with
          * @returns out
          */
-        static transformMat4(a, m, out) {
+        static transformMat4(a, m, out = Vec4.create()) {
             let x = a[0], y = a[1], z = a[2], w = a[3];
             out[0] = m[0] * x + m[4] * y + m[8] * z + m[12] * w;
             out[1] = m[1] * x + m[5] * y + m[9] * z + m[13] * w;
@@ -9511,7 +9393,7 @@
          * @param q Quaternion to transform with
          * @returns out
          */
-        static transformQuat(a, q, out) {
+        static transformQuat(a, q, out = Vec4.create()) {
             let x = a[0], y = a[1], z = a[2];
             let qx = q[0], qy = q[1], qz = q[2], qw = q[3];
             // calculate Quat * vec

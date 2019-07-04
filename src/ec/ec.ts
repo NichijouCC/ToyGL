@@ -1,11 +1,11 @@
-import { Transform } from './transform';
+import { Transform } from "./transform";
 import { IframeState } from "../scene/frameState";
 
 export interface Ientity {
     readonly guid: number;
     beActive: boolean;
     maskLayer: CullingMask;
-    transform:Transform;
+    transform: Transform;
     components: { [name: string]: Icomponent };
     addCompByName(compName: string): Icomponent;
     getCompByName(compName: string): Icomponent;
@@ -75,4 +75,3 @@ export class EC {
         }
     }
 }
-

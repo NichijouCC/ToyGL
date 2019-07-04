@@ -35,7 +35,7 @@ export class Mesh implements Irender {
             // program: this._material.program,
             // uniforms: this._material.uniforms,
             material: this._material,
-            modelMatrix: (this.entity.transform).worldMatrix,
+            modelMatrix: this.entity.transform.worldMatrix,
         };
         frameState.renderList.push(currentRender);
     }
