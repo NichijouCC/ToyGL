@@ -3,10 +3,20 @@ import { IgltfMeshPrimitive, AccessorComponentType } from "./gltfJsonStruct";
 import { Material } from "../assets/material";
 import { ParseMaterialNode } from "./parseMaterialNode";
 import { Geometry } from "../assets/geometry";
-import { IgeometryOptions, GlRender, IgeometryInfo } from "../../render/glRender";
+import { IgeometryOptions, IgeometryInfo, IarrayInfo } from "../../render/glRender";
 import { ParseAccessorNode } from "./parseAccessorNode";
-import { IarrayInfo } from "twebgl/dist/types/type";
 
+
+const MapGltfAttributeToToyAtt={
+    POSITION: 'position',
+    NORMAL: 'normal',
+    TANGENT: 'tangent',
+    TEXCOORD_0: 'uv',
+    TEXCOORD_1: 'uv2',
+    COLOR_0: 'color',
+    WEIGHTS_0: 'skinWeight',
+    JOINTS_0: 'skinIndex',
+}
 export class ParseMeshNode {
     static parse(index: number, gltf: IgltfJson): Promise<IgltfPrimitive[]> {
         if (gltf.cache.meshNodeCache[index]) {
@@ -70,15 +80,18 @@ export class ParseMeshNode {
             taskAtts.push(indexTask);
         }
         return Promise.all(taskAtts).then(() => {
-            let geometryInfo = GlRender.createGeometry(geometryOp);
-            let newGeometry = new Geometry();
-            newGeometry.data = geometryInfo;
+            let newGeometry = Geometry.fromCustomData(geometryOp);;
 
-            this.getTypedValueArr(newGeometry, geometryOp);
+            // this.getTypedValueArr(newGeometry, geometryOp);
             return newGeometry;
         });
     }
 
+    /**
+     * 将buffer数据分割成对应的 typedarray，例如 positions[i]=new floa32array();
+     * @param newGeometry 
+     * @param geometryOp 
+     */
     private static getTypedValueArr(newGeometry: any, geometryOp: IgeometryOptions) {
         for (const key in geometryOp.atts) {
             const element = geometryOp.atts[key] as IarrayInfo;
