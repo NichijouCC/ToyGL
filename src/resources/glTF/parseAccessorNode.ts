@@ -54,7 +54,7 @@ export class ParseAccessorNode {
                     arrayInfo.offsetInBytes = accessor.byteOffset;
                     arrayInfo.value = value.viewBuffer;
                     arrayInfo.strideInBytes = value.byteStride;
-                    arrayInfo.buffer = value.glBuffer;
+                    arrayInfo.buffer = value.glBuffer.buffer;
                     return arrayInfo;
                 }
             });

@@ -9,6 +9,7 @@ import {
     ItexViewDataOption,
     IarrayInfo,
     ItextureDesInfo,
+    TypedArray,
 } from "twebgl/dist/types/type";
 
 import {
@@ -154,6 +155,17 @@ export class GlRender {
 
     static createBuffer(target: number, viewData: ArrayBufferView): WebGLBuffer {
         return createGlBuffer(this.context, target, viewData);
+    }
+}
+
+export class GlBuffer {
+    buffer: WebGLBuffer;
+    viewData: TypedArray;
+    static fromViewData(target: number, data: TypedArray): GlBuffer {
+        let newBuferr = new GlBuffer();
+        newBuferr.buffer = GlRender.createBuffer(target, data);
+        newBuferr.viewData = data;
+        return newBuferr;
     }
 }
 

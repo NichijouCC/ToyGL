@@ -2,6 +2,7 @@ import { Vec3 } from "../mathD/vec3";
 import { Mesh } from "../ec/entity";
 import { Geometry } from "../resources/assets/geometry";
 import { Mat4 } from "../mathD/mat4";
+import { VertexAttEnum } from "../render/vertexAttType";
 
 export class Bounds {
     maxPoint: Vec3 = Vec3.create();
@@ -24,16 +25,17 @@ export class Bounds {
         return this;
     }
 
-    // setFromMesh(geometry: Geometry): Bounds {
-    //     let points = geometry.data.atts[]
-    //     this.setFromPoints(points);
-    //     return this;
-    // }
+    setFromMesh(geometry: Geometry): Bounds {
+        let points = geometry.getAttArr(VertexAttEnum.POSITION);
+        this.setFromPoints(points);
+        return this;
+    }
 
     addAABB(box: Bounds) {
         Vec3.min(this.minPoint, box.minPoint, this.minPoint);
         Vec3.max(this.maxPoint, box.maxPoint, this.maxPoint);
         // Vec3.center(this.minPoint, this.maxPoint, this.centerPoint);
+        return this;
     }
 
     beEmpty(): boolean {

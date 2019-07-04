@@ -5,18 +5,18 @@ import { ParseMaterialNode } from "./parseMaterialNode";
 import { Geometry } from "../assets/geometry";
 import { IgeometryOptions, IgeometryInfo, IarrayInfo } from "../../render/glRender";
 import { ParseAccessorNode } from "./parseAccessorNode";
+import { VertexAttEnum } from "../../render/vertexAttType";
 
-
-const MapGltfAttributeToToyAtt={
-    POSITION: 'position',
-    NORMAL: 'normal',
-    TANGENT: 'tangent',
-    TEXCOORD_0: 'uv',
-    TEXCOORD_1: 'uv2',
-    COLOR_0: 'color',
-    WEIGHTS_0: 'skinWeight',
-    JOINTS_0: 'skinIndex',
-}
+const MapGltfAttributeToToyAtt = {
+    POSITION: VertexAttEnum.POSITION,
+    NORMAL: VertexAttEnum.NORMAL,
+    TANGENT: VertexAttEnum.TANGENT,
+    TEXCOORD_0: VertexAttEnum.TEXCOORD_0,
+    TEXCOORD_1: VertexAttEnum.TEXCOORD_1,
+    COLOR_0: VertexAttEnum.COLOR_0,
+    WEIGHTS_0: VertexAttEnum.WEIGHTS_0,
+    JOINTS_0: VertexAttEnum.JOINTS_0,
+};
 export class ParseMeshNode {
     static parse(index: number, gltf: IgltfJson): Promise<IgltfPrimitive[]> {
         if (gltf.cache.meshNodeCache[index]) {
@@ -80,7 +80,7 @@ export class ParseMeshNode {
             taskAtts.push(indexTask);
         }
         return Promise.all(taskAtts).then(() => {
-            let newGeometry = Geometry.fromCustomData(geometryOp);;
+            let newGeometry = Geometry.fromCustomData(geometryOp);
 
             // this.getTypedValueArr(newGeometry, geometryOp);
             return newGeometry;
@@ -89,8 +89,8 @@ export class ParseMeshNode {
 
     /**
      * 将buffer数据分割成对应的 typedarray，例如 positions[i]=new floa32array();
-     * @param newGeometry 
-     * @param geometryOp 
+     * @param newGeometry
+     * @param geometryOp
      */
     private static getTypedValueArr(newGeometry: any, geometryOp: IgeometryOptions) {
         for (const key in geometryOp.atts) {

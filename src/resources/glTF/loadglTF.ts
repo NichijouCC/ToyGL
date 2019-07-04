@@ -9,6 +9,7 @@ import { Texture } from "../assets/texture";
 import { Geometry } from "../assets/geometry";
 import { ParseSceneNode } from "./parseSceneNode";
 import { LoadEnum } from "../base/loadEnum";
+import { GlBuffer } from "../../render/glRender";
 
 export interface IglTFExtension {
     load(extensionNode: any, loader: LoadGlTF): Promise<any>;
@@ -21,7 +22,7 @@ export interface IgltfPrimitive {
 
 export interface IgltfBufferview {
     viewBuffer: Uint8Array;
-    glBuffer?: WebGLBuffer;
+    glBuffer?: GlBuffer;
     byteStride: number;
 }
 export class GltfNodeCache {
