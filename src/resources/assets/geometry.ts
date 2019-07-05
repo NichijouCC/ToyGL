@@ -2,34 +2,53 @@ import { ToyAsset, ItoyAsset } from "../base/toyAsset";
 import { GlRender, IgeometryInfo, IgeometryOptions, IarrayInfo } from "../../render/glRender";
 import { VertexAttEnum } from "../../render/vertexAttType";
 import { GlConstants } from "twebgl";
-import { TypedArray } from "twebgl/dist/types/type";
+import { TypedArray, IvertexAttrib, IvertexIndex } from "twebgl/dist/types/type";
 
-export class Geometry extends ToyAsset {
+export class Geometry extends ToyAsset implements IgeometryInfo {
+    atts: { [attName: string]: IvertexAttrib };
+    indices?: IvertexIndex;
+    vaoDic: { [programeId: number]: WebGLVertexArrayObject };
+    count: number;
+    offset: number;
+    primitiveType: number;
     constructor(param?: ItoyAsset) {
         super(param);
     }
     dispose(): void {}
-    data: IgeometryInfo;
 
     static fromCustomData(data: IgeometryOptions) {
         let geometry = GlRender.createGeometry(data);
         let newAsset = new Geometry({ name: "custom_Mesh" });
-        newAsset.data = geometry;
+        Object.assign(newAsset, geometry);
         return newAsset;
     }
     private attDic: { [att: string]: any[] };
-    getAttArr(type: VertexAttEnum) {
+    getAttDataArr(type: VertexAttEnum) {
         if (this.attDic[type] != null) {
             return this.attDic[type];
         } else {
-            if (this.data.atts[type] != null) {
-                this.attDic[type] = getTypedValueArr(type, this.data.atts[VertexAttEnum.POSITION]);
+            if (this.atts[type] != null) {
+                this.attDic[type] = getTypedValueArr(type, this.atts[VertexAttEnum.POSITION]);
             } else {
                 console.warn("geometry don't contain vertex type:", type);
             }
             return this.attDic[type];
         }
     }
+}
+
+export class VertexAtt implements IvertexAttrib {
+    name: string;
+    viewBuffer?: ArrayBufferView;
+    count?: number;
+    glBuffer: WebGLBuffer;
+    drawType: number;
+    componentSize: number;
+    componentDataType: number;
+    normalize: boolean;
+    bytesStride: number;
+    bytesOffset: number;
+    divisor?: number;
 }
 
 /**

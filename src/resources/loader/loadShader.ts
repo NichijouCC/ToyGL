@@ -2,12 +2,11 @@ import { IassetLoader, Iasset, IassetLoadInfo } from "../type";
 import { getFileName } from "../base/helper";
 import { Shader, UniformTypeEnum, getFeaturShderStr } from "../assets/shader";
 import { loadText } from "../../io/loadtool";
-import { IprogramState, IprogramInfo, IprogramOptions, IbassProgramInfo } from "twebgl/dist/types/type";
 import { RenderLayerEnum } from "../../ec/ec";
 import { Vec2 } from "../../mathD/vec2";
 import { Vec4 } from "../../mathD/vec4";
 import { Vec3 } from "../../mathD/vec3";
-import { GlRender } from "../../render/glRender";
+import { GlRender, IprogramState, IprogramInfo } from "../../render/glRender";
 import { DrawTypeEnum } from "../../render/renderMachine";
 import { LoadEnum } from "../base/loadEnum";
 

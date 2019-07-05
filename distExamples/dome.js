@@ -829,21 +829,34 @@
         return numComponents;
     }
 
-    var GeometryInfo = /** @class */ (function () {
-        function GeometryInfo() {
-            this.vaoDic = {};
-            this.atts = {};
-            this.id = GeometryInfo.nextID();
-        }
-        GeometryInfo.nextID = function () {
-            return GeometryInfo.count++;
-        };
-        GeometryInfo.count = 0;
-        return GeometryInfo;
-    }());
+    // export class GeometryInfo implements IgeometryInfo {
+    //     vaoDic: { [programeId: number]: WebGLVertexArrayObject } = {};
+    //     constructor() {
+    //         this.id = GeometryInfo.nextID();
+    //     }
+    //     readonly id: number;
+    //     primitiveType: number;
+    //     atts: { [attName: string]: IvertexAttrib } = {};
+    //     indices?: IvertexIndex;
+    //     // mode: number;
+    //     count: number;
+    //     offset: number = 0;
+    //     private static count = 0;
+    //     static nextID() {
+    //         return GeometryInfo.count++;
+    //     }
+    // }
     function createGeometryInfo(gl, op) {
-        var info = new GeometryInfo();
-        info.primitiveType = op.primitiveType ? op.primitiveType : gl.TRIANGLES;
+        // let info = new GeometryInfo();
+        var primitiveType = op.primitiveType != null ? op.primitiveType : gl.TRIANGLES;
+        var info = {
+            atts: {},
+            vaoDic: {},
+            offset: 0,
+            count: null,
+            primitiveType: primitiveType,
+            name: op.name,
+        };
         if (op.indices != null) {
             info.indices = createIndexBufferInfo(gl, op.indices);
             if (info.count == null) {
@@ -2161,6 +2174,19 @@
         return buffer;
     }
 
+    var VertexAttEnum;
+    (function (VertexAttEnum) {
+        VertexAttEnum["POSITION"] = "position";
+        VertexAttEnum["NORMAL"] = "normal";
+        VertexAttEnum["TANGENT"] = "tangent";
+        VertexAttEnum["TEXCOORD_0"] = "uv";
+        VertexAttEnum["TEXCOORD_1"] = "uv1";
+        VertexAttEnum["TEXCOORD_2"] = "uv2";
+        VertexAttEnum["COLOR_0"] = "color";
+        VertexAttEnum["WEIGHTS_0"] = "skinWeight";
+        VertexAttEnum["JOINTS_0"] = "skinIndex";
+    })(VertexAttEnum || (VertexAttEnum = {}));
+
     // export interface IshaderOptions extends IprogramOptions {
     //     layer?: RenderLayerEnum;
     // }
@@ -2195,11 +2221,23 @@
         }
         static createGeometry(op) {
             let info = createGeometryInfo(this.context, op);
+            let attdic = info.atts;
+            let newAttdic = {};
+            for (let key in attdic) {
+                newAttdic[getAttTypeFromName(key)] = attdic[key];
+            }
+            info.atts = newAttdic;
             return info;
         }
         static createProgram(op) {
             op.states = op.states || {};
             let info = createProgramInfo(this.context, op);
+            let attdic = info.bassProgram.attsDic;
+            let newAttdic = {};
+            for (let key in attdic) {
+                newAttdic[getAttTypeFromName(key)] = attdic[key];
+            }
+            info.bassProgram.attsDic = newAttdic;
             // info.layer = op.layer || RenderLayerEnum.Geometry;
             return info;
         }
@@ -2237,6 +2275,14 @@
             return createGlBuffer(this.context, target, viewData);
         }
     }
+    class GlBuffer {
+        static fromViewData(target, data) {
+            let newBuferr = new GlBuffer();
+            newBuferr.buffer = GlRender.createBuffer(target, data);
+            newBuferr.viewData = data;
+            return newBuferr;
+        }
+    }
     class GlTextrue {
         static get WHITE() {
             if (this._white == null) {
@@ -2269,6 +2315,38 @@
                 this._grid = GlRender.createTextureFromViewData(data, width, height);
             }
             return this._grid;
+        }
+    }
+    function getAttTypeFromName(attName) {
+        attName = attName.toLowerCase();
+        if (attName.indexOf("pos") != -1) {
+            return VertexAttEnum.POSITION;
+        }
+        if (attName.indexOf("uv") != -1 || attName.indexOf("coord") != -1) {
+            if (attName.indexOf("1") != -1) {
+                return VertexAttEnum.TEXCOORD_1;
+            }
+            else if (attName.indexOf("2") != -1) {
+                return VertexAttEnum.TEXCOORD_1;
+            }
+            else {
+                return VertexAttEnum.TEXCOORD_0;
+            }
+        }
+        if (attName.indexOf("normal") != -1) {
+            return VertexAttEnum.NORMAL;
+        }
+        if (attName.indexOf("tangent") != -1) {
+            return VertexAttEnum.TANGENT;
+        }
+        if (attName.indexOf("color") != -1) {
+            return VertexAttEnum.COLOR_0;
+        }
+        if (attName.indexOf("weight") != -1) {
+            return VertexAttEnum.WEIGHTS_0;
+        }
+        if (attName.indexOf("index") != -1) {
+            return VertexAttEnum.JOINTS_0;
         }
     }
 
@@ -5370,7 +5448,7 @@
                         let passes = shader.passes && shader.passes["base"];
                         if (passes != null) {
                             for (let i = 0; i < passes.length; i++) {
-                                GlRender.drawObject(item.geometry.data, passes[i], item.material.uniforms, shader.mapUniformDef);
+                                GlRender.drawObject(item.geometry, passes[i], item.material.uniforms, shader.mapUniformDef);
                             }
                         }
                     }
@@ -7918,35 +7996,105 @@
         static fromCustomData(data) {
             let geometry = GlRender.createGeometry(data);
             let newAsset = new Geometry({ name: "custom_Mesh" });
-            newAsset.data = geometry;
+            Object.assign(newAsset, geometry);
             return newAsset;
+        }
+        getAttDataArr(type) {
+            if (this.attDic[type] != null) {
+                return this.attDic[type];
+            }
+            else {
+                if (this.atts[type] != null) {
+                    this.attDic[type] = getTypedValueArr(type, this.atts[VertexAttEnum.POSITION]);
+                }
+                else {
+                    console.warn("geometry don't contain vertex type:", type);
+                }
+                return this.attDic[type];
+            }
+        }
+    }
+    /**
+     * 将buffer数据分割成对应的 typedarray，例如 positions[i]=new floa32array();
+     * @param newGeometry
+     * @param geometryOp
+     */
+    function getTypedValueArr(key, element) {
+        let strideInBytes = element.strideInBytes || glTypeToByteSize(element.componentDataType) * element.componentSize;
+        let dataArr = [];
+        for (let i = 0; i < element.count; i++) {
+            let value = getTypedArry(element.componentDataType, element.value, i * strideInBytes + element.offsetInBytes, element.componentSize);
+            dataArr.push(value);
+        }
+        return dataArr;
+    }
+    function glTypeToByteSize(type) {
+        switch (type) {
+            case GlConstants$1.BYTE:
+                return Int8Array.BYTES_PER_ELEMENT;
+            case GlConstants$1.UNSIGNED_BYTE:
+                return Uint8Array.BYTES_PER_ELEMENT;
+            case GlConstants$1.SHORT:
+                return Int16Array.BYTES_PER_ELEMENT;
+            case GlConstants$1.UNSIGNED_SHORT:
+                return Uint16Array.BYTES_PER_ELEMENT;
+            case GlConstants$1.UNSIGNED_INT:
+                return Uint32Array.BYTES_PER_ELEMENT;
+            case GlConstants$1.FLOAT:
+                return Float32Array.BYTES_PER_ELEMENT;
+            default:
+                throw new Error(`Invalid component type ${type}`);
+        }
+    }
+    function getTypedArry(componentType, bufferview, byteOffset, Len) {
+        let buffer = bufferview.buffer;
+        byteOffset = bufferview.byteOffset + (byteOffset || 0);
+        switch (componentType) {
+            case GlConstants$1.BYTE:
+                return new Int8Array(buffer, byteOffset, Len);
+            case GlConstants$1.UNSIGNED_BYTE:
+                return new Uint8Array(buffer, byteOffset, Len);
+            case GlConstants$1.SHORT:
+                return new Int16Array(buffer, byteOffset, Len);
+            case GlConstants$1.UNSIGNED_SHORT:
+                return new Uint16Array(buffer, byteOffset, Len);
+            case GlConstants$1.UNSIGNED_INT:
+                return new Uint32Array(buffer, byteOffset, Len);
+            case GlConstants$1.FLOAT: {
+                if ((byteOffset / 4) % 1 != 0) {
+                    console.error("??");
+                }
+                return new Float32Array(buffer, byteOffset, Len);
+            }
+            default:
+                throw new Error(`Invalid component type ${componentType}`);
         }
     }
 
     class DefGeometry {
         static fromType(type) {
             if (this.defGeometry[type] == null) {
-                let gemetryinfo;
+                let geometryOption;
                 switch (type) {
                     case "quad":
-                        gemetryinfo = GlRender.createGeometry({
+                        geometryOption = {
+                            name: "def_quad",
                             atts: {
                                 POSITION: [-0.5, -0.5, 0, -0.5, 0.5, 0, 0.5, 0.5, 0, 0.5, -0.5, 0],
                                 TEXCOORD_0: [0, 1, 0, 0, 1, 0, 1, 1],
                             },
                             indices: [0, 2, 1, 0, 3, 2],
-                        });
+                        };
                         break;
                     case "cube":
-                        gemetryinfo = this.createCube();
+                        geometryOption = this.createCube();
                         break;
                     default:
                         console.warn("Unkowned default mesh type:", type);
                         return null;
                 }
-                if (gemetryinfo != null) {
-                    this.defGeometry[type] = new Geometry({ name: "def_" + type, beDefaultAsset: true });
-                    this.defGeometry[type].data = gemetryinfo;
+                if (geometryOption != null) {
+                    this.defGeometry[type] = Geometry.fromCustomData(geometryOption);
                 }
             }
             return this.defGeometry[type];
@@ -7962,14 +8110,15 @@
             this.addQuad(bassInf, [-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //左
             this.addQuad(bassInf, [0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //右
             this.addQuad(bassInf, [-0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //上
-            this.addQuad(bassInf, [-0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //上
-            return GlRender.createGeometry({
+            this.addQuad(bassInf, [-0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //下
+            return {
+                name: "def_cube",
                 atts: {
                     POSITION: bassInf.posarr,
                     TEXCOORD_0: bassInf.uvArray,
                 },
                 indices: bassInf.indices,
-            });
+            };
         }
         static addQuad(bassInf, posarr, uvArray, indices) {
             let maxIndex = bassInf.posarr.length / 3;
@@ -8263,7 +8412,7 @@
 
     class Texture extends ToyAsset {
         get texture() {
-            return this._textrue || GlTextrue.WHITE;
+            return this._textrue || GlTextrue.WHITE.texture;
         }
         set texture(value) {
             this._textrue = value;
@@ -8331,10 +8480,13 @@
             let rot = 0;
             toy.scene.preUpdate = delta => {
                 rot += delta * 0.1;
+                // cam.entity.transform.localRotation = Quat.FromEuler(-rot * 0.1, 0, 0);
+                // cam.entity.transform.markDirty();
                 rotEntity.transform.localPosition.x = 10 * Math.cos((rot * Math.PI) / 180);
                 rotEntity.transform.localPosition.z = 10 * Math.sin((rot * Math.PI) / 180);
                 rotEntity.transform.markDirty();
                 rotEntity.transform.lookAtPoint(Vec3.ZERO);
+                centerEnity.transform.lookAt(rotEntity.transform);
             };
         }
     }
@@ -10212,7 +10364,8 @@
                 let task = ParseBufferNode.parse(bufferindex, gltf).then(buffer => {
                     let viewbuffer = new Uint8Array(buffer, bufferview.byteOffset, bufferview.byteLength);
                     let stride = bufferview.byteStride;
-                    let glbuffer = bufferview.target && GlRender.createBuffer(bufferview.target, viewbuffer);
+                    // let glbuffer = bufferview.target && GlRender.createBuffer(bufferview.target, viewbuffer);
+                    let glbuffer = bufferview.target && GlBuffer.fromViewData(bufferview.target, viewbuffer);
                     return { viewBuffer: viewbuffer, byteStride: stride, glBuffer: glbuffer };
                 });
                 gltf.cache.bufferviewNodeCache[index] = task;
@@ -10437,7 +10590,7 @@
                         arrayInfo.offsetInBytes = accessor.byteOffset;
                         arrayInfo.value = value.viewBuffer;
                         arrayInfo.strideInBytes = value.byteStride;
-                        arrayInfo.buffer = value.glBuffer;
+                        arrayInfo.buffer = value.glBuffer.buffer;
                         return arrayInfo;
                     }
                 });
@@ -10527,6 +10680,16 @@
         }
     }
 
+    const MapGltfAttributeToToyAtt = {
+        POSITION: VertexAttEnum.POSITION,
+        NORMAL: VertexAttEnum.NORMAL,
+        TANGENT: VertexAttEnum.TANGENT,
+        TEXCOORD_0: VertexAttEnum.TEXCOORD_0,
+        TEXCOORD_1: VertexAttEnum.TEXCOORD_1,
+        COLOR_0: VertexAttEnum.COLOR_0,
+        WEIGHTS_0: VertexAttEnum.WEIGHTS_0,
+        JOINTS_0: VertexAttEnum.JOINTS_0,
+    };
     class ParseMeshNode {
         static parse(index, gltf) {
             if (gltf.cache.meshNodeCache[index]) {
@@ -10583,13 +10746,16 @@
                 taskAtts.push(indexTask);
             }
             return Promise.all(taskAtts).then(() => {
-                let geometryInfo = GlRender.createGeometry(geometryOp);
-                let newGeometry = new Geometry();
-                newGeometry.data = geometryInfo;
-                this.getTypedValueArr(newGeometry, geometryOp);
+                let newGeometry = Geometry.fromCustomData(geometryOp);
+                // this.getTypedValueArr(newGeometry, geometryOp);
                 return newGeometry;
             });
         }
+        /**
+         * 将buffer数据分割成对应的 typedarray，例如 positions[i]=new floa32array();
+         * @param newGeometry
+         * @param geometryOp
+         */
         static getTypedValueArr(newGeometry, geometryOp) {
             for (const key in geometryOp.atts) {
                 const element = geometryOp.atts[key];

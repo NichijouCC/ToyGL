@@ -48,14 +48,12 @@ export class RenderMachine {
             //-----------camera render ing
             camrenderList.sort().foreach((item: Irenderable) => {
                 this.rendercontext.curRender = item;
-                let shader=item.material.shader;
-                if(shader!=null)
-                {
-                    let passes=shader.passes&&shader.passes["base"];
-                    if(passes!=null)
-                    {
+                let shader = item.material.shader;
+                if (shader != null) {
+                    let passes = shader.passes && shader.passes["base"];
+                    if (passes != null) {
                         for (let i = 0; i < passes.length; i++) {
-                            GlRender.drawObject(item.geometry.data, passes[i], item.material.uniforms,shader.mapUniformDef);
+                            GlRender.drawObject(item.geometry, passes[i], item.material.uniforms, shader.mapUniformDef);
                         }
                     }
                 }
@@ -75,4 +73,3 @@ export enum DrawTypeEnum {
     NOFOG = 3,
     NOLIGHTMAP = 5,
 }
-
