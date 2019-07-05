@@ -1,31 +1,31 @@
-import { GlRender } from "../../render/glRender";
+import { GlRender, IgeometryOptions } from "../../render/glRender";
 import { Geometry } from "../assets/geometry";
 
 export class DefGeometry {
     private static defGeometry: { [type: string]: Geometry } = {};
     static fromType(type: "quad" | "cube"): Geometry {
         if (this.defGeometry[type] == null) {
-            let gemetryinfo;
+            let geometryOption: IgeometryOptions;
             switch (type) {
                 case "quad":
-                    gemetryinfo = GlRender.createGeometry({
+                    geometryOption = {
+                        name: "def_quad",
                         atts: {
                             POSITION: [-0.5, -0.5, 0, -0.5, 0.5, 0, 0.5, 0.5, 0, 0.5, -0.5, 0],
                             TEXCOORD_0: [0, 1, 0, 0, 1, 0, 1, 1],
                         },
                         indices: [0, 2, 1, 0, 3, 2],
-                    });
+                    };
                     break;
                 case "cube":
-                    gemetryinfo = this.createCube();
+                    geometryOption = this.createCube();
                     break;
                 default:
                     console.warn("Unkowned default mesh type:", type);
                     return null;
             }
-            if (gemetryinfo != null) {
-                this.defGeometry[type] = new Geometry({ name: "def_" + type, beDefaultAsset: true });
-                this.defGeometry[type].data = gemetryinfo;
+            if (geometryOption != null) {
+                this.defGeometry[type] = Geometry.fromCustomData(geometryOption);
             }
         }
         return this.defGeometry[type];
@@ -72,14 +72,15 @@ export class DefGeometry {
             [-0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5],
             [0, 1, 0, 0, 1, 0, 1, 1],
             [0, 1, 2, 0, 2, 3],
-        ); //上
-        return GlRender.createGeometry({
+        ); //下
+        return {
+            name: "def_cube",
             atts: {
                 POSITION: bassInf.posarr,
                 TEXCOORD_0: bassInf.uvArray,
             },
             indices: bassInf.indices,
-        });
+        };
     }
 
     private static addQuad(

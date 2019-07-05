@@ -13,7 +13,7 @@ import { Quat } from "../src/mathD/quat";
 
 export class Base {
     static done(toy: ToyGL) {
-        let geometry = DefGeometry.fromType("cube");
+        let geometry = DefGeometry.fromType("quad");
 
         ///------------def shader
         let shader = DefShader.fromType("baseTex");
@@ -41,6 +41,7 @@ export class Base {
         let camobj = new Entity("", ["Camera"]);
         let trans = camobj.transform;
         trans.localPosition.z = 5;
+        // trans.localRotation = Quat.FromEuler(-90, 0, 0);
         trans.markDirty();
         toy.scene.addEntity(camobj);
 

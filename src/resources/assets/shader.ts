@@ -2,6 +2,7 @@ import { ToyAsset, ItoyAsset } from "../base/toyAsset";
 import { IprogramInfo, GlRender } from "../../render/glRender";
 import { RenderLayerEnum } from "../../ec/ec";
 import { IprogramState, IuniformInfo, IattributeInfo, IprogramOptions } from "twebgl/dist/types/type";
+import { VertexAttEnum } from "../../render/vertexAttType";
 
 export class Shader extends ToyAsset {
     layer: RenderLayerEnum = RenderLayerEnum.Geometry;
@@ -14,7 +15,7 @@ export class Shader extends ToyAsset {
     }
 
     static fromCustomData(data: IshaderOptions) {
-        let newAsset = new Shader({ name: data.name||"custom_shader" });
+        let newAsset = new Shader({ name: data.name || "custom_shader" });
         newAsset.layer = data.layer || RenderLayerEnum.Geometry;
         newAsset.queue = data.queue != null ? data.queue : 0;
 
@@ -45,12 +46,11 @@ export class Shader extends ToyAsset {
         }
 
         newAsset.passes = featurePasses;
-        if(data.mapUniformDef!=null)
-        {
-            newAsset.mapUniformDef={};
+        if (data.mapUniformDef != null) {
+            newAsset.mapUniformDef = {};
             for (const key in data.mapUniformDef) {
                 const _value = data.mapUniformDef[key];
-                newAsset.mapUniformDef[key]={value:_value,type:UniformTypeEnum.UNKOWN}
+                newAsset.mapUniformDef[key] = { value: _value, type: UniformTypeEnum.UNKOWN };
             }
         }
         return newAsset;
@@ -71,7 +71,7 @@ export enum UniformTypeEnum {
     FLOAT_VEC3,
     FLOAT_VEC4,
     TEXTURE,
-    UNKOWN
+    UNKOWN,
 }
 
 export interface IshaderOptions {
@@ -79,8 +79,8 @@ export interface IshaderOptions {
     queue?: number;
     passes: IprogramOptions[];
     feature?: string[];
-    name?:string;
-    mapUniformDef?: { [key: string]:any };
+    name?: string;
+    mapUniformDef?: { [key: string]: any };
 }
 
 export function getFeaturShderStr(type: string) {

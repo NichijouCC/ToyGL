@@ -35,10 +35,16 @@ export class LookAt {
         toy.scene.preUpdate = delta => {
             rot += delta * 0.1;
 
+            // cam.entity.transform.localRotation = Quat.FromEuler(-rot * 0.1, 0, 0);
+
+            // cam.entity.transform.markDirty();
+
             rotEntity.transform.localPosition.x = 10 * Math.cos((rot * Math.PI) / 180);
             rotEntity.transform.localPosition.z = 10 * Math.sin((rot * Math.PI) / 180);
             rotEntity.transform.markDirty();
             rotEntity.transform.lookAtPoint(Vec3.ZERO);
+
+            centerEnity.transform.lookAt(rotEntity.transform);
         };
     }
 }

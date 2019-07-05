@@ -10,6 +10,9 @@ import {
     IarrayInfo,
     ItextureDesInfo,
     TypedArray,
+    IattributeInfo,
+    IvertexAttrib,
+    IprogramState,
 } from "twebgl/dist/types/type";
 
 import {
@@ -31,6 +34,7 @@ import {
 import { RenderLayerEnum } from "../ec/ec";
 import { AutoUniform } from "./autoUniform";
 import { UniformTypeEnum } from "../resources/assets/shader";
+import { VertexAttEnum } from "./vertexAttType";
 export {
     IprogramInfo,
     IgeometryInfo,
@@ -41,6 +45,7 @@ export {
     ItexViewDataOption,
     IarrayInfo,
     ItextureDesInfo,
+    IprogramState,
 };
 
 // export interface IshaderOptions extends IprogramOptions {
@@ -96,12 +101,24 @@ export class GlRender {
 
     static createGeometry(op: IgeometryOptions): IgeometryInfo {
         let info = createGeometryInfo(this.context, op);
+        let attdic = info.atts;
+        let newAttdic: { [name: string]: IvertexAttrib } = {};
+        for (let key in attdic) {
+            newAttdic[getAttTypeFromName(key)] = attdic[key];
+        }
+        info.atts = newAttdic;
         return info;
     }
 
     static createProgram(op: IprogramOptions): IprogramInfo {
         op.states = op.states || {};
         let info = createProgramInfo(this.context, op);
+        let attdic = info.bassProgram.attsDic;
+        let newAttdic: { [name: string]: IattributeInfo } = {};
+        for (let key in attdic) {
+            newAttdic[getAttTypeFromName(key)] = attdic[key];
+        }
+        info.bassProgram.attsDic = newAttdic;
         // info.layer = op.layer || RenderLayerEnum.Geometry;
         return info;
     }
@@ -203,5 +220,36 @@ export class GlTextrue {
             this._grid = GlRender.createTextureFromViewData(data, width, height);
         }
         return this._grid;
+    }
+}
+
+export function getAttTypeFromName(attName: string): string {
+    attName = attName.toLowerCase();
+    if (attName.indexOf("pos") != -1) {
+        return VertexAttEnum.POSITION;
+    }
+    if (attName.indexOf("uv") != -1 || attName.indexOf("coord") != -1) {
+        if (attName.indexOf("1") != -1) {
+            return VertexAttEnum.TEXCOORD_1;
+        } else if (attName.indexOf("2") != -1) {
+            return VertexAttEnum.TEXCOORD_1;
+        } else {
+            return VertexAttEnum.TEXCOORD_0;
+        }
+    }
+    if (attName.indexOf("normal") != -1) {
+        return VertexAttEnum.NORMAL;
+    }
+    if (attName.indexOf("tangent") != -1) {
+        return VertexAttEnum.TANGENT;
+    }
+    if (attName.indexOf("color") != -1) {
+        return VertexAttEnum.COLOR_0;
+    }
+    if (attName.indexOf("weight") != -1) {
+        return VertexAttEnum.WEIGHTS_0;
+    }
+    if (attName.indexOf("index") != -1) {
+        return VertexAttEnum.JOINTS_0;
     }
 }

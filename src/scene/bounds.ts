@@ -29,7 +29,7 @@ export class Bounds {
     }
 
     setFromMesh(geometry: Geometry): Bounds {
-        let points = geometry.getAttArr(VertexAttEnum.POSITION);
+        let points = geometry.getAttDataArr(VertexAttEnum.POSITION);
         this.setFromPoints(points);
         return this;
     }

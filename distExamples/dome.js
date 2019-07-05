@@ -829,21 +829,34 @@
         return numComponents;
     }
 
-    var GeometryInfo = /** @class */ (function () {
-        function GeometryInfo() {
-            this.vaoDic = {};
-            this.atts = {};
-            this.id = GeometryInfo.nextID();
-        }
-        GeometryInfo.nextID = function () {
-            return GeometryInfo.count++;
-        };
-        GeometryInfo.count = 0;
-        return GeometryInfo;
-    }());
+    // export class GeometryInfo implements IgeometryInfo {
+    //     vaoDic: { [programeId: number]: WebGLVertexArrayObject } = {};
+    //     constructor() {
+    //         this.id = GeometryInfo.nextID();
+    //     }
+    //     readonly id: number;
+    //     primitiveType: number;
+    //     atts: { [attName: string]: IvertexAttrib } = {};
+    //     indices?: IvertexIndex;
+    //     // mode: number;
+    //     count: number;
+    //     offset: number = 0;
+    //     private static count = 0;
+    //     static nextID() {
+    //         return GeometryInfo.count++;
+    //     }
+    // }
     function createGeometryInfo(gl, op) {
-        var info = new GeometryInfo();
-        info.primitiveType = op.primitiveType ? op.primitiveType : gl.TRIANGLES;
+        // let info = new GeometryInfo();
+        var primitiveType = op.primitiveType != null ? op.primitiveType : gl.TRIANGLES;
+        var info = {
+            atts: {},
+            vaoDic: {},
+            offset: 0,
+            count: null,
+            primitiveType: primitiveType,
+            name: op.name,
+        };
         if (op.indices != null) {
             info.indices = createIndexBufferInfo(gl, op.indices);
             if (info.count == null) {
@@ -2161,6 +2174,19 @@
         return buffer;
     }
 
+    var VertexAttEnum;
+    (function (VertexAttEnum) {
+        VertexAttEnum["POSITION"] = "position";
+        VertexAttEnum["NORMAL"] = "normal";
+        VertexAttEnum["TANGENT"] = "tangent";
+        VertexAttEnum["TEXCOORD_0"] = "uv";
+        VertexAttEnum["TEXCOORD_1"] = "uv1";
+        VertexAttEnum["TEXCOORD_2"] = "uv2";
+        VertexAttEnum["COLOR_0"] = "color";
+        VertexAttEnum["WEIGHTS_0"] = "skinWeight";
+        VertexAttEnum["JOINTS_0"] = "skinIndex";
+    })(VertexAttEnum || (VertexAttEnum = {}));
+
     // export interface IshaderOptions extends IprogramOptions {
     //     layer?: RenderLayerEnum;
     // }
@@ -2195,11 +2221,23 @@
         }
         static createGeometry(op) {
             let info = createGeometryInfo(this.context, op);
+            let attdic = info.atts;
+            let newAttdic = {};
+            for (let key in attdic) {
+                newAttdic[getAttTypeFromName(key)] = attdic[key];
+            }
+            info.atts = newAttdic;
             return info;
         }
         static createProgram(op) {
             op.states = op.states || {};
             let info = createProgramInfo(this.context, op);
+            let attdic = info.bassProgram.attsDic;
+            let newAttdic = {};
+            for (let key in attdic) {
+                newAttdic[getAttTypeFromName(key)] = attdic[key];
+            }
+            info.bassProgram.attsDic = newAttdic;
             // info.layer = op.layer || RenderLayerEnum.Geometry;
             return info;
         }
@@ -2277,6 +2315,38 @@
                 this._grid = GlRender.createTextureFromViewData(data, width, height);
             }
             return this._grid;
+        }
+    }
+    function getAttTypeFromName(attName) {
+        attName = attName.toLowerCase();
+        if (attName.indexOf("pos") != -1) {
+            return VertexAttEnum.POSITION;
+        }
+        if (attName.indexOf("uv") != -1 || attName.indexOf("coord") != -1) {
+            if (attName.indexOf("1") != -1) {
+                return VertexAttEnum.TEXCOORD_1;
+            }
+            else if (attName.indexOf("2") != -1) {
+                return VertexAttEnum.TEXCOORD_1;
+            }
+            else {
+                return VertexAttEnum.TEXCOORD_0;
+            }
+        }
+        if (attName.indexOf("normal") != -1) {
+            return VertexAttEnum.NORMAL;
+        }
+        if (attName.indexOf("tangent") != -1) {
+            return VertexAttEnum.TANGENT;
+        }
+        if (attName.indexOf("color") != -1) {
+            return VertexAttEnum.COLOR_0;
+        }
+        if (attName.indexOf("weight") != -1) {
+            return VertexAttEnum.WEIGHTS_0;
+        }
+        if (attName.indexOf("index") != -1) {
+            return VertexAttEnum.JOINTS_0;
         }
     }
 
@@ -5133,264 +5203,6 @@
     }
     GameScreen.resizeListenerArr = [];
 
-    class Plane {
-        constructor() {
-            //ax+by+cz+d=0;
-            this.normal = Vec3.create(0, 1, 0);
-            this.constant = 0;
-        }
-        distanceToPoint(point) {
-            return Vec3.dot(point, this.normal) + this.constant;
-        }
-        copy(to) {
-            Vec3.copy(this.normal, to.normal);
-            to.constant = this.constant;
-        }
-        setComponents(nx, ny, nz, ds) {
-            this.normal[0] = nx;
-            this.normal[1] = ny;
-            this.normal[2] = nz;
-            let inverseNormalLength = 1.0 / Vec3.magnitude(this.normal);
-            Vec3.scale(this.normal, inverseNormalLength, this.normal);
-            this.constant = ds * inverseNormalLength;
-        }
-    }
-
-    var VertexAttEnum;
-    (function (VertexAttEnum) {
-        VertexAttEnum["POSITION"] = "position";
-        VertexAttEnum["NORMAL"] = "normal";
-        VertexAttEnum["TANGENT"] = "tangent";
-        VertexAttEnum["TEXCOORD_0"] = "uv";
-        VertexAttEnum["TEXCOORD_1"] = "uv2";
-        VertexAttEnum["COLOR_0"] = "color";
-        VertexAttEnum["WEIGHTS_0"] = "skinWeight";
-        VertexAttEnum["JOINTS_0"] = "skinIndex";
-    })(VertexAttEnum || (VertexAttEnum = {}));
-
-    class Bounds {
-        constructor() {
-            this.maxPoint = Vec3.create();
-            this.minPoint = Vec3.create();
-            // centerPoint: Vec3 = Vec3.create();
-            this._center = Vec3.create();
-        }
-        get centerPoint() {
-            Vec3.center(this.minPoint, this.maxPoint, this._center);
-            return this._center;
-        }
-        setMaxPoint(pos) {
-            Vec3.copy(pos, this.maxPoint);
-        }
-        setMinPoint(pos) {
-            Vec3.copy(pos, this.minPoint);
-        }
-        setFromPoints(pos) {
-            for (let key in pos) {
-                Vec3.min(this.minPoint, pos[key], this.minPoint);
-                Vec3.max(this.maxPoint, pos[key], this.maxPoint);
-            }
-            // Vec3.center(this.minPoint, this.maxPoint, this.centerPoint);
-            return this;
-        }
-        setFromMesh(geometry) {
-            let points = geometry.getAttArr(VertexAttEnum.POSITION);
-            this.setFromPoints(points);
-            return this;
-        }
-        addAABB(box) {
-            Vec3.min(this.minPoint, box.minPoint, this.minPoint);
-            Vec3.max(this.maxPoint, box.maxPoint, this.maxPoint);
-            // Vec3.center(this.minPoint, this.maxPoint, this.centerPoint);
-            return this;
-        }
-        beEmpty() {
-            return (this.minPoint[0] > this.maxPoint[0] ||
-                this.minPoint[1] > this.maxPoint[1] ||
-                this.minPoint[2] > this.maxPoint[2]);
-        }
-        containPoint(point) {
-            return (point[0] >= this.minPoint[0] &&
-                point[0] <= this.maxPoint[0] &&
-                point[1] >= this.minPoint[1] &&
-                point[1] <= this.maxPoint[1] &&
-                point[2] >= this.minPoint[2] &&
-                point[2] <= this.maxPoint[2]);
-        }
-        intersect(box) {
-            let interMin = box.minPoint;
-            let interMax = box.maxPoint;
-            if (this.minPoint[0] > interMax[0])
-                return false;
-            if (this.minPoint[1] > interMax[1])
-                return false;
-            if (this.minPoint[2] > interMax[2])
-                return false;
-            if (this.maxPoint[0] > interMin[0])
-                return false;
-            if (this.maxPoint[1] > interMin[1])
-                return false;
-            if (this.maxPoint[2] > interMin[2])
-                return false;
-            return true;
-        }
-        applyMatrix(mat) {
-            if (this.beEmpty())
-                return;
-            let min = Vec3.create();
-            let max = Vec3.create();
-            min[0] += mat[12];
-            max[0] += mat[12];
-            min[1] += mat[13];
-            max[1] += mat[13];
-            min[2] += mat[14];
-            max[2] += mat[14];
-            for (let i = 0; i < 3; i++) {
-                for (let k = 0; k < 3; k++) {
-                    if (mat[k + i * 4] > 0) {
-                        min[i] += mat[k + i * 4] * this.minPoint[i];
-                        max[i] += mat[k + i * 4] * this.maxPoint[i];
-                    }
-                    else {
-                        min[i] += mat[k + i * 4] * this.maxPoint[i];
-                        max[i] += mat[k + i * 4] * this.minPoint[i];
-                    }
-                }
-            }
-            Vec3.recycle(this.minPoint);
-            Vec3.recycle(this.maxPoint);
-            this.minPoint = min;
-            this.maxPoint = max;
-        }
-    }
-    class BoundingSphere {
-        constructor() {
-            this.center = Vec3.create();
-            this.radius = 0;
-        }
-        applyMatrix(mat) {
-            Mat4.transformPoint(this.center, mat, this.center);
-        }
-        setFromPoints(points, center = null) {
-            if (center != null) {
-                Vec3.copy(center, this.center);
-            }
-            else {
-                let center = new Bounds().setFromPoints(points).centerPoint;
-                Vec3.copy(center, this.center);
-            }
-            for (let i = 0; i < points.length; i++) {
-                let dis = Vec3.distance(points[i], this.center);
-                if (dis > this.radius) {
-                    this.radius = dis;
-                }
-            }
-        }
-        setFromGeometry(geometry, center = null) {
-            let points = geometry.getAttArr(VertexAttEnum.POSITION);
-            this.setFromPoints(points, center);
-            return this;
-        }
-        copyTo(to) {
-            Vec3.copy(this.center, to.center);
-            to.radius = this.radius;
-        }
-        clone() {
-            let newSphere = BoundingSphere.create();
-            this.copyTo(newSphere);
-            return newSphere;
-        }
-        static create() {
-            if (this.pool.length > 0) {
-                return this.pool.pop();
-            }
-            else {
-                return new BoundingSphere();
-            }
-        }
-        static recycle(item) {
-            this.pool.push(item);
-        }
-    }
-    BoundingSphere.pool = [];
-
-    class Frustum {
-        constructor(p0 = null, p1 = null, p2 = null, p3 = null, p4 = null, p5 = null) {
-            this.planes = [];
-            this.planes[0] = p0 != null ? p0 : new Plane();
-            this.planes[1] = p1 != null ? p1 : new Plane();
-            this.planes[2] = p2 != null ? p2 : new Plane();
-            this.planes[3] = p3 != null ? p3 : new Plane();
-            this.planes[4] = p4 != null ? p4 : new Plane();
-            this.planes[5] = p5 != null ? p5 : new Plane();
-        }
-        set(p0, p1, p2, p3, p4, p5) {
-            this.planes[0].copy(p0);
-            this.planes[1].copy(p1);
-            this.planes[2].copy(p2);
-            this.planes[3].copy(p3);
-            this.planes[4].copy(p4);
-            this.planes[5].copy(p5);
-        }
-        setFromMatrix(me) {
-            let planes = this.planes;
-            let me0 = me[0], me1 = me[1], me2 = me[2], me3 = me[3];
-            let me4 = me[4], me5 = me[5], me6 = me[6], me7 = me[7];
-            let me8 = me[8], me9 = me[9], me10 = me[10], me11 = me[11];
-            let me12 = me[12], me13 = me[13], me14 = me[14], me15 = me[15];
-            planes[0].setComponents(me3 - me0, me7 - me4, me11 - me8, me15 - me12);
-            planes[1].setComponents(me3 + me0, me7 + me4, me11 + me8, me15 + me12);
-            planes[2].setComponents(me3 + me1, me7 + me5, me11 + me9, me15 + me13);
-            planes[3].setComponents(me3 - me1, me7 - me5, me11 - me9, me15 - me13);
-            planes[4].setComponents(me3 - me2, me7 - me6, me11 - me10, me15 - me14);
-            planes[5].setComponents(me3 + me2, me7 + me6, me11 + me10, me15 + me14);
-            return this;
-        }
-        intersectRender(render) {
-            if (render.bouningSphere != null) {
-                let sphere = render.bouningSphere.clone();
-                sphere.applyMatrix(render.modelMatrix);
-                let result = this.intersectSphere(sphere);
-                return result;
-            }
-            else {
-                return true;
-            }
-        }
-        /**
-         * 和包围球检测相交
-         * @param sphere 包围球
-         * @param mat 用于变换包围球
-         */
-        intersectSphere(sphere, mat = null) {
-            let planes = this.planes;
-            if (mat != null) {
-                let clonesphere = sphere.clone();
-                clonesphere.applyMatrix(mat);
-                let center = clonesphere.center;
-                let negRadius = -clonesphere.radius;
-                for (let i = 0; i < 6; i++) {
-                    let distance = planes[i].distanceToPoint(center);
-                    if (distance < negRadius) {
-                        return false;
-                    }
-                }
-                BoundingSphere.recycle(sphere);
-            }
-            else {
-                let center = sphere.center;
-                let negRadius = -sphere.radius;
-                for (let i = 0; i < 6; i++) {
-                    let distance = planes[i].distanceToPoint(center);
-                    if (distance < negRadius) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-    }
-
     var ProjectionEnum;
     (function (ProjectionEnum) {
         ProjectionEnum[ProjectionEnum["PERSPECTIVE"] = 0] = "PERSPECTIVE";
@@ -5435,8 +5247,6 @@
             this.needComputeViewMat = true;
             this.needcomputeProjectMat = true;
             this.needcomputeViewProjectMat = true;
-            this._frustum = new Frustum();
-            this.beActiveFrustum = true;
         }
         get near() {
             return this._near;
@@ -5493,9 +5303,6 @@
             this.needComputeViewMat = true;
             this.needcomputeProjectMat = true;
             this.needcomputeViewProjectMat = true;
-        }
-        get frustum() {
-            return this._frustum;
         }
         dispose() { }
     };
@@ -5609,36 +5416,45 @@
             GlRender.autoUniform = new AutoUniform(this.rendercontext);
             GlRender.init(cancvas);
         }
-        drawCamera(cam, renderList) {
-            if (this.camRenderList[cam.entity.guid] == null) {
-                this.camRenderList[cam.entity.guid] = new RenderList(cam);
-            }
-            let camrenderList = this.camRenderList[cam.entity.guid];
-            camrenderList.clear();
-            for (let i = 0; i < renderList.length; i++) {
-                if (renderList[i].maskLayer & cam.cullingMask) {
-                    camrenderList.addRenderer(renderList[i]);
+        frameRender(frameState) {
+            let camerlist = frameState.cameraList;
+            let renderList = frameState.renderList;
+            camerlist.sort((a, b) => {
+                return a.priority - b.priority;
+            });
+            for (let i = 0; i < camerlist.length; i++) {
+                let cam = camerlist[i];
+                if (this.camRenderList[cam.entity.guid] == null) {
+                    this.camRenderList[cam.entity.guid] = new RenderList(cam);
                 }
-            }
-            //----------- set global State
-            GlRender.setViewPort(cam.viewport);
-            GlRender.setClear(cam.clearFlag & ClearEnum.DEPTH ? true : false, cam.clearFlag & ClearEnum.COLOR ? cam.backgroundColor : null, cam.clearFlag & ClearEnum.STENCIL ? true : false);
-            //-----------camera render before
-            this.rendercontext.curCamera = cam;
-            //-----------camera render ing
-            camrenderList.sort().foreach((item) => {
-                this.rendercontext.curRender = item;
-                let shader = item.material.shader;
-                if (shader != null) {
-                    let passes = shader.passes && shader.passes["base"];
-                    if (passes != null) {
-                        for (let i = 0; i < passes.length; i++) {
-                            GlRender.drawObject(item.geometry.data, passes[i], item.material.uniforms, shader.mapUniformDef);
-                        }
+                let camrenderList = this.camRenderList[cam.entity.guid];
+                camrenderList.clear();
+                // let newList = this.filterRenderByCamera(renderList, cam);
+                for (let i = 0; i < renderList.length; i++) {
+                    if (renderList[i].maskLayer & cam.cullingMask) {
+                        camrenderList.addRenderer(renderList[i]);
                     }
                 }
-            });
-            //-----------canera render end
+                //----------- set global State
+                GlRender.setViewPort(cam.viewport);
+                GlRender.setClear(cam.clearFlag & ClearEnum.DEPTH ? true : false, cam.clearFlag & ClearEnum.COLOR ? cam.backgroundColor : null, cam.clearFlag & ClearEnum.STENCIL ? true : false);
+                //-----------camera render before
+                this.rendercontext.curCamera = cam;
+                //-----------camera render ing
+                camrenderList.sort().foreach((item) => {
+                    this.rendercontext.curRender = item;
+                    let shader = item.material.shader;
+                    if (shader != null) {
+                        let passes = shader.passes && shader.passes["base"];
+                        if (passes != null) {
+                            for (let i = 0; i < passes.length; i++) {
+                                GlRender.drawObject(item.geometry, passes[i], item.material.uniforms, shader.mapUniformDef);
+                            }
+                        }
+                    }
+                });
+                //-----------canera render end
+            }
         }
     }
     var DrawTypeEnum;
@@ -7402,26 +7218,26 @@
             this._renderDirty = true;
         }
         update(frameState) {
-            if (this._geometry && this._material) {
-                frameState.renderList.push({
-                    maskLayer: this.entity.maskLayer,
-                    geometry: this._geometry,
-                    // program: this._material.program,
-                    // uniforms: this._material.uniforms,
-                    material: this._material,
-                    modelMatrix: this.entity.transform.worldMatrix,
-                    bouningSphere: this.boundingSphere,
-                });
-            }
+            let currentRender = (this.render && this.updateRender()) || {
+                maskLayer: this.entity.maskLayer,
+                geometry: this._geometry,
+                // program: this._material.program,
+                // uniforms: this._material.uniforms,
+                material: this._material,
+                modelMatrix: this.entity.transform.worldMatrix,
+            };
+            frameState.renderList.push(currentRender);
         }
-        get boundingSphere() {
-            if (this._boundingSphere == null) {
-                if (this._geometry) {
-                    this._boundingSphere = new BoundingSphere();
-                    this._boundingSphere.setFromGeometry(this._geometry);
-                }
+        updateRender() {
+            if (this._renderDirty) {
+                this.render.geometry = this._geometry;
+                // this.render.program = this._material.program;
+                // this.render.uniforms = this._material.uniforms;
+                this.render.material = this._material;
+                this._renderDirty = false;
             }
-            return this._boundingSphere;
+            this.render.maskLayer = this.entity.maskLayer;
+            return this.render;
         }
         dispose() { }
     };
@@ -7936,16 +7752,7 @@
             this.foreachRootNodes(node => {
                 this._updateNode(node, this.frameState);
             });
-            this.frameState.cameraList.sort((a, b) => {
-                return a.priority - b.priority;
-            });
-            for (let i = 0; i < this.frameState.cameraList.length; i++) {
-                let cam = this.frameState.cameraList[i];
-                let arr = this.frameState.renderList.filter(item => {
-                    return this.maskCheck(cam.cullingMask, item) && this.frusumCheck(cam.frustum, item);
-                });
-                this.render.drawCamera(cam, arr);
-            }
+            this.render.frameRender(this.frameState);
         }
         _updateNode(node, frameState) {
             let entity = node.entity;
@@ -7957,12 +7764,6 @@
             for (let i = 0, len = node.children.length; i < len; i++) {
                 this._updateNode(node.children[i], frameState);
             }
-        }
-        frusumCheck(frustum, item) {
-            return frustum.intersectRender(item);
-        }
-        maskCheck(maskLayer, item) {
-            return (item.maskLayer & maskLayer) !== 0;
         }
     }
 
@@ -8195,16 +7996,16 @@
         static fromCustomData(data) {
             let geometry = GlRender.createGeometry(data);
             let newAsset = new Geometry({ name: "custom_Mesh" });
-            newAsset.data = geometry;
+            Object.assign(newAsset, geometry);
             return newAsset;
         }
-        getAttArr(type) {
+        getAttDataArr(type) {
             if (this.attDic[type] != null) {
                 return this.attDic[type];
             }
             else {
-                if (this.data.atts[type] != null) {
-                    this.attDic[type] = getTypedValueArr(type, this.data.atts[VertexAttEnum.POSITION]);
+                if (this.atts[type] != null) {
+                    this.attDic[type] = getTypedValueArr(type, this.atts[VertexAttEnum.POSITION]);
                 }
                 else {
                     console.warn("geometry don't contain vertex type:", type);
@@ -8273,27 +8074,27 @@
     class DefGeometry {
         static fromType(type) {
             if (this.defGeometry[type] == null) {
-                let gemetryinfo;
+                let geometryOption;
                 switch (type) {
                     case "quad":
-                        gemetryinfo = GlRender.createGeometry({
+                        geometryOption = {
+                            name: "def_quad",
                             atts: {
                                 POSITION: [-0.5, -0.5, 0, -0.5, 0.5, 0, 0.5, 0.5, 0, 0.5, -0.5, 0],
                                 TEXCOORD_0: [0, 1, 0, 0, 1, 0, 1, 1],
                             },
                             indices: [0, 2, 1, 0, 3, 2],
-                        });
+                        };
                         break;
                     case "cube":
-                        gemetryinfo = this.createCube();
+                        geometryOption = this.createCube();
                         break;
                     default:
                         console.warn("Unkowned default mesh type:", type);
                         return null;
                 }
-                if (gemetryinfo != null) {
-                    this.defGeometry[type] = new Geometry({ name: "def_" + type, beDefaultAsset: true });
-                    this.defGeometry[type].data = gemetryinfo;
+                if (geometryOption != null) {
+                    this.defGeometry[type] = Geometry.fromCustomData(geometryOption);
                 }
             }
             return this.defGeometry[type];
@@ -8309,14 +8110,15 @@
             this.addQuad(bassInf, [-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //左
             this.addQuad(bassInf, [0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //右
             this.addQuad(bassInf, [-0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //上
-            this.addQuad(bassInf, [-0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //上
-            return GlRender.createGeometry({
+            this.addQuad(bassInf, [-0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //下
+            return {
+                name: "def_cube",
                 atts: {
                     POSITION: bassInf.posarr,
                     TEXCOORD_0: bassInf.uvArray,
                 },
                 indices: bassInf.indices,
-            });
+            };
         }
         static addQuad(bassInf, posarr, uvArray, indices) {
             let maxIndex = bassInf.posarr.length / 3;
@@ -8610,7 +8412,7 @@
 
     class Texture extends ToyAsset {
         get texture() {
-            return this._textrue || GlTextrue.WHITE;
+            return this._textrue || GlTextrue.WHITE.texture;
         }
         set texture(value) {
             this._textrue = value;
@@ -8678,10 +8480,13 @@
             let rot = 0;
             toy.scene.preUpdate = delta => {
                 rot += delta * 0.1;
+                // cam.entity.transform.localRotation = Quat.FromEuler(-rot * 0.1, 0, 0);
+                // cam.entity.transform.markDirty();
                 rotEntity.transform.localPosition.x = 10 * Math.cos((rot * Math.PI) / 180);
                 rotEntity.transform.localPosition.z = 10 * Math.sin((rot * Math.PI) / 180);
                 rotEntity.transform.markDirty();
                 rotEntity.transform.lookAtPoint(Vec3.ZERO);
+                centerEnity.transform.lookAt(rotEntity.transform);
             };
         }
     }

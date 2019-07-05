@@ -1,4 +1,3 @@
-import { GlRender } from "./../../render/glRender";
 import { IassetLoader, IassetLoadInfo, Iasset } from "../type";
 import { getFileName } from "../base/helper";
 import { Texture } from "../assets/texture";
@@ -15,9 +14,7 @@ export class LoadTextureSample implements IassetLoader {
         let texture: Texture = new Texture({ name: name, URL: url });
         loadImg(url)
             .then(img => {
-                let imaginfo = GlRender.createTextureFromImg(img);
-                texture.texture = imaginfo.texture;
-                texture.texDes = imaginfo.texDes;
+                texture = Texture.fromImageSource(img, null, texture);
 
                 if (onFinish) {
                     onFinish(texture, { url: url, loadState: LoadEnum.Success });
@@ -54,9 +51,7 @@ export class LoadTextureDes implements IassetLoader {
                 let imgurl = url.replace(desname, imgName);
                 loadImg(imgurl)
                     .then(img => {
-                        let imaginfo = GlRender.createTextureFromImg(img);
-                        texture.texture = imaginfo.texture;
-                        texture.texDes = imaginfo.texDes;
+                        texture = Texture.fromImageSource(img, null, texture);
 
                         if (onFinish) {
                             onFinish(texture, { url: url, loadState: LoadEnum.Success });
