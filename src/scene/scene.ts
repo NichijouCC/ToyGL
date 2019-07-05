@@ -3,9 +3,9 @@ import { Entity } from "../ec/entity";
 import { Transform } from "../ec/transform";
 import { FrameState, IframeState, Irenderable } from "./frameState";
 import { RenderMachine } from "../render/renderMachine";
-import { RenderList } from "../render/renderList";
 import { CullingMask } from "../ec/ec";
 import { Frustum } from "./frustum";
+import { Debug } from "../debug/debug";
 
 export class Scene {
     private root: Transform = new Entity().transform;
@@ -53,6 +53,9 @@ export class Scene {
 
         for (let i = 0; i < this.frameState.cameraList.length; i++) {
             let cam = this.frameState.cameraList[i];
+
+            this.frameState.renderList.push(Debug.showCameraWireframe(cam));
+            // this.frameState.renderList = [Debug.showCameraWireframe(cam)];
             let arr = this.frameState.renderList.filter(item => {
                 return this.maskCheck(cam.cullingMask, item) && this.frusumCheck(cam.frustum, item);
             });

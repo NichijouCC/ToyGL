@@ -1,7 +1,6 @@
 import { Vec2 } from "./Vec2";
 
 import { EPSILON } from "./common";
-import { RefNumber } from "./refNumber";
 
 export class Mat2d extends Float32Array {
     private static Recycle: Mat2d[] = [];
@@ -250,22 +249,6 @@ export class Mat2d extends Float32Array {
         return out;
     }
 
-    public static getRotationing(mat: Mat2d, out: RefNumber, scale: Vec2 = null): RefNumber {
-        let outscale: Vec2 = scale;
-        if (outscale == null) {
-            outscale = Vec2.create();
-            this.getScaling(mat, outscale);
-        }
-        let cosa = mat[0] / outscale[0];
-        let sina = mat[1] / outscale[1];
-
-        if (cosa >= 0) {
-            out.value = Math.asin(sina);
-        } else {
-            out.value = Math.asin(-sina) + Math.PI;
-        }
-        return out;
-    }
     /**
      * Creates a matrix from a vector scaling
      * This is equivalent to (but much faster than):
@@ -338,11 +321,6 @@ export class Mat2d extends Float32Array {
         Mat2d.recycle(matR);
     }
 
-    public static decompose(src: Mat2d, pos: Vec2, scale: Vec2, rot: RefNumber) {
-        this.getTranslationing(src, pos);
-        this.getScaling(src, scale);
-        this.getRotationing(src, rot, scale);
-    }
     /**
      * Returns a string representation of a mat2d
      *

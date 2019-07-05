@@ -1,11 +1,11 @@
 import { AccessorComponentType } from "./gltfJsonStruct";
 import { IgltfJson } from "./loadglTF";
 import { ParseBufferViewNode } from "./parseBufferViewNode";
-import { IarrayInfo } from "../../render/glRender";
+import { IviewData } from "twebgl/dist/types/type";
 
 export class ParseAccessorNode {
-    static parse(index: number, gltf: IgltfJson): Promise<IarrayInfo> {
-        let arrayInfo: IarrayInfo = {};
+    static parse(index: number, gltf: IgltfJson): Promise<IviewData> {
+        let arrayInfo: IviewData = {};
         // return new Promise<AccessorNode>((resolve,reject)=>{
         let accessor = gltf.accessors[index];
 
@@ -20,9 +20,9 @@ export class ParseAccessorNode {
             return ParseBufferViewNode.parse(viewindex, gltf).then(value => {
                 if (accessor.sparse != null) {
                     let cloneArr = value.viewBuffer.slice(accessor.byteOffset);
-                    arrayInfo.offsetInBytes = 0;
+                    arrayInfo.bytesOffset = 0;
                     arrayInfo.value = cloneArr;
-                    arrayInfo.strideInBytes = value.byteStride;
+                    arrayInfo.bytesStride = value.byteStride;
 
                     let indicesInfo = accessor.sparse.indices;
                     let valuesInfo = accessor.sparse.values;
@@ -40,8 +40,8 @@ export class ParseAccessorNode {
 
                         let elementByte = this.getBytesForAccessor(accessor.type, accessor.componentType);
                         let realStride =
-                            arrayInfo.strideInBytes != null && arrayInfo.strideInBytes != 0
-                                ? arrayInfo.strideInBytes
+                            arrayInfo.bytesStride != null && arrayInfo.bytesStride != 0
+                                ? arrayInfo.bytesStride
                                 : elementByte;
                         for (let i = 0; i < indicesArr.length; i++) {
                             let index = indicesArr[i];
@@ -51,10 +51,10 @@ export class ParseAccessorNode {
                         }
                     });
                 } else {
-                    arrayInfo.offsetInBytes = accessor.byteOffset;
+                    arrayInfo.bytesOffset = accessor.byteOffset;
                     arrayInfo.value = value.viewBuffer;
-                    arrayInfo.strideInBytes = value.byteStride;
-                    arrayInfo.buffer = value.glBuffer.buffer;
+                    arrayInfo.bytesStride = value.byteStride;
+                    arrayInfo.glBuffer = value.glBuffer.buffer;
                     return arrayInfo;
                 }
             });

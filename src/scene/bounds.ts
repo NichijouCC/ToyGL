@@ -125,7 +125,7 @@ export class BoundingSphere {
         }
     }
     setFromGeometry(geometry: Geometry, center: Vec3 = null): BoundingSphere {
-        let points = geometry.getAttArr(VertexAttEnum.POSITION);
+        let points = geometry.getAttDataArr(VertexAttEnum.POSITION);
         this.setFromPoints(points, center);
         return this;
     }

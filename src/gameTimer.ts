@@ -11,13 +11,12 @@ export class GameTimer implements Itimer {
         this.beActive = false;
     }
     tick: (deltaTime: number) => void;
-    constructor()
-    {
+    constructor() {
         this.active();
     }
-    private  lastTimer: number;
-    private  totalTime: number;
-    private  deltaTime: number;
+    private lastTimer: number;
+    private totalTime: number;
+    private deltaTime: number;
     get Time() {
         return this.totalTime * 0.001;
     }
@@ -33,20 +32,17 @@ export class GameTimer implements Itimer {
         this.lastTimer = now;
 
         let realDetal = this.deltaTime * this.TimeScale;
-        if(this.beActive!=null)
-        {
-            if(this.tick!=null)
-            {
+        if (this.beActive != null) {
+            if (this.tick != null) {
                 this.tick(realDetal);
             }
-            for(let i=0;i<this.updateList.length;i++)
-            {
+            for (let i = 0; i < this.updateList.length; i++) {
                 this.updateList[i](realDetal);
             }
         }
     }
 
-    private  updateList: Function[] = [];
+    private updateList: Function[] = [];
     addListenToTimerUpdate(func: (delta: number) => void) {
         this.updateList.push(func);
     }

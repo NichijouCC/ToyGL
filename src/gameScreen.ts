@@ -44,10 +44,8 @@ export class GameScreen {
         // };
     }
 
-    static update()
-    {
-        if(this.canvasheight!=this.canvas.height||this.canvaswidth!=this.canvas.width)
-        {
+    static update() {
+        if (this.canvasheight != this.canvas.height || this.canvaswidth != this.canvas.width) {
             this.OnResizeCanvas();
         }
     }

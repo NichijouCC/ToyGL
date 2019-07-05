@@ -1,7 +1,7 @@
 import { GlTextrue, ItextureDesInfo, GlRender } from "./../../render/glRender";
 import { ToyAsset, ItoyAsset } from "../base/toyAsset";
 import { ItextureInfo, ItexImageDataOption } from "../../render/glRender";
-import { TypedArray, ItexViewDataOption } from "twebgl/dist/types/type";
+import { ItexViewDataOption } from "twebgl/dist/types/type";
 
 export class Texture extends ToyAsset implements ItextureInfo {
     // texture:WebGLTexture;
@@ -34,7 +34,7 @@ export class Texture extends ToyAsset implements ItextureInfo {
     }
 
     static fromViewData(
-        viewData: TypedArray,
+        viewData: ArrayBufferView,
         width: number,
         height: number,
         texOp?: ItextureDesInfo,

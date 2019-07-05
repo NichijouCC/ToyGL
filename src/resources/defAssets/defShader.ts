@@ -91,6 +91,7 @@ export class DefShader {
                     },
                 },
             ],
+            mapUniformDef: { MainColor: Color.create() },
             name: "def_base",
         });
     }

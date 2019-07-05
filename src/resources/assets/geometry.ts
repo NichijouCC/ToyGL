@@ -1,8 +1,8 @@
 import { ToyAsset, ItoyAsset } from "../base/toyAsset";
-import { GlRender, IgeometryInfo, IgeometryOptions, IarrayInfo } from "../../render/glRender";
+import { GlRender, IgeometryInfo, IgeometryOptions } from "../../render/glRender";
 import { VertexAttEnum } from "../../render/vertexAttType";
 import { GlConstants } from "twebgl";
-import { TypedArray, IvertexAttrib, IvertexIndex } from "twebgl/dist/types/type";
+import { IvertexAttrib, IvertexIndex } from "twebgl/dist/types/type";
 
 export class Geometry extends ToyAsset implements IgeometryInfo {
     atts: { [attName: string]: IvertexAttrib };
@@ -22,7 +22,7 @@ export class Geometry extends ToyAsset implements IgeometryInfo {
         Object.assign(newAsset, geometry);
         return newAsset;
     }
-    private attDic: { [att: string]: any[] };
+    private attDic: { [att: string]: any[] } = {};
     getAttDataArr(type: VertexAttEnum) {
         if (this.attDic[type] != null) {
             return this.attDic[type];
@@ -33,6 +33,14 @@ export class Geometry extends ToyAsset implements IgeometryInfo {
                 console.warn("geometry don't contain vertex type:", type);
             }
             return this.attDic[type];
+        }
+    }
+
+    updateAttData(type: VertexAttEnum, data: number[] | ArrayBufferView) {
+        if (data instanceof Array) {
+            GlRender.updateGeometry(this, type, new Float32Array(data));
+        } else {
+            GlRender.updateGeometry(this, type, data);
         }
     }
 }
@@ -56,14 +64,14 @@ export class VertexAtt implements IvertexAttrib {
  * @param newGeometry
  * @param geometryOp
  */
-export function getTypedValueArr(key: string, element: IarrayInfo) {
-    let strideInBytes = element.strideInBytes || glTypeToByteSize(element.componentDataType) * element.componentSize;
+export function getTypedValueArr(key: string, element: IvertexAttrib) {
+    let strideInBytes = element.bytesStride || glTypeToByteSize(element.componentDataType) * element.componentSize;
     let dataArr = [];
     for (let i = 0; i < element.count; i++) {
         let value = getTypedArry(
             element.componentDataType,
-            element.value as Uint8Array,
-            i * strideInBytes + element.offsetInBytes,
+            element.viewBuffer as Uint8Array,
+            i * strideInBytes + element.bytesOffset,
             element.componentSize,
         );
         dataArr.push(value);

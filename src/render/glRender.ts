@@ -7,12 +7,11 @@ import {
     ItexImageDataOption,
     ItextureInfo,
     ItexViewDataOption,
-    IarrayInfo,
     ItextureDesInfo,
-    TypedArray,
     IattributeInfo,
     IvertexAttrib,
     IprogramState,
+    IviewArr,
 } from "twebgl/dist/types/type";
 
 import {
@@ -20,18 +19,14 @@ import {
     drawBufferInfo,
     setUpWebgl,
     createGeometryInfo,
-    setGeometry,
-    setProgram,
-    createVaoByPrograme,
     setGeometryAndProgramWithCached,
     setViewPortWithCached,
     createTextureFromImageSource,
-    setProgramUniforms,
     setClear,
     createTextureFromTypedArray,
     createGlBuffer,
+    updateAttributeBufferInfo,
 } from "twebgl";
-import { RenderLayerEnum } from "../ec/ec";
 import { AutoUniform } from "./autoUniform";
 import { UniformTypeEnum } from "../resources/assets/shader";
 import { VertexAttEnum } from "./vertexAttType";
@@ -43,7 +38,7 @@ export {
     ItextureInfo,
     ItexImageDataOption,
     ItexViewDataOption,
-    IarrayInfo,
+    IviewArr,
     ItextureDesInfo,
     IprogramState,
 };
@@ -108,6 +103,10 @@ export class GlRender {
         }
         info.atts = newAttdic;
         return info;
+    }
+
+    static updateGeometry(geometry: IgeometryInfo, att: VertexAttEnum, data: ArrayBufferView) {
+        updateAttributeBufferInfo(this.context, geometry.atts[att], data);
     }
 
     static createProgram(op: IprogramOptions): IprogramInfo {
@@ -177,8 +176,8 @@ export class GlRender {
 
 export class GlBuffer {
     buffer: WebGLBuffer;
-    viewData: TypedArray;
-    static fromViewData(target: number, data: TypedArray): GlBuffer {
+    viewData: ArrayBufferView;
+    static fromViewData(target: number, data: ArrayBufferView): GlBuffer {
         let newBuferr = new GlBuffer();
         newBuferr.buffer = GlRender.createBuffer(target, data);
         newBuferr.viewData = data;

@@ -3,9 +3,10 @@ import { IgltfMeshPrimitive, AccessorComponentType } from "./gltfJsonStruct";
 import { Material } from "../assets/material";
 import { ParseMaterialNode } from "./parseMaterialNode";
 import { Geometry } from "../assets/geometry";
-import { IgeometryOptions, IgeometryInfo, IarrayInfo } from "../../render/glRender";
+import { IgeometryOptions, IgeometryInfo } from "../../render/glRender";
 import { ParseAccessorNode } from "./parseAccessorNode";
 import { VertexAttEnum } from "../../render/vertexAttType";
+import { IviewData } from "twebgl/dist/types/type";
 
 const MapGltfAttributeToToyAtt = {
     POSITION: VertexAttEnum.POSITION,
@@ -94,9 +95,9 @@ export class ParseMeshNode {
      */
     private static getTypedValueArr(newGeometry: any, geometryOp: IgeometryOptions) {
         for (const key in geometryOp.atts) {
-            const element = geometryOp.atts[key] as IarrayInfo;
+            const element = geometryOp.atts[key] as IviewData;
             let strideInBytes =
-                element.strideInBytes || this.getByteSize(element.componentDataType, element.componentSize);
+                element.bytesStride || this.getByteSize(element.componentDataType, element.componentSize);
 
             let dataArr = [];
 
@@ -104,7 +105,7 @@ export class ParseMeshNode {
                 let value = this.GetTypedArry(
                     element.componentDataType,
                     element.value as Uint8Array,
-                    i * strideInBytes + element.offsetInBytes,
+                    i * strideInBytes + element.bytesOffset,
                     element.componentSize,
                 );
                 dataArr.push(value);
@@ -112,10 +113,10 @@ export class ParseMeshNode {
             newGeometry[key] = dataArr;
         }
         if (geometryOp.indices) {
-            const element = geometryOp.indices as IarrayInfo;
+            const element = geometryOp.indices as IviewData;
 
             let strideInBytes =
-                element.strideInBytes || this.getByteSize(element.componentDataType, element.componentSize);
+                element.bytesStride || this.getByteSize(element.componentDataType, element.componentSize);
 
             let dataArr = [];
 
@@ -123,7 +124,7 @@ export class ParseMeshNode {
                 let value = this.GetTypedArry(
                     element.componentDataType,
                     element.value as Uint8Array,
-                    i * strideInBytes + element.offsetInBytes,
+                    i * strideInBytes + element.bytesOffset,
                     element.componentSize,
                 );
                 dataArr.push(value);

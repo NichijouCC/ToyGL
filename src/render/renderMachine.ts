@@ -1,5 +1,5 @@
 import { GlRender } from "./glRender";
-import { IframeState, Irenderable } from "../scene/frameState";
+import { Irenderable } from "../scene/frameState";
 import { RenderList } from "./renderList";
 import { ClearEnum, Camera } from "../ec/components/camera";
 import { RenderContext } from "./renderContext";
@@ -44,12 +44,7 @@ export class RenderMachine {
                 let passes = shader.passes && shader.passes["base"];
                 if (passes != null) {
                     for (let i = 0; i < passes.length; i++) {
-                        GlRender.drawObject(
-                            item.geometry.data,
-                            passes[i],
-                            item.material.uniforms,
-                            shader.mapUniformDef,
-                        );
+                        GlRender.drawObject(item.geometry, passes[i], item.material.uniforms, shader.mapUniformDef);
                     }
                 }
             }
