@@ -1,10 +1,10 @@
 import { Camera } from "../ec/components/camera";
 
-import { IgeometryInfo, IprogramInfo } from "../render/glRender";
 import { Geometry } from "../resources/assets/geometry";
 import { Material } from "../resources/assets/material";
 import { Mat4 } from "../mathD/mat4";
 import { CullingMask } from "../ec/ec";
+import { BoundingSphere } from "./bounds";
 
 export interface IframeState {
     renderList: Irenderable[];
@@ -19,6 +19,7 @@ export interface Irenderable {
     // uniforms: { [name: string]: any };
     material: Material;
     modelMatrix: Mat4;
+    bouningSphere?: BoundingSphere;
 }
 
 export class FrameState implements IframeState {

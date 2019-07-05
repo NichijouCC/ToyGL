@@ -2237,6 +2237,14 @@
             return createGlBuffer(this.context, target, viewData);
         }
     }
+    class GlBuffer {
+        static fromViewData(target, data) {
+            let newBuferr = new GlBuffer();
+            newBuferr.buffer = GlRender.createBuffer(target, data);
+            newBuferr.viewData = data;
+            return newBuferr;
+        }
+    }
     class GlTextrue {
         static get WHITE() {
             if (this._white == null) {
@@ -5125,6 +5133,264 @@
     }
     GameScreen.resizeListenerArr = [];
 
+    class Plane {
+        constructor() {
+            //ax+by+cz+d=0;
+            this.normal = Vec3.create(0, 1, 0);
+            this.constant = 0;
+        }
+        distanceToPoint(point) {
+            return Vec3.dot(point, this.normal) + this.constant;
+        }
+        copy(to) {
+            Vec3.copy(this.normal, to.normal);
+            to.constant = this.constant;
+        }
+        setComponents(nx, ny, nz, ds) {
+            this.normal[0] = nx;
+            this.normal[1] = ny;
+            this.normal[2] = nz;
+            let inverseNormalLength = 1.0 / Vec3.magnitude(this.normal);
+            Vec3.scale(this.normal, inverseNormalLength, this.normal);
+            this.constant = ds * inverseNormalLength;
+        }
+    }
+
+    var VertexAttEnum;
+    (function (VertexAttEnum) {
+        VertexAttEnum["POSITION"] = "position";
+        VertexAttEnum["NORMAL"] = "normal";
+        VertexAttEnum["TANGENT"] = "tangent";
+        VertexAttEnum["TEXCOORD_0"] = "uv";
+        VertexAttEnum["TEXCOORD_1"] = "uv2";
+        VertexAttEnum["COLOR_0"] = "color";
+        VertexAttEnum["WEIGHTS_0"] = "skinWeight";
+        VertexAttEnum["JOINTS_0"] = "skinIndex";
+    })(VertexAttEnum || (VertexAttEnum = {}));
+
+    class Bounds {
+        constructor() {
+            this.maxPoint = Vec3.create();
+            this.minPoint = Vec3.create();
+            // centerPoint: Vec3 = Vec3.create();
+            this._center = Vec3.create();
+        }
+        get centerPoint() {
+            Vec3.center(this.minPoint, this.maxPoint, this._center);
+            return this._center;
+        }
+        setMaxPoint(pos) {
+            Vec3.copy(pos, this.maxPoint);
+        }
+        setMinPoint(pos) {
+            Vec3.copy(pos, this.minPoint);
+        }
+        setFromPoints(pos) {
+            for (let key in pos) {
+                Vec3.min(this.minPoint, pos[key], this.minPoint);
+                Vec3.max(this.maxPoint, pos[key], this.maxPoint);
+            }
+            // Vec3.center(this.minPoint, this.maxPoint, this.centerPoint);
+            return this;
+        }
+        setFromMesh(geometry) {
+            let points = geometry.getAttArr(VertexAttEnum.POSITION);
+            this.setFromPoints(points);
+            return this;
+        }
+        addAABB(box) {
+            Vec3.min(this.minPoint, box.minPoint, this.minPoint);
+            Vec3.max(this.maxPoint, box.maxPoint, this.maxPoint);
+            // Vec3.center(this.minPoint, this.maxPoint, this.centerPoint);
+            return this;
+        }
+        beEmpty() {
+            return (this.minPoint[0] > this.maxPoint[0] ||
+                this.minPoint[1] > this.maxPoint[1] ||
+                this.minPoint[2] > this.maxPoint[2]);
+        }
+        containPoint(point) {
+            return (point[0] >= this.minPoint[0] &&
+                point[0] <= this.maxPoint[0] &&
+                point[1] >= this.minPoint[1] &&
+                point[1] <= this.maxPoint[1] &&
+                point[2] >= this.minPoint[2] &&
+                point[2] <= this.maxPoint[2]);
+        }
+        intersect(box) {
+            let interMin = box.minPoint;
+            let interMax = box.maxPoint;
+            if (this.minPoint[0] > interMax[0])
+                return false;
+            if (this.minPoint[1] > interMax[1])
+                return false;
+            if (this.minPoint[2] > interMax[2])
+                return false;
+            if (this.maxPoint[0] > interMin[0])
+                return false;
+            if (this.maxPoint[1] > interMin[1])
+                return false;
+            if (this.maxPoint[2] > interMin[2])
+                return false;
+            return true;
+        }
+        applyMatrix(mat) {
+            if (this.beEmpty())
+                return;
+            let min = Vec3.create();
+            let max = Vec3.create();
+            min[0] += mat[12];
+            max[0] += mat[12];
+            min[1] += mat[13];
+            max[1] += mat[13];
+            min[2] += mat[14];
+            max[2] += mat[14];
+            for (let i = 0; i < 3; i++) {
+                for (let k = 0; k < 3; k++) {
+                    if (mat[k + i * 4] > 0) {
+                        min[i] += mat[k + i * 4] * this.minPoint[i];
+                        max[i] += mat[k + i * 4] * this.maxPoint[i];
+                    }
+                    else {
+                        min[i] += mat[k + i * 4] * this.maxPoint[i];
+                        max[i] += mat[k + i * 4] * this.minPoint[i];
+                    }
+                }
+            }
+            Vec3.recycle(this.minPoint);
+            Vec3.recycle(this.maxPoint);
+            this.minPoint = min;
+            this.maxPoint = max;
+        }
+    }
+    class BoundingSphere {
+        constructor() {
+            this.center = Vec3.create();
+            this.radius = 0;
+        }
+        applyMatrix(mat) {
+            Mat4.transformPoint(this.center, mat, this.center);
+        }
+        setFromPoints(points, center = null) {
+            if (center != null) {
+                Vec3.copy(center, this.center);
+            }
+            else {
+                let center = new Bounds().setFromPoints(points).centerPoint;
+                Vec3.copy(center, this.center);
+            }
+            for (let i = 0; i < points.length; i++) {
+                let dis = Vec3.distance(points[i], this.center);
+                if (dis > this.radius) {
+                    this.radius = dis;
+                }
+            }
+        }
+        setFromGeometry(geometry, center = null) {
+            let points = geometry.getAttArr(VertexAttEnum.POSITION);
+            this.setFromPoints(points, center);
+            return this;
+        }
+        copyTo(to) {
+            Vec3.copy(this.center, to.center);
+            to.radius = this.radius;
+        }
+        clone() {
+            let newSphere = BoundingSphere.create();
+            this.copyTo(newSphere);
+            return newSphere;
+        }
+        static create() {
+            if (this.pool.length > 0) {
+                return this.pool.pop();
+            }
+            else {
+                return new BoundingSphere();
+            }
+        }
+        static recycle(item) {
+            this.pool.push(item);
+        }
+    }
+    BoundingSphere.pool = [];
+
+    class Frustum {
+        constructor(p0 = null, p1 = null, p2 = null, p3 = null, p4 = null, p5 = null) {
+            this.planes = [];
+            this.planes[0] = p0 != null ? p0 : new Plane();
+            this.planes[1] = p1 != null ? p1 : new Plane();
+            this.planes[2] = p2 != null ? p2 : new Plane();
+            this.planes[3] = p3 != null ? p3 : new Plane();
+            this.planes[4] = p4 != null ? p4 : new Plane();
+            this.planes[5] = p5 != null ? p5 : new Plane();
+        }
+        set(p0, p1, p2, p3, p4, p5) {
+            this.planes[0].copy(p0);
+            this.planes[1].copy(p1);
+            this.planes[2].copy(p2);
+            this.planes[3].copy(p3);
+            this.planes[4].copy(p4);
+            this.planes[5].copy(p5);
+        }
+        setFromMatrix(me) {
+            let planes = this.planes;
+            let me0 = me[0], me1 = me[1], me2 = me[2], me3 = me[3];
+            let me4 = me[4], me5 = me[5], me6 = me[6], me7 = me[7];
+            let me8 = me[8], me9 = me[9], me10 = me[10], me11 = me[11];
+            let me12 = me[12], me13 = me[13], me14 = me[14], me15 = me[15];
+            planes[0].setComponents(me3 - me0, me7 - me4, me11 - me8, me15 - me12);
+            planes[1].setComponents(me3 + me0, me7 + me4, me11 + me8, me15 + me12);
+            planes[2].setComponents(me3 + me1, me7 + me5, me11 + me9, me15 + me13);
+            planes[3].setComponents(me3 - me1, me7 - me5, me11 - me9, me15 - me13);
+            planes[4].setComponents(me3 - me2, me7 - me6, me11 - me10, me15 - me14);
+            planes[5].setComponents(me3 + me2, me7 + me6, me11 + me10, me15 + me14);
+            return this;
+        }
+        intersectRender(render) {
+            if (render.bouningSphere != null) {
+                let sphere = render.bouningSphere.clone();
+                sphere.applyMatrix(render.modelMatrix);
+                let result = this.intersectSphere(sphere);
+                return result;
+            }
+            else {
+                return true;
+            }
+        }
+        /**
+         * 和包围球检测相交
+         * @param sphere 包围球
+         * @param mat 用于变换包围球
+         */
+        intersectSphere(sphere, mat = null) {
+            let planes = this.planes;
+            if (mat != null) {
+                let clonesphere = sphere.clone();
+                clonesphere.applyMatrix(mat);
+                let center = clonesphere.center;
+                let negRadius = -clonesphere.radius;
+                for (let i = 0; i < 6; i++) {
+                    let distance = planes[i].distanceToPoint(center);
+                    if (distance < negRadius) {
+                        return false;
+                    }
+                }
+                BoundingSphere.recycle(sphere);
+            }
+            else {
+                let center = sphere.center;
+                let negRadius = -sphere.radius;
+                for (let i = 0; i < 6; i++) {
+                    let distance = planes[i].distanceToPoint(center);
+                    if (distance < negRadius) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+    }
+
     var ProjectionEnum;
     (function (ProjectionEnum) {
         ProjectionEnum[ProjectionEnum["PERSPECTIVE"] = 0] = "PERSPECTIVE";
@@ -5169,6 +5435,8 @@
             this.needComputeViewMat = true;
             this.needcomputeProjectMat = true;
             this.needcomputeViewProjectMat = true;
+            this._frustum = new Frustum();
+            this.beActiveFrustum = true;
         }
         get near() {
             return this._near;
@@ -5225,6 +5493,9 @@
             this.needComputeViewMat = true;
             this.needcomputeProjectMat = true;
             this.needcomputeViewProjectMat = true;
+        }
+        get frustum() {
+            return this._frustum;
         }
         dispose() { }
     };
@@ -5338,45 +5609,36 @@
             GlRender.autoUniform = new AutoUniform(this.rendercontext);
             GlRender.init(cancvas);
         }
-        frameRender(frameState) {
-            let camerlist = frameState.cameraList;
-            let renderList = frameState.renderList;
-            camerlist.sort((a, b) => {
-                return a.priority - b.priority;
-            });
-            for (let i = 0; i < camerlist.length; i++) {
-                let cam = camerlist[i];
-                if (this.camRenderList[cam.entity.guid] == null) {
-                    this.camRenderList[cam.entity.guid] = new RenderList(cam);
+        drawCamera(cam, renderList) {
+            if (this.camRenderList[cam.entity.guid] == null) {
+                this.camRenderList[cam.entity.guid] = new RenderList(cam);
+            }
+            let camrenderList = this.camRenderList[cam.entity.guid];
+            camrenderList.clear();
+            for (let i = 0; i < renderList.length; i++) {
+                if (renderList[i].maskLayer & cam.cullingMask) {
+                    camrenderList.addRenderer(renderList[i]);
                 }
-                let camrenderList = this.camRenderList[cam.entity.guid];
-                camrenderList.clear();
-                // let newList = this.filterRenderByCamera(renderList, cam);
-                for (let i = 0; i < renderList.length; i++) {
-                    if (renderList[i].maskLayer & cam.cullingMask) {
-                        camrenderList.addRenderer(renderList[i]);
-                    }
-                }
-                //----------- set global State
-                GlRender.setViewPort(cam.viewport);
-                GlRender.setClear(cam.clearFlag & ClearEnum.DEPTH ? true : false, cam.clearFlag & ClearEnum.COLOR ? cam.backgroundColor : null, cam.clearFlag & ClearEnum.STENCIL ? true : false);
-                //-----------camera render before
-                this.rendercontext.curCamera = cam;
-                //-----------camera render ing
-                camrenderList.sort().foreach((item) => {
-                    this.rendercontext.curRender = item;
-                    let shader = item.material.shader;
-                    if (shader != null) {
-                        let passes = shader.passes && shader.passes["base"];
-                        if (passes != null) {
-                            for (let i = 0; i < passes.length; i++) {
-                                GlRender.drawObject(item.geometry.data, passes[i], item.material.uniforms, shader.mapUniformDef);
-                            }
+            }
+            //----------- set global State
+            GlRender.setViewPort(cam.viewport);
+            GlRender.setClear(cam.clearFlag & ClearEnum.DEPTH ? true : false, cam.clearFlag & ClearEnum.COLOR ? cam.backgroundColor : null, cam.clearFlag & ClearEnum.STENCIL ? true : false);
+            //-----------camera render before
+            this.rendercontext.curCamera = cam;
+            //-----------camera render ing
+            camrenderList.sort().foreach((item) => {
+                this.rendercontext.curRender = item;
+                let shader = item.material.shader;
+                if (shader != null) {
+                    let passes = shader.passes && shader.passes["base"];
+                    if (passes != null) {
+                        for (let i = 0; i < passes.length; i++) {
+                            GlRender.drawObject(item.geometry.data, passes[i], item.material.uniforms, shader.mapUniformDef);
                         }
                     }
-                });
-                //-----------canera render end
-            }
+                }
+            });
+            //-----------canera render end
         }
     }
     var DrawTypeEnum;
@@ -7140,26 +7402,26 @@
             this._renderDirty = true;
         }
         update(frameState) {
-            let currentRender = (this.render && this.updateRender()) || {
-                maskLayer: this.entity.maskLayer,
-                geometry: this._geometry,
-                // program: this._material.program,
-                // uniforms: this._material.uniforms,
-                material: this._material,
-                modelMatrix: this.entity.transform.worldMatrix,
-            };
-            frameState.renderList.push(currentRender);
-        }
-        updateRender() {
-            if (this._renderDirty) {
-                this.render.geometry = this._geometry;
-                // this.render.program = this._material.program;
-                // this.render.uniforms = this._material.uniforms;
-                this.render.material = this._material;
-                this._renderDirty = false;
+            if (this._geometry && this._material) {
+                frameState.renderList.push({
+                    maskLayer: this.entity.maskLayer,
+                    geometry: this._geometry,
+                    // program: this._material.program,
+                    // uniforms: this._material.uniforms,
+                    material: this._material,
+                    modelMatrix: this.entity.transform.worldMatrix,
+                    bouningSphere: this.boundingSphere,
+                });
             }
-            this.render.maskLayer = this.entity.maskLayer;
-            return this.render;
+        }
+        get boundingSphere() {
+            if (this._boundingSphere == null) {
+                if (this._geometry) {
+                    this._boundingSphere = new BoundingSphere();
+                    this._boundingSphere.setFromGeometry(this._geometry);
+                }
+            }
+            return this._boundingSphere;
         }
         dispose() { }
     };
@@ -7674,7 +7936,16 @@
             this.foreachRootNodes(node => {
                 this._updateNode(node, this.frameState);
             });
-            this.render.frameRender(this.frameState);
+            this.frameState.cameraList.sort((a, b) => {
+                return a.priority - b.priority;
+            });
+            for (let i = 0; i < this.frameState.cameraList.length; i++) {
+                let cam = this.frameState.cameraList[i];
+                let arr = this.frameState.renderList.filter(item => {
+                    return this.maskCheck(cam.cullingMask, item) && this.frusumCheck(cam.frustum, item);
+                });
+                this.render.drawCamera(cam, arr);
+            }
         }
         _updateNode(node, frameState) {
             let entity = node.entity;
@@ -7686,6 +7957,12 @@
             for (let i = 0, len = node.children.length; i < len; i++) {
                 this._updateNode(node.children[i], frameState);
             }
+        }
+        frusumCheck(frustum, item) {
+            return frustum.intersectRender(item);
+        }
+        maskCheck(maskLayer, item) {
+            return (item.maskLayer & maskLayer) !== 0;
         }
     }
 
@@ -7920,6 +8197,76 @@
             let newAsset = new Geometry({ name: "custom_Mesh" });
             newAsset.data = geometry;
             return newAsset;
+        }
+        getAttArr(type) {
+            if (this.attDic[type] != null) {
+                return this.attDic[type];
+            }
+            else {
+                if (this.data.atts[type] != null) {
+                    this.attDic[type] = getTypedValueArr(type, this.data.atts[VertexAttEnum.POSITION]);
+                }
+                else {
+                    console.warn("geometry don't contain vertex type:", type);
+                }
+                return this.attDic[type];
+            }
+        }
+    }
+    /**
+     * 将buffer数据分割成对应的 typedarray，例如 positions[i]=new floa32array();
+     * @param newGeometry
+     * @param geometryOp
+     */
+    function getTypedValueArr(key, element) {
+        let strideInBytes = element.strideInBytes || glTypeToByteSize(element.componentDataType) * element.componentSize;
+        let dataArr = [];
+        for (let i = 0; i < element.count; i++) {
+            let value = getTypedArry(element.componentDataType, element.value, i * strideInBytes + element.offsetInBytes, element.componentSize);
+            dataArr.push(value);
+        }
+        return dataArr;
+    }
+    function glTypeToByteSize(type) {
+        switch (type) {
+            case GlConstants$1.BYTE:
+                return Int8Array.BYTES_PER_ELEMENT;
+            case GlConstants$1.UNSIGNED_BYTE:
+                return Uint8Array.BYTES_PER_ELEMENT;
+            case GlConstants$1.SHORT:
+                return Int16Array.BYTES_PER_ELEMENT;
+            case GlConstants$1.UNSIGNED_SHORT:
+                return Uint16Array.BYTES_PER_ELEMENT;
+            case GlConstants$1.UNSIGNED_INT:
+                return Uint32Array.BYTES_PER_ELEMENT;
+            case GlConstants$1.FLOAT:
+                return Float32Array.BYTES_PER_ELEMENT;
+            default:
+                throw new Error(`Invalid component type ${type}`);
+        }
+    }
+    function getTypedArry(componentType, bufferview, byteOffset, Len) {
+        let buffer = bufferview.buffer;
+        byteOffset = bufferview.byteOffset + (byteOffset || 0);
+        switch (componentType) {
+            case GlConstants$1.BYTE:
+                return new Int8Array(buffer, byteOffset, Len);
+            case GlConstants$1.UNSIGNED_BYTE:
+                return new Uint8Array(buffer, byteOffset, Len);
+            case GlConstants$1.SHORT:
+                return new Int16Array(buffer, byteOffset, Len);
+            case GlConstants$1.UNSIGNED_SHORT:
+                return new Uint16Array(buffer, byteOffset, Len);
+            case GlConstants$1.UNSIGNED_INT:
+                return new Uint32Array(buffer, byteOffset, Len);
+            case GlConstants$1.FLOAT: {
+                if ((byteOffset / 4) % 1 != 0) {
+                    console.error("??");
+                }
+                return new Float32Array(buffer, byteOffset, Len);
+            }
+            default:
+                throw new Error(`Invalid component type ${componentType}`);
         }
     }
 
@@ -10212,7 +10559,8 @@
                 let task = ParseBufferNode.parse(bufferindex, gltf).then(buffer => {
                     let viewbuffer = new Uint8Array(buffer, bufferview.byteOffset, bufferview.byteLength);
                     let stride = bufferview.byteStride;
-                    let glbuffer = bufferview.target && GlRender.createBuffer(bufferview.target, viewbuffer);
+                    // let glbuffer = bufferview.target && GlRender.createBuffer(bufferview.target, viewbuffer);
+                    let glbuffer = bufferview.target && GlBuffer.fromViewData(bufferview.target, viewbuffer);
                     return { viewBuffer: viewbuffer, byteStride: stride, glBuffer: glbuffer };
                 });
                 gltf.cache.bufferviewNodeCache[index] = task;
@@ -10437,7 +10785,7 @@
                         arrayInfo.offsetInBytes = accessor.byteOffset;
                         arrayInfo.value = value.viewBuffer;
                         arrayInfo.strideInBytes = value.byteStride;
-                        arrayInfo.buffer = value.glBuffer;
+                        arrayInfo.buffer = value.glBuffer.buffer;
                         return arrayInfo;
                     }
                 });
@@ -10527,6 +10875,16 @@
         }
     }
 
+    const MapGltfAttributeToToyAtt = {
+        POSITION: VertexAttEnum.POSITION,
+        NORMAL: VertexAttEnum.NORMAL,
+        TANGENT: VertexAttEnum.TANGENT,
+        TEXCOORD_0: VertexAttEnum.TEXCOORD_0,
+        TEXCOORD_1: VertexAttEnum.TEXCOORD_1,
+        COLOR_0: VertexAttEnum.COLOR_0,
+        WEIGHTS_0: VertexAttEnum.WEIGHTS_0,
+        JOINTS_0: VertexAttEnum.JOINTS_0,
+    };
     class ParseMeshNode {
         static parse(index, gltf) {
             if (gltf.cache.meshNodeCache[index]) {
@@ -10583,13 +10941,16 @@
                 taskAtts.push(indexTask);
             }
             return Promise.all(taskAtts).then(() => {
-                let geometryInfo = GlRender.createGeometry(geometryOp);
-                let newGeometry = new Geometry();
-                newGeometry.data = geometryInfo;
-                this.getTypedValueArr(newGeometry, geometryOp);
+                let newGeometry = Geometry.fromCustomData(geometryOp);
+                // this.getTypedValueArr(newGeometry, geometryOp);
                 return newGeometry;
             });
         }
+        /**
+         * 将buffer数据分割成对应的 typedarray，例如 positions[i]=new floa32array();
+         * @param newGeometry
+         * @param geometryOp
+         */
         static getTypedValueArr(newGeometry, geometryOp) {
             for (const key in geometryOp.atts) {
                 const element = geometryOp.atts[key];

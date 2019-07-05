@@ -4,6 +4,7 @@ import { Color } from "../../mathD/color";
 import { IframeState } from "../../scene/frameState";
 import { Mat4 } from "../../mathD/mat4";
 import { GameScreen } from "../../gameScreen";
+import { Frustum } from "../../scene/frustum";
 
 export enum ProjectionEnum {
     PERSPECTIVE,
@@ -109,5 +110,10 @@ export class Camera implements Icomponent {
     private needcomputeProjectMat: boolean = true;
     private needcomputeViewProjectMat: boolean = true;
 
+    private _frustum: Frustum = new Frustum();
+    beActiveFrustum: boolean = true;
+    get frustum(): Frustum {
+        return this._frustum;
+    }
     dispose(): void {}
 }

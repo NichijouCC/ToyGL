@@ -1,8 +1,11 @@
 import { Camera } from "./../ec/components/camera";
 import { Entity } from "../ec/entity";
 import { Transform } from "../ec/transform";
-import { FrameState, IframeState } from "./frameState";
+import { FrameState, IframeState, Irenderable } from "./frameState";
 import { RenderMachine } from "../render/renderMachine";
+import { RenderList } from "../render/renderList";
+import { CullingMask } from "../ec/ec";
+import { Frustum } from "./frustum";
 
 export class Scene {
     private root: Transform = new Entity().transform;
@@ -43,7 +46,19 @@ export class Scene {
         this.foreachRootNodes(node => {
             this._updateNode(node, this.frameState);
         });
-        this.render.frameRender(this.frameState);
+
+        this.frameState.cameraList.sort((a, b) => {
+            return a.priority - b.priority;
+        });
+
+        for (let i = 0; i < this.frameState.cameraList.length; i++) {
+            let cam = this.frameState.cameraList[i];
+            let arr = this.frameState.renderList.filter(item => {
+                return this.maskCheck(cam.cullingMask, item) && this.frusumCheck(cam.frustum, item);
+            });
+
+            this.render.drawCamera(cam, arr);
+        }
     }
 
     private _updateNode(node: Transform, frameState: IframeState) {
@@ -56,5 +71,13 @@ export class Scene {
         for (let i = 0, len = node.children.length; i < len; i++) {
             this._updateNode(node.children[i], frameState);
         }
+    }
+
+    private frusumCheck(frustum: Frustum, item: Irenderable): boolean {
+        return frustum.intersectRender(item);
+    }
+
+    private maskCheck(maskLayer: CullingMask, item: Irenderable): boolean {
+        return (item.maskLayer & maskLayer) !== 0;
     }
 }

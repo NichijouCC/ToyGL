@@ -1,5 +1,4 @@
 import { Vec3 } from "../mathD/vec3";
-import { Mesh } from "../ec/entity";
 import { Geometry } from "../resources/assets/geometry";
 import { Mat4 } from "../mathD/mat4";
 import { VertexAttEnum } from "../render/vertexAttType";
@@ -8,7 +7,11 @@ export class Bounds {
     maxPoint: Vec3 = Vec3.create();
     minPoint: Vec3 = Vec3.create();
     // centerPoint: Vec3 = Vec3.create();
-
+    private _center: Vec3 = Vec3.create();
+    get centerPoint() {
+        Vec3.center(this.minPoint, this.maxPoint, this._center);
+        return this._center;
+    }
     setMaxPoint(pos: Vec3) {
         Vec3.copy(pos, this.maxPoint);
     }
@@ -97,5 +100,72 @@ export class Bounds {
         Vec3.recycle(this.maxPoint);
         this.minPoint = min;
         this.maxPoint = max;
+    }
+}
+
+export class BoundingSphere {
+    center: Vec3 = Vec3.create();
+    radius: number = 0;
+
+    applyMatrix(mat: Mat4) {
+        Mat4.transformPoint(this.center, mat, this.center);
+    }
+    setFromPoints(points: Vec3[], center: Vec3 = null) {
+        if (center != null) {
+            Vec3.copy(center, this.center);
+        } else {
+            let center = new Bounds().setFromPoints(points).centerPoint;
+            Vec3.copy(center, this.center);
+        }
+        for (let i = 0; i < points.length; i++) {
+            let dis = Vec3.distance(points[i], this.center);
+            if (dis > this.radius) {
+                this.radius = dis;
+            }
+        }
+    }
+    setFromGeometry(geometry: Geometry, center: Vec3 = null): BoundingSphere {
+        let points = geometry.getAttArr(VertexAttEnum.POSITION);
+        this.setFromPoints(points, center);
+        return this;
+    }
+
+    copyTo(to: BoundingSphere) {
+        Vec3.copy(this.center, to.center);
+        to.radius = this.radius;
+    }
+
+    clone(): BoundingSphere {
+        let newSphere = BoundingSphere.create();
+        this.copyTo(newSphere);
+        return newSphere;
+    }
+    private static pool: BoundingSphere[] = [];
+    static create() {
+        if (this.pool.length > 0) {
+            return this.pool.pop();
+        } else {
+            return new BoundingSphere();
+        }
+    }
+    static recycle(item: BoundingSphere) {
+        this.pool.push(item);
+    }
+}
+
+export class BoundingBox {
+    center: Vec3 = Vec3.create();
+    halfSize: Vec3 = Vec3.create(1, 1, 1);
+
+    private static pool: BoundingBox[] = [];
+    static create() {
+        if (this.pool.length > 0) {
+            return this.pool.pop();
+        } else {
+            return new BoundingBox();
+        }
+    }
+    static recycle(item: BoundingBox) {
+        this.pool.push(item);
     }
 }

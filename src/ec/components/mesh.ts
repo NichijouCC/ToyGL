@@ -2,6 +2,7 @@ import { Icomponent, Ientity, Irender, CullingMask, EC } from "../ec";
 import { Material } from "../../resources/assets/material";
 import { Geometry } from "../../resources/assets/geometry";
 import { IframeState, Irenderable } from "../../scene/frameState";
+import { BoundingSphere } from "../../scene/bounds";
 
 @EC.RegComp
 export class Mesh implements Irender {
@@ -27,28 +28,30 @@ export class Mesh implements Irender {
         this._material = value;
         this._renderDirty = true;
     }
-    private render: Irenderable;
+
     update(frameState: IframeState): void {
-        let currentRender = (this.render && this.updateRender()) || {
-            maskLayer: this.entity.maskLayer,
-            geometry: this._geometry,
-            // program: this._material.program,
-            // uniforms: this._material.uniforms,
-            material: this._material,
-            modelMatrix: this.entity.transform.worldMatrix,
-        };
-        frameState.renderList.push(currentRender);
-    }
-    private updateRender(): Irenderable {
-        if (this._renderDirty) {
-            this.render.geometry = this._geometry;
-            // this.render.program = this._material.program;
-            // this.render.uniforms = this._material.uniforms;
-            this.render.material = this._material;
-            this._renderDirty = false;
+        if (this._geometry && this._material) {
+            frameState.renderList.push({
+                maskLayer: this.entity.maskLayer,
+                geometry: this._geometry,
+                // program: this._material.program,
+                // uniforms: this._material.uniforms,
+                material: this._material,
+                modelMatrix: this.entity.transform.worldMatrix,
+                bouningSphere: this.boundingSphere,
+            });
         }
-        this.render.maskLayer = this.entity.maskLayer;
-        return this.render;
+    }
+
+    private _boundingSphere: BoundingSphere;
+    get boundingSphere() {
+        if (this._boundingSphere == null) {
+            if (this._geometry) {
+                this._boundingSphere = new BoundingSphere();
+                this._boundingSphere.setFromGeometry(this._geometry);
+            }
+        }
+        return this._boundingSphere;
     }
     dispose(): void {}
 }
