@@ -85,7 +85,7 @@ export class CameraController implements Icomponent {
                 Vec3.scale(Vec3.DOWN, this.moveSpeed * delta, this.moveVector);
                 Vec3.add(this.entity.transform.localPosition, this.moveVector, this.entity.transform.localPosition);
             }
-            this.entity.transform.markDirty();
+            // this.entity.transform.markDirty();
         }
     }
     private camrot = Quat.create();
@@ -98,14 +98,14 @@ export class CameraController implements Icomponent {
         Quat.multiply(this.camrot, this.entity.transform.localRotation, this.entity.transform.localRotation);
         Quat.FromEuler(rotateY * this.rotateSpeed * this.inverseDir, 0, 0, this.camrot);
         Quat.multiply(this.entity.transform.localRotation, this.camrot, this.entity.transform.localRotation);
-        this.entity.transform.markDirty();
+        // this.entity.transform.markDirty();
     }
     private doMouseWheel(ev: ClickEvent) {
         if (this.entity.getCompByName("Camera") == null) return;
         this.entity.transform.getForwardInWorld(this.moveVector);
         Vec3.scale(this.moveVector, this.wheelSpeed * ev.rotateDelta * 0.01 * this.inverseDir, this.moveVector);
         Vec3.add(this.entity.transform.localPosition, this.moveVector, this.entity.transform.localPosition);
-        this.entity.transform.markDirty();
+        // this.entity.transform.markDirty();
     }
     Dispose() {}
 }

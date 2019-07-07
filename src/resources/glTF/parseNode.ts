@@ -16,19 +16,16 @@ export class ParseNode {
         let trans = new Entity(name).transform;
 
         if (node.matrix) {
-            trans.setlocalMatrix(Mat4.fromArray(node.matrix));
+            trans.localMatrix = Mat4.fromArray(node.matrix);
         }
         if (node.translation) {
             Vec3.copy(node.translation, trans.localPosition);
-            trans.markDirty();
         }
         if (node.rotation) {
             Quat.copy(node.rotation, trans.localRotation);
-            trans.markDirty();
         }
         if (node.scale) {
             Vec3.copy(node.scale, trans.localScale);
-            trans.markDirty();
         }
 
         if (node.camera != null) {

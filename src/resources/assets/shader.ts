@@ -1,8 +1,6 @@
 import { ToyAsset, ItoyAsset } from "../base/toyAsset";
-import { IprogramInfo, GlRender } from "../../render/glRender";
+import { IprogramInfo, GlRender, IprogramOptions } from "../../render/glRender";
 import { RenderLayerEnum } from "../../ec/ec";
-import { IprogramState, IuniformInfo, IattributeInfo, IprogramOptions } from "twebgl/dist/types/type";
-import { VertexAttEnum } from "../../render/vertexAttType";
 
 export class Shader extends ToyAsset {
     layer: RenderLayerEnum = RenderLayerEnum.Geometry;

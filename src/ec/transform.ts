@@ -18,20 +18,42 @@ export class Transform implements Icomponent {
     entity: Entity;
     parent: Transform;
     children: Transform[] = [];
-    dirtyFlag: number = 0;
+    private dirtyFlag: number = 0;
 
     private constructor() {}
-    //------------------------local属性-------------------------------------------------------------
-    //----------------------------------------------------------------------------------------------
-    //localposition/localrot/localscale修改之后，markDirty 一下
-    //----------------------------------------------------------------------------------------------
-    localPosition: Vec3 = Vec3.create();
-    localRotation: Quat = Quat.create();
-    localScale: Vec3 = Vec3.create(1, 1, 1);
+
+    _localPosition: Vec3 = Vec3.create();
+    _localRotation: Quat = Quat.create();
+    _localScale: Vec3 = Vec3.create(1, 1, 1);
+
+    set localPosition(value: Vec3) {
+        this._localPosition = value;
+        this.markDirty();
+    }
+    get localPosition(): Vec3 {
+        return this._localPosition;
+    }
+
+    set localRotation(value: Quat) {
+        this._localRotation = value;
+        this.markDirty();
+    }
+    get localRotation(): Quat {
+        return this._localRotation;
+    }
+
+    set localScale(value: Vec3) {
+        this._localScale = value;
+        this.markDirty();
+    }
+    get localScale(): Vec3 {
+        return this._localScale;
+    }
+
     private _localMatrix: Mat4 = Mat4.create();
-    setlocalMatrix(value: Mat4) {
+    set localMatrix(value: Mat4) {
         this._localMatrix = value;
-        Mat4.decompose(this._localMatrix, this.localScale, this.localRotation, this.localPosition);
+        Mat4.decompose(this._localMatrix, this._localScale, this._localRotation, this._localPosition);
         this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.LOCALMAT;
         this.dirtyFlag = this.dirtyFlag | DirtyFlagEnum.WORLDMAT;
 
@@ -40,7 +62,7 @@ export class Transform implements Icomponent {
 
     get localMatrix() {
         if (this.dirtyFlag & DirtyFlagEnum.LOCALMAT) {
-            Mat4.RTS(this.localPosition, this.localScale, this.localRotation, this._localMatrix);
+            Mat4.RTS(this._localPosition, this._localScale, this._localRotation, this._localMatrix);
             this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.LOCALMAT;
         }
         return this._localMatrix;
@@ -49,7 +71,7 @@ export class Transform implements Icomponent {
     //-------------------------world属性--------------------------------------------------------------
     //------------------------------------------------------------------------------------------------
     //得到worldmatrix后，不会立刻decompse得到worldpos/worldscale/worldort,而是dirty标记起来.
-    //setworld属性都是转换到setlocal属性
+    //setworld属性转换到setlocal属性
     //------------------------------------------------------------------------------------------------
     private _worldPosition: Vec3 = Vec3.create();
     get worldPosition(): Vec3 {
@@ -59,16 +81,16 @@ export class Transform implements Icomponent {
         }
         return this._worldPosition;
     }
-    setworldPosition(value: Vec3) {
+    set worldPosition(value: Vec3) {
         if (this.parent == null) {
             return;
         }
         if (this.parent.parent == null) {
-            this.localPosition = value;
+            this._localPosition = value;
         } else {
             let invparentworld = Mat4.create();
             Mat4.invert(this.parent.worldMatrix, invparentworld);
-            Mat4.transformPoint(value, invparentworld, this.localPosition);
+            Mat4.transformPoint(value, invparentworld, this._localPosition);
             Mat4.recycle(invparentworld);
         }
         this.markDirty();
@@ -82,20 +104,19 @@ export class Transform implements Icomponent {
         }
         return this._worldRotation;
     }
-    setworldRotation(value: Quat) {
+    set worldRotation(value: Quat) {
         if (this.parent == null) {
             return;
         }
         if (this.parent.parent == null) {
-            this.localRotation = value;
+            this._localRotation = value;
         } else {
             let invparentworldrot = Quat.create();
             Quat.inverse(this.parent.worldRotation, invparentworldrot);
-            Quat.multiply(invparentworldrot, value, this.localRotation);
+            Quat.multiply(invparentworldrot, value, this._localRotation);
             Quat.recycle(invparentworldrot);
         }
         this.markDirty();
-        return this;
     }
 
     private _worldScale: Vec3 = Vec3.create(1, 1, 1);
@@ -106,17 +127,16 @@ export class Transform implements Icomponent {
         }
         return this._worldScale;
     }
-    setworldScale(value: Vec3) {
+    set worldScale(value: Vec3) {
         if (this.parent == null) {
             return;
         }
         if (this.parent.parent == null) {
-            this.localScale = value;
+            this._localScale = value;
         } else {
-            Vec3.divide(value, this.parent.worldScale, this.localScale);
+            Vec3.divide(value, this.parent.worldScale, this._localScale);
         }
         this.markDirty();
-        return this;
     }
 
     private _worldMatrix: Mat4 = Mat4.create();
@@ -130,26 +150,24 @@ export class Transform implements Icomponent {
         return this._worldMatrix;
     }
 
-    setworldMatrix(value: Mat4) {
+    set worldMatrix(value: Mat4) {
         if (this.parent == null) {
             return;
         }
         Mat4.copy(value, this._worldMatrix);
         if (this.parent.parent == null) {
-            Mat4.copy(value, this._localMatrix);
-            this.setlocalMatrix(this._localMatrix);
+            Mat4.copy(value, this.localMatrix);
+            // this.localMatrix = this._localMatrix;
         } else {
             let invparentworld = Mat4.create();
             Mat4.invert(this.parent.worldMatrix, invparentworld);
-            Mat4.multiply(invparentworld, value, this._localMatrix);
-            this.setlocalMatrix(this._localMatrix);
+            Mat4.multiply(invparentworld, value, this.localMatrix);
+            // this.setlocalMatrix(this._localMatrix);
             Mat4.recycle(invparentworld);
         }
         this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLDMAT;
         this.dirtyFlag =
             this.dirtyFlag | DirtyFlagEnum.WORLD_ROTATION | DirtyFlagEnum.WORLD_SCALE | DirtyFlagEnum.WWORLD_POS;
-
-        return this;
     }
 
     private _worldTolocalMatrix: Mat4 = Mat4.create();
@@ -175,7 +193,7 @@ export class Transform implements Icomponent {
     /**
      * 修改local属性后，标记dirty
      */
-    markDirty() {
+    private markDirty() {
         this.dirtyFlag = this.dirtyFlag | DirtyFlagEnum.LOCALMAT | DirtyFlagEnum.WORLDMAT;
         Transform.NotifyChildSelfDirty(this);
     }
@@ -190,7 +208,6 @@ export class Transform implements Icomponent {
         }
         this.children.push(node);
         node.parent = this;
-
         node.markDirty();
     }
     /**
@@ -240,12 +257,12 @@ export class Transform implements Icomponent {
     moveInWorld(dir: Vec3, amount: number) {
         let dirInLocal = Vec3.create();
         Mat4.transformVector3(dir, this.worldTolocalMatrix, dirInLocal);
-        Vec3.AddscaledVec(this.localPosition, dirInLocal, amount, this.localPosition);
+        Vec3.AddscaledVec(this._localPosition, dirInLocal, amount, this._localPosition);
         this.markDirty();
         return this;
     }
     moveInlocal(dir: Vec3, amount: number) {
-        Vec3.AddscaledVec(this.localPosition, dir, amount, this.localPosition);
+        Vec3.AddscaledVec(this._localPosition, dir, amount, this._localPosition);
         this.markDirty();
         return this;
     }
@@ -256,7 +273,8 @@ export class Transform implements Icomponent {
         let dirx = Vec3.cross(up || Vec3.UP, dirz);
         let diry = Vec3.cross(dirz, dirx);
         let quat = Quat.fromUnitXYZ(dirx, diry, dirz);
-        this.setworldRotation(quat);
+        // this.setworldRotation(quat);
+        this.worldRotation = quat;
         Vec3.recycle(dirz);
         Vec3.recycle(dirx);
         Vec3.recycle(diry);
