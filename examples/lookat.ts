@@ -26,10 +26,8 @@ export class LookAt {
         rotMesh.entity.transform.localScale.z = 3;
 
         let cam = toy.scene.addCamera();
-        cam.entity.transform.localPosition.y = 20;
-        cam.entity.transform.localRotation = Quat.FromEuler(-90, 0, 0);
-
-        cam.entity.transform.markDirty();
+        cam.entity.transform.localPosition = Vec3.create(0, 20, 0);
+        cam.entity.transform.lookAtPoint(Vec3.ZERO);
 
         let rot = 0;
         toy.scene.preUpdate = delta => {
@@ -39,9 +37,11 @@ export class LookAt {
 
             // cam.entity.transform.markDirty();
 
-            rotEntity.transform.localPosition.x = 10 * Math.cos((rot * Math.PI) / 180);
-            rotEntity.transform.localPosition.z = 10 * Math.sin((rot * Math.PI) / 180);
-            rotEntity.transform.markDirty();
+            rotEntity.transform.localPosition = Vec3.create(
+                10 * Math.cos((rot * Math.PI) / 180),
+                0,
+                10 * Math.sin((rot * Math.PI) / 180),
+            );
             rotEntity.transform.lookAtPoint(Vec3.ZERO);
 
             centerEnity.transform.lookAt(rotEntity.transform);

@@ -54,13 +54,18 @@ export class Scene {
         for (let i = 0; i < this.frameState.cameraList.length; i++) {
             let cam = this.frameState.cameraList[i];
 
-            this.frameState.renderList.push(Debug.showCameraWireframe(cam));
+            Debug.drawCameraWireframe(cam, this.frameState);
             // this.frameState.renderList = [Debug.showCameraWireframe(cam)];
             let arr = this.frameState.renderList.filter(item => {
                 return this.maskCheck(cam.cullingMask, item) && this.frusumCheck(cam.frustum, item);
             });
-
+            if (cam.preRender) {
+                cam.preRender(this.render, arr);
+            }
             this.render.drawCamera(cam, arr);
+            if (cam.afterRender) {
+                cam.afterRender(this.render, arr);
+            }
         }
     }
 

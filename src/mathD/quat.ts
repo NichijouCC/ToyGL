@@ -952,12 +952,13 @@ export class Quat extends Float32Array {
         if (Vec3.magnitude(dir) < 0.001) {
             Quat.identity(out);
         } else {
-            let dot = Vec3.dot(dir1, dir2);
             Vec3.normalize(dir, dir);
+            let dot = Vec3.dot(dir1, dir2);
             Quat.AxisAngle(dir, Math.acos(dot), out);
         }
         Vec3.recycle(dir);
         Vec3.recycle(dir1);
         Vec3.recycle(dir2);
+        return out;
     }
 }

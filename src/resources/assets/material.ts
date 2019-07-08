@@ -11,16 +11,7 @@ export class Material extends ToyAsset {
         super(param);
     }
     uniforms: { [name: string]: any } = {};
-
-    _dirty: boolean = false;
-    private _program: IshaderInfo;
-    set shader(value: IshaderInfo) {
-        this._program = value;
-        this._dirty = true;
-    }
-    get shader(): IshaderInfo {
-        return this._program;
-    }
+    shader: IshaderInfo;
 
     private _layer: RenderLayerEnum;
     queue: number = 0;
@@ -29,7 +20,7 @@ export class Material extends ToyAsset {
         this._layer = value;
     }
     get layer(): RenderLayerEnum {
-        return this._layer || (this._program && this._program.layer) || RenderLayerEnum.Geometry;
+        return this._layer || (this.shader && this.shader.layer) || RenderLayerEnum.Geometry;
     }
 
     setColor(key: string, value: Color) {

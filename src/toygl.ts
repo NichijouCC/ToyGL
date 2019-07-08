@@ -11,7 +11,7 @@ export class ToyGL {
     scene: Scene;
     // setupRender(canvas: HTMLCanvasElement) {}
 
-    static initByHtmlElement(element: HTMLDivElement | HTMLCanvasElement):ToyGL {
+    static initByHtmlElement(element: HTMLDivElement | HTMLCanvasElement): ToyGL {
         let canvas: HTMLCanvasElement;
         if (element instanceof HTMLDivElement) {
             canvas = document.createElement("canvas");
@@ -21,7 +21,6 @@ export class ToyGL {
             element.appendChild(canvas);
             canvas.style.width = "100%";
             canvas.style.height = "100%";
-            
         } else {
             canvas = element;
         }
@@ -36,12 +35,8 @@ export class ToyGL {
             scene.update(deltaTime);
         };
 
-        let toy=new ToyGL();
-        toy.scene=scene;
+        let toy = new ToyGL();
+        toy.scene = scene;
         return toy;
     }
 }
-
-
-
-

@@ -241,17 +241,20 @@ export class Transform implements Icomponent {
     /**
      * 获取世界坐标系下当前z轴的朝向
      */
-    getForwardInWorld(out: Vec3) {
+    getForwardInWorld(out: Vec3): Vec3 {
         Mat4.transformVector3(Vec3.FORWARD, this.worldMatrix, out);
         Vec3.normalize(out, out);
+        return out;
     }
-    getRightInWorld(out: Vec3) {
+    getRightInWorld(out: Vec3): Vec3 {
         Mat4.transformVector3(Vec3.RIGHT, this.worldMatrix, out);
         Vec3.normalize(out, out);
+        return out;
     }
-    getUpInWorld(out: Vec3) {
+    getUpInWorld(out: Vec3): Vec3 {
         Mat4.transformVector3(Vec3.UP, this.worldMatrix, out);
         Vec3.normalize(out, out);
+        return out;
     }
 
     moveInWorld(dir: Vec3, amount: number) {
@@ -271,13 +274,22 @@ export class Transform implements Icomponent {
         let dirz = Vec3.subtract(this.worldPosition, pos);
         Vec3.normalize(dirz, dirz);
         let dirx = Vec3.cross(up || Vec3.UP, dirz);
-        let diry = Vec3.cross(dirz, dirx);
-        let quat = Quat.fromUnitXYZ(dirx, diry, dirz);
-        // this.setworldRotation(quat);
-        this.worldRotation = quat;
+        if (Vec3.magnitude(dirx) == 0) {
+            let dot = Vec3.dot(up || Vec3.UP, dirz);
+            if (dot == 1) {
+                let currentDir = this.getForwardInWorld(Vec3.create());
+                this.worldRotation = Quat.fromToRotation(currentDir, dirz, this.worldRotation);
+            }
+        } else {
+            Vec3.normalize(dirx, dirx);
+            let diry = Vec3.cross(dirz, dirx);
+            this.worldRotation = Quat.fromUnitXYZ(dirx, diry, dirz, this.worldRotation);
+
+            Vec3.recycle(diry);
+        }
+
         Vec3.recycle(dirz);
         Vec3.recycle(dirx);
-        Vec3.recycle(diry);
     }
 
     lookAt(tran: Transform, up?: Vec3) {

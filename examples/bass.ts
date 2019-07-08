@@ -10,6 +10,7 @@ import { Entity, Mesh } from "../src/ec/entity";
 import { ToyGL } from "../src/toygl";
 import { DefShader } from "../src/resources/defAssets/defShader";
 import { Quat } from "../src/mathD/quat";
+import { Vec3 } from "../src/mathD/vec3";
 
 export class Base {
     static done(toy: ToyGL) {
@@ -40,16 +41,14 @@ export class Base {
 
         let camobj = new Entity("", ["Camera"]);
         let trans = camobj.transform;
-        trans.localPosition.z = 5;
+        trans.localPosition = Vec3.create(0, 0, 5);
         // trans.localRotation = Quat.FromEuler(-90, 0, 0);
-        trans.markDirty();
         toy.scene.addEntity(camobj);
 
         let roty = 0;
         toy.scene.preUpdate = delta => {
             roty += delta * 0.01;
-            Quat.FromEuler(0, roty, 0, obj.transform.localRotation);
-            obj.transform.markDirty();
+            obj.transform.localRotation = Quat.FromEuler(0, roty, 0, obj.transform.localRotation);
         };
     }
 }

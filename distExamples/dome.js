@@ -1355,11 +1355,97 @@
             }
         };
     }
+
+    var VertexAtt$1 = /** @class */ (function () {
+        function VertexAtt() {
+        }
+        VertexAtt.fromViewArrayInfo = function (attName, data) {
+            var newData = new VertexAtt();
+            newData.name = attName;
+            if (data instanceof Array) {
+                newData.viewBuffer = new Float32Array(data);
+            }
+            else if (ArrayBuffer.isView(data)) {
+                newData.viewBuffer = data;
+            }
+            else {
+                var arraydata = data.value;
+                if (arraydata instanceof Array) {
+                    var type = data.componentDataType ? getArrayTypeForGLtype(data.componentDataType) : Float32Array;
+                    newData.viewBuffer = new type(arraydata);
+                }
+                else {
+                    newData.viewBuffer = arraydata;
+                }
+            }
+            var orginData = data;
+            if (orginData.componentDataType == null) {
+                newData.componentDataType = newData.viewBuffer
+                    ? getGLTypeForTypedArray(newData.viewBuffer)
+                    : GlConstants.FLOAT;
+            }
+            else {
+                newData.componentDataType = orginData.componentDataType;
+            }
+            newData.componentSize = orginData.componentSize ? orginData.componentSize : guessNumComponentsFromName$1(attName);
+            newData.normalize = orginData.normalize != null ? orginData.normalize : false;
+            newData.bytesOffset = orginData.bytesOffset ? orginData.bytesOffset : 0;
+            newData.bytesStride = orginData.bytesStride ? orginData.bytesStride : 0;
+            newData.drawType = orginData.drawType ? orginData.drawType : GlConstants.STATIC_DRAW;
+            newData.divisor = orginData.divisor;
+            newData.glBuffer = orginData.glBuffer;
+            if (orginData.count == null) {
+                var elementBytes = getbytesForGLtype(newData.componentDataType) * newData.componentSize;
+                newData.count = newData.viewBuffer
+                    ? newData.viewBuffer.byteLength / elementBytes
+                    : undefined;
+            }
+            else {
+                newData.count = orginData.count;
+            }
+            return newData;
+        };
+        return VertexAtt;
+    }());
+    function createAttributeBufferInfo$1(gl, attName, data) {
+        var vertexdata = VertexAtt$1.fromViewArrayInfo(attName, data);
+        if (vertexdata.glBuffer == null) {
+            var buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, vertexdata.viewBuffer, vertexdata.drawType);
+            vertexdata.glBuffer = buffer;
+        }
+        return vertexdata;
+    }
     function updateAttributeBufferInfo$1(gl, att, value) {
         gl.bindBuffer(gl.ARRAY_BUFFER, att.glBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, value, att.drawType);
         att.viewBuffer = value;
         return att;
+    }
+    var uvRE$1 = /(uv|texcoord)/;
+    var colorRE$1 = /color/;
+    function guessNumComponentsFromName$1(name, length) {
+        if (length === void 0) { length = null; }
+        var numComponents;
+        name = name.toLowerCase();
+        if (uvRE$1.test(name)) {
+            numComponents = 2;
+        }
+        else if (colorRE$1.test(name)) {
+            numComponents = 4;
+        }
+        else {
+            numComponents = 3; // position, normals, indices ...
+        }
+        // if (length % numComponents > 0)
+        // {
+        //     throw "Can not guess numComponents for attribute '" + name + "'. Tried " +
+        //     numComponents + " but " + length +
+        //     " values is not evenly divisible by " + numComponents +
+        //     ". You should specify it.";
+        // }
+        return numComponents;
     }
 
     /*! *****************************************************************************
@@ -1684,6 +1770,9 @@
         }
         static createBuffer(target, viewData) {
             return createGlBuffer(this.context, target, viewData);
+        }
+        static createAttributeBufferInfo(attName, data) {
+            return createAttributeBufferInfo$1(this.context, attName, data);
         }
     }
     class GlBuffer {
@@ -4870,6 +4959,7 @@
         ClearEnum[ClearEnum["COLOR"] = 1] = "COLOR";
         ClearEnum[ClearEnum["DEPTH"] = 2] = "DEPTH";
         ClearEnum[ClearEnum["STENCIL"] = 4] = "STENCIL";
+        ClearEnum[ClearEnum["NONE"] = 0] = "NONE";
     })(ClearEnum || (ClearEnum = {}));
     let Camera = class Camera {
         constructor() {
@@ -4929,6 +5019,7 @@
         update(frameState) {
             frameState.cameraList.push(this);
             this.restToDirty();
+            this._frustum.setFromMatrix(this.ViewProjectMatrix);
         }
         get ViewMatrix() {
             if (this.needComputeViewMat) {
@@ -6585,13 +6676,14 @@
                 Quat.identity(out);
             }
             else {
-                let dot = Vec3.dot(dir1, dir2);
                 Vec3.normalize(dir, dir);
+                let dot = Vec3.dot(dir1, dir2);
                 Quat.AxisAngle(dir, Math.acos(dot), out);
             }
             Vec3.recycle(dir);
             Vec3.recycle(dir1);
             Vec3.recycle(dir2);
+            return out;
         }
     }
     Quat.Recycle = [];
@@ -6821,14 +6913,17 @@
         getForwardInWorld(out) {
             Mat4.transformVector3(Vec3.FORWARD, this.worldMatrix, out);
             Vec3.normalize(out, out);
+            return out;
         }
         getRightInWorld(out) {
             Mat4.transformVector3(Vec3.RIGHT, this.worldMatrix, out);
             Vec3.normalize(out, out);
+            return out;
         }
         getUpInWorld(out) {
             Mat4.transformVector3(Vec3.UP, this.worldMatrix, out);
             Vec3.normalize(out, out);
+            return out;
         }
         moveInWorld(dir, amount) {
             let dirInLocal = Vec3.create();
@@ -6846,13 +6941,21 @@
             let dirz = Vec3.subtract(this.worldPosition, pos);
             Vec3.normalize(dirz, dirz);
             let dirx = Vec3.cross(up || Vec3.UP, dirz);
-            let diry = Vec3.cross(dirz, dirx);
-            let quat = Quat.fromUnitXYZ(dirx, diry, dirz);
-            // this.setworldRotation(quat);
-            this.worldRotation = quat;
+            if (Vec3.magnitude(dirx) == 0) {
+                let dot = Vec3.dot(up || Vec3.UP, dirz);
+                if (dot == 1) {
+                    let currentDir = this.getForwardInWorld(Vec3.create());
+                    this.worldRotation = Quat.fromToRotation(currentDir, dirz, this.worldRotation);
+                }
+            }
+            else {
+                Vec3.normalize(dirx, dirx);
+                let diry = Vec3.cross(dirz, dirx);
+                this.worldRotation = Quat.fromUnitXYZ(dirx, diry, dirz, this.worldRotation);
+                Vec3.recycle(diry);
+            }
             Vec3.recycle(dirz);
             Vec3.recycle(dirx);
-            Vec3.recycle(diry);
         }
         lookAt(tran, up) {
             this.lookAtPoint(tran.worldPosition, up);
@@ -7487,21 +7590,13 @@
         constructor(param) {
             super(param);
             this.uniforms = {};
-            this._dirty = false;
             this.queue = 0;
-        }
-        set shader(value) {
-            this._program = value;
-            this._dirty = true;
-        }
-        get shader() {
-            return this._program;
         }
         set layer(value) {
             this._layer = value;
         }
         get layer() {
-            return this._layer || (this._program && this._program.layer) || RenderLayerEnum.Geometry;
+            return this._layer || (this.shader && this.shader.layer) || RenderLayerEnum.Geometry;
         }
         setColor(key, value) {
             this.uniforms[key] = value;
@@ -7794,7 +7889,7 @@
     DefMaterial.defMat = {};
 
     class Debug {
-        static showCameraWireframe(camera) {
+        static drawCameraWireframe(camera, frameState) {
             let posArr = [];
             switch (camera.projectionType) {
                 case ProjectionEnum.PERSPECTIVE:
@@ -7834,18 +7929,25 @@
                             },
                             primitiveType: GlConstants.LINES,
                         });
-                        return {
+                        this.map[camera.entity.guid] = geometry;
+                        frameState.renderList.push({
                             geometry: geometry,
                             material: DefMaterial.fromType("base"),
                             modelMatrix: camera.entity.transform.worldMatrix,
                             maskLayer: CullingMask.default,
-                        };
+                        });
                     case ProjectionEnum.ORTHOGRAPH:
                         break;
                 }
             }
             else {
                 this.map[camera.entity.guid].updateAttData(VertexAttEnum.POSITION, new Float32Array(posArr));
+                frameState.renderList.push({
+                    geometry: this.map[camera.entity.guid],
+                    material: DefMaterial.fromType("base"),
+                    modelMatrix: camera.entity.transform.worldMatrix,
+                    maskLayer: CullingMask.default,
+                });
             }
         }
     }
@@ -7888,12 +7990,18 @@
             });
             for (let i = 0; i < this.frameState.cameraList.length; i++) {
                 let cam = this.frameState.cameraList[i];
-                this.frameState.renderList.push(Debug.showCameraWireframe(cam));
+                Debug.drawCameraWireframe(cam, this.frameState);
                 // this.frameState.renderList = [Debug.showCameraWireframe(cam)];
                 let arr = this.frameState.renderList.filter(item => {
                     return this.maskCheck(cam.cullingMask, item) && this.frusumCheck(cam.frustum, item);
                 });
+                if (cam.preRender) {
+                    cam.preRender(this.render, arr);
+                }
                 this.render.drawCamera(cam, arr);
+                if (cam.afterRender) {
+                    cam.afterRender(this.render, arr);
+                }
             }
         }
         _updateNode(node, frameState) {
@@ -8260,35 +8368,36 @@
         }
     }
 
-    class LookAt {
+    class ShowCull {
         static done(toy) {
             let geometry = DefGeometry.fromType("cube");
-            let centerEnity = toy.scene.newEntity("center", ["Mesh"]);
-            let rotEntity = toy.scene.newEntity("center", ["Mesh"]);
-            let mesh = centerEnity.getCompByName("Mesh");
-            mesh.geometry = geometry;
-            mesh.material = new Material();
-            mesh.material.shader = DefShader.fromType("baseTex");
-            mesh.material.setTexture("_MainTex", DefTextrue.GIRD);
-            let rotMesh = rotEntity.getCompByName("Mesh");
-            rotMesh.geometry = geometry;
-            rotMesh.material = mesh.material;
-            rotMesh.entity.transform.localScale.z = 3;
-            let cam = toy.scene.addCamera();
-            cam.entity.transform.localPosition.y = 20;
-            cam.entity.transform.localRotation = Quat.FromEuler(-90, 0, 0);
-            cam.entity.transform.markDirty();
-            let rot = 0;
-            toy.scene.preUpdate = delta => {
-                rot += delta * 0.1;
-                // cam.entity.transform.localRotation = Quat.FromEuler(-rot * 0.1, 0, 0);
-                // cam.entity.transform.markDirty();
-                rotEntity.transform.localPosition.x = 10 * Math.cos((rot * Math.PI) / 180);
-                rotEntity.transform.localPosition.z = 10 * Math.sin((rot * Math.PI) / 180);
-                rotEntity.transform.markDirty();
-                rotEntity.transform.lookAtPoint(Vec3.ZERO);
-                centerEnity.transform.lookAt(rotEntity.transform);
+            let mat = DefMaterial.fromType("baseTex");
+            mat.setTexture("_MainTex", DefTextrue.GIRD);
+            let sideCount = 100 / 2;
+            for (let i = -sideCount; i < sideCount; i++) {
+                for (let j = -sideCount; j < sideCount; j++) {
+                    let obj = new Entity();
+                    let mesh = obj.addCompByName("Mesh");
+                    mesh.geometry = geometry;
+                    mesh.material = mat;
+                    obj.transform.localPosition = Vec3.create(i * 1.5, 0, j * 1.5);
+                    toy.scene.addEntity(obj);
+                }
+            }
+            let cam = toy.scene.addCamera(); //cull camera
+            cam.entity.transform.localPosition = Vec3.create(0, 20, 0);
+            cam.entity.transform.lookAtPoint(Vec3.ZERO);
+            cam.viewport = Rect.create(0, 0, 0.5, 0.5);
+            let observeCam = toy.scene.addCamera();
+            observeCam.entity.beActive = false;
+            observeCam.entity.transform.localPosition = Vec3.create(40, 40, 40);
+            observeCam.entity.transform.lookAtPoint(Vec3.ZERO);
+            observeCam.viewport = Rect.create(0.5, 0.5, 0.5, 0.5);
+            observeCam.clearFlag = ClearEnum.NONE;
+            cam.afterRender = (render, arr) => {
+                render.drawCamera(observeCam, arr);
             };
+            toy.scene.preUpdate = delta => { };
         }
     }
 
@@ -8297,7 +8406,8 @@
         AssetLoader.addLoader().then(() => {
             // Base.done(toy);
             // LoadGltf.done(toy);
-            LookAt.done(toy);
+            // LookAt.done(toy);
+            ShowCull.done(toy);
         });
     };
 

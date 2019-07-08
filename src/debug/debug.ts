@@ -3,14 +3,15 @@ import { Geometry } from "../resources/assets/geometry";
 import { GameScreen } from "../gameScreen";
 import { GlBuffer } from "../render/glRender";
 import { GlConstants } from "twebgl";
-import { Irenderable } from "../scene/frameState";
+import { Irenderable, IframeState } from "../scene/frameState";
 import { DefMaterial } from "../resources/defAssets/defMaterial";
 import { CullingMask } from "../ec/ec";
 import { VertexAttEnum } from "../render/vertexAttType";
+import { Mat4 } from "../mathD/mat4";
 
 export class Debug {
     private static map: { [id: number]: Geometry } = {};
-    static showCameraWireframe(camera: Camera): Irenderable {
+    static drawCameraWireframe(camera: Camera, frameState: IframeState) {
         let posArr: number[] = [];
         switch (camera.projectionType) {
             case ProjectionEnum.PERSPECTIVE:
@@ -52,17 +53,24 @@ export class Debug {
                         },
                         primitiveType: GlConstants.LINES,
                     });
-                    return {
+                    this.map[camera.entity.guid] = geometry;
+                    frameState.renderList.push({
                         geometry: geometry,
                         material: DefMaterial.fromType("base"),
                         modelMatrix: camera.entity.transform.worldMatrix,
                         maskLayer: CullingMask.default,
-                    };
+                    });
                 case ProjectionEnum.ORTHOGRAPH:
                     break;
             }
         } else {
             this.map[camera.entity.guid].updateAttData(VertexAttEnum.POSITION, new Float32Array(posArr));
+            frameState.renderList.push({
+                geometry: this.map[camera.entity.guid],
+                material: DefMaterial.fromType("base"),
+                modelMatrix: camera.entity.transform.worldMatrix,
+                maskLayer: CullingMask.default,
+            });
         }
     }
 }

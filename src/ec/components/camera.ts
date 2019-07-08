@@ -1,10 +1,11 @@
 import { Icomponent, Ientity, CullingMask, EC } from "../ec";
 import { Rect } from "../../mathD/rect";
 import { Color } from "../../mathD/color";
-import { IframeState } from "../../scene/frameState";
+import { IframeState, Irenderable } from "../../scene/frameState";
 import { Mat4 } from "../../mathD/mat4";
 import { GameScreen } from "../../gameScreen";
 import { Frustum } from "../../scene/frustum";
+import { RenderMachine } from "../../render/renderMachine";
 
 export enum ProjectionEnum {
     PERSPECTIVE,
@@ -15,6 +16,7 @@ export enum ClearEnum {
     COLOR = 0b001,
     DEPTH = 0b010,
     STENCIL = 0b100,
+    NONE = 0b00,
 }
 
 @EC.RegComp
@@ -59,6 +61,7 @@ export class Camera implements Icomponent {
     update(frameState: IframeState): void {
         frameState.cameraList.push(this);
         this.restToDirty();
+        this._frustum.setFromMatrix(this.ViewProjectMatrix);
     }
 
     private _viewMatrix: Mat4 = Mat4.create();
@@ -115,5 +118,9 @@ export class Camera implements Icomponent {
     get frustum(): Frustum {
         return this._frustum;
     }
+
+    preRender: (render: RenderMachine, arr: Irenderable[]) => void;
+    afterRender: (render: RenderMachine, arr: Irenderable[]) => void;
+
     dispose(): void {}
 }

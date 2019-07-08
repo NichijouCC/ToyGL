@@ -1,7 +1,6 @@
 import { GlTextrue, ItextureDesInfo, GlRender } from "./../../render/glRender";
 import { ToyAsset, ItoyAsset } from "../base/toyAsset";
-import { ItextureInfo, ItexImageDataOption } from "../../render/glRender";
-import { ItexViewDataOption } from "twebgl/dist/types/type";
+import { ItextureInfo } from "../../render/glRender";
 
 export class Texture extends ToyAsset implements ItextureInfo {
     // texture:WebGLTexture;
@@ -19,7 +18,7 @@ export class Texture extends ToyAsset implements ItextureInfo {
     }
     dispose() {}
 
-    static fromImageSource(img: TexImageSource, texOp?: ItexImageDataOption, texture?: Texture) {
+    static fromImageSource(img: TexImageSource, texOp?: ItextureDesInfo, texture?: Texture) {
         let imaginfo = GlRender.createTextureFromImg(img, texOp);
         if (texture != null) {
             texture.texture = imaginfo.texture;

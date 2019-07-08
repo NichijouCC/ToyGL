@@ -12,6 +12,7 @@ import {
     IvertexAttrib,
     IprogramState,
     IviewArr,
+    IvertexIndex,
 } from "twebgl/dist/types/type";
 
 import {
@@ -26,6 +27,7 @@ import {
     createTextureFromTypedArray,
     createGlBuffer,
     updateAttributeBufferInfo,
+    createAttributeBufferInfo,
 } from "twebgl";
 import { AutoUniform } from "./autoUniform";
 import { UniformTypeEnum } from "../resources/assets/shader";
@@ -172,6 +174,10 @@ export class GlRender {
     static createBuffer(target: number, viewData: ArrayBufferView): WebGLBuffer {
         return createGlBuffer(this.context, target, viewData);
     }
+
+    static createAttributeBufferInfo(attName: string, data: IviewArr) {
+        return createAttributeBufferInfo(this.context, attName, data);
+    }
 }
 
 export class GlBuffer {
@@ -183,6 +189,37 @@ export class GlBuffer {
         newBuferr.viewData = data;
         return newBuferr;
     }
+}
+
+export class VertexAttribute implements IvertexAttrib {
+    name: string;
+    viewBuffer?: ArrayBufferView;
+
+    count: number;
+    glBuffer: WebGLBuffer;
+    drawType: number;
+
+    componentSize: number;
+    componentDataType: number;
+    normalize: boolean;
+    bytesStride: number;
+    bytesOffset: number;
+    divisor?: number;
+
+    static fromViewArr(type: VertexAttEnum, data: IviewArr) {
+        let attinfo = GlRender.createAttributeBufferInfo(type, data);
+        let att = Object.assign(new VertexAttribute(), attinfo);
+        return att;
+    }
+}
+
+export class VertexIndex implements IvertexIndex {
+    name: string;
+    viewBuffer?: ArrayBufferView;
+    count: number;
+    componentDataType: number;
+    glBuffer: WebGLBuffer;
+    drawType: number;
 }
 
 export class GlTextrue {

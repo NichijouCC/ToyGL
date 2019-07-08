@@ -30,8 +30,8 @@ export class LoadGltf {
             let camobj = new Entity("cameobj", ["Camera", "CameraController"]);
             let camCtr = camobj.getCompByName("CameraController") as CameraController;
             let trans = camobj.transform;
-            trans.localPosition.z = 15;
-            trans.markDirty();
+            trans.localPosition = Vec3.create(0, 0, 15);
+
             toy.scene.addEntity(camobj);
 
             camCtr.active();
@@ -39,8 +39,7 @@ export class LoadGltf {
             let roty = 0;
             toy.scene.preUpdate = delta => {
                 roty += delta * 0.01;
-                Quat.FromEuler(0, roty, 0, root.transform.localRotation);
-                root.transform.markDirty();
+                root.transform.localRotation = Quat.FromEuler(0, roty, 0, root.transform.localRotation);
             };
         });
     }
