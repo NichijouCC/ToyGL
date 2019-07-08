@@ -11,7 +11,7 @@ import { Mat4 } from "../mathD/mat4";
 
 export class Debug {
     private static map: { [id: number]: Geometry } = {};
-    static drawCameraWireframe(camera: Camera, frameState: IframeState) {
+    static drawCameraWireframe(camera: Camera): Irenderable {
         let posArr: number[] = [];
         switch (camera.projectionType) {
             case ProjectionEnum.PERSPECTIVE:
@@ -54,23 +54,23 @@ export class Debug {
                         primitiveType: GlConstants.LINES,
                     });
                     this.map[camera.entity.guid] = geometry;
-                    frameState.renderList.push({
+                    return {
                         geometry: geometry,
                         material: DefMaterial.fromType("base"),
                         modelMatrix: camera.entity.transform.worldMatrix,
                         maskLayer: CullingMask.default,
-                    });
+                    };
                 case ProjectionEnum.ORTHOGRAPH:
                     break;
             }
         } else {
             this.map[camera.entity.guid].updateAttData(VertexAttEnum.POSITION, new Float32Array(posArr));
-            frameState.renderList.push({
+            return {
                 geometry: this.map[camera.entity.guid],
                 material: DefMaterial.fromType("base"),
                 modelMatrix: camera.entity.transform.worldMatrix,
                 maskLayer: CullingMask.default,
-            });
+            };
         }
     }
 }

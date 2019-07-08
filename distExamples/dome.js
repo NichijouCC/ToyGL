@@ -935,7 +935,9 @@
             gl.clearStencil(0);
             cleartag |= gl.STENCIL_BUFFER_BIT;
         }
-        gl.clear(cleartag);
+        if (cleartag != 0) {
+            gl.clear(cleartag);
+        }
     }
     function setViewPortWithCached(gl, x, y, width, height) {
         var bechanged = gl._cachedViewPortX != x ||
@@ -1219,7 +1221,7 @@
     function getUniformsInfo(gl, program) {
         var uniformDic = {};
         var numUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
-        gl.bindpoint = 0;
+        var bindpoint = 0;
         for (var i = 0; i < numUniforms; i++) {
             var uniformInfo = gl.getActiveUniform(program, i);
             if (!uniformInfo)
@@ -1235,7 +1237,6 @@
             }
             if (location_1 == null)
                 continue;
-            var bindpoint = gl.bindpoint;
             var func = getUniformSetter(gl, type, beArray, location_1, bindpoint);
             uniformDic[name_1] = { name: name_1, location: location_1, type: type, setter: func };
         }
@@ -1334,11 +1335,11 @@
                 };
                 break;
             case gl.SAMPLER_2D:
+                var currentBindPoint_1 = bindpoint++;
                 return function (value) {
-                    gl.activeTexture(gl.TEXTURE0 + bindpoint);
+                    gl.activeTexture(gl.TEXTURE0 + currentBindPoint_1);
                     gl.bindTexture(gl.TEXTURE_2D, value.texture);
-                    gl.uniform1i(location, bindpoint);
-                    gl.bindpoint = gl.bindpoint + 1;
+                    gl.uniform1i(location, currentBindPoint_1);
                 };
             default:
                 console.error("uniformSetter not handle type:" + uniformType + " yet!");
@@ -7477,6 +7478,280 @@
         }
     }
 
+    class Scene {
+        constructor(render) {
+            this.root = new Entity().transform;
+            this.frameState = new FrameState();
+            this.render = render;
+        }
+        newEntity(name = null, compsArr = null) {
+            let newobj = new Entity(name, compsArr);
+            this.addEntity(newobj);
+            return newobj;
+        }
+        addEntity(entity) {
+            this.root.addChild(entity.transform);
+        }
+        addCamera() {
+            let entity = this.newEntity("camer", ["Camera"]);
+            return entity.getCompByName("Camera");
+        }
+        foreachRootNodes(func) {
+            for (let i = 0; i < this.root.children.length; i++) {
+                func(this.root.children[i]);
+            }
+        }
+        update(deltatime) {
+            if (this.preUpdate) {
+                this.preUpdate(deltatime);
+            }
+            this.frameState.reInit();
+            this.frameState.deltaTime = deltatime;
+            this.foreachRootNodes(node => {
+                this._updateNode(node, this.frameState);
+            });
+            this.frameState.cameraList.sort((a, b) => {
+                return a.priority - b.priority;
+            });
+            for (let i = 0; i < this.frameState.cameraList.length; i++) {
+                let cam = this.frameState.cameraList[i];
+                // Debug.drawCameraWireframe(cam, this.frameState);
+                // this.frameState.renderList = [Debug.showCameraWireframe(cam)];
+                let arr = this.frameState.renderList.filter(item => {
+                    return this.maskCheck(cam.cullingMask, item) && this.frusumCheck(cam.frustum, item);
+                });
+                if (cam.preRender) {
+                    cam.preRender(this.render, arr);
+                }
+                this.render.drawCamera(cam, arr);
+                if (cam.afterRender) {
+                    cam.afterRender(this.render, arr);
+                }
+            }
+        }
+        _updateNode(node, frameState) {
+            let entity = node.entity;
+            if (!entity.beActive)
+                return;
+            for (const key in node.entity.components) {
+                node.entity.components[key].update(frameState);
+            }
+            for (let i = 0, len = node.children.length; i < len; i++) {
+                this._updateNode(node.children[i], frameState);
+            }
+        }
+        frusumCheck(frustum, item) {
+            return frustum.intersectRender(item);
+        }
+        maskCheck(maskLayer, item) {
+            return (item.maskLayer & maskLayer) !== 0;
+        }
+    }
+
+    /**
+     * The game time class.
+     */
+    class GameTimer {
+        constructor() {
+            this.beActive = false;
+            this.TimeScale = 1.0;
+            this.updateList = [];
+            this.FPS = 60;
+            this.active();
+        }
+        active() {
+            this.beActive = true;
+            this.frameUpdate();
+        }
+        disActive() {
+            this.beActive = false;
+        }
+        get Time() {
+            return this.totalTime * 0.001;
+        }
+        get DeltaTime() {
+            return this.deltaTime * this.TimeScale * 0.001;
+        }
+        update() {
+            let now = Date.now();
+            this.deltaTime = now - this.lastTimer;
+            this.lastTimer = now;
+            let realDetal = this.deltaTime * this.TimeScale;
+            if (this.beActive != null) {
+                if (this.tick != null) {
+                    this.tick(realDetal);
+                }
+                for (let i = 0; i < this.updateList.length; i++) {
+                    this.updateList[i](realDetal);
+                }
+            }
+        }
+        addListenToTimerUpdate(func) {
+            this.updateList.push(func);
+        }
+        removeListenToTimerUpdate(func) {
+            this.updateList.forEach(item => {
+                if (item == func) {
+                    let index = this.updateList.indexOf(func);
+                    this.updateList.splice(index, 1);
+                    return;
+                }
+            });
+        }
+        removeAllListener() {
+            this.updateList.length = 0;
+        }
+        frameUpdate() {
+            if (this.FPS != this._lastFrameRate) {
+                //----------帧率被修改
+                this.FPS = Math.min(this.FPS, 60);
+                this.FPS = Math.max(this.FPS, 0);
+                if (this.IntervalLoop != null) {
+                    clearInterval(this.IntervalLoop);
+                    this.IntervalLoop = null;
+                }
+                this._lastFrameRate = this.FPS;
+            }
+            if (this.FPS == 60) {
+                this.update();
+                requestAnimationFrame(this.frameUpdate.bind(this));
+            }
+            else {
+                if (this.IntervalLoop == null) {
+                    this.IntervalLoop = setInterval(() => {
+                        this.update();
+                        this.frameUpdate();
+                    }, 1000 / this.FPS);
+                }
+            }
+        }
+    }
+
+    // import { IassetMgr } from "./resources/type";
+    class ToyGL {
+        // setupRender(canvas: HTMLCanvasElement) {}
+        static initByHtmlElement(element) {
+            let canvas;
+            if (element instanceof HTMLDivElement) {
+                canvas = document.createElement("canvas");
+                canvas.width = element.clientWidth;
+                canvas.width = element.clientHeight;
+                element.appendChild(canvas);
+                canvas.style.width = "100%";
+                canvas.style.height = "100%";
+            }
+            else {
+                canvas = element;
+            }
+            Input.init(canvas);
+            let render = new RenderMachine(canvas);
+            let scene = new Scene(render);
+            GameScreen.init(canvas);
+            new GameTimer().tick = deltaTime => {
+                GameScreen.update();
+                scene.update(deltaTime);
+            };
+            let toy = new ToyGL();
+            toy.scene = scene;
+            return toy;
+        }
+    }
+
+    var LoadEnum;
+    (function (LoadEnum) {
+        LoadEnum["Success"] = "Success";
+        LoadEnum["Failed"] = "Failed";
+        LoadEnum["Loading"] = "Loading";
+        LoadEnum["None"] = "None";
+    })(LoadEnum || (LoadEnum = {}));
+
+    //通过url获取资源的名称(包含尾缀)
+    function getFileName(url) {
+        let filei = url.lastIndexOf("/");
+        let file = url.substr(filei + 1);
+        return file;
+    }
+    // static getAssetExtralType(url: string): AssetExtralEnum {
+    //     let index = url.lastIndexOf("/");
+    //     let filename = url.substr(index + 1);
+    //     index = filename.indexOf(".", 0);
+    //     let extname = filename.substr(index);
+    //     let type = this.ExtendNameDic[extname];
+    //     if (type == null) {
+    //         console.warn("Load Asset Failed.type:(" + type + ") not have loader yet");
+    //     }
+    //     return type;
+    // }
+    function getAssetExtralName(url) {
+        let index = url.lastIndexOf("/");
+        let filename = url.substr(index + 1);
+        index = filename.indexOf(".", 0);
+        let extname = filename.substr(index);
+        return extname;
+    }
+    function getAssetFlode(url) {
+        let filei = url.lastIndexOf("/");
+        let file = url.substr(0, filei);
+        return file;
+    }
+
+    /**
+     * 资源都继承web3dAsset 实现Iasset接口,有唯一ID
+     *
+     * assetmgr仅仅管理load进来的资源
+     * load过的资源再次load不会造成重复加载
+     * 所有的资源都是从资源管理器load（url）出来，其他接口全部封闭
+     * 资源的来源有三种：new、load、内置资源
+     * bundle包不会shared asset,bundle不会相互依赖。即如果多个bundle引用同一个asset,每个包都包含一份该资源.
+     *
+     *
+     * 资源释放：
+     * gameobject（new或instance的）通过dispose 销毁自己的内存，不销毁引用的asset
+     * asset 可以通过dispose 销毁自己的内存。包释放(prefab/scene/gltfbundle)也属于asset的释放,包会释放自己依赖的asset。
+     *
+     */
+    class AssetLoader {
+        static RegisterAssetLoader(extral, factory) {
+            // this.ExtendNameDic[extral] = type;
+            console.warn("loader type:", extral);
+            this.RESLoadDic[extral] = factory;
+        }
+        static getAssetLoader(url) {
+            let extralType = getAssetExtralName(url);
+            let factory = this.RESLoadDic[extralType];
+            return factory;
+        }
+        // //-------------------资源加载拓展
+        // static RegisterAssetExtensionLoader(extral: string, factory: () => IassetLoader) {
+        //     this.RESExtensionLoadDic[extral] = factory;
+        // }
+        // private static RESExtensionLoadDic: { [ExtralName: string]: () => IassetLoader } = {};
+        static addLoader() {
+            return __awaiter(this, void 0, void 0, function* () {
+                yield Promise.resolve().then(function () { return loadTxt; }).then(mod => {
+                    this.RegisterAssetLoader(".txt", new mod.LoadTxt());
+                });
+                yield Promise.resolve().then(function () { return loadShader; }).then(mod => {
+                    this.RegisterAssetLoader(".shader.json", new mod.LoadShader());
+                });
+                yield Promise.resolve().then(function () { return loadTexture; }).then(mod => {
+                    this.RegisterAssetLoader(".png", new mod.LoadTextureSample());
+                    this.RegisterAssetLoader(".jpg", new mod.LoadTextureSample());
+                });
+                yield Promise.resolve().then(function () { return loadglTF; }).then(mod => {
+                    this.RegisterAssetLoader(".gltf", new mod.LoadGlTF());
+                });
+            });
+        }
+    }
+    //private static ExtendNameDic: { [name: string]: AssetExtralEnum } = {};
+    AssetLoader.RESLoadDic = {};
+    //<<<<<<<--------1.  new出来的自己管理,如果进行管控,assetmgr必然持有该资源的引用。当用该资源的对象被释放,该对象对该资源的引用也就没了,但是assetmgr持有它的引用，资源也就是没被释放;
+    //释放对象的时候我们又不能对资源进行释放，不然其他对象使用该资源就会报错，对于new出的资源,没被使用就会被系统自动释放或者自己释放-------------------->>>>>>>>>
+    //<<<<<<<------- 2.  资源的name不作为asset的标识.不然造成一大堆麻烦。如果允许重名资源在assetmgr获取资源的需要通过bundlename /assetname才能正确获取资源,bundlename于asset来说不一定有;
+    //new asset的时候还要检查重名资源,允许还是不允许都是麻烦—--->>>>>>>>>>>>>>>>>>>>>>>
+    //<<<<<<<--------3.  资源本身的描述json，不会被作为资源被assetmgr管理起来-->>>
+
     class ResID {
         static next() {
             let next = ResID.idAll;
@@ -7583,6 +7858,147 @@
             }
             default:
                 throw new Error(`Invalid component type ${componentType}`);
+        }
+    }
+
+    class DefGeometry {
+        static fromType(type) {
+            if (this.defGeometry[type] == null) {
+                let geometryOption;
+                switch (type) {
+                    case "quad":
+                        geometryOption = {
+                            name: "def_quad",
+                            atts: {
+                                POSITION: [-0.5, -0.5, 0, -0.5, 0.5, 0, 0.5, 0.5, 0, 0.5, -0.5, 0],
+                                TEXCOORD_0: [0, 1, 0, 0, 1, 0, 1, 1],
+                            },
+                            indices: [0, 2, 1, 0, 3, 2],
+                        };
+                        break;
+                    case "cube":
+                        geometryOption = this.createCube();
+                        break;
+                    default:
+                        console.warn("Unkowned default mesh type:", type);
+                        return null;
+                }
+                if (geometryOption != null) {
+                    this.defGeometry[type] = Geometry.fromCustomData(geometryOption);
+                }
+            }
+            return this.defGeometry[type];
+        }
+        static createCube() {
+            let bassInf = {
+                posarr: [],
+                uvArray: [],
+                indices: [],
+            };
+            this.addQuad(bassInf, [-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //前
+            this.addQuad(bassInf, [-0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //后
+            this.addQuad(bassInf, [-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //左
+            this.addQuad(bassInf, [0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //右
+            this.addQuad(bassInf, [-0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //上
+            this.addQuad(bassInf, [-0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //下
+            return {
+                name: "def_cube",
+                atts: {
+                    POSITION: bassInf.posarr,
+                    TEXCOORD_0: bassInf.uvArray,
+                },
+                indices: bassInf.indices,
+            };
+        }
+        static addQuad(bassInf, posarr, uvArray, indices) {
+            let maxIndex = bassInf.posarr.length / 3;
+            for (let i = 0; i < posarr.length; i++) {
+                bassInf.posarr.push(posarr[i]);
+            }
+            for (let i = 0; i < uvArray.length; i++) {
+                bassInf.uvArray.push(uvArray[i]);
+            }
+            for (let i = 0; i < indices.length; i++) {
+                bassInf.indices.push(maxIndex + indices[i]);
+            }
+        }
+    }
+    DefGeometry.defGeometry = {};
+
+    class Texture extends ToyAsset {
+        get texture() {
+            return this._textrue || GlTextrue.WHITE.texture;
+        }
+        set texture(value) {
+            this._textrue = value;
+        }
+        // samplerInfo: TextureOption = new TextureOption();
+        constructor(param) {
+            super(param);
+        }
+        dispose() { }
+        static fromImageSource(img, texOp, texture) {
+            let imaginfo = GlRender.createTextureFromImg(img, texOp);
+            if (texture != null) {
+                texture.texture = imaginfo.texture;
+                texture.texDes = imaginfo.texDes;
+                return texture;
+            }
+            else {
+                let texture = new Texture();
+                texture.texture = imaginfo.texture;
+                texture.texDes = imaginfo.texDes;
+                return texture;
+            }
+        }
+        static fromViewData(viewData, width, height, texOp, texture) {
+            let imaginfo = GlRender.createTextureFromViewData(viewData, width, height, texOp);
+            if (texture != null) {
+                texture.texture = imaginfo.texture;
+                texture.texDes = imaginfo.texDes;
+                return texture;
+            }
+            else {
+                let texture = new Texture();
+                texture.texture = imaginfo.texture;
+                texture.texDes = imaginfo.texDes;
+                return texture;
+            }
+        }
+    }
+
+    class DefTextrue {
+        static get WHITE() {
+            if (this._white == null) {
+                this._white = this.createByType("white");
+            }
+            return this._white;
+        }
+        static get GIRD() {
+            if (this._grid == null) {
+                this._grid = this.createByType("grid");
+            }
+            return this._grid;
+        }
+        static createByType(type) {
+            let imaginfo;
+            switch (type) {
+                case "white":
+                    imaginfo = GlTextrue.WHITE;
+                    break;
+                case "grid":
+                    imaginfo = GlTextrue.GIRD;
+                    break;
+            }
+            if (imaginfo != null) {
+                let tex = new Texture();
+                tex.texture = imaginfo.texture;
+                tex.texDes = imaginfo.texDes;
+                return tex;
+            }
+            else {
+                return null;
+            }
         }
     }
 
@@ -7889,7 +8305,7 @@
     DefMaterial.defMat = {};
 
     class Debug {
-        static drawCameraWireframe(camera, frameState) {
+        static drawCameraWireframe(camera) {
             let posArr = [];
             switch (camera.projectionType) {
                 case ProjectionEnum.PERSPECTIVE:
@@ -7930,443 +8346,28 @@
                             primitiveType: GlConstants.LINES,
                         });
                         this.map[camera.entity.guid] = geometry;
-                        frameState.renderList.push({
+                        return {
                             geometry: geometry,
                             material: DefMaterial.fromType("base"),
                             modelMatrix: camera.entity.transform.worldMatrix,
                             maskLayer: CullingMask.default,
-                        });
+                        };
                     case ProjectionEnum.ORTHOGRAPH:
                         break;
                 }
             }
             else {
                 this.map[camera.entity.guid].updateAttData(VertexAttEnum.POSITION, new Float32Array(posArr));
-                frameState.renderList.push({
+                return {
                     geometry: this.map[camera.entity.guid],
                     material: DefMaterial.fromType("base"),
                     modelMatrix: camera.entity.transform.worldMatrix,
                     maskLayer: CullingMask.default,
-                });
+                };
             }
         }
     }
     Debug.map = {};
-
-    class Scene {
-        constructor(render) {
-            this.root = new Entity().transform;
-            this.frameState = new FrameState();
-            this.render = render;
-        }
-        newEntity(name = null, compsArr = null) {
-            let newobj = new Entity(name, compsArr);
-            this.addEntity(newobj);
-            return newobj;
-        }
-        addEntity(entity) {
-            this.root.addChild(entity.transform);
-        }
-        addCamera() {
-            let entity = this.newEntity("camer", ["Camera"]);
-            return entity.getCompByName("Camera");
-        }
-        foreachRootNodes(func) {
-            for (let i = 0; i < this.root.children.length; i++) {
-                func(this.root.children[i]);
-            }
-        }
-        update(deltatime) {
-            if (this.preUpdate) {
-                this.preUpdate(deltatime);
-            }
-            this.frameState.reInit();
-            this.frameState.deltaTime = deltatime;
-            this.foreachRootNodes(node => {
-                this._updateNode(node, this.frameState);
-            });
-            this.frameState.cameraList.sort((a, b) => {
-                return a.priority - b.priority;
-            });
-            for (let i = 0; i < this.frameState.cameraList.length; i++) {
-                let cam = this.frameState.cameraList[i];
-                Debug.drawCameraWireframe(cam, this.frameState);
-                // this.frameState.renderList = [Debug.showCameraWireframe(cam)];
-                let arr = this.frameState.renderList.filter(item => {
-                    return this.maskCheck(cam.cullingMask, item) && this.frusumCheck(cam.frustum, item);
-                });
-                if (cam.preRender) {
-                    cam.preRender(this.render, arr);
-                }
-                this.render.drawCamera(cam, arr);
-                if (cam.afterRender) {
-                    cam.afterRender(this.render, arr);
-                }
-            }
-        }
-        _updateNode(node, frameState) {
-            let entity = node.entity;
-            if (!entity.beActive)
-                return;
-            for (const key in node.entity.components) {
-                node.entity.components[key].update(frameState);
-            }
-            for (let i = 0, len = node.children.length; i < len; i++) {
-                this._updateNode(node.children[i], frameState);
-            }
-        }
-        frusumCheck(frustum, item) {
-            return frustum.intersectRender(item);
-        }
-        maskCheck(maskLayer, item) {
-            return (item.maskLayer & maskLayer) !== 0;
-        }
-    }
-
-    /**
-     * The game time class.
-     */
-    class GameTimer {
-        constructor() {
-            this.beActive = false;
-            this.TimeScale = 1.0;
-            this.updateList = [];
-            this.FPS = 60;
-            this.active();
-        }
-        active() {
-            this.beActive = true;
-            this.frameUpdate();
-        }
-        disActive() {
-            this.beActive = false;
-        }
-        get Time() {
-            return this.totalTime * 0.001;
-        }
-        get DeltaTime() {
-            return this.deltaTime * this.TimeScale * 0.001;
-        }
-        update() {
-            let now = Date.now();
-            this.deltaTime = now - this.lastTimer;
-            this.lastTimer = now;
-            let realDetal = this.deltaTime * this.TimeScale;
-            if (this.beActive != null) {
-                if (this.tick != null) {
-                    this.tick(realDetal);
-                }
-                for (let i = 0; i < this.updateList.length; i++) {
-                    this.updateList[i](realDetal);
-                }
-            }
-        }
-        addListenToTimerUpdate(func) {
-            this.updateList.push(func);
-        }
-        removeListenToTimerUpdate(func) {
-            this.updateList.forEach(item => {
-                if (item == func) {
-                    let index = this.updateList.indexOf(func);
-                    this.updateList.splice(index, 1);
-                    return;
-                }
-            });
-        }
-        removeAllListener() {
-            this.updateList.length = 0;
-        }
-        frameUpdate() {
-            if (this.FPS != this._lastFrameRate) {
-                //----------帧率被修改
-                this.FPS = Math.min(this.FPS, 60);
-                this.FPS = Math.max(this.FPS, 0);
-                if (this.IntervalLoop != null) {
-                    clearInterval(this.IntervalLoop);
-                    this.IntervalLoop = null;
-                }
-                this._lastFrameRate = this.FPS;
-            }
-            if (this.FPS == 60) {
-                this.update();
-                requestAnimationFrame(this.frameUpdate.bind(this));
-            }
-            else {
-                if (this.IntervalLoop == null) {
-                    this.IntervalLoop = setInterval(() => {
-                        this.update();
-                        this.frameUpdate();
-                    }, 1000 / this.FPS);
-                }
-            }
-        }
-    }
-
-    // import { IassetMgr } from "./resources/type";
-    class ToyGL {
-        // setupRender(canvas: HTMLCanvasElement) {}
-        static initByHtmlElement(element) {
-            let canvas;
-            if (element instanceof HTMLDivElement) {
-                canvas = document.createElement("canvas");
-                canvas.width = element.clientWidth;
-                canvas.width = element.clientHeight;
-                element.appendChild(canvas);
-                canvas.style.width = "100%";
-                canvas.style.height = "100%";
-            }
-            else {
-                canvas = element;
-            }
-            Input.init(canvas);
-            let render = new RenderMachine(canvas);
-            let scene = new Scene(render);
-            GameScreen.init(canvas);
-            new GameTimer().tick = deltaTime => {
-                GameScreen.update();
-                scene.update(deltaTime);
-            };
-            let toy = new ToyGL();
-            toy.scene = scene;
-            return toy;
-        }
-    }
-
-    var LoadEnum;
-    (function (LoadEnum) {
-        LoadEnum["Success"] = "Success";
-        LoadEnum["Failed"] = "Failed";
-        LoadEnum["Loading"] = "Loading";
-        LoadEnum["None"] = "None";
-    })(LoadEnum || (LoadEnum = {}));
-
-    //通过url获取资源的名称(包含尾缀)
-    function getFileName(url) {
-        let filei = url.lastIndexOf("/");
-        let file = url.substr(filei + 1);
-        return file;
-    }
-    // static getAssetExtralType(url: string): AssetExtralEnum {
-    //     let index = url.lastIndexOf("/");
-    //     let filename = url.substr(index + 1);
-    //     index = filename.indexOf(".", 0);
-    //     let extname = filename.substr(index);
-    //     let type = this.ExtendNameDic[extname];
-    //     if (type == null) {
-    //         console.warn("Load Asset Failed.type:(" + type + ") not have loader yet");
-    //     }
-    //     return type;
-    // }
-    function getAssetExtralName(url) {
-        let index = url.lastIndexOf("/");
-        let filename = url.substr(index + 1);
-        index = filename.indexOf(".", 0);
-        let extname = filename.substr(index);
-        return extname;
-    }
-    function getAssetFlode(url) {
-        let filei = url.lastIndexOf("/");
-        let file = url.substr(0, filei);
-        return file;
-    }
-
-    /**
-     * 资源都继承web3dAsset 实现Iasset接口,有唯一ID
-     *
-     * assetmgr仅仅管理load进来的资源
-     * load过的资源再次load不会造成重复加载
-     * 所有的资源都是从资源管理器load（url）出来，其他接口全部封闭
-     * 资源的来源有三种：new、load、内置资源
-     * bundle包不会shared asset,bundle不会相互依赖。即如果多个bundle引用同一个asset,每个包都包含一份该资源.
-     *
-     *
-     * 资源释放：
-     * gameobject（new或instance的）通过dispose 销毁自己的内存，不销毁引用的asset
-     * asset 可以通过dispose 销毁自己的内存。包释放(prefab/scene/gltfbundle)也属于asset的释放,包会释放自己依赖的asset。
-     *
-     */
-    class AssetLoader {
-        static RegisterAssetLoader(extral, factory) {
-            // this.ExtendNameDic[extral] = type;
-            console.warn("loader type:", extral);
-            this.RESLoadDic[extral] = factory;
-        }
-        static getAssetLoader(url) {
-            let extralType = getAssetExtralName(url);
-            let factory = this.RESLoadDic[extralType];
-            return factory;
-        }
-        // //-------------------资源加载拓展
-        // static RegisterAssetExtensionLoader(extral: string, factory: () => IassetLoader) {
-        //     this.RESExtensionLoadDic[extral] = factory;
-        // }
-        // private static RESExtensionLoadDic: { [ExtralName: string]: () => IassetLoader } = {};
-        static addLoader() {
-            return __awaiter(this, void 0, void 0, function* () {
-                yield Promise.resolve().then(function () { return loadTxt; }).then(mod => {
-                    this.RegisterAssetLoader(".txt", new mod.LoadTxt());
-                });
-                yield Promise.resolve().then(function () { return loadShader; }).then(mod => {
-                    this.RegisterAssetLoader(".shader.json", new mod.LoadShader());
-                });
-                yield Promise.resolve().then(function () { return loadTexture; }).then(mod => {
-                    this.RegisterAssetLoader(".png", new mod.LoadTextureSample());
-                    this.RegisterAssetLoader(".jpg", new mod.LoadTextureSample());
-                });
-                yield Promise.resolve().then(function () { return loadglTF; }).then(mod => {
-                    this.RegisterAssetLoader(".gltf", new mod.LoadGlTF());
-                });
-            });
-        }
-    }
-    //private static ExtendNameDic: { [name: string]: AssetExtralEnum } = {};
-    AssetLoader.RESLoadDic = {};
-    //<<<<<<<--------1.  new出来的自己管理,如果进行管控,assetmgr必然持有该资源的引用。当用该资源的对象被释放,该对象对该资源的引用也就没了,但是assetmgr持有它的引用，资源也就是没被释放;
-    //释放对象的时候我们又不能对资源进行释放，不然其他对象使用该资源就会报错，对于new出的资源,没被使用就会被系统自动释放或者自己释放-------------------->>>>>>>>>
-    //<<<<<<<------- 2.  资源的name不作为asset的标识.不然造成一大堆麻烦。如果允许重名资源在assetmgr获取资源的需要通过bundlename /assetname才能正确获取资源,bundlename于asset来说不一定有;
-    //new asset的时候还要检查重名资源,允许还是不允许都是麻烦—--->>>>>>>>>>>>>>>>>>>>>>>
-    //<<<<<<<--------3.  资源本身的描述json，不会被作为资源被assetmgr管理起来-->>>
-
-    class DefGeometry {
-        static fromType(type) {
-            if (this.defGeometry[type] == null) {
-                let geometryOption;
-                switch (type) {
-                    case "quad":
-                        geometryOption = {
-                            name: "def_quad",
-                            atts: {
-                                POSITION: [-0.5, -0.5, 0, -0.5, 0.5, 0, 0.5, 0.5, 0, 0.5, -0.5, 0],
-                                TEXCOORD_0: [0, 1, 0, 0, 1, 0, 1, 1],
-                            },
-                            indices: [0, 2, 1, 0, 3, 2],
-                        };
-                        break;
-                    case "cube":
-                        geometryOption = this.createCube();
-                        break;
-                    default:
-                        console.warn("Unkowned default mesh type:", type);
-                        return null;
-                }
-                if (geometryOption != null) {
-                    this.defGeometry[type] = Geometry.fromCustomData(geometryOption);
-                }
-            }
-            return this.defGeometry[type];
-        }
-        static createCube() {
-            let bassInf = {
-                posarr: [],
-                uvArray: [],
-                indices: [],
-            };
-            this.addQuad(bassInf, [-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //前
-            this.addQuad(bassInf, [-0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //后
-            this.addQuad(bassInf, [-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //左
-            this.addQuad(bassInf, [0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //右
-            this.addQuad(bassInf, [-0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //上
-            this.addQuad(bassInf, [-0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //下
-            return {
-                name: "def_cube",
-                atts: {
-                    POSITION: bassInf.posarr,
-                    TEXCOORD_0: bassInf.uvArray,
-                },
-                indices: bassInf.indices,
-            };
-        }
-        static addQuad(bassInf, posarr, uvArray, indices) {
-            let maxIndex = bassInf.posarr.length / 3;
-            for (let i = 0; i < posarr.length; i++) {
-                bassInf.posarr.push(posarr[i]);
-            }
-            for (let i = 0; i < uvArray.length; i++) {
-                bassInf.uvArray.push(uvArray[i]);
-            }
-            for (let i = 0; i < indices.length; i++) {
-                bassInf.indices.push(maxIndex + indices[i]);
-            }
-        }
-    }
-    DefGeometry.defGeometry = {};
-
-    class Texture extends ToyAsset {
-        get texture() {
-            return this._textrue || GlTextrue.WHITE.texture;
-        }
-        set texture(value) {
-            this._textrue = value;
-        }
-        // samplerInfo: TextureOption = new TextureOption();
-        constructor(param) {
-            super(param);
-        }
-        dispose() { }
-        static fromImageSource(img, texOp, texture) {
-            let imaginfo = GlRender.createTextureFromImg(img, texOp);
-            if (texture != null) {
-                texture.texture = imaginfo.texture;
-                texture.texDes = imaginfo.texDes;
-                return texture;
-            }
-            else {
-                let texture = new Texture();
-                texture.texture = imaginfo.texture;
-                texture.texDes = imaginfo.texDes;
-                return texture;
-            }
-        }
-        static fromViewData(viewData, width, height, texOp, texture) {
-            let imaginfo = GlRender.createTextureFromViewData(viewData, width, height, texOp);
-            if (texture != null) {
-                texture.texture = imaginfo.texture;
-                texture.texDes = imaginfo.texDes;
-                return texture;
-            }
-            else {
-                let texture = new Texture();
-                texture.texture = imaginfo.texture;
-                texture.texDes = imaginfo.texDes;
-                return texture;
-            }
-        }
-    }
-
-    class DefTextrue {
-        static get WHITE() {
-            if (this._white == null) {
-                this._white = this.createByType("white");
-            }
-            return this._white;
-        }
-        static get GIRD() {
-            if (this._grid == null) {
-                this._grid = this.createByType("grid");
-            }
-            return this._grid;
-        }
-        static createByType(type) {
-            let imaginfo;
-            switch (type) {
-                case "white":
-                    imaginfo = GlTextrue.WHITE;
-                    break;
-                case "grid":
-                    imaginfo = GlTextrue.GIRD;
-                    break;
-            }
-            if (imaginfo != null) {
-                let tex = new Texture();
-                tex.texture = imaginfo.texture;
-                tex.texDes = imaginfo.texDes;
-                return tex;
-            }
-            else {
-                return null;
-            }
-        }
-    }
 
     class ShowCull {
         static done(toy) {
@@ -8395,6 +8396,7 @@
             observeCam.viewport = Rect.create(0.5, 0.5, 0.5, 0.5);
             observeCam.clearFlag = ClearEnum.NONE;
             cam.afterRender = (render, arr) => {
+                arr.push(Debug.drawCameraWireframe(cam));
                 render.drawCamera(observeCam, arr);
             };
             toy.scene.preUpdate = delta => { };

@@ -54,7 +54,7 @@ export class Scene {
         for (let i = 0; i < this.frameState.cameraList.length; i++) {
             let cam = this.frameState.cameraList[i];
 
-            Debug.drawCameraWireframe(cam, this.frameState);
+            // Debug.drawCameraWireframe(cam, this.frameState);
             // this.frameState.renderList = [Debug.showCameraWireframe(cam)];
             let arr = this.frameState.renderList.filter(item => {
                 return this.maskCheck(cam.cullingMask, item) && this.frusumCheck(cam.frustum, item);

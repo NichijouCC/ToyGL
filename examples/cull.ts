@@ -39,6 +39,7 @@ export class ShowCull {
         observeCam.clearFlag = ClearEnum.NONE;
 
         cam.afterRender = (render, arr) => {
+            arr.push(Debug.drawCameraWireframe(cam));
             render.drawCamera(observeCam, arr);
         };
 
