@@ -28,6 +28,9 @@ import {
     createGlBuffer,
     updateAttributeBufferInfo,
     createAttributeBufferInfo,
+    createFboInfo,
+    IfboOption,
+    IfboInfo,
 } from "twebgl";
 import { AutoUniform } from "./autoUniform";
 import { UniformTypeEnum } from "../resources/assets/shader";
@@ -177,6 +180,10 @@ export class GlRender {
 
     static createAttributeBufferInfo(attName: string, data: IviewArr) {
         return createAttributeBufferInfo(this.context, attName, data);
+    }
+
+    static createFrameBuffer(op: IfboOption): IfboInfo {
+        return createFboInfo(this.context, op);
     }
 }
 
