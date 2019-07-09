@@ -247,8 +247,8 @@ export class GlTextrue {
                         data[seek + 3] = 255;
                     } else {
                         data[seek] = 255;
-                        data[seek + 1] = 0;
-                        data[seek + 2] = 0;
+                        data[seek + 1] = 255;
+                        data[seek + 2] = 255;
                         data[seek + 3] = 255;
                     }
                 }

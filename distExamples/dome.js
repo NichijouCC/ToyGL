@@ -1807,8 +1807,8 @@
                         }
                         else {
                             data[seek] = 255;
-                            data[seek + 1] = 0;
-                            data[seek + 2] = 0;
+                            data[seek + 1] = 255;
+                            data[seek + 2] = 255;
                             data[seek + 3] = 255;
                         }
                     }
@@ -3416,6 +3416,21 @@
             out[2] = Math.sqrt(m31 * m31 + m32 * m32 + m33 * m33);
             return out;
         }
+        static getMaxScaleOnAxis(mat) {
+            let m11 = mat[0];
+            let m12 = mat[1];
+            let m13 = mat[2];
+            let m21 = mat[4];
+            let m22 = mat[5];
+            let m23 = mat[6];
+            let m31 = mat[8];
+            let m32 = mat[9];
+            let m33 = mat[10];
+            let scaleX = m11 * m11 + m12 * m12 + m13 * m13;
+            let scaleY = m21 * m21 + m22 * m22 + m23 * m23;
+            let scaleZ = m31 * m31 + m32 * m32 + m33 * m33;
+            return Math.sqrt(Math.max(scaleX, scaleY, scaleZ));
+        }
         /**
          * Returns a Quaternion representing the rotational component
          *  of a transformation matrix. If a matrix is built with
@@ -4829,6 +4844,7 @@
         }
         applyMatrix(mat) {
             Mat4.transformPoint(this.center, mat, this.center);
+            this.radius = this.radius * Mat4.getMaxScaleOnAxis(mat);
         }
         setFromPoints(points, center = null) {
             if (center != null) {
@@ -8206,7 +8222,7 @@
             uniform lowp sampler2D _MainTex;\
             void main()\
             {\
-                gl_FragData[0] = texture2D(_MainTex, xlv_TEXCOORD0);\
+                gl_FragData[0] = texture2D(_MainTex, xlv_TEXCOORD0)*MainColor;\
             }";
             return Shader.fromCustomData({
                 passes: [
@@ -8220,6 +8236,7 @@
                         },
                     },
                 ],
+                mapUniformDef: { MainColor: Color.create() },
                 name: "def_baseTex",
             });
         }
@@ -8385,13 +8402,24 @@
                     toy.scene.addEntity(obj);
                 }
             }
+            let obj = new Entity();
+            let mesh = obj.addCompByName("Mesh");
+            mesh.geometry = geometry;
+            let whiteMat = new Material();
+            whiteMat.shader = DefShader.fromType("baseTex");
+            whiteMat.setTexture("_MainTex", DefTextrue.GIRD);
+            whiteMat.setColor("MainColor", Color.create(1, 0, 0, 1));
+            mesh.material = whiteMat;
+            obj.transform.localPosition = Vec3.create(0, 0, 0);
+            obj.transform.localScale = Vec3.create(150, 0.1, 150);
+            toy.scene.addEntity(obj);
             let cam = toy.scene.addCamera(); //cull camera
             cam.entity.transform.localPosition = Vec3.create(0, 20, 0);
             cam.entity.transform.lookAtPoint(Vec3.ZERO);
             cam.viewport = Rect.create(0, 0, 0.5, 0.5);
             let observeCam = toy.scene.addCamera();
             observeCam.entity.beActive = false;
-            observeCam.entity.transform.localPosition = Vec3.create(40, 40, 40);
+            observeCam.entity.transform.localPosition = Vec3.create(150, 150, 150);
             observeCam.entity.transform.lookAtPoint(Vec3.ZERO);
             observeCam.viewport = Rect.create(0.5, 0.5, 0.5, 0.5);
             observeCam.clearFlag = ClearEnum.NONE;
@@ -8399,7 +8427,11 @@
                 arr.push(Debug.drawCameraWireframe(cam));
                 render.drawCamera(observeCam, arr);
             };
-            toy.scene.preUpdate = delta => { };
+            let totalTime = 0;
+            toy.scene.preUpdate = delta => {
+                totalTime += delta * 0.01;
+                cam.entity.transform.localPosition = Vec3.create(sideCount * 1.5 * Math.sin(totalTime / (sideCount * 1.5)), 20, sideCount * 1.5 * Math.cos(totalTime / (sideCount * 1.5)));
+            };
         }
     }
 

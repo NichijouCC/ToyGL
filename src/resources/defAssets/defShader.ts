@@ -117,7 +117,7 @@ export class DefShader {
             uniform lowp sampler2D _MainTex;\
             void main()\
             {\
-                gl_FragData[0] = texture2D(_MainTex, xlv_TEXCOORD0);\
+                gl_FragData[0] = texture2D(_MainTex, xlv_TEXCOORD0)*MainColor;\
             }";
         return Shader.fromCustomData({
             passes: [
@@ -131,6 +131,7 @@ export class DefShader {
                     },
                 },
             ],
+            mapUniformDef: { MainColor: Color.create() },
             name: "def_baseTex",
         });
     }

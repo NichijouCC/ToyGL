@@ -109,6 +109,7 @@ export class BoundingSphere {
 
     applyMatrix(mat: Mat4) {
         Mat4.transformPoint(this.center, mat, this.center);
+        this.radius = this.radius * Mat4.getMaxScaleOnAxis(mat);
     }
     setFromPoints(points: Vec3[], center: Vec3 = null) {
         if (center != null) {

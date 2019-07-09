@@ -8,6 +8,9 @@ import { Rect } from "../src/mathD/rect";
 import { RenderMachine } from "../src/render/renderMachine";
 import { ClearEnum } from "../src/ec/components/camera";
 import { Debug } from "../src/debug/debug";
+import { Material } from "../src/resources/assets/material";
+import { DefShader } from "../src/resources/defAssets/defShader";
+import { Color } from "../src/mathD/color";
 
 export class ShowCull {
     static done(toy: ToyGL) {
@@ -26,6 +29,19 @@ export class ShowCull {
                 toy.scene.addEntity(obj);
             }
         }
+        let obj = new Entity();
+        let mesh = obj.addCompByName("Mesh") as Mesh;
+        mesh.geometry = geometry;
+        let whiteMat = new Material();
+        whiteMat.shader = DefShader.fromType("baseTex");
+        whiteMat.setTexture("_MainTex", DefTextrue.GIRD);
+        whiteMat.setColor("MainColor", Color.create(1, 0, 0, 1));
+
+        mesh.material = whiteMat;
+        obj.transform.localPosition = Vec3.create(0, 0, 0);
+        obj.transform.localScale = Vec3.create(150, 0.1, 150);
+        toy.scene.addEntity(obj);
+
         let cam = toy.scene.addCamera(); //cull camera
         cam.entity.transform.localPosition = Vec3.create(0, 20, 0);
         cam.entity.transform.lookAtPoint(Vec3.ZERO);
@@ -33,7 +49,7 @@ export class ShowCull {
 
         let observeCam = toy.scene.addCamera();
         observeCam.entity.beActive = false;
-        observeCam.entity.transform.localPosition = Vec3.create(40, 40, 40);
+        observeCam.entity.transform.localPosition = Vec3.create(150, 150, 150);
         observeCam.entity.transform.lookAtPoint(Vec3.ZERO);
         observeCam.viewport = Rect.create(0.5, 0.5, 0.5, 0.5);
         observeCam.clearFlag = ClearEnum.NONE;
@@ -43,6 +59,14 @@ export class ShowCull {
             render.drawCamera(observeCam, arr);
         };
 
-        toy.scene.preUpdate = delta => {};
+        let totalTime = 0;
+        toy.scene.preUpdate = delta => {
+            totalTime += delta * 0.01;
+            cam.entity.transform.localPosition = Vec3.create(
+                sideCount * 1.5 * Math.sin(totalTime / (sideCount * 1.5)),
+                20,
+                sideCount * 1.5 * Math.cos(totalTime / (sideCount * 1.5)),
+            );
+        };
     }
 }
