@@ -15,6 +15,8 @@ export class RenderMachine {
     private camRenderList: { [cameraId: number]: RenderList } = {};
 
     drawCamera(cam: Camera, renderList: Irenderable[]) {
+        GlRender.setFrameBuffer(cam.targetTexture);
+
         if (this.camRenderList[cam.entity.guid] == null) {
             this.camRenderList[cam.entity.guid] = new RenderList(cam);
         }
@@ -27,7 +29,9 @@ export class RenderMachine {
         }
 
         //----------- set global State
-        GlRender.setViewPort(cam.viewport);
+        if (cam.targetTexture == null) {
+            GlRender.setViewPort(cam.viewport);
+        }
         GlRender.setClear(
             cam.clearFlag & ClearEnum.DEPTH ? true : false,
             cam.clearFlag & ClearEnum.COLOR ? cam.backgroundColor : null,

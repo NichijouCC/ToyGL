@@ -1,20 +1,26 @@
 import { ToyAsset, ItoyAsset } from "../base/toyAsset";
-import { ItextureInfo, ItextureDesInfo, GlRender } from "../../render/glRender";
+import { ItextureInfo, ItextureDesInfo, GlRender, GlTextrue } from "../../render/glRender";
 import { GlConstants, IfboInfo } from "twebgl";
 
-export class RenderTexture extends ToyAsset implements ItextureInfo {
-    texture: WebGLTexture;
-    texDes: ItextureDesInfo;
+export class RenderTexture extends ToyAsset implements IfboInfo {
+    framebuffer: WebGLFramebuffer;
+    width: number;
+    height: number;
+    depthStencil?: WebGLRenderbuffer;
+    depth?: WebGLRenderbuffer;
+    textureInfo: ItextureInfo;
+
+    get texture(): WebGLTexture {
+        return this.textureInfo.texture || GlTextrue.WHITE.texture;
+    }
+
     constructor(param?: ItoyAsset) {
         super(param);
-        this.fboInfo = GlRender.createFrameBuffer({
-            attachments: [
-                { attachment: null, format: GlConstants.RGBA },
-                { attachment: null, format: GlConstants.DEPTH_COMPONENT16 },
-            ],
+        let fboInfo = GlRender.createFrameBuffer({
+            enableDepth: true,
+            enableStencil: false,
         });
-        this.texture = this.fboInfo.attachments[0].texture;
-        this.texDes = this.fboInfo.attachments[1].texDes;
+        Object.assign(this, fboInfo);
     }
     private fboInfo: IfboInfo;
     dispose(): void {}

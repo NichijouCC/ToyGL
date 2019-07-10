@@ -1,6 +1,7 @@
 import { Shader } from "../assets/shader";
 import { GlRender } from "../../render/glRender";
 import { Color } from "../../mathD/color";
+import { DefTextrue } from "./defTexture";
 
 export class DefShader {
     private static defShader: { [type: string]: Shader } = {};
@@ -131,7 +132,7 @@ export class DefShader {
                     },
                 },
             ],
-            mapUniformDef: { MainColor: Color.create() },
+            mapUniformDef: { MainColor: Color.create(), _MainTex: DefTextrue.GIRD },
             name: "def_baseTex",
         });
     }

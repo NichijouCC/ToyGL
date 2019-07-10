@@ -21,11 +21,11 @@ export class Rect extends Float32Array {
     }
 
     get width() {
-        return this[2];
+        return this[2] - this[0];
     }
 
     get height() {
-        return this[3];
+        return this[3] - this[1];
     }
     get w() {
         return this[3];

@@ -8,9 +8,13 @@ import { Input } from "./input/Inputmgr";
 import { GameTimer } from "./gameTimer";
 export class ToyGL {
     // assetMgr: IassetMgr;
-    scene: Scene;
+    render: RenderMachine;
+    get scene(): Scene {
+        return this._defScene;
+    }
     // setupRender(canvas: HTMLCanvasElement) {}
-
+    private _defScene: Scene;
+    scenes: Scene[] = [];
     static initByHtmlElement(element: HTMLDivElement | HTMLCanvasElement): ToyGL {
         let canvas: HTMLCanvasElement;
         if (element instanceof HTMLDivElement) {
@@ -26,17 +30,36 @@ export class ToyGL {
         }
         Input.init(canvas);
 
-        let render = new RenderMachine(canvas);
-        let scene = new Scene(render);
         GameScreen.init(canvas);
+
+        let toy = new ToyGL();
+        toy.render = new RenderMachine(canvas);
+        toy._defScene = toy.createScene();
 
         new GameTimer().tick = deltaTime => {
             GameScreen.update();
-            scene.update(deltaTime);
+            toy.scenes.forEach(scene => {
+                scene.update(deltaTime);
+            });
         };
-
-        let toy = new ToyGL();
-        toy.scene = scene;
         return toy;
+    }
+
+    createScene(priority: number = null): Scene {
+        if (priority == null) {
+            let newscene = new Scene(
+                this.render,
+                this.scenes.length > 0 ? this.scenes[this.scenes.length - 1].priority + 1 : 0,
+            );
+            this.scenes.push(newscene);
+            return newscene;
+        } else {
+            let newscene = new Scene(this.render, priority);
+            this.scenes.push(newscene);
+            this.scenes.sort((a, b) => {
+                return a.priority - b.priority;
+            });
+            return newscene;
+        }
     }
 }

@@ -603,6 +603,43 @@
         GlConstants[GlConstants["MAX_TEXTURE_MAX_ANISOTROPY_EXT"] = 34047] = "MAX_TEXTURE_MAX_ANISOTROPY_EXT";
     })(GlConstants || (GlConstants = {}));
 
+    /* DataType */
+    var BYTE = 0x1400;
+    var UNSIGNED_BYTE = 0x1401;
+    var SHORT = 0x1402;
+    var UNSIGNED_SHORT = 0x1403;
+    var INT = 0x1404;
+    var UNSIGNED_INT = 0x1405;
+    var FLOAT = 0x1406;
+    var UNSIGNED_SHORT_4_4_4_4 = 0x8033;
+    var UNSIGNED_SHORT_5_5_5_1 = 0x8034;
+    var UNSIGNED_SHORT_5_6_5 = 0x8363;
+    var HALF_FLOAT = 0x140b;
+    var UNSIGNED_INT_2_10_10_10_REV = 0x8368;
+    var UNSIGNED_INT_10F_11F_11F_REV = 0x8c3b;
+    var UNSIGNED_INT_5_9_9_9_REV = 0x8c3e;
+    var FLOAT_32_UNSIGNED_INT_24_8_REV = 0x8dad;
+    var UNSIGNED_INT_24_8 = 0x84fa;
+    var glTypeToTypedArray = {};
+    {
+        var tt = glTypeToTypedArray;
+        tt[BYTE] = Int8Array;
+        tt[UNSIGNED_BYTE] = Uint8Array;
+        tt[SHORT] = Int16Array;
+        tt[UNSIGNED_SHORT] = Uint16Array;
+        tt[INT] = Int32Array;
+        tt[UNSIGNED_INT] = Uint32Array;
+        tt[FLOAT] = Float32Array;
+        tt[UNSIGNED_SHORT_4_4_4_4] = Uint16Array;
+        tt[UNSIGNED_SHORT_5_5_5_1] = Uint16Array;
+        tt[UNSIGNED_SHORT_5_6_5] = Uint16Array;
+        tt[HALF_FLOAT] = Uint16Array;
+        tt[UNSIGNED_INT_2_10_10_10_REV] = Uint32Array;
+        tt[UNSIGNED_INT_10F_11F_11F_REV] = Uint32Array;
+        tt[UNSIGNED_INT_5_9_9_9_REV] = Uint32Array;
+        tt[FLOAT_32_UNSIGNED_INT_24_8_REV] = Uint32Array;
+        tt[UNSIGNED_INT_24_8] = Uint32Array;
+    }
     /**
      * Get the GL type for a typedArray
      */
@@ -634,57 +671,16 @@
         throw "unsupported typed array to gl type";
     }
     function getArrayTypeForGLtype(glType) {
-        if (glType == GlConstants.BYTE) {
-            return Int8Array;
-        }
-        if (glType == GlConstants.UNSIGNED_BYTE) {
-            return Uint8Array;
-        }
-        if (glType == GlConstants.UNSIGNED_BYTE) {
-            return Uint8ClampedArray;
-        }
-        if (glType == GlConstants.SHORT) {
-            return Int16Array;
-        }
-        if (glType == GlConstants.UNSIGNED_SHORT) {
-            return Uint16Array;
-        }
-        if (glType == GlConstants.INT) {
-            return Int32Array;
-        }
-        if (glType == GlConstants.UNSIGNED_INT) {
-            return Uint32Array;
-        }
-        if (glType == GlConstants.FLOAT) {
-            return Float32Array;
+        if (glTypeToTypedArray[glType] != null) {
+            return glTypeToTypedArray[glType];
         }
         throw "unsupported gltype to array type";
     }
     function getbytesForGLtype(glType) {
-        switch (glType) {
-            case GlConstants.BYTE:
-                return 1;
-            case GlConstants.UNSIGNED_BYTE:
-                return 1;
-            case GlConstants.SHORT:
-                return 2;
-            case GlConstants.UNSIGNED_SHORT_4_4_4_4:
-                return 2;
-            case GlConstants.UNSIGNED_SHORT:
-                return 2;
-            case GlConstants.INT:
-                return 4;
-            case GlConstants.UNSIGNED_INT:
-                return 4;
-            case GlConstants.HALF_FLOAT:
-                return 2;
-            case GlConstants.HALF_FLOAT_OES:
-                return 2;
-            case GlConstants.FLOAT:
-                return 4;
-            default:
-                throw "unsupported gltype to bytesPerElement";
+        if (glTypeToTypedArray[glType]) {
+            return glTypeToTypedArray[glType].BYTES_PER_ELEMENT;
         }
+        throw "unsupported gltype to bytesPerElement";
     }
 
     var VertexIndex = /** @class */ (function () {
@@ -784,9 +780,7 @@
             newData.glBuffer = orginData.glBuffer;
             if (orginData.count == null) {
                 var elementBytes = getbytesForGLtype(newData.componentDataType) * newData.componentSize;
-                newData.count = newData.viewBuffer
-                    ? newData.viewBuffer.byteLength / elementBytes
-                    : undefined;
+                newData.count = newData.viewBuffer ? newData.viewBuffer.byteLength / elementBytes : undefined;
             }
             else {
                 newData.count = orginData.count;
@@ -830,48 +824,6 @@
         return numComponents;
     }
 
-    // export class GeometryInfo implements IgeometryInfo {
-    //     vaoDic: { [programeId: number]: WebGLVertexArrayObject } = {};
-    //     constructor() {
-    //         this.id = GeometryInfo.nextID();
-    //     }
-    //     readonly id: number;
-    //     primitiveType: number;
-    //     atts: { [attName: string]: IvertexAttrib } = {};
-    //     indices?: IvertexIndex;
-    //     // mode: number;
-    //     count: number;
-    //     offset: number = 0;
-    //     private static count = 0;
-    //     static nextID() {
-    //         return GeometryInfo.count++;
-    //     }
-    // }
-    function createGeometryInfo(gl, op) {
-        // let info = new GeometryInfo();
-        var primitiveType = op.primitiveType != null ? op.primitiveType : gl.TRIANGLES;
-        var info = {
-            atts: {},
-            vaoDic: {},
-            offset: 0,
-            count: null,
-            primitiveType: primitiveType,
-            name: op.name,
-        };
-        if (op.indices != null) {
-            info.indices = createIndexBufferInfo(gl, op.indices);
-            if (info.count == null) {
-                info.count = info.indices.count;
-            }
-        }
-        for (var attName in op.atts) {
-            info.atts[attName] = createAttributeBufferInfo(gl, attName, op.atts[attName]);
-            if (info.count == null) {
-                info.count = info.atts[attName].count;
-            }
-        }
-        return info;
-    }
     /**
      *  tips : setProgrameWithcached need behind (setGeometryWithAdvanced/setGeometryWithCached)，when draw obj
      * @param gl
@@ -920,25 +872,6 @@
         return vao;
     }
 
-    function setClear(gl, clearDepth, clearColor, clearStencil) {
-        if (clearStencil === void 0) { clearStencil = false; }
-        var cleartag = 0;
-        if (clearDepth) {
-            gl.clearDepth(1.0);
-            cleartag |= gl.DEPTH_BUFFER_BIT;
-        }
-        if (clearColor) {
-            gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
-            cleartag |= gl.COLOR_BUFFER_BIT;
-        }
-        if (clearStencil) {
-            gl.clearStencil(0);
-            cleartag |= gl.STENCIL_BUFFER_BIT;
-        }
-        if (cleartag != 0) {
-            gl.clear(cleartag);
-        }
-    }
     function setViewPortWithCached(gl, x, y, width, height) {
         var bechanged = gl._cachedViewPortX != x ||
             gl._cachedViewPortY != y ||
@@ -1123,26 +1056,6 @@
         ShaderTypeEnum[ShaderTypeEnum["VS"] = 0] = "VS";
         ShaderTypeEnum[ShaderTypeEnum["FS"] = 1] = "FS";
     })(ShaderTypeEnum || (ShaderTypeEnum = {}));
-    function createProgramInfo(gl, op) {
-        var bassProgram;
-        if (!(op.program instanceof BassProgram)) {
-            var bassprogramOp = op.program;
-            bassProgram = createBassProgramInfo(gl, bassprogramOp.vs, bassprogramOp.fs, bassprogramOp.name);
-        }
-        else {
-            bassProgram = op.program;
-        }
-        if (bassProgram) {
-            var info = new Program();
-            info.bassProgram = bassProgram;
-            info.uniforms = op.uniforms;
-            info.states = op.states;
-            return info;
-        }
-        else {
-            return null;
-        }
-    }
     function setProgramWithCached(gl, program) {
         if (gl._cachedProgram != program.bassProgram.program) {
             gl._cachedProgram = program.bassProgram.program;
@@ -1162,12 +1075,171 @@
             setter(value);
         }
     }
-    var Program = /** @class */ (function () {
+
+    // export class GeometryInfo implements IgeometryInfo {
+    //     vaoDic: { [programeId: number]: WebGLVertexArrayObject } = {};
+    //     constructor() {
+    //         this.id = GeometryInfo.nextID();
+    //     }
+    //     readonly id: number;
+    //     primitiveType: number;
+    //     atts: { [attName: string]: IvertexAttrib } = {};
+    //     indices?: IvertexIndex;
+    //     // mode: number;
+    //     count: number;
+    //     offset: number = 0;
+    //     private static count = 0;
+    //     static nextID() {
+    //         return GeometryInfo.count++;
+    //     }
+    // }
+    function createGeometryInfo$1(gl, op) {
+        // let info = new GeometryInfo();
+        var primitiveType = op.primitiveType != null ? op.primitiveType : gl.TRIANGLES;
+        var info = {
+            atts: {},
+            vaoDic: {},
+            offset: 0,
+            count: null,
+            primitiveType: primitiveType,
+            name: op.name,
+        };
+        if (op.indices != null) {
+            info.indices = createIndexBufferInfo(gl, op.indices);
+            if (info.count == null) {
+                info.count = info.indices.count;
+            }
+        }
+        for (var attName in op.atts) {
+            info.atts[attName] = createAttributeBufferInfo(gl, attName, op.atts[attName]);
+            if (info.count == null) {
+                info.count = info.atts[attName].count;
+            }
+        }
+        return info;
+    }
+
+    var VertexAtt$1 = /** @class */ (function () {
+        function VertexAtt() {
+        }
+        VertexAtt.fromViewArrayInfo = function (attName, data) {
+            var newData = new VertexAtt();
+            newData.name = attName;
+            if (data instanceof Array) {
+                newData.viewBuffer = new Float32Array(data);
+            }
+            else if (ArrayBuffer.isView(data)) {
+                newData.viewBuffer = data;
+            }
+            else {
+                var arraydata = data.value;
+                if (arraydata instanceof Array) {
+                    var type = data.componentDataType ? getArrayTypeForGLtype(data.componentDataType) : Float32Array;
+                    newData.viewBuffer = new type(arraydata);
+                }
+                else {
+                    newData.viewBuffer = arraydata;
+                }
+            }
+            var orginData = data;
+            if (orginData.componentDataType == null) {
+                newData.componentDataType = newData.viewBuffer
+                    ? getGLTypeForTypedArray(newData.viewBuffer)
+                    : GlConstants.FLOAT;
+            }
+            else {
+                newData.componentDataType = orginData.componentDataType;
+            }
+            newData.componentSize = orginData.componentSize ? orginData.componentSize : guessNumComponentsFromName$1(attName);
+            newData.normalize = orginData.normalize != null ? orginData.normalize : false;
+            newData.bytesOffset = orginData.bytesOffset ? orginData.bytesOffset : 0;
+            newData.bytesStride = orginData.bytesStride ? orginData.bytesStride : 0;
+            newData.drawType = orginData.drawType ? orginData.drawType : GlConstants.STATIC_DRAW;
+            newData.divisor = orginData.divisor;
+            newData.glBuffer = orginData.glBuffer;
+            if (orginData.count == null) {
+                var elementBytes = getbytesForGLtype(newData.componentDataType) * newData.componentSize;
+                newData.count = newData.viewBuffer ? newData.viewBuffer.byteLength / elementBytes : undefined;
+            }
+            else {
+                newData.count = orginData.count;
+            }
+            return newData;
+        };
+        return VertexAtt;
+    }());
+    function createAttributeBufferInfo$1(gl, attName, data) {
+        var vertexdata = VertexAtt$1.fromViewArrayInfo(attName, data);
+        if (vertexdata.glBuffer == null) {
+            var buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, vertexdata.viewBuffer, vertexdata.drawType);
+            vertexdata.glBuffer = buffer;
+        }
+        return vertexdata;
+    }
+    function updateAttributeBufferInfo$1(gl, att, value) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, att.glBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, value, att.drawType);
+        att.viewBuffer = value;
+        return att;
+    }
+    var uvRE$1 = /(uv|texcoord)/;
+    var colorRE$1 = /color/;
+    function guessNumComponentsFromName$1(name, length) {
+        if (length === void 0) { length = null; }
+        var numComponents;
+        name = name.toLowerCase();
+        if (uvRE$1.test(name)) {
+            numComponents = 2;
+        }
+        else if (colorRE$1.test(name)) {
+            numComponents = 4;
+        }
+        else {
+            numComponents = 3; // position, normals, indices ...
+        }
+        // if (length % numComponents > 0)
+        // {
+        //     throw "Can not guess numComponents for attribute '" + name + "'. Tried " +
+        //     numComponents + " but " + length +
+        //     " values is not evenly divisible by " + numComponents +
+        //     ". You should specify it.";
+        // }
+        return numComponents;
+    }
+
+    var ShaderTypeEnum$1;
+    (function (ShaderTypeEnum) {
+        ShaderTypeEnum[ShaderTypeEnum["VS"] = 0] = "VS";
+        ShaderTypeEnum[ShaderTypeEnum["FS"] = 1] = "FS";
+    })(ShaderTypeEnum$1 || (ShaderTypeEnum$1 = {}));
+    function createProgramInfo$1(gl, op) {
+        var bassProgram;
+        if (!(op.program instanceof BassProgram$1)) {
+            var bassprogramOp = op.program;
+            bassProgram = createBassProgramInfo$1(gl, bassprogramOp.vs, bassprogramOp.fs, bassprogramOp.name);
+        }
+        else {
+            bassProgram = op.program;
+        }
+        if (bassProgram) {
+            var info = new Program$1();
+            info.bassProgram = bassProgram;
+            info.uniforms = op.uniforms;
+            info.states = op.states;
+            return info;
+        }
+        else {
+            return null;
+        }
+    }
+    var Program$1 = /** @class */ (function () {
         function Program() {
         }
         return Program;
     }());
-    var BassProgram = /** @class */ (function () {
+    var BassProgram$1 = /** @class */ (function () {
         function BassProgram(programName, program, uniformsDic, attsDic) {
             this.id = BassProgram.nextID();
             this.programName = programName;
@@ -1181,9 +1253,9 @@
         BassProgram.count = 0;
         return BassProgram;
     }());
-    function createBassProgramInfo(gl, vs, fs, name) {
-        var vsShader = createShader(gl, ShaderTypeEnum.VS, vs, name + "_vs");
-        var fsShader = createShader(gl, ShaderTypeEnum.FS, fs, name + "_fs");
+    function createBassProgramInfo$1(gl, vs, fs, name) {
+        var vsShader = createShader$1(gl, ShaderTypeEnum$1.VS, vs, name + "_vs");
+        var fsShader = createShader$1(gl, ShaderTypeEnum$1.FS, fs, name + "_fs");
         if (vsShader && fsShader) {
             var item = gl.createProgram();
             gl.attachShader(item, vsShader.shader);
@@ -1197,14 +1269,14 @@
                 return null;
             }
             else {
-                var attsInfo = getAttributesInfo(gl, item);
-                var uniformsInfo = getUniformsInfo(gl, item);
-                return new BassProgram(name, item, uniformsInfo, attsInfo);
+                var attsInfo = getAttributesInfo$1(gl, item);
+                var uniformsInfo = getUniformsInfo$1(gl, item);
+                return new BassProgram$1(name, item, uniformsInfo, attsInfo);
                 // return { program: item, programName: name, uniformsDic: uniformsInfo, attsDic: attsInfo };
             }
         }
     }
-    function getAttributesInfo(gl, program) {
+    function getAttributesInfo$1(gl, program) {
         var attdic = {};
         var numAttribs = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
         for (var i = 0; i < numAttribs; i++) {
@@ -1213,12 +1285,12 @@
                 break;
             var attName = attribInfo.name;
             var attlocation = gl.getAttribLocation(program, attName);
-            var func = getAttributeSetter(gl, attlocation);
+            var func = getAttributeSetter$1(gl, attlocation);
             attdic[attName] = { name: attName, location: attlocation, setter: func };
         }
         return attdic;
     }
-    function getUniformsInfo(gl, program) {
+    function getUniformsInfo$1(gl, program) {
         var uniformDic = {};
         var numUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
         var bindpoint = 0;
@@ -1237,20 +1309,20 @@
             }
             if (location_1 == null)
                 continue;
-            var func = getUniformSetter(gl, type, beArray, location_1, bindpoint);
+            var func = getUniformSetter$1(gl, type, beArray, location_1, bindpoint);
             uniformDic[name_1] = { name: name_1, location: location_1, type: type, setter: func };
         }
         return uniformDic;
     }
-    function createShader(gl, type, source, name) {
+    function createShader$1(gl, type, source, name) {
         if (name === void 0) { name = null; }
-        var target = type == ShaderTypeEnum.VS ? GlConstants.VERTEX_SHADER : GlConstants.FRAGMENT_SHADER;
+        var target = type == ShaderTypeEnum$1.VS ? GlConstants.VERTEX_SHADER : GlConstants.FRAGMENT_SHADER;
         var item = gl.createShader(target);
         gl.shaderSource(item, source);
         gl.compileShader(item);
         var check = gl.getShaderParameter(item, gl.COMPILE_STATUS);
         if (check == false) {
-            var debug = type == ShaderTypeEnum.VS ? "ERROR: compile  VS Shader Error! VS:" : "ERROR: compile FS Shader Error! FS:";
+            var debug = type == ShaderTypeEnum$1.VS ? "ERROR: compile  VS Shader Error! VS:" : "ERROR: compile FS Shader Error! FS:";
             debug = debug + name + ".\n";
             console.error(debug + gl.getShaderInfoLog(item));
             gl.deleteShader(item);
@@ -1260,7 +1332,7 @@
             return { shaderType: type, shaderName: name, shader: item };
         }
     }
-    function getUniformSetter(gl, uniformType, beArray, location, bindpoint) {
+    function getUniformSetter$1(gl, uniformType, beArray, location, bindpoint) {
         switch (uniformType) {
             case gl.FLOAT:
                 if (beArray) {
@@ -1346,7 +1418,7 @@
                 break;
         }
     }
-    function getAttributeSetter(gl, location) {
+    function getAttributeSetter$1(gl, location) {
         return function (value) {
             gl.bindBuffer(gl.ARRAY_BUFFER, value.glBuffer);
             gl.enableVertexAttribArray(location);
@@ -1355,98 +1427,6 @@
                 gl.vertexAttribDivisor(location, value.divisor);
             }
         };
-    }
-
-    var VertexAtt$1 = /** @class */ (function () {
-        function VertexAtt() {
-        }
-        VertexAtt.fromViewArrayInfo = function (attName, data) {
-            var newData = new VertexAtt();
-            newData.name = attName;
-            if (data instanceof Array) {
-                newData.viewBuffer = new Float32Array(data);
-            }
-            else if (ArrayBuffer.isView(data)) {
-                newData.viewBuffer = data;
-            }
-            else {
-                var arraydata = data.value;
-                if (arraydata instanceof Array) {
-                    var type = data.componentDataType ? getArrayTypeForGLtype(data.componentDataType) : Float32Array;
-                    newData.viewBuffer = new type(arraydata);
-                }
-                else {
-                    newData.viewBuffer = arraydata;
-                }
-            }
-            var orginData = data;
-            if (orginData.componentDataType == null) {
-                newData.componentDataType = newData.viewBuffer
-                    ? getGLTypeForTypedArray(newData.viewBuffer)
-                    : GlConstants.FLOAT;
-            }
-            else {
-                newData.componentDataType = orginData.componentDataType;
-            }
-            newData.componentSize = orginData.componentSize ? orginData.componentSize : guessNumComponentsFromName$1(attName);
-            newData.normalize = orginData.normalize != null ? orginData.normalize : false;
-            newData.bytesOffset = orginData.bytesOffset ? orginData.bytesOffset : 0;
-            newData.bytesStride = orginData.bytesStride ? orginData.bytesStride : 0;
-            newData.drawType = orginData.drawType ? orginData.drawType : GlConstants.STATIC_DRAW;
-            newData.divisor = orginData.divisor;
-            newData.glBuffer = orginData.glBuffer;
-            if (orginData.count == null) {
-                var elementBytes = getbytesForGLtype(newData.componentDataType) * newData.componentSize;
-                newData.count = newData.viewBuffer
-                    ? newData.viewBuffer.byteLength / elementBytes
-                    : undefined;
-            }
-            else {
-                newData.count = orginData.count;
-            }
-            return newData;
-        };
-        return VertexAtt;
-    }());
-    function createAttributeBufferInfo$1(gl, attName, data) {
-        var vertexdata = VertexAtt$1.fromViewArrayInfo(attName, data);
-        if (vertexdata.glBuffer == null) {
-            var buffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-            gl.bufferData(gl.ARRAY_BUFFER, vertexdata.viewBuffer, vertexdata.drawType);
-            vertexdata.glBuffer = buffer;
-        }
-        return vertexdata;
-    }
-    function updateAttributeBufferInfo$1(gl, att, value) {
-        gl.bindBuffer(gl.ARRAY_BUFFER, att.glBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, value, att.drawType);
-        att.viewBuffer = value;
-        return att;
-    }
-    var uvRE$1 = /(uv|texcoord)/;
-    var colorRE$1 = /color/;
-    function guessNumComponentsFromName$1(name, length) {
-        if (length === void 0) { length = null; }
-        var numComponents;
-        name = name.toLowerCase();
-        if (uvRE$1.test(name)) {
-            numComponents = 2;
-        }
-        else if (colorRE$1.test(name)) {
-            numComponents = 4;
-        }
-        else {
-            numComponents = 3; // position, normals, indices ...
-        }
-        // if (length % numComponents > 0)
-        // {
-        //     throw "Can not guess numComponents for attribute '" + name + "'. Tried " +
-        //     numComponents + " but " + length +
-        //     " values is not evenly divisible by " + numComponents +
-        //     ". You should specify it.";
-        // }
-        return numComponents;
     }
 
     /*! *****************************************************************************
@@ -1586,6 +1566,159 @@
         return texdes;
     }
 
+    /**
+     * [WebGL1 only guarantees 3 combinations of attachments work](https://www.khronos.org/registry/webgl/specs/latest/1.0/#6.6).
+     * https://webglfundamentals.org/webgl/lessons/webgl-render-to-texture.html
+     *
+     *
+     * @param gl
+     * @param op
+     */
+    function createFboInfo(gl, op) {
+        var fbo = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+        var width = op.width || gl.drawingBufferWidth;
+        var height = op.height || gl.drawingBufferHeight;
+        var texinfo = createTextureFromTypedArray(gl, {
+            width: width,
+            height: height,
+            viewData: null,
+            pixelFormat: gl.RGBA,
+            wrapS: gl.CLAMP_TO_EDGE,
+            wrapT: gl.CLAMP_TO_EDGE,
+            filterMin: gl.LINEAR,
+            filterMax: gl.LINEAR,
+        });
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texinfo.texture, 0);
+        var fboInfo = {
+            framebuffer: fbo,
+            width: width,
+            height: height,
+            textureInfo: texinfo,
+        };
+        if (op.enableDepth && op.enableStencil) {
+            var attachment = gl.createRenderbuffer();
+            gl.bindRenderbuffer(gl.RENDERBUFFER, attachment);
+            gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, width, height);
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, attachment);
+        }
+        else if (op.enableDepth) {
+            var attachment = gl.createRenderbuffer();
+            gl.bindRenderbuffer(gl.RENDERBUFFER, attachment);
+            gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
+            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, attachment);
+        }
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        return fboInfo;
+    }
+    function setFboInfoWithCached(gl, fbo) {
+        if (gl._cachedFrameBuffer != fbo) {
+            if (fbo == null) {
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            }
+            else {
+                gl.bindFramebuffer(gl.FRAMEBUFFER, fbo.framebuffer);
+                setViewPortWithCached(gl, 0, 0, fbo.width, fbo.height);
+            }
+            gl._cachedFrameBuffer = fbo;
+        }
+    }
+
+    function setClear$1(gl, clearDepth, clearColor, clearStencil) {
+        if (clearStencil === void 0) { clearStencil = false; }
+        var cleartag = 0;
+        if (clearDepth) {
+            gl.clearDepth(1.0);
+            cleartag |= gl.DEPTH_BUFFER_BIT;
+        }
+        if (clearColor) {
+            gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+            cleartag |= gl.COLOR_BUFFER_BIT;
+        }
+        if (clearStencil) {
+            gl.clearStencil(0);
+            cleartag |= gl.STENCIL_BUFFER_BIT;
+        }
+        if (cleartag != 0) {
+            gl.clear(cleartag);
+        }
+    }
+    function setViewPortWithCached$1(gl, x, y, width, height) {
+        var bechanged = gl._cachedViewPortX != x ||
+            gl._cachedViewPortY != y ||
+            gl._cachedViewPortWidth != width ||
+            gl._cachedViewPortHeight != height;
+        if (bechanged) {
+            gl.viewport(x, y, width, height);
+            gl._cachedViewPortX = x;
+            gl._cachedViewPortY = y;
+            gl._cachedViewPortWidth = width;
+            gl._cachedViewPortHeight = height;
+        }
+    }
+    // /**
+    //  *
+    //  * @param state 原始 webgl state
+    //  */
+    // // state 是给每个物体 render用的，是不想受前一个物体render影响，所以需要推断出完整的 webgl state，缺失的按照默认值
+    // function deduceFullShderState(state: IprogramState): IprogramState {
+    //     //----------------------------cull face
+    //     if (state.enableCullFace == null) {
+    //         state.enableCullFace = true;
+    //     }
+    //     if (state.enableCullFace) {
+    //         if (state.cullBack == null) {
+    //             state.cullBack = true;
+    //         }
+    //     }
+    //     //------------------depth
+    //     if (state.depthWrite == null) {
+    //         state.depthWrite = true;
+    //     }
+    //     if (state.depthTest == null) {
+    //         state.depthTest = true;
+    //     }
+    //     if (state.depthTest) {
+    //         if (state.depthTestFuc == null) {
+    //             state.depthTestFuc = GlConstants.LEQUAL;
+    //         }
+    //     }
+    //     //------------------ blend
+    //     if (state.enableBlend == true) {
+    //         if (state.blendEquation == null) {
+    //             state.blendEquation = GlConstants.FUNC_ADD;
+    //         }
+    //         if (state.blendSrc == null) {
+    //             state.blendSrc = GlConstants.ONE;
+    //         }
+    //         if (state.blendDst == null) {
+    //             state.blendDst = GlConstants.ONE_MINUS_SRC_ALPHA;
+    //         }
+    //     }
+    //     //---------------------stencil
+    //     if (state.enableStencilTest == true) {
+    //         if (state.stencilFunc == null) {
+    //             state.stencilFunc = GlConstants.ALWAYS;
+    //         }
+    //         if (state.stencilFail == null) {
+    //             state.stencilFail = GlConstants.KEEP;
+    //         }
+    //         if (state.stencilFaileZpass == null) {
+    //             state.stencilFaileZpass = GlConstants.KEEP;
+    //         }
+    //         if (state.stencilPassZfail == null) {
+    //             state.stencilPassZfail = GlConstants.REPLACE;
+    //         }
+    //         if (state.stencilRefValue == null) {
+    //             state.stencilRefValue = 1;
+    //         }
+    //         if (state.stencilMask == null) {
+    //             state.stencilMask = 0xff;
+    //         }
+    //     }
+    //     return state;
+    // }
+
     WebGLRenderingContext.prototype.addExtension = function (extname) {
         var ext = this.getExtension(extname);
         if (ext) {
@@ -1706,16 +1839,16 @@
             return this._maxTexturesImageUnits;
         }
         static setViewPort(viewport) {
-            setViewPortWithCached(this.context, viewport[0] * this.canvas.width, viewport[1] * this.canvas.height, viewport[2] * this.canvas.width, viewport[3] * this.canvas.height);
+            setViewPortWithCached$1(this.context, viewport[0] * this.canvas.width, viewport[1] * this.canvas.height, viewport[2] * this.canvas.width, viewport[3] * this.canvas.height);
         }
         static setClear(clearDepth, clearColor, clearStencil) {
-            setClear(this.context, clearDepth, clearColor, clearStencil);
+            setClear$1(this.context, clearDepth, clearColor, clearStencil);
         }
         static setState() {
             throw new Error("Method not implemented.");
         }
         static createGeometry(op) {
-            let info = createGeometryInfo(this.context, op);
+            let info = createGeometryInfo$1(this.context, op);
             let attdic = info.atts;
             let newAttdic = {};
             for (let key in attdic) {
@@ -1729,7 +1862,7 @@
         }
         static createProgram(op) {
             op.states = op.states || {};
-            let info = createProgramInfo(this.context, op);
+            let info = createProgramInfo$1(this.context, op);
             let attdic = info.bassProgram.attsDic;
             let newAttdic = {};
             for (let key in attdic) {
@@ -1774,6 +1907,12 @@
         }
         static createAttributeBufferInfo(attName, data) {
             return createAttributeBufferInfo$1(this.context, attName, data);
+        }
+        static createFrameBuffer(op) {
+            return createFboInfo(this.context, op);
+        }
+        static setFrameBuffer(fbo) {
+            setFboInfoWithCached(this.context, fbo);
         }
     }
     class GlBuffer {
@@ -4466,10 +4605,10 @@
             this[2] = value;
         }
         get width() {
-            return this[2];
+            return this[2] - this[0];
         }
         get height() {
-            return this[3];
+            return this[3] - this[1];
         }
         get w() {
             return this[3];
@@ -5050,10 +5189,10 @@
         get ProjectMatrix() {
             if (this.needcomputeProjectMat) {
                 if (this.projectionType == ProjectionEnum.PERSPECTIVE) {
-                    Mat4.projectPerspectiveLH(this.fov, GameScreen.aspect, this.near, this.far, this._Projectmatrix);
+                    Mat4.projectPerspectiveLH(this.fov, (GameScreen.aspect * this.viewport.width) / this.viewport.height, this.near, this.far, this._Projectmatrix);
                 }
                 else {
-                    Mat4.projectOrthoLH(this.size * GameScreen.aspect, this.size, this.near, this.far, this._Projectmatrix);
+                    Mat4.projectOrthoLH((this.size * (GameScreen.aspect * this.viewport.width)) / this.viewport.height, this.size, this.near, this.far, this._Projectmatrix);
                 }
                 this.needcomputeProjectMat = false;
             }
@@ -5187,6 +5326,7 @@
             GlRender.init(cancvas);
         }
         drawCamera(cam, renderList) {
+            GlRender.setFrameBuffer(cam.targetTexture);
             if (this.camRenderList[cam.entity.guid] == null) {
                 this.camRenderList[cam.entity.guid] = new RenderList(cam);
             }
@@ -5198,7 +5338,9 @@
                 }
             }
             //----------- set global State
-            GlRender.setViewPort(cam.viewport);
+            if (cam.targetTexture == null) {
+                GlRender.setViewPort(cam.viewport);
+            }
             GlRender.setClear(cam.clearFlag & ClearEnum.DEPTH ? true : false, cam.clearFlag & ClearEnum.COLOR ? cam.backgroundColor : null, cam.clearFlag & ClearEnum.STENCIL ? true : false);
             //-----------camera render before
             this.rendercontext.curCamera = cam;
@@ -6415,7 +6557,7 @@
         /**舍弃glmatrix 的fromeuler  （坐标系不同算法不同）
          * Creates a Quaternion from the given euler angle x, y, z.
          * rot order： z-y-x
-         * @param {x} Angle to rotate around X axis in degrees.
+         * @param {x} Angle to rotate around X axis in degrees.（弧度）
          * @param {y} Angle to rotate around Y axis in degrees.
          * @param {z} Angle to rotate around Z axis in degrees.
          * @param {Quat} out the receiving Quaternion
@@ -7495,10 +7637,11 @@
     }
 
     class Scene {
-        constructor(render) {
+        constructor(render, priority = 0) {
             this.root = new Entity().transform;
             this.frameState = new FrameState();
             this.render = render;
+            this.priority = priority;
         }
         newEntity(name = null, compsArr = null) {
             let newobj = new Entity(name, compsArr);
@@ -7645,7 +7788,12 @@
 
     // import { IassetMgr } from "./resources/type";
     class ToyGL {
-        // setupRender(canvas: HTMLCanvasElement) {}
+        constructor() {
+            this.scenes = [];
+        }
+        get scene() {
+            return this._defScene;
+        }
         static initByHtmlElement(element) {
             let canvas;
             if (element instanceof HTMLDivElement) {
@@ -7660,16 +7808,32 @@
                 canvas = element;
             }
             Input.init(canvas);
-            let render = new RenderMachine(canvas);
-            let scene = new Scene(render);
             GameScreen.init(canvas);
+            let toy = new ToyGL();
+            toy.render = new RenderMachine(canvas);
+            toy._defScene = toy.createScene();
             new GameTimer().tick = deltaTime => {
                 GameScreen.update();
-                scene.update(deltaTime);
+                toy.scenes.forEach(scene => {
+                    scene.update(deltaTime);
+                });
             };
-            let toy = new ToyGL();
-            toy.scene = scene;
             return toy;
+        }
+        createScene(priority = null) {
+            if (priority == null) {
+                let newscene = new Scene(this.render, this.scenes.length > 0 ? this.scenes[this.scenes.length - 1].priority + 1 : 0);
+                this.scenes.push(newscene);
+                return newscene;
+            }
+            else {
+                let newscene = new Scene(this.render, priority);
+                this.scenes.push(newscene);
+                this.scenes.sort((a, b) => {
+                    return a.priority - b.priority;
+                });
+                return newscene;
+            }
         }
     }
 
@@ -7941,83 +8105,6 @@
     }
     DefGeometry.defGeometry = {};
 
-    class Texture extends ToyAsset {
-        get texture() {
-            return this._textrue || GlTextrue.WHITE.texture;
-        }
-        set texture(value) {
-            this._textrue = value;
-        }
-        // samplerInfo: TextureOption = new TextureOption();
-        constructor(param) {
-            super(param);
-        }
-        dispose() { }
-        static fromImageSource(img, texOp, texture) {
-            let imaginfo = GlRender.createTextureFromImg(img, texOp);
-            if (texture != null) {
-                texture.texture = imaginfo.texture;
-                texture.texDes = imaginfo.texDes;
-                return texture;
-            }
-            else {
-                let texture = new Texture();
-                texture.texture = imaginfo.texture;
-                texture.texDes = imaginfo.texDes;
-                return texture;
-            }
-        }
-        static fromViewData(viewData, width, height, texOp, texture) {
-            let imaginfo = GlRender.createTextureFromViewData(viewData, width, height, texOp);
-            if (texture != null) {
-                texture.texture = imaginfo.texture;
-                texture.texDes = imaginfo.texDes;
-                return texture;
-            }
-            else {
-                let texture = new Texture();
-                texture.texture = imaginfo.texture;
-                texture.texDes = imaginfo.texDes;
-                return texture;
-            }
-        }
-    }
-
-    class DefTextrue {
-        static get WHITE() {
-            if (this._white == null) {
-                this._white = this.createByType("white");
-            }
-            return this._white;
-        }
-        static get GIRD() {
-            if (this._grid == null) {
-                this._grid = this.createByType("grid");
-            }
-            return this._grid;
-        }
-        static createByType(type) {
-            let imaginfo;
-            switch (type) {
-                case "white":
-                    imaginfo = GlTextrue.WHITE;
-                    break;
-                case "grid":
-                    imaginfo = GlTextrue.GIRD;
-                    break;
-            }
-            if (imaginfo != null) {
-                let tex = new Texture();
-                tex.texture = imaginfo.texture;
-                tex.texDes = imaginfo.texDes;
-                return tex;
-            }
-            else {
-                return null;
-            }
-        }
-    }
-
     class Material extends ToyAsset {
         constructor(param) {
             super(param);
@@ -8117,6 +8204,83 @@
                 return "#define LIGHTMAP \n" + "#define FOG \n";
             case "instance":
                 return "#define INSTANCE \n";
+        }
+    }
+
+    class Texture extends ToyAsset {
+        get texture() {
+            return this._textrue || GlTextrue.WHITE.texture;
+        }
+        set texture(value) {
+            this._textrue = value;
+        }
+        // samplerInfo: TextureOption = new TextureOption();
+        constructor(param) {
+            super(param);
+        }
+        dispose() { }
+        static fromImageSource(img, texOp, texture) {
+            let imaginfo = GlRender.createTextureFromImg(img, texOp);
+            if (texture != null) {
+                texture.texture = imaginfo.texture;
+                texture.texDes = imaginfo.texDes;
+                return texture;
+            }
+            else {
+                let texture = new Texture();
+                texture.texture = imaginfo.texture;
+                texture.texDes = imaginfo.texDes;
+                return texture;
+            }
+        }
+        static fromViewData(viewData, width, height, texOp, texture) {
+            let imaginfo = GlRender.createTextureFromViewData(viewData, width, height, texOp);
+            if (texture != null) {
+                texture.texture = imaginfo.texture;
+                texture.texDes = imaginfo.texDes;
+                return texture;
+            }
+            else {
+                let texture = new Texture();
+                texture.texture = imaginfo.texture;
+                texture.texDes = imaginfo.texDes;
+                return texture;
+            }
+        }
+    }
+
+    class DefTextrue {
+        static get WHITE() {
+            if (this._white == null) {
+                this._white = this.createByType("white");
+            }
+            return this._white;
+        }
+        static get GIRD() {
+            if (this._grid == null) {
+                this._grid = this.createByType("grid");
+            }
+            return this._grid;
+        }
+        static createByType(type) {
+            let imaginfo;
+            switch (type) {
+                case "white":
+                    imaginfo = GlTextrue.WHITE;
+                    break;
+                case "grid":
+                    imaginfo = GlTextrue.GIRD;
+                    break;
+            }
+            if (imaginfo != null) {
+                let tex = new Texture();
+                tex.texture = imaginfo.texture;
+                tex.texDes = imaginfo.texDes;
+                return tex;
+            }
+            else {
+                return null;
+            }
         }
     }
 
@@ -8236,7 +8400,7 @@
                         },
                     },
                 ],
-                mapUniformDef: { MainColor: Color.create() },
+                mapUniformDef: { MainColor: Color.create(), _MainTex: DefTextrue.GIRD },
                 name: "def_baseTex",
             });
         }
@@ -8321,116 +8485,50 @@
     }
     DefMaterial.defMat = {};
 
-    class Debug {
-        static drawCameraWireframe(camera) {
-            let posArr = [];
-            switch (camera.projectionType) {
-                case ProjectionEnum.PERSPECTIVE:
-                    let aspect = GameScreen.aspect;
-                    let zNear = camera.near;
-                    let nearHalfWidth = zNear * Math.tan(camera.fov * 0.5);
-                    let nearHalfHeight = nearHalfWidth / aspect;
-                    let near0 = [-nearHalfWidth, -nearHalfHeight, -zNear];
-                    let near1 = [-nearHalfWidth, nearHalfHeight, -zNear];
-                    let near2 = [nearHalfWidth, nearHalfHeight, -zNear];
-                    let near3 = [nearHalfWidth, -nearHalfHeight, -zNear];
-                    let zFar = camera.far;
-                    let farHalfWidth = zFar * Math.tan(camera.fov * 0.5);
-                    let farHalfHeight = farHalfWidth / aspect;
-                    let far0 = [-farHalfWidth, -farHalfHeight, -zFar];
-                    let far1 = [-farHalfWidth, farHalfHeight, -zFar];
-                    let far2 = [farHalfWidth, farHalfHeight, -zFar];
-                    let far3 = [farHalfWidth, -farHalfHeight, -zFar];
-                    posArr = posArr.concat(near0, near1, near1, near2, near2, near3, near3, near0);
-                    posArr = posArr.concat(far0, far1, far1, far2, far2, far3, far3, far0);
-                    posArr = posArr.concat(near0, far0, near1, far1, near2, far2, near3, far3);
-                    break;
-                case ProjectionEnum.ORTHOGRAPH:
-                    break;
-            }
-            if (this.map[camera.entity.guid] == null) {
-                switch (camera.projectionType) {
-                    case ProjectionEnum.PERSPECTIVE:
-                        let geometry = Geometry.fromCustomData({
-                            atts: {
-                                position: {
-                                    glBuffer: GlBuffer.fromViewData(GlConstants.ARRAY_BUFFER, new Float32Array(posArr))
-                                        .buffer,
-                                    componentSize: 3,
-                                    count: posArr.length / 3,
-                                },
-                            },
-                            primitiveType: GlConstants.LINES,
-                        });
-                        this.map[camera.entity.guid] = geometry;
-                        return {
-                            geometry: geometry,
-                            material: DefMaterial.fromType("base"),
-                            modelMatrix: camera.entity.transform.worldMatrix,
-                            maskLayer: CullingMask.default,
-                        };
-                    case ProjectionEnum.ORTHOGRAPH:
-                        break;
-                }
-            }
-            else {
-                this.map[camera.entity.guid].updateAttData(VertexAttEnum.POSITION, new Float32Array(posArr));
-                return {
-                    geometry: this.map[camera.entity.guid],
-                    material: DefMaterial.fromType("base"),
-                    modelMatrix: camera.entity.transform.worldMatrix,
-                    maskLayer: CullingMask.default,
-                };
-            }
+    class RenderTexture extends ToyAsset {
+        get texture() {
+            return this.textureInfo.texture || GlTextrue.WHITE.texture;
         }
+        constructor(param) {
+            super(param);
+            let fboInfo = GlRender.createFrameBuffer({
+                enableDepth: true,
+                enableStencil: false,
+            });
+            Object.assign(this, fboInfo);
+        }
+        dispose() { }
     }
-    Debug.map = {};
 
-    class ShowCull {
+    class RenderTextureDome {
         static done(toy) {
+            //---------------------------rendertexture scene
+            let scene = toy.createScene(-1);
+            let showCam = scene.addCamera();
+            showCam.backgroundColor = Color.create(1, 0.5, 1, 1);
             let geometry = DefGeometry.fromType("cube");
             let mat = DefMaterial.fromType("baseTex");
-            mat.setTexture("_MainTex", DefTextrue.GIRD);
-            let sideCount = 100 / 2;
-            for (let i = -sideCount; i < sideCount; i++) {
-                for (let j = -sideCount; j < sideCount; j++) {
-                    let obj = new Entity();
-                    let mesh = obj.addCompByName("Mesh");
-                    mesh.geometry = geometry;
-                    mesh.material = mat;
-                    obj.transform.localPosition = Vec3.create(i * 1.5, 0, j * 1.5);
-                    toy.scene.addEntity(obj);
-                }
-            }
-            let obj = new Entity();
-            let mesh = obj.addCompByName("Mesh");
-            mesh.geometry = geometry;
-            let whiteMat = new Material();
-            whiteMat.shader = DefShader.fromType("baseTex");
-            whiteMat.setTexture("_MainTex", DefTextrue.GIRD);
-            whiteMat.setColor("MainColor", Color.create(1, 0, 0, 1));
-            mesh.material = whiteMat;
-            obj.transform.localPosition = Vec3.create(0, 0, 0);
-            obj.transform.localScale = Vec3.create(150, 0.1, 150);
-            toy.scene.addEntity(obj);
-            let cam = toy.scene.addCamera(); //cull camera
-            cam.entity.transform.localPosition = Vec3.create(0, 20, 0);
-            cam.entity.transform.lookAtPoint(Vec3.ZERO);
-            cam.viewport = Rect.create(0, 0, 0.5, 0.5);
-            let observeCam = toy.scene.addCamera();
-            observeCam.entity.beActive = false;
-            observeCam.entity.transform.localPosition = Vec3.create(150, 150, 150);
-            observeCam.entity.transform.lookAtPoint(Vec3.ZERO);
-            observeCam.viewport = Rect.create(0.5, 0.5, 0.5, 0.5);
-            observeCam.clearFlag = ClearEnum.NONE;
-            cam.afterRender = (render, arr) => {
-                arr.push(Debug.drawCameraWireframe(cam));
-                render.drawCamera(observeCam, arr);
+            let rotObj = scene.newEntity("rotObj", ["Mesh"]);
+            let meshcomp = rotObj.getCompByName("Mesh");
+            meshcomp.geometry = geometry;
+            meshcomp.material = mat;
+            rotObj.transform.localRotation = Quat.fromToRotation(Vec3.create(1, 1, 1), Vec3.UP);
+            showCam.entity.transform.localPosition = Vec3.create(0, 0, 4);
+            showCam.targetTexture = new RenderTexture();
+            scene.preUpdate = delta => {
+                rotObj.transform.worldRotation = Quat.multiply(Quat.AxisAngle(Vec3.UP, delta * 0.01), rotObj.transform.worldRotation, rotObj.transform.worldRotation);
             };
-            let totalTime = 0;
+            //----------------------------show scene
+            let showObj = toy.scene.newEntity("showObj", ["Mesh"]);
+            let showMesh = showObj.getCompByName("Mesh");
+            showMesh.geometry = geometry;
+            showMesh.material = new Material();
+            showMesh.material.shader = DefShader.fromType("baseTex");
+            showMesh.material.setTexture("_MainTex", showCam.targetTexture);
+            let cam = toy.scene.addCamera();
+            cam.entity.transform.localPosition = Vec3.create(0, 0, 3);
             toy.scene.preUpdate = delta => {
-                totalTime += delta * 0.01;
-                cam.entity.transform.localPosition = Vec3.create(sideCount * 1.5 * Math.sin(totalTime / (sideCount * 1.5)), 20, sideCount * 1.5 * Math.cos(totalTime / (sideCount * 1.5)));
+                showObj.transform.localRotation = Quat.multiply(Quat.AxisAngle(Vec3.UP, delta * 0.001), showObj.transform.localRotation, showObj.transform.localRotation);
             };
         }
     }
@@ -8441,7 +8539,8 @@
             // Base.done(toy);
             // LoadGltf.done(toy);
             // LookAt.done(toy);
-            ShowCull.done(toy);
+            // ShowCull.done(toy);
+            RenderTextureDome.done(toy);
         });
     };
 

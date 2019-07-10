@@ -630,7 +630,7 @@ export class Quat extends Float32Array {
     /**舍弃glmatrix 的fromeuler  （坐标系不同算法不同）
      * Creates a Quaternion from the given euler angle x, y, z.
      * rot order： z-y-x
-     * @param {x} Angle to rotate around X axis in degrees.
+     * @param {x} Angle to rotate around X axis in degrees.（弧度）
      * @param {y} Angle to rotate around Y axis in degrees.
      * @param {z} Angle to rotate around Z axis in degrees.
      * @param {Quat} out the receiving Quaternion

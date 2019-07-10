@@ -11,8 +11,10 @@ export class Scene {
     private root: Transform = new Entity().transform;
     private frameState: FrameState = new FrameState();
     private render: RenderMachine;
-    constructor(render: RenderMachine) {
+    readonly priority: number;
+    constructor(render: RenderMachine, priority: number = 0) {
         this.render = render;
+        this.priority = priority;
     }
     newEntity(name: string = null, compsArr: string[] = null): Entity {
         let newobj = new Entity(name, compsArr);

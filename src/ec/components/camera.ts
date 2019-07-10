@@ -6,6 +6,7 @@ import { Mat4 } from "../../mathD/mat4";
 import { GameScreen } from "../../gameScreen";
 import { Frustum } from "../../scene/frustum";
 import { RenderMachine } from "../../render/renderMachine";
+import { RenderTexture } from "../../resources/assets/renderTexture";
 
 export enum ProjectionEnum {
     PERSPECTIVE,
@@ -81,9 +82,21 @@ export class Camera implements Icomponent {
     get ProjectMatrix(): Mat4 {
         if (this.needcomputeProjectMat) {
             if (this.projectionType == ProjectionEnum.PERSPECTIVE) {
-                Mat4.projectPerspectiveLH(this.fov, GameScreen.aspect, this.near, this.far, this._Projectmatrix);
+                Mat4.projectPerspectiveLH(
+                    this.fov,
+                    (GameScreen.aspect * this.viewport.width) / this.viewport.height,
+                    this.near,
+                    this.far,
+                    this._Projectmatrix,
+                );
             } else {
-                Mat4.projectOrthoLH(this.size * GameScreen.aspect, this.size, this.near, this.far, this._Projectmatrix);
+                Mat4.projectOrthoLH(
+                    (this.size * (GameScreen.aspect * this.viewport.width)) / this.viewport.height,
+                    this.size,
+                    this.near,
+                    this.far,
+                    this._Projectmatrix,
+                );
             }
             this.needcomputeProjectMat = false;
         }
@@ -118,6 +131,8 @@ export class Camera implements Icomponent {
     get frustum(): Frustum {
         return this._frustum;
     }
+
+    targetTexture: RenderTexture;
 
     preRender: (render: RenderMachine, arr: Irenderable[]) => void;
     afterRender: (render: RenderMachine, arr: Irenderable[]) => void;

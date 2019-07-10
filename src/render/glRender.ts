@@ -31,6 +31,7 @@ import {
     createFboInfo,
     IfboOption,
     IfboInfo,
+    setFboInfoWithCached,
 } from "twebgl";
 import { AutoUniform } from "./autoUniform";
 import { UniformTypeEnum } from "../resources/assets/shader";
@@ -184,6 +185,10 @@ export class GlRender {
 
     static createFrameBuffer(op: IfboOption): IfboInfo {
         return createFboInfo(this.context, op);
+    }
+
+    static setFrameBuffer(fbo: IfboInfo) {
+        setFboInfoWithCached(this.context, fbo);
     }
 }
 

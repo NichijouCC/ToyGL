@@ -4,6 +4,7 @@ import { LoadGltf } from "./loadGltf";
 import { Base } from "./bass";
 import { LookAt } from "./lookat";
 import { ShowCull } from "./cull";
+import { RenderTextureDome } from "./renderTexture";
 
 window.onload = () => {
     let toy = ToyGL.initByHtmlElement(document.getElementById("canvas") as HTMLCanvasElement);
@@ -11,6 +12,7 @@ window.onload = () => {
         // Base.done(toy);
         // LoadGltf.done(toy);
         // LookAt.done(toy);
-        ShowCull.done(toy);
+        // ShowCull.done(toy);
+        RenderTextureDome.done(toy);
     });
 };
