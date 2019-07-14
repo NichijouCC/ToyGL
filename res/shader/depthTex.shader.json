@@ -1,0 +1,9 @@
+{
+    "properties": [],
+    "passes": [
+        {
+            "vs": "depthTex",
+            "fs": "depthTex"
+        }
+    ]
+}
