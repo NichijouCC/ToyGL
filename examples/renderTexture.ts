@@ -31,7 +31,7 @@ export class RenderTextureDome {
 
         scene.preUpdate = delta => {
             rotObj.transform.worldRotation = Quat.multiply(
-                Quat.AxisAngle(Vec3.UP, delta * 0.01),
+                Quat.AxisAngle(Vec3.UP, delta * 0.001),
                 rotObj.transform.worldRotation,
                 rotObj.transform.worldRotation,
             );
@@ -42,7 +42,7 @@ export class RenderTextureDome {
         showMesh.geometry = geometry;
         showMesh.material = new Material();
         showMesh.material.shader = DefShader.fromType("baseTex");
-        showMesh.material.setTexture("_MainTex", showCam.targetTexture);
+        showMesh.material.setTexture("_MainTex", showCam.targetTexture.colorTexture);
 
         let cam = toy.scene.addCamera();
 
@@ -50,7 +50,7 @@ export class RenderTextureDome {
 
         toy.scene.preUpdate = delta => {
             showObj.transform.localRotation = Quat.multiply(
-                Quat.AxisAngle(Vec3.UP, delta * 0.001),
+                Quat.AxisAngle(Vec3.UP, delta * 0.0001),
                 showObj.transform.localRotation,
                 showObj.transform.localRotation,
             );

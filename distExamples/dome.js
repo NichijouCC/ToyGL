@@ -1566,10 +1566,34 @@
         return texdes;
     }
 
+    /* Framebuffer Object. */
+    var RGBA4 = 0x8056;
+    var RGB5_A1 = 0x8057;
+    var RGB565 = 0x8d62;
+    var DEPTH_COMPONENT = 0x1902;
+    var DEPTH_COMPONENT16 = 0x81a5;
+    var STENCIL_INDEX = 0x1901;
+    var STENCIL_INDEX8 = 0x8d48;
+    var DEPTH_STENCIL = 0x84f9;
+    var renderbufferFormats = {};
+    {
+        renderbufferFormats[RGBA4] = true;
+        renderbufferFormats[RGB5_A1] = true;
+        renderbufferFormats[RGB565] = true;
+        renderbufferFormats[DEPTH_STENCIL] = true;
+        renderbufferFormats[DEPTH_COMPONENT16] = true;
+        renderbufferFormats[STENCIL_INDEX] = true;
+        renderbufferFormats[STENCIL_INDEX8] = true;
+    }
+    function isRenderbufferFormat(format) {
+        return renderbufferFormats[format];
+    }
     /**
      * [WebGL1 only guarantees 3 combinations of attachments work](https://www.khronos.org/registry/webgl/specs/latest/1.0/#6.6).
      * https://webglfundamentals.org/webgl/lessons/webgl-render-to-texture.html
      *
+     *  * WEBGL_depth_texture extension
+     * https://developer.mozilla.org/en-US/docs/Web/API/WEBGL_depth_texture
      *
      * @param gl
      * @param op
@@ -1583,30 +1607,60 @@
             width: width,
             height: height,
             viewData: null,
-            pixelFormat: gl.RGBA,
-            wrapS: gl.CLAMP_TO_EDGE,
-            wrapT: gl.CLAMP_TO_EDGE,
-            filterMin: gl.LINEAR,
-            filterMax: gl.LINEAR,
+            pixelFormat: (op.colorTexOp && op.colorTexOp.pixelFormat) || gl.RGBA,
+            pixelDatatype: (op.colorTexOp && op.colorTexOp.pixelDatatype) || gl.UNSIGNED_BYTE,
+            wrapS: (op.colorTexOp && op.colorTexOp.wrapS) || gl.CLAMP_TO_EDGE,
+            wrapT: (op.colorTexOp && op.colorTexOp.wrapT) || gl.CLAMP_TO_EDGE,
+            filterMin: (op.colorTexOp && op.colorTexOp.filterMin) || gl.NEAREST,
+            filterMax: (op.colorTexOp && op.colorTexOp.filterMax) || gl.NEAREST,
+            enableMipMap: false,
         });
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texinfo.texture, 0);
         var fboInfo = {
             framebuffer: fbo,
             width: width,
             height: height,
-            textureInfo: texinfo,
+            colorTextureInfo: texinfo,
         };
-        if (op.enableDepth && op.enableStencil) {
+        if (op.activeDepthStencilAttachment) {
             var attachment = gl.createRenderbuffer();
             gl.bindRenderbuffer(gl.RENDERBUFFER, attachment);
             gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, width, height);
             gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, attachment);
         }
-        else if (op.enableDepth) {
-            var attachment = gl.createRenderbuffer();
-            gl.bindRenderbuffer(gl.RENDERBUFFER, attachment);
-            gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
-            gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, attachment);
+        else {
+            if (op.activeDepthAttachment) {
+                var format = op.depthFormat || DEPTH_COMPONENT16;
+                if (isRenderbufferFormat(format)) {
+                    var attachment = gl.createRenderbuffer();
+                    gl.bindRenderbuffer(gl.RENDERBUFFER, attachment);
+                    gl.renderbufferStorage(gl.RENDERBUFFER, format, width, height);
+                    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, attachment);
+                }
+                else {
+                    var dpethTexinfo = createTextureFromTypedArray(gl, {
+                        width: width,
+                        height: height,
+                        viewData: null,
+                        pixelFormat: (op.colorTexOp && op.colorTexOp.pixelFormat) || DEPTH_COMPONENT,
+                        pixelDatatype: (op.colorTexOp && op.colorTexOp.pixelDatatype) || gl.UNSIGNED_SHORT,
+                        wrapS: (op.colorTexOp && op.colorTexOp.wrapS) || gl.CLAMP_TO_EDGE,
+                        wrapT: (op.colorTexOp && op.colorTexOp.wrapT) || gl.CLAMP_TO_EDGE,
+                        filterMin: (op.colorTexOp && op.colorTexOp.filterMin) || gl.NEAREST,
+                        filterMax: (op.colorTexOp && op.colorTexOp.filterMax) || gl.NEAREST,
+                        enableMipMap: false,
+                    });
+                    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, dpethTexinfo.texture, 0);
+                    fboInfo.depthTextureInfo = dpethTexinfo;
+                }
+            }
+            if (op.activeStencilAttachment) {
+                var format = op.depthFormat || STENCIL_INDEX8;
+                var attachment = gl.createRenderbuffer();
+                gl.bindRenderbuffer(gl.RENDERBUFFER, attachment);
+                gl.renderbufferStorage(gl.RENDERBUFFER, format, width, height);
+                gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, attachment);
+            }
         }
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         return fboInfo;
@@ -1839,7 +1893,7 @@
             return this._maxTexturesImageUnits;
         }
         static setViewPort(viewport) {
-            setViewPortWithCached$1(this.context, viewport[0] * this.canvas.width, viewport[1] * this.canvas.height, viewport[2] * this.canvas.width, viewport[3] * this.canvas.height);
+            setViewPortWithCached$1(this.context, viewport[0] * this.context.drawingBufferWidth, viewport[1] * this.context.drawingBufferHeight, viewport[2] * this.context.drawingBufferWidth, viewport[3] * this.context.drawingBufferHeight);
         }
         static setClear(clearDepth, clearColor, clearStencil) {
             setClear$1(this.context, clearDepth, clearColor, clearStencil);
@@ -4667,6 +4721,7 @@
         }
     }
     Rect.Recycle = [];
+    Rect.Identity = new Rect(0, 0, 1, 1);
 
     class Color extends Float32Array {
         constructor(r = 1, g, b = 1, a = 1) {
@@ -5318,12 +5373,185 @@
         }
     }
 
+    class ResID {
+        static next() {
+            let next = ResID.idAll;
+            ResID.idAll++;
+            return next;
+        }
+    }
+    ResID.idAll = 0;
+    class ToyAsset {
+        constructor(param) {
+            this.guid = ResID.next();
+            this.name = (param && param.name) || "asset_" + this.guid;
+            this.URL = param && param.URL;
+            this.beDefaultAsset = (param && param.beDefaultAsset) || false;
+        }
+    }
+
+    class Geometry extends ToyAsset {
+        constructor(param) {
+            super(param);
+            this.attDic = {};
+        }
+        dispose() { }
+        static fromCustomData(data) {
+            let geometry = GlRender.createGeometry(data);
+            let newAsset = new Geometry({ name: "custom_Mesh" });
+            Object.assign(newAsset, geometry);
+            return newAsset;
+        }
+        getAttDataArr(type) {
+            if (this.attDic[type] != null) {
+                return this.attDic[type];
+            }
+            else {
+                if (this.atts[type] != null) {
+                    this.attDic[type] = getTypedValueArr(type, this.atts[VertexAttEnum.POSITION]);
+                }
+                else {
+                    console.warn("geometry don't contain vertex type:", type);
+                }
+                return this.attDic[type];
+            }
+        }
+        updateAttData(type, data) {
+            if (data instanceof Array) {
+                GlRender.updateGeometry(this, type, new Float32Array(data));
+            }
+            else {
+                GlRender.updateGeometry(this, type, data);
+            }
+        }
+    }
+    /**
+     * 将buffer数据分割成对应的 typedarray，例如 positions[i]=new floa32array();
+     * @param newGeometry
+     * @param geometryOp
+     */
+    function getTypedValueArr(key, element) {
+        let strideInBytes = element.bytesStride || glTypeToByteSize(element.componentDataType) * element.componentSize;
+        let dataArr = [];
+        for (let i = 0; i < element.count; i++) {
+            let value = getTypedArry(element.componentDataType, element.viewBuffer, i * strideInBytes + element.bytesOffset, element.componentSize);
+            dataArr.push(value);
+        }
+        return dataArr;
+    }
+    function glTypeToByteSize(type) {
+        switch (type) {
+            case GlConstants.BYTE:
+                return Int8Array.BYTES_PER_ELEMENT;
+            case GlConstants.UNSIGNED_BYTE:
+                return Uint8Array.BYTES_PER_ELEMENT;
+            case GlConstants.SHORT:
+                return Int16Array.BYTES_PER_ELEMENT;
+            case GlConstants.UNSIGNED_SHORT:
+                return Uint16Array.BYTES_PER_ELEMENT;
+            case GlConstants.UNSIGNED_INT:
+                return Uint32Array.BYTES_PER_ELEMENT;
+            case GlConstants.FLOAT:
+                return Float32Array.BYTES_PER_ELEMENT;
+            default:
+                throw new Error(`Invalid component type ${type}`);
+        }
+    }
+    function getTypedArry(componentType, bufferview, byteOffset, Len) {
+        let buffer = bufferview.buffer;
+        byteOffset = bufferview.byteOffset + (byteOffset || 0);
+        switch (componentType) {
+            case GlConstants.BYTE:
+                return new Int8Array(buffer, byteOffset, Len);
+            case GlConstants.UNSIGNED_BYTE:
+                return new Uint8Array(buffer, byteOffset, Len);
+            case GlConstants.SHORT:
+                return new Int16Array(buffer, byteOffset, Len);
+            case GlConstants.UNSIGNED_SHORT:
+                return new Uint16Array(buffer, byteOffset, Len);
+            case GlConstants.UNSIGNED_INT:
+                return new Uint32Array(buffer, byteOffset, Len);
+            case GlConstants.FLOAT: {
+                if ((byteOffset / 4) % 1 != 0) {
+                    console.error("??");
+                }
+                return new Float32Array(buffer, byteOffset, Len);
+            }
+            default:
+                throw new Error(`Invalid component type ${componentType}`);
+        }
+    }
+
+    class DefGeometry {
+        static fromType(type) {
+            if (this.defGeometry[type] == null) {
+                let geometryOption;
+                switch (type) {
+                    case "quad":
+                        geometryOption = {
+                            name: "def_quad",
+                            atts: {
+                                POSITION: [-0.5, -0.5, 0, -0.5, 0.5, 0, 0.5, 0.5, 0, 0.5, -0.5, 0],
+                                TEXCOORD_0: [0, 1, 0, 0, 1, 0, 1, 1],
+                            },
+                            indices: [0, 2, 1, 0, 3, 2],
+                        };
+                        break;
+                    case "cube":
+                        geometryOption = this.createCube();
+                        break;
+                    default:
+                        console.warn("Unkowned default mesh type:", type);
+                        return null;
+                }
+                if (geometryOption != null) {
+                    this.defGeometry[type] = Geometry.fromCustomData(geometryOption);
+                }
+            }
+            return this.defGeometry[type];
+        }
+        static createCube() {
+            let bassInf = {
+                posarr: [],
+                uvArray: [],
+                indices: [],
+            };
+            this.addQuad(bassInf, [-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //前
+            this.addQuad(bassInf, [-0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //后
+            this.addQuad(bassInf, [-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //左
+            this.addQuad(bassInf, [0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //右
+            this.addQuad(bassInf, [-0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //上
+            this.addQuad(bassInf, [-0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //下
+            return {
+                name: "def_cube",
+                atts: {
+                    POSITION: bassInf.posarr,
+                    TEXCOORD_0: bassInf.uvArray,
+                },
+                indices: bassInf.indices,
+            };
+        }
+        static addQuad(bassInf, posarr, uvArray, indices) {
+            let maxIndex = bassInf.posarr.length / 3;
+            for (let i = 0; i < posarr.length; i++) {
+                bassInf.posarr.push(posarr[i]);
+            }
+            for (let i = 0; i < uvArray.length; i++) {
+                bassInf.uvArray.push(uvArray[i]);
+            }
+            for (let i = 0; i < indices.length; i++) {
+                bassInf.indices.push(maxIndex + indices[i]);
+            }
+        }
+    }
+    DefGeometry.defGeometry = {};
+
     class RenderMachine {
         constructor(cancvas) {
             this.camRenderList = {};
             this.rendercontext = new RenderContext();
             GlRender.autoUniform = new AutoUniform(this.rendercontext);
-            GlRender.init(cancvas);
+            GlRender.init(cancvas, { extentions: ["WEBGL_depth_texture"] });
         }
         drawCamera(cam, renderList) {
             GlRender.setFrameBuffer(cam.targetTexture);
@@ -5358,6 +5586,17 @@
                 }
             });
             //-----------canera render end
+        }
+        renderQuad(mat, pass = 0) {
+            GlRender.setFrameBuffer(null);
+            GlRender.setViewPort(Rect.Identity);
+            let shader = mat.shader;
+            if (shader != null) {
+                let passes = shader.passes && shader.passes["base"];
+                if (passes != null) {
+                    GlRender.drawObject(DefGeometry.fromType("quad"), passes[pass], mat.uniforms, shader.mapUniformDef);
+                }
+            }
         }
     }
     var DrawTypeEnum;
@@ -7926,184 +8165,109 @@
     }
     //private static ExtendNameDic: { [name: string]: AssetExtralEnum } = {};
     AssetLoader.RESLoadDic = {};
+    class Resource {
+        static getAssetLoadInfo(url) {
+            if (this.loadMap[url]) {
+                return this.loadMap[url].loadinfo;
+            }
+            else {
+                return null;
+            }
+        }
+        /**
+         * 加载资源
+         * @param url 地址
+         * @param onFinish  load回调]
+         */
+        static load(url, onFinish = null, onProgress = null) {
+            if (this.loadMap[url]) {
+                if (onFinish) {
+                    switch (this.loadMap[url].loadinfo.loadState) {
+                        case LoadEnum.Success:
+                        case LoadEnum.Failed:
+                            onFinish(this.loadMap[url].asset, this.loadMap[url].loadinfo);
+                            break;
+                        case LoadEnum.Loading:
+                            if (this.loadingUrl[url] == null) {
+                                this.loadingUrl[url] = [];
+                            }
+                            this.loadingUrl[url].push(onFinish);
+                            break;
+                        default:
+                        case LoadEnum.None:
+                            console.error("load error 为啥出现这种情况！");
+                            break;
+                    }
+                }
+                return this.loadMap[url].asset;
+            }
+            else {
+                let factory = AssetLoader.getAssetLoader(url);
+                let _state = { url: url, loadState: LoadEnum.None };
+                this.loadMap[url] = { asset: null, loadinfo: _state };
+                if (factory == null) {
+                    let errorMsg = "ERROR: load Asset error. INfo: not have Load Func to handle (" +
+                        getAssetExtralName(url) +
+                        ") type File.  load URL:" +
+                        url;
+                    _state.err = new Error(errorMsg);
+                    console.error(errorMsg);
+                    if (onFinish) {
+                        onFinish(null, _state);
+                    }
+                    return null;
+                }
+                else {
+                    let asset = factory.load(url, (asset, state) => {
+                        //-------------------------------存进资源存储map
+                        _state.loadState = state.loadState;
+                        //---------------------回调事件
+                        if (onFinish) {
+                            onFinish(asset, state);
+                        }
+                        //------------------监听此资源loadfinish的事件
+                        let arr = this.loadingUrl[url];
+                        this.loadingUrl[url] = null;
+                        delete this.loadingUrl[url]; //set loadingUrl null
+                        if (arr) {
+                            arr.forEach(func => {
+                                func(asset, state);
+                            });
+                        }
+                    }, onProgress);
+                    _state.loadState = LoadEnum.Loading;
+                    this.loadMap[url].asset = asset;
+                    return asset;
+                }
+            }
+        }
+        static loadAsync(url) {
+            return new Promise((resolve, reject) => {
+                this.load(url, (asset, loadInfo) => {
+                    if (loadInfo.loadState == LoadEnum.Success) {
+                        resolve(asset);
+                    }
+                    else {
+                        reject(new Error("Load Failed."));
+                    }
+                });
+            });
+        }
+    }
+    //#endregion
+    /**
+     * 调用load方法就会塞到这里面来
+     */
+    Resource.loadMap = {};
+    /**
+     * load同一个资源监听回调
+     */
+    Resource.loadingUrl = {}; //
     //<<<<<<<--------1.  new出来的自己管理,如果进行管控,assetmgr必然持有该资源的引用。当用该资源的对象被释放,该对象对该资源的引用也就没了,但是assetmgr持有它的引用，资源也就是没被释放;
     //释放对象的时候我们又不能对资源进行释放，不然其他对象使用该资源就会报错，对于new出的资源,没被使用就会被系统自动释放或者自己释放-------------------->>>>>>>>>
     //<<<<<<<------- 2.  资源的name不作为asset的标识.不然造成一大堆麻烦。如果允许重名资源在assetmgr获取资源的需要通过bundlename /assetname才能正确获取资源,bundlename于asset来说不一定有;
     //new asset的时候还要检查重名资源,允许还是不允许都是麻烦—--->>>>>>>>>>>>>>>>>>>>>>>
     //<<<<<<<--------3.  资源本身的描述json，不会被作为资源被assetmgr管理起来-->>>
-
-    class ResID {
-        static next() {
-            let next = ResID.idAll;
-            ResID.idAll++;
-            return next;
-        }
-    }
-    ResID.idAll = 0;
-    class ToyAsset {
-        constructor(param) {
-            this.guid = ResID.next();
-            this.name = (param && param.name) || "asset_" + this.guid;
-            this.URL = param && param.URL;
-            this.beDefaultAsset = (param && param.beDefaultAsset) || false;
-        }
-    }
-
-    class Geometry extends ToyAsset {
-        constructor(param) {
-            super(param);
-            this.attDic = {};
-        }
-        dispose() { }
-        static fromCustomData(data) {
-            let geometry = GlRender.createGeometry(data);
-            let newAsset = new Geometry({ name: "custom_Mesh" });
-            Object.assign(newAsset, geometry);
-            return newAsset;
-        }
-        getAttDataArr(type) {
-            if (this.attDic[type] != null) {
-                return this.attDic[type];
-            }
-            else {
-                if (this.atts[type] != null) {
-                    this.attDic[type] = getTypedValueArr(type, this.atts[VertexAttEnum.POSITION]);
-                }
-                else {
-                    console.warn("geometry don't contain vertex type:", type);
-                }
-                return this.attDic[type];
-            }
-        }
-        updateAttData(type, data) {
-            if (data instanceof Array) {
-                GlRender.updateGeometry(this, type, new Float32Array(data));
-            }
-            else {
-                GlRender.updateGeometry(this, type, data);
-            }
-        }
-    }
-    /**
-     * 将buffer数据分割成对应的 typedarray，例如 positions[i]=new floa32array();
-     * @param newGeometry
-     * @param geometryOp
-     */
-    function getTypedValueArr(key, element) {
-        let strideInBytes = element.bytesStride || glTypeToByteSize(element.componentDataType) * element.componentSize;
-        let dataArr = [];
-        for (let i = 0; i < element.count; i++) {
-            let value = getTypedArry(element.componentDataType, element.viewBuffer, i * strideInBytes + element.bytesOffset, element.componentSize);
-            dataArr.push(value);
-        }
-        return dataArr;
-    }
-    function glTypeToByteSize(type) {
-        switch (type) {
-            case GlConstants.BYTE:
-                return Int8Array.BYTES_PER_ELEMENT;
-            case GlConstants.UNSIGNED_BYTE:
-                return Uint8Array.BYTES_PER_ELEMENT;
-            case GlConstants.SHORT:
-                return Int16Array.BYTES_PER_ELEMENT;
-            case GlConstants.UNSIGNED_SHORT:
-                return Uint16Array.BYTES_PER_ELEMENT;
-            case GlConstants.UNSIGNED_INT:
-                return Uint32Array.BYTES_PER_ELEMENT;
-            case GlConstants.FLOAT:
-                return Float32Array.BYTES_PER_ELEMENT;
-            default:
-                throw new Error(`Invalid component type ${type}`);
-        }
-    }
-    function getTypedArry(componentType, bufferview, byteOffset, Len) {
-        let buffer = bufferview.buffer;
-        byteOffset = bufferview.byteOffset + (byteOffset || 0);
-        switch (componentType) {
-            case GlConstants.BYTE:
-                return new Int8Array(buffer, byteOffset, Len);
-            case GlConstants.UNSIGNED_BYTE:
-                return new Uint8Array(buffer, byteOffset, Len);
-            case GlConstants.SHORT:
-                return new Int16Array(buffer, byteOffset, Len);
-            case GlConstants.UNSIGNED_SHORT:
-                return new Uint16Array(buffer, byteOffset, Len);
-            case GlConstants.UNSIGNED_INT:
-                return new Uint32Array(buffer, byteOffset, Len);
-            case GlConstants.FLOAT: {
-                if ((byteOffset / 4) % 1 != 0) {
-                    console.error("??");
-                }
-                return new Float32Array(buffer, byteOffset, Len);
-            }
-            default:
-                throw new Error(`Invalid component type ${componentType}`);
-        }
-    }
-
-    class DefGeometry {
-        static fromType(type) {
-            if (this.defGeometry[type] == null) {
-                let geometryOption;
-                switch (type) {
-                    case "quad":
-                        geometryOption = {
-                            name: "def_quad",
-                            atts: {
-                                POSITION: [-0.5, -0.5, 0, -0.5, 0.5, 0, 0.5, 0.5, 0, 0.5, -0.5, 0],
-                                TEXCOORD_0: [0, 1, 0, 0, 1, 0, 1, 1],
-                            },
-                            indices: [0, 2, 1, 0, 3, 2],
-                        };
-                        break;
-                    case "cube":
-                        geometryOption = this.createCube();
-                        break;
-                    default:
-                        console.warn("Unkowned default mesh type:", type);
-                        return null;
-                }
-                if (geometryOption != null) {
-                    this.defGeometry[type] = Geometry.fromCustomData(geometryOption);
-                }
-            }
-            return this.defGeometry[type];
-        }
-        static createCube() {
-            let bassInf = {
-                posarr: [],
-                uvArray: [],
-                indices: [],
-            };
-            this.addQuad(bassInf, [-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //前
-            this.addQuad(bassInf, [-0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //后
-            this.addQuad(bassInf, [-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //左
-            this.addQuad(bassInf, [0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //右
-            this.addQuad(bassInf, [-0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 2, 1, 0, 3, 2]); //上
-            this.addQuad(bassInf, [-0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5], [0, 1, 0, 0, 1, 0, 1, 1], [0, 1, 2, 0, 2, 3]); //下
-            return {
-                name: "def_cube",
-                atts: {
-                    POSITION: bassInf.posarr,
-                    TEXCOORD_0: bassInf.uvArray,
-                },
-                indices: bassInf.indices,
-            };
-        }
-        static addQuad(bassInf, posarr, uvArray, indices) {
-            let maxIndex = bassInf.posarr.length / 3;
-            for (let i = 0; i < posarr.length; i++) {
-                bassInf.posarr.push(posarr[i]);
-            }
-            for (let i = 0; i < uvArray.length; i++) {
-                bassInf.uvArray.push(uvArray[i]);
-            }
-            for (let i = 0; i < indices.length; i++) {
-                bassInf.indices.push(maxIndex + indices[i]);
-            }
-        }
-    }
-    DefGeometry.defGeometry = {};
 
     class Material extends ToyAsset {
         constructor(param) {
@@ -8289,13 +8453,16 @@
             if (this.defShader[type] == null) {
                 switch (type) {
                     case "color":
-                        this.defShader[type] = this.createColorShader();
+                        this.defShader[type] = this.create2DColorShader();
                         break;
                     case "base":
-                        this.defShader[type] = this.createBaseShder();
+                        this.defShader[type] = this.create3DBaseShder();
+                        break;
+                    case "2dTex":
+                        this.defShader[type] = this.create2DTextureShader();
                         break;
                     case "baseTex":
-                        this.defShader[type] = this.createBaseTexShder();
+                        this.defShader[type] = this.create3DTexShder();
                         break;
                     case "alphaTex":
                         this.defShader[type] = this.createAlphaTestShder();
@@ -8307,7 +8474,7 @@
             }
             return this.defShader[type];
         }
-        static createColorShader() {
+        static create2DColorShader() {
             let colorVs = "\
           attribute vec3 POSITION;\
           void main()\
@@ -8337,7 +8504,41 @@
                 name: "def_color",
             });
         }
-        static createBaseShder() {
+        static create2DTextureShader() {
+            let effectVs = "\
+          attribute vec3 POSITION;\
+          attribute vec3 TEXCOORD_0;\
+          varying mediump vec2 xlv_TEXCOORD0;\
+          void main()\
+          {\
+              highp vec4 tmplet_1=vec4(POSITION.xyz*2.0,1.0);\
+              xlv_TEXCOORD0 = TEXCOORD_0.xy;\
+              gl_Position = tmplet_1;\
+          }";
+            let effectFs = "\
+            uniform highp vec4 MainColor;\
+            uniform lowp sampler2D _MainTex;\
+            varying mediump vec2 xlv_TEXCOORD0;\
+            void main()\
+            {\
+                gl_FragData[0] = texture2D(_MainTex, xlv_TEXCOORD0);\
+            }";
+            return Shader.fromCustomData({
+                passes: [
+                    {
+                        program: {
+                            vs: effectVs,
+                            fs: effectFs,
+                        },
+                        states: {
+                            enableCullFace: false,
+                        },
+                    },
+                ],
+                name: "2dTex",
+            });
+        }
+        static create3DBaseShder() {
             let baseVs = "\
           attribute vec3 POSITION;\
           uniform highp mat4 u_mat_mvp;\
@@ -8368,7 +8569,7 @@
                 name: "def_base",
             });
         }
-        static createBaseTexShder() {
+        static create3DTexShder() {
             let baseVs = "\
           attribute vec3 POSITION;\
           attribute vec3 TEXCOORD_0;\
@@ -8454,30 +8655,11 @@
     class DefMaterial {
         static fromType(type) {
             if (this.defMat[type] == null) {
-                switch (type) {
-                    case "color":
-                        let matColor = new Material();
-                        matColor.shader = DefShader.fromType("color");
-                        this.defMat[type] = matColor;
-                        break;
-                    case "base":
-                        let baseMat = new Material();
-                        baseMat.shader = DefShader.fromType("base");
-                        this.defMat[type] = baseMat;
-                        break;
-                    case "baseTex":
-                        let baseTexMat = new Material();
-                        baseTexMat.shader = DefShader.fromType("baseTex");
-                        this.defMat[type] = baseTexMat;
-                        break;
-                    case "alphaTex":
-                        let alphaTexMat = new Material();
-                        alphaTexMat.shader = DefShader.fromType("alphaTex");
-                        this.defMat[type] = alphaTexMat;
-                        break;
-                    default:
-                        console.warn("Unkowned default shader type:", type);
-                        return null;
+                let shader = DefShader.fromType(type);
+                if (shader != null) {
+                    let mat = new Material();
+                    mat.shader = shader;
+                    this.defMat[type] = mat;
                 }
             }
             return this.defMat[type];
@@ -8486,21 +8668,21 @@
     DefMaterial.defMat = {};
 
     class RenderTexture extends ToyAsset {
-        get texture() {
-            return this.textureInfo.texture || GlTextrue.WHITE.texture;
+        get colorTexture() {
+            return this.colorTextureInfo;
         }
-        constructor(param) {
-            super(param);
-            let fboInfo = GlRender.createFrameBuffer({
-                enableDepth: true,
-                enableStencil: false,
-            });
+        get depthTexture() {
+            return this.depthTextureInfo;
+        }
+        constructor(op) {
+            super(null);
+            let fboInfo = GlRender.createFrameBuffer(op);
             Object.assign(this, fboInfo);
         }
         dispose() { }
     }
 
-    class RenderTextureDome {
+    class DepthTexutreDemo {
         static done(toy) {
             //---------------------------rendertexture scene
             let scene = toy.createScene(-1);
@@ -8514,21 +8696,21 @@
             meshcomp.material = mat;
             rotObj.transform.localRotation = Quat.fromToRotation(Vec3.create(1, 1, 1), Vec3.UP);
             showCam.entity.transform.localPosition = Vec3.create(0, 0, 4);
-            showCam.targetTexture = new RenderTexture();
+            showCam.targetTexture = new RenderTexture({
+                activeDepthAttachment: true,
+                depthFormat: GlConstants.DEPTH_COMPONENT,
+            });
             scene.preUpdate = delta => {
-                rotObj.transform.worldRotation = Quat.multiply(Quat.AxisAngle(Vec3.UP, delta * 0.01), rotObj.transform.worldRotation, rotObj.transform.worldRotation);
+                rotObj.transform.worldRotation = Quat.multiply(Quat.AxisAngle(Vec3.UP, delta * 0.001), rotObj.transform.worldRotation, rotObj.transform.worldRotation);
             };
             //----------------------------show scene
-            let showObj = toy.scene.newEntity("showObj", ["Mesh"]);
-            let showMesh = showObj.getCompByName("Mesh");
-            showMesh.geometry = geometry;
-            showMesh.material = new Material();
-            showMesh.material.shader = DefShader.fromType("baseTex");
-            showMesh.material.setTexture("_MainTex", showCam.targetTexture);
-            let cam = toy.scene.addCamera();
-            cam.entity.transform.localPosition = Vec3.create(0, 0, 3);
-            toy.scene.preUpdate = delta => {
-                showObj.transform.localRotation = Quat.multiply(Quat.AxisAngle(Vec3.UP, delta * 0.001), showObj.transform.localRotation, showObj.transform.localRotation);
+            let customeShader = Resource.load("../res/shader/depthTex.shader.json");
+            let quadMat = new Material({ name: "quadMat" });
+            quadMat.shader = customeShader;
+            quadMat.setTexture("_MainTex", showCam.targetTexture.depthTexture);
+            // quadMat.setTexture("_MainTex", DefTextrue.GIRD);
+            showCam.afterRender = () => {
+                toy.render.renderQuad(quadMat);
             };
         }
     }
@@ -8540,7 +8722,8 @@
             // LoadGltf.done(toy);
             // LookAt.done(toy);
             // ShowCull.done(toy);
-            RenderTextureDome.done(toy);
+            // RenderTextureDome.done(toy);
+            DepthTexutreDemo.done(toy);
         });
     };
 

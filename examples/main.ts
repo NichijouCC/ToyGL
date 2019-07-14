@@ -5,6 +5,7 @@ import { Base } from "./bass";
 import { LookAt } from "./lookat";
 import { ShowCull } from "./cull";
 import { RenderTextureDome } from "./renderTexture";
+import { DepthTexutreDemo } from "./depthTexture";
 
 window.onload = () => {
     let toy = ToyGL.initByHtmlElement(document.getElementById("canvas") as HTMLCanvasElement);
@@ -13,6 +14,7 @@ window.onload = () => {
         // LoadGltf.done(toy);
         // LookAt.done(toy);
         // ShowCull.done(toy);
-        RenderTextureDome.done(toy);
+        // RenderTextureDome.done(toy);
+        DepthTexutreDemo.done(toy);
     });
 };

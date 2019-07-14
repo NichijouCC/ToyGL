@@ -6,6 +6,7 @@ import { Color } from "../../mathD/color";
 import { Vec4 } from "../../mathD/vec4";
 import { Vec3 } from "../../mathD/vec3";
 import { RenderTexture } from "./renderTexture";
+import { ItextureInfo } from "../../render/glRender";
 
 export class Material extends ToyAsset {
     constructor(param?: ItoyAsset) {
@@ -27,7 +28,7 @@ export class Material extends ToyAsset {
     setColor(key: string, value: Color) {
         this.uniforms[key] = value;
     }
-    setTexture(key: string, value: Texture | RenderTexture) {
+    setTexture(key: string, value: Texture | ItextureInfo) {
         this.uniforms[key] = value;
     }
     setVector4(key: string, value: Vec4) {

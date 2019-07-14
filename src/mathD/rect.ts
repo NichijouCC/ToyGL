@@ -75,6 +75,7 @@ export class Rect extends Float32Array {
         Rect.Recycle.length = 0;
     }
 
+    public static Identity: Rect = new Rect(0, 0, 1, 1);
     public static copy(a: Rect, out: Rect): Rect {
         out[0] = a[0];
         out[1] = a[1];

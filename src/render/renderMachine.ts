@@ -4,13 +4,16 @@ import { RenderList } from "./renderList";
 import { ClearEnum, Camera } from "../ec/components/camera";
 import { RenderContext } from "./renderContext";
 import { AutoUniform } from "./autoUniform";
+import { Material } from "../resources/assets/material";
+import { DefGeometry } from "../resources/defAssets/defGeometry";
+import { Rect } from "../mathD/rect";
 
 export class RenderMachine {
     private rendercontext: RenderContext;
     constructor(cancvas: HTMLCanvasElement) {
         this.rendercontext = new RenderContext();
         GlRender.autoUniform = new AutoUniform(this.rendercontext);
-        GlRender.init(cancvas);
+        GlRender.init(cancvas, { extentions: ["WEBGL_depth_texture"] });
     }
     private camRenderList: { [cameraId: number]: RenderList } = {};
 
@@ -54,6 +57,18 @@ export class RenderMachine {
             }
         });
         //-----------canera render end
+    }
+
+    renderQuad(mat: Material, pass: number = 0) {
+        GlRender.setFrameBuffer(null);
+        GlRender.setViewPort(Rect.Identity);
+        let shader = mat.shader;
+        if (shader != null) {
+            let passes = shader.passes && shader.passes["base"];
+            if (passes != null) {
+                GlRender.drawObject(DefGeometry.fromType("quad"), passes[pass], mat.uniforms, shader.mapUniformDef);
+            }
+        }
     }
 }
 

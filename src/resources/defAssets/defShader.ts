@@ -3,19 +3,23 @@ import { GlRender } from "../../render/glRender";
 import { Color } from "../../mathD/color";
 import { DefTextrue } from "./defTexture";
 
+export type shaderType = "color" | "base" | "baseTex" | "alphaTex" | "2dTex";
 export class DefShader {
     private static defShader: { [type: string]: Shader } = {};
-    static fromType(type: "color" | "base" | "baseTex" | "alphaTex"): Shader {
+    static fromType(type: shaderType): Shader {
         if (this.defShader[type] == null) {
             switch (type) {
                 case "color":
-                    this.defShader[type] = this.createColorShader();
+                    this.defShader[type] = this.create2DColorShader();
                     break;
                 case "base":
-                    this.defShader[type] = this.createBaseShder();
+                    this.defShader[type] = this.create3DBaseShder();
+                    break;
+                case "2dTex":
+                    this.defShader[type] = this.create2DTextureShader();
                     break;
                 case "baseTex":
-                    this.defShader[type] = this.createBaseTexShder();
+                    this.defShader[type] = this.create3DTexShder();
                     break;
                 case "alphaTex":
                     this.defShader[type] = this.createAlphaTestShder();
@@ -28,7 +32,7 @@ export class DefShader {
         return this.defShader[type];
     }
 
-    private static createColorShader() {
+    private static create2DColorShader() {
         let colorVs =
             "\
           attribute vec3 POSITION;\
@@ -61,8 +65,44 @@ export class DefShader {
             name: "def_color",
         });
     }
+    private static create2DTextureShader() {
+        let effectVs =
+            "\
+          attribute vec3 POSITION;\
+          attribute vec3 TEXCOORD_0;\
+          varying mediump vec2 xlv_TEXCOORD0;\
+          void main()\
+          {\
+              highp vec4 tmplet_1=vec4(POSITION.xyz*2.0,1.0);\
+              xlv_TEXCOORD0 = TEXCOORD_0.xy;\
+              gl_Position = tmplet_1;\
+          }";
 
-    private static createBaseShder() {
+        let effectFs =
+            "\
+            uniform highp vec4 MainColor;\
+            uniform lowp sampler2D _MainTex;\
+            varying mediump vec2 xlv_TEXCOORD0;\
+            void main()\
+            {\
+                gl_FragData[0] = texture2D(_MainTex, xlv_TEXCOORD0);\
+            }";
+        return Shader.fromCustomData({
+            passes: [
+                {
+                    program: {
+                        vs: effectVs,
+                        fs: effectFs,
+                    },
+                    states: {
+                        enableCullFace: false,
+                    },
+                },
+            ],
+            name: "2dTex",
+        });
+    }
+    private static create3DBaseShder() {
         let baseVs =
             "\
           attribute vec3 POSITION;\
@@ -97,7 +137,7 @@ export class DefShader {
         });
     }
 
-    private static createBaseTexShder() {
+    private static create3DTexShder() {
         let baseVs =
             "\
           attribute vec3 POSITION;\

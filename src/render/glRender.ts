@@ -86,10 +86,10 @@ export class GlRender {
     static setViewPort(viewport: Float32Array): void {
         setViewPortWithCached(
             this.context,
-            viewport[0] * this.canvas.width,
-            viewport[1] * this.canvas.height,
-            viewport[2] * this.canvas.width,
-            viewport[3] * this.canvas.height,
+            viewport[0] * this.context.drawingBufferWidth,
+            viewport[1] * this.context.drawingBufferHeight,
+            viewport[2] * this.context.drawingBufferWidth,
+            viewport[3] * this.context.drawingBufferHeight,
         );
     }
     static setClear(clearDepth: boolean, clearColor: Float32Array, clearStencil?: boolean) {
