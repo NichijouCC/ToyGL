@@ -10,11 +10,11 @@ import { DepthTexutreDemo } from "./depthTexture";
 window.onload = () => {
     let toy = ToyGL.initByHtmlElement(document.getElementById("canvas") as HTMLCanvasElement);
     AssetLoader.addLoader().then(() => {
-        // Base.done(toy);
+        Base.done(toy);
         // LoadGltf.done(toy);
         // LookAt.done(toy);
         // ShowCull.done(toy);
         // RenderTextureDome.done(toy);
-        DepthTexutreDemo.done(toy);
+        // DepthTexutreDemo.done(toy);
     });
 };

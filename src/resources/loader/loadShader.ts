@@ -189,8 +189,8 @@ export class LoadShader implements IassetLoader {
 
             for (let i = 0; i < json.length; i++) {
                 let passJson = json[i];
-                let vsurl = shaderFolderUrl + passJson.vs + ".vs.glsl";
-                let fsurl = shaderFolderUrl + passJson.fs + ".fs.glsl";
+                let vsurl = shaderFolderUrl + passJson.vs + ".vert";
+                let fsurl = shaderFolderUrl + passJson.fs + ".frag";
 
                 let vstask = loadText(vsurl);
                 let fstask = loadText(fsurl);

@@ -8110,6 +8110,7 @@
             }
         }
     }
+    //# sourceMappingURL=toygl.js.map
 
     var LoadEnum;
     (function (LoadEnum) {
@@ -8307,6 +8308,85 @@
     //<<<<<<<--------3.  资源本身的描述json，不会被作为资源被assetmgr管理起来-->>>
     //# sourceMappingURL=resource.js.map
 
+    class Texture extends ToyAsset {
+        get texture() {
+            return this._textrue || GlTextrue.WHITE.texture;
+        }
+        set texture(value) {
+            this._textrue = value;
+        }
+        // samplerInfo: TextureOption = new TextureOption();
+        constructor(param) {
+            super(param);
+        }
+        dispose() { }
+        static fromImageSource(img, texOp, texture) {
+            let imaginfo = GlRender.createTextureFromImg(img, texOp);
+            if (texture != null) {
+                texture.texture = imaginfo.texture;
+                texture.texDes = imaginfo.texDes;
+                return texture;
+            }
+            else {
+                let texture = new Texture();
+                texture.texture = imaginfo.texture;
+                texture.texDes = imaginfo.texDes;
+                return texture;
+            }
+        }
+        static fromViewData(viewData, width, height, texOp, texture) {
+            let imaginfo = GlRender.createTextureFromViewData(viewData, width, height, texOp);
+            if (texture != null) {
+                texture.texture = imaginfo.texture;
+                texture.texDes = imaginfo.texDes;
+                return texture;
+            }
+            else {
+                let texture = new Texture();
+                texture.texture = imaginfo.texture;
+                texture.texDes = imaginfo.texDes;
+                return texture;
+            }
+        }
+    }
+    //# sourceMappingURL=texture.js.map
+
+    class DefTextrue {
+        static get WHITE() {
+            if (this._white == null) {
+                this._white = this.createByType("white");
+            }
+            return this._white;
+        }
+        static get GIRD() {
+            if (this._grid == null) {
+                this._grid = this.createByType("grid");
+            }
+            return this._grid;
+        }
+        static createByType(type) {
+            let imaginfo;
+            switch (type) {
+                case "white":
+                    imaginfo = GlTextrue.WHITE;
+                    break;
+                case "grid":
+                    imaginfo = GlTextrue.GIRD;
+                    break;
+            }
+            if (imaginfo != null) {
+                let tex = new Texture();
+                tex.texture = imaginfo.texture;
+                tex.texDes = imaginfo.texDes;
+                return tex;
+            }
+            else {
+                return null;
+            }
+        }
+    }
+    //# sourceMappingURL=defTexture.js.map
+
     class Material extends ToyAsset {
         constructor(param) {
             super(param);
@@ -8410,85 +8490,6 @@
         }
     }
     //# sourceMappingURL=shader.js.map
-
-    class Texture extends ToyAsset {
-        get texture() {
-            return this._textrue || GlTextrue.WHITE.texture;
-        }
-        set texture(value) {
-            this._textrue = value;
-        }
-        // samplerInfo: TextureOption = new TextureOption();
-        constructor(param) {
-            super(param);
-        }
-        dispose() { }
-        static fromImageSource(img, texOp, texture) {
-            let imaginfo = GlRender.createTextureFromImg(img, texOp);
-            if (texture != null) {
-                texture.texture = imaginfo.texture;
-                texture.texDes = imaginfo.texDes;
-                return texture;
-            }
-            else {
-                let texture = new Texture();
-                texture.texture = imaginfo.texture;
-                texture.texDes = imaginfo.texDes;
-                return texture;
-            }
-        }
-        static fromViewData(viewData, width, height, texOp, texture) {
-            let imaginfo = GlRender.createTextureFromViewData(viewData, width, height, texOp);
-            if (texture != null) {
-                texture.texture = imaginfo.texture;
-                texture.texDes = imaginfo.texDes;
-                return texture;
-            }
-            else {
-                let texture = new Texture();
-                texture.texture = imaginfo.texture;
-                texture.texDes = imaginfo.texDes;
-                return texture;
-            }
-        }
-    }
-    //# sourceMappingURL=texture.js.map
-
-    class DefTextrue {
-        static get WHITE() {
-            if (this._white == null) {
-                this._white = this.createByType("white");
-            }
-            return this._white;
-        }
-        static get GIRD() {
-            if (this._grid == null) {
-                this._grid = this.createByType("grid");
-            }
-            return this._grid;
-        }
-        static createByType(type) {
-            let imaginfo;
-            switch (type) {
-                case "white":
-                    imaginfo = GlTextrue.WHITE;
-                    break;
-                case "grid":
-                    imaginfo = GlTextrue.GIRD;
-                    break;
-            }
-            if (imaginfo != null) {
-                let tex = new Texture();
-                tex.texture = imaginfo.texture;
-                tex.texDes = imaginfo.texDes;
-                return tex;
-            }
-            else {
-                return null;
-            }
-        }
-    }
-    //# sourceMappingURL=defTexture.js.map
 
     class DefShader {
         static fromType(type) {
@@ -8695,81 +8696,47 @@
     DefShader.defShader = {};
     //# sourceMappingURL=defShader.js.map
 
-    class DefMaterial {
-        static fromType(type) {
-            if (this.defMat[type] == null) {
-                let shader = DefShader.fromType(type);
-                if (shader != null) {
-                    let mat = new Material();
-                    mat.shader = shader;
-                    this.defMat[type] = mat;
-                }
-            }
-            return this.defMat[type];
-        }
-    }
-    DefMaterial.defMat = {};
-    //# sourceMappingURL=defMaterial.js.map
-
-    class RenderTexture extends ToyAsset {
-        get colorTexture() {
-            return this.colorTextureInfo;
-        }
-        get depthTexture() {
-            return this.depthTextureInfo;
-        }
-        constructor(op) {
-            super(null);
-            let fboInfo = GlRender.createFrameBuffer(op);
-            Object.assign(this, fboInfo);
-        }
-        dispose() { }
-    }
-    //# sourceMappingURL=renderTexture.js.map
-
-    class DepthTexutreDemo {
+    class Base {
         static done(toy) {
-            //---------------------------rendertexture scene
-            let scene = toy.createScene(-1);
-            let showCam = scene.addCamera();
-            showCam.backgroundColor = Color.create(1, 0.5, 1, 1);
-            let geometry = DefGeometry.fromType("cube");
-            let mat = DefMaterial.fromType("baseTex");
-            let rotObj = scene.newEntity("rotObj", ["Mesh"]);
-            let meshcomp = rotObj.getCompByName("Mesh");
-            meshcomp.geometry = geometry;
-            meshcomp.material = mat;
-            rotObj.transform.localRotation = Quat.fromToRotation(Vec3.create(1, 1, 1), Vec3.UP);
-            showCam.entity.transform.localPosition = Vec3.create(0, 0, 4);
-            showCam.targetTexture = new RenderTexture({
-                activeDepthAttachment: true,
-                depthFormat: GlConstants.DEPTH_COMPONENT,
-            });
-            scene.preUpdate = delta => {
-                rotObj.transform.worldRotation = Quat.multiply(Quat.AxisAngle(Vec3.UP, delta * 0.001), rotObj.transform.worldRotation, rotObj.transform.worldRotation);
-            };
-            //----------------------------show scene
-            let customeShader = Resource.load("../res/shader/depthTex.shader.json");
-            let quadMat = new Material({ name: "quadMat" });
-            quadMat.shader = customeShader;
-            quadMat.setTexture("_MainTex", showCam.targetTexture.depthTexture);
-            // quadMat.setTexture("_MainTex", DefTextrue.GIRD);
-            showCam.afterRender = () => {
-                toy.render.renderQuad(quadMat);
+            let geometry = DefGeometry.fromType("quad");
+            ///------------def shader
+            let shader = DefShader.fromType("baseTex");
+            //-------------custom shader
+            let customeShader = Resource.load("../res/shader/base.shader.json");
+            let material = new Material();
+            material.shader = customeShader;
+            material.setColor("_MainColor", Color.create(1, 0, 0, 1));
+            //-----------load tex
+            let tex = Resource.load("../res/imgs/tes.png");
+            material.setTexture("_MainTex", tex);
+            let obj = new Entity();
+            let mesh = obj.addCompByName("Mesh");
+            mesh.geometry = geometry;
+            mesh.material = material;
+            toy.scene.addEntity(obj);
+            let camobj = new Entity("", ["Camera"]);
+            let trans = camobj.transform;
+            trans.localPosition = Vec3.create(0, 0, 5);
+            // trans.localRotation = Quat.FromEuler(-90, 0, 0);
+            toy.scene.addEntity(camobj);
+            let roty = 0;
+            toy.scene.preUpdate = delta => {
+                roty += delta * 0.01;
+                obj.transform.localRotation = Quat.FromEuler(0, roty, 0, obj.transform.localRotation);
             };
         }
     }
-    //# sourceMappingURL=depthTexture.js.map
+    //# sourceMappingURL=bass.js.map
 
     window.onload = () => {
         let toy = ToyGL.initByHtmlElement(document.getElementById("canvas"));
         AssetLoader.addLoader().then(() => {
-            // Base.done(toy);
+            Base.done(toy);
             // LoadGltf.done(toy);
             // LookAt.done(toy);
             // ShowCull.done(toy);
             // RenderTextureDome.done(toy);
-            DepthTexutreDemo.done(toy);
+            // DepthTexutreDemo.done(toy);
         });
     };
     //# sourceMappingURL=main.js.map
@@ -10045,8 +10012,8 @@
                 let taskArr = [];
                 for (let i = 0; i < json.length; i++) {
                     let passJson = json[i];
-                    let vsurl = shaderFolderUrl + passJson.vs + ".vs.glsl";
-                    let fsurl = shaderFolderUrl + passJson.fs + ".fs.glsl";
+                    let vsurl = shaderFolderUrl + passJson.vs + ".vert";
+                    let fsurl = shaderFolderUrl + passJson.fs + ".frag";
                     let vstask = loadText(vsurl);
                     let fstask = loadText(fsurl);
                     let protask = Promise.all([vstask, fstask]).then(str => {

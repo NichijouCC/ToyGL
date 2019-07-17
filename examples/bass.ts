@@ -22,7 +22,7 @@ export class Base {
         let customeShader = Resource.load("../res/shader/base.shader.json") as Shader;
 
         let material = new Material();
-        material.shader = shader;
+        material.shader = customeShader;
         material.setColor("_MainColor", Color.create(1, 0, 0, 1));
 
         //-----------def tex
