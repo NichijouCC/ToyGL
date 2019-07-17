@@ -1,9 +1,7 @@
-import { Resource, AssetLoader } from "./resources/resource";
 // import { IassetMgr } from "./resources/type";
 import { RenderMachine } from "./render/renderMachine";
 import { GameScreen } from "./gameScreen";
 import { Scene } from "./scene/scene";
-import { GlRender } from "./render/glRender";
 import { Input } from "./input/Inputmgr";
 import { GameTimer } from "./gameTimer";
 export class ToyGL {

@@ -19,11 +19,8 @@
     "node": ">=6.0.0"
   },
   "scripts": {
-    "build": "tsc --module commonjs && rollup -c rollup.config.ts && typedoc --out docs --target es6 --theme minimal --mode file src",
     "roll": "rollup -c rollup.config.ts",
-    "example": "rollup -c rollup.config.examples.ts",
-    "start": "rollup -c rollup.config.ts -w",
-    "deploy-docs": "ts-node tools/gh-pages-publish"
+    "start": "rollup -c rollup.config.dev.ts -w"
   },
   "devDependencies": {
     "@types/node": "^10.11.0",
@@ -50,6 +47,8 @@
     "typescript": "3.4.4"
   },
   "dependencies": {
+    "rollup-plugin-livereload": "^1.0.1",
+    "rollup-plugin-serve": "^1.0.1",
     "twebgl": "0.1.50"
   }
 }

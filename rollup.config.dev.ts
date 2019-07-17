@@ -5,6 +5,9 @@ import sourceMaps from "rollup-plugin-sourcemaps";
 import typescript from "rollup-plugin-typescript2";
 import json from "rollup-plugin-json";
 
+import serve from "rollup-plugin-serve";
+import livereload from "rollup-plugin-livereload";
+
 export default {
     input: `examples/main.ts`,
     output: [
@@ -13,9 +16,9 @@ export default {
     ],
     // Indicate here external modules you don't wanna include in your bundle (i.e.: 'lodash')
     external: [],
-    watch: {
-        include: "src/dome/**",
-    },
+    // watch: {
+    //     include: "src/dome/**",
+    // },
     plugins: [
         // Allow json resolution
         json(),
@@ -33,5 +36,13 @@ export default {
 
         // Resolve source maps to the original source
         sourceMaps(),
+        serve({
+            contentBase: "./", //启动文件夹;
+            host: "localhost", //设置服务器;
+            port: 8888, //端口号;
+        }),
+        livereload({
+            watch: "distExamples/", //监听文件夹;
+        }),
     ],
 };
