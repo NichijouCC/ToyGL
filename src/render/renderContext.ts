@@ -38,6 +38,14 @@ export class RenderContext {
     get matrixViewProject(): Mat4 {
         return this.curCamera.ViewProjectMatrix;
     }
+
+    get fov(): number {
+        return this.curCamera.fov;
+    }
+
+    get aspect(): number {
+        return this.curCamera.fov;
+    }
     //matrixNormal: matrix = new matrix();
     //最多8灯，再多不管
     intLightCount: number = 0;

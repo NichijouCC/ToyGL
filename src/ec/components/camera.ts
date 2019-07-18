@@ -75,6 +75,10 @@ export class Camera implements Icomponent {
         }
         return this._viewMatrix;
     }
+
+    get aspect(): number {
+        return (GameScreen.aspect * this.viewport.width) / this.viewport.height;
+    }
     /**
      * 计算相机投影矩阵
      */

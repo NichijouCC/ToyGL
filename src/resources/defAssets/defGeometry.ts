@@ -1,17 +1,19 @@
 import { GlRender, IgeometryOptions } from "../../render/glRender";
 import { Geometry } from "../assets/geometry";
 
+export type DefGeometryType = "cube" | "quad";
+
 export class DefGeometry {
     private static defGeometry: { [type: string]: Geometry } = {};
-    static fromType(type: "quad" | "cube"): Geometry {
-        if (this.defGeometry[type] == null) {
+    static fromType(typeEnum: DefGeometryType): Geometry {
+        if (this.defGeometry[typeEnum] == null) {
             let geometryOption: IgeometryOptions;
-            switch (type) {
+            switch (typeEnum) {
                 case "quad":
                     geometryOption = {
                         name: "def_quad",
                         atts: {
-                            POSITION: [-0.5, -0.5, 0, -0.5, 0.5, 0, 0.5, 0.5, 0, 0.5, -0.5, 0],
+                            POSITION: [-1, -1, 0, -1, 1, 0, 1, 1, 0, 1, -1, 0],
                             TEXCOORD_0: [0, 1, 0, 0, 1, 0, 1, 1],
                         },
                         indices: [0, 2, 1, 0, 3, 2],
@@ -21,14 +23,14 @@ export class DefGeometry {
                     geometryOption = this.createCube();
                     break;
                 default:
-                    console.warn("Unkowned default mesh type:", type);
+                    console.warn("Unkowned default mesh type:", typeEnum);
                     return null;
             }
             if (geometryOption != null) {
-                this.defGeometry[type] = Geometry.fromCustomData(geometryOption);
+                this.defGeometry[typeEnum] = Geometry.fromCustomData(geometryOption);
             }
         }
-        return this.defGeometry[type];
+        return this.defGeometry[typeEnum];
     }
 
     private static createCube() {

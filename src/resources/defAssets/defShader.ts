@@ -12,11 +12,11 @@ export class DefShader {
                 case "color":
                     this.defShader[type] = this.create2DColorShader();
                     break;
-                case "base":
-                    this.defShader[type] = this.create3DBaseShder();
-                    break;
                 case "2dTex":
                     this.defShader[type] = this.create2DTextureShader();
+                    break;
+                case "base":
+                    this.defShader[type] = this.create3DBaseShder();
                     break;
                 case "baseTex":
                     this.defShader[type] = this.create3DTexShder();

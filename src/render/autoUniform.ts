@@ -31,6 +31,12 @@ export class AutoUniform {
             return this.renderContext.matrixNormalToworld;
         };
 
+        this.uniformDic["u_fov"] = () => {
+            return this.renderContext.fov;
+        };
+        this.uniformDic["u_aspect"] = () => {
+            return this.renderContext.aspect;
+        };
         // this.AutoUniformDic["u_timer"] = () => {
         //     return GameTimer.Time;
         // };

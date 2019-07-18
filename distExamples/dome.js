@@ -2100,6 +2100,13 @@
         else
             return v;
     }
+    function lerp(from, to, lerp) {
+        return (to - from) * lerp + from;
+    }
+    function random(min = 0, max = 1) {
+        let bund = max - min;
+        return min + bund * Math.random();
+    }
     // export function disposeAllRecyle() {
     //     color.disposeRecycledItems();
     //     mat2d.disposeRecycledItems();
@@ -5257,6 +5264,9 @@
             }
             return this._viewMatrix;
         }
+        get aspect() {
+            return (GameScreen.aspect * this.viewport.width) / this.viewport.height;
+        }
         get ProjectMatrix() {
             if (this.needcomputeProjectMat) {
                 if (this.projectionType == ProjectionEnum.PERSPECTIVE) {
@@ -5330,6 +5340,12 @@
         get matrixViewProject() {
             return this.curCamera.ViewProjectMatrix;
         }
+        get fov() {
+            return this.curCamera.fov;
+        }
+        get aspect() {
+            return this.curCamera.fov;
+        }
     }
     //# sourceMappingURL=renderContext.js.map
 
@@ -5360,6 +5376,12 @@
             };
             this.uniformDic["u_mat_normal"] = () => {
                 return this.renderContext.matrixNormalToworld;
+            };
+            this.uniformDic["u_fov"] = () => {
+                return this.renderContext.fov;
+            };
+            this.uniformDic["u_aspect"] = () => {
+                return this.renderContext.aspect;
             };
             // this.AutoUniformDic["u_timer"] = () => {
             //     return GameTimer.Time;
@@ -5504,15 +5526,15 @@
     //# sourceMappingURL=geometry.js.map
 
     class DefGeometry {
-        static fromType(type) {
-            if (this.defGeometry[type] == null) {
+        static fromType(typeEnum) {
+            if (this.defGeometry[typeEnum] == null) {
                 let geometryOption;
-                switch (type) {
+                switch (typeEnum) {
                     case "quad":
                         geometryOption = {
                             name: "def_quad",
                             atts: {
-                                POSITION: [-0.5, -0.5, 0, -0.5, 0.5, 0, 0.5, 0.5, 0, 0.5, -0.5, 0],
+                                POSITION: [-1, -1, 0, -1, 1, 0, 1, 1, 0, 1, -1, 0],
                                 TEXCOORD_0: [0, 1, 0, 0, 1, 0, 1, 1],
                             },
                             indices: [0, 2, 1, 0, 3, 2],
@@ -5522,14 +5544,14 @@
                         geometryOption = this.createCube();
                         break;
                     default:
-                        console.warn("Unkowned default mesh type:", type);
+                        console.warn("Unkowned default mesh type:", typeEnum);
                         return null;
                 }
                 if (geometryOption != null) {
-                    this.defGeometry[type] = Geometry.fromCustomData(geometryOption);
+                    this.defGeometry[typeEnum] = Geometry.fromCustomData(geometryOption);
                 }
             }
-            return this.defGeometry[type];
+            return this.defGeometry[typeEnum];
         }
         static createCube() {
             let bassInf = {
@@ -7908,6 +7930,410 @@
     }
     //# sourceMappingURL=frameState.js.map
 
+    class Material extends ToyAsset {
+        constructor(param) {
+            super(param);
+            this.uniforms = {};
+            this.queue = 0;
+        }
+        set layer(value) {
+            this._layer = value;
+        }
+        get layer() {
+            return this._layer || (this.shader && this.shader.layer) || RenderLayerEnum.Geometry;
+        }
+        setColor(key, value) {
+            this.uniforms[key] = value;
+        }
+        setTexture(key, value) {
+            this.uniforms[key] = value;
+        }
+        setVector4(key, value) {
+            this.uniforms[key] = value;
+        }
+        setVector3(key, value) {
+            this.uniforms[key] = value;
+        }
+        setFloat(key, value) {
+            this.uniforms[key] = value;
+        }
+        dispose() { }
+    }
+    //# sourceMappingURL=material.js.map
+
+    class Shader extends ToyAsset {
+        constructor(param) {
+            super(param);
+            this.layer = RenderLayerEnum.Geometry;
+            this.queue = 0;
+        }
+        static fromCustomData(data) {
+            let newAsset = new Shader({ name: data.name || "custom_shader" });
+            newAsset.layer = data.layer || RenderLayerEnum.Geometry;
+            newAsset.queue = data.queue != null ? data.queue : 0;
+            let features = data.feature != null ? [...data.feature, "base"] : ["base"];
+            let passes = data.passes;
+            let featurePasses = {};
+            for (let i = 0; i < features.length; i++) {
+                let type = features[i];
+                let featureStr = getFeaturShderStr(type);
+                let programArr = [];
+                for (let i = 0; i < passes.length; i++) {
+                    let passitem = passes[i];
+                    let program = GlRender.createProgram({
+                        program: {
+                            vs: featureStr + passitem.program.vs,
+                            fs: featureStr + passitem.program.fs,
+                            name: null,
+                        },
+                        states: passitem.states,
+                        uniforms: passitem.uniforms,
+                    });
+                    programArr.push(program);
+                }
+                featurePasses[type] = programArr;
+            }
+            newAsset.passes = featurePasses;
+            if (data.mapUniformDef != null) {
+                newAsset.mapUniformDef = {};
+                for (const key in data.mapUniformDef) {
+                    const _value = data.mapUniformDef[key];
+                    newAsset.mapUniformDef[key] = { value: _value, type: UniformTypeEnum.UNKOWN };
+                }
+            }
+            return newAsset;
+        }
+        dispose() { }
+    }
+    var UniformTypeEnum;
+    (function (UniformTypeEnum) {
+        UniformTypeEnum[UniformTypeEnum["FLOAT"] = 0] = "FLOAT";
+        UniformTypeEnum[UniformTypeEnum["FLOAT_VEC2"] = 1] = "FLOAT_VEC2";
+        UniformTypeEnum[UniformTypeEnum["FLOAT_VEC3"] = 2] = "FLOAT_VEC3";
+        UniformTypeEnum[UniformTypeEnum["FLOAT_VEC4"] = 3] = "FLOAT_VEC4";
+        UniformTypeEnum[UniformTypeEnum["TEXTURE"] = 4] = "TEXTURE";
+        UniformTypeEnum[UniformTypeEnum["UNKOWN"] = 5] = "UNKOWN";
+    })(UniformTypeEnum || (UniformTypeEnum = {}));
+    function getFeaturShderStr(type) {
+        switch (type) {
+            case "base":
+                return "";
+            case "fog":
+                return "#define FOG \n";
+            case "skin":
+                return "#define SKIN \n";
+            case "skin_fog":
+                return "#define SKIN \n" + "#define FOG \n";
+            case "lightmap":
+                return "#define LIGHTMAP \n";
+            case "lightmap_fog":
+                return "#define LIGHTMAP \n" + "#define FOG \n";
+            case "instance":
+                return "#define INSTANCE \n";
+        }
+    }
+    //# sourceMappingURL=shader.js.map
+
+    class Texture extends ToyAsset {
+        get texture() {
+            return this._textrue || GlTextrue.WHITE.texture;
+        }
+        set texture(value) {
+            this._textrue = value;
+        }
+        // samplerInfo: TextureOption = new TextureOption();
+        constructor(param) {
+            super(param);
+        }
+        dispose() { }
+        static fromImageSource(img, texOp, texture) {
+            let imaginfo = GlRender.createTextureFromImg(img, texOp);
+            if (texture != null) {
+                texture.texture = imaginfo.texture;
+                texture.texDes = imaginfo.texDes;
+                return texture;
+            }
+            else {
+                let texture = new Texture();
+                texture.texture = imaginfo.texture;
+                texture.texDes = imaginfo.texDes;
+                return texture;
+            }
+        }
+        static fromViewData(viewData, width, height, texOp, texture) {
+            let imaginfo = GlRender.createTextureFromViewData(viewData, width, height, texOp);
+            if (texture != null) {
+                texture.texture = imaginfo.texture;
+                texture.texDes = imaginfo.texDes;
+                return texture;
+            }
+            else {
+                let texture = new Texture();
+                texture.texture = imaginfo.texture;
+                texture.texDes = imaginfo.texDes;
+                return texture;
+            }
+        }
+    }
+    //# sourceMappingURL=texture.js.map
+
+    class DefTextrue {
+        static get WHITE() {
+            if (this._white == null) {
+                this._white = this.createByType("white");
+            }
+            return this._white;
+        }
+        static get GIRD() {
+            if (this._grid == null) {
+                this._grid = this.createByType("grid");
+            }
+            return this._grid;
+        }
+        static createByType(type) {
+            let imaginfo;
+            switch (type) {
+                case "white":
+                    imaginfo = GlTextrue.WHITE;
+                    break;
+                case "grid":
+                    imaginfo = GlTextrue.GIRD;
+                    break;
+            }
+            if (imaginfo != null) {
+                let tex = new Texture();
+                tex.texture = imaginfo.texture;
+                tex.texDes = imaginfo.texDes;
+                return tex;
+            }
+            else {
+                return null;
+            }
+        }
+    }
+    //# sourceMappingURL=defTexture.js.map
+
+    class DefShader {
+        static fromType(type) {
+            if (this.defShader[type] == null) {
+                switch (type) {
+                    case "color":
+                        this.defShader[type] = this.create2DColorShader();
+                        break;
+                    case "2dTex":
+                        this.defShader[type] = this.create2DTextureShader();
+                        break;
+                    case "base":
+                        this.defShader[type] = this.create3DBaseShder();
+                        break;
+                    case "baseTex":
+                        this.defShader[type] = this.create3DTexShder();
+                        break;
+                    case "alphaTex":
+                        this.defShader[type] = this.createAlphaTestShder();
+                        break;
+                    default:
+                        console.warn("Unkowned default shader type:", type);
+                        return null;
+                }
+            }
+            return this.defShader[type];
+        }
+        static create2DColorShader() {
+            let colorVs = "\
+          attribute vec3 POSITION;\
+          void main()\
+          {\
+              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
+              gl_Position = tmplet_1;\
+          }";
+            let colorFs = "\
+            uniform highp vec4 MainColor;\
+            void main()\
+            {\
+                gl_FragData[0] = MainColor;\
+            }";
+            return Shader.fromCustomData({
+                passes: [
+                    {
+                        program: {
+                            vs: colorVs,
+                            fs: colorFs,
+                            name: "defcolor",
+                        },
+                        states: {
+                            enableCullFace: false,
+                        },
+                    },
+                ],
+                name: "def_color",
+            });
+        }
+        static create2DTextureShader() {
+            let effectVs = "\
+          attribute vec3 POSITION;\
+          attribute vec3 TEXCOORD_0;\
+          varying mediump vec2 xlv_TEXCOORD0;\
+          void main()\
+          {\
+              highp vec4 tmplet_1=vec4(POSITION.xyz*2.0,1.0);\
+              xlv_TEXCOORD0 = TEXCOORD_0.xy;\
+              gl_Position = tmplet_1;\
+          }";
+            let effectFs = "\
+            uniform highp vec4 MainColor;\
+            uniform lowp sampler2D _MainTex;\
+            varying mediump vec2 xlv_TEXCOORD0;\
+            void main()\
+            {\
+                gl_FragData[0] = texture2D(_MainTex, xlv_TEXCOORD0);\
+            }";
+            return Shader.fromCustomData({
+                passes: [
+                    {
+                        program: {
+                            vs: effectVs,
+                            fs: effectFs,
+                        },
+                        states: {
+                            enableCullFace: false,
+                        },
+                    },
+                ],
+                name: "2dTex",
+            });
+        }
+        static create3DBaseShder() {
+            let baseVs = "\
+          attribute vec3 POSITION;\
+          uniform highp mat4 u_mat_mvp;\
+          void main()\
+          {\
+              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
+              gl_Position = u_mat_mvp * tmplet_1;\
+          }";
+            let baseFs = "\
+            uniform highp vec4 MainColor;\
+            void main()\
+            {\
+                gl_FragData[0] = MainColor;\
+            }";
+            return Shader.fromCustomData({
+                passes: [
+                    {
+                        program: {
+                            vs: baseVs,
+                            fs: baseFs,
+                        },
+                        states: {
+                            enableCullFace: false,
+                        },
+                    },
+                ],
+                mapUniformDef: { MainColor: Color.create() },
+                name: "def_base",
+            });
+        }
+        static create3DTexShder() {
+            let baseVs = "\
+          attribute vec3 POSITION;\
+          attribute vec3 TEXCOORD_0;\
+          uniform highp mat4 u_mat_mvp;\
+          varying mediump vec2 xlv_TEXCOORD0;\
+          void main()\
+          {\
+              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
+              xlv_TEXCOORD0 = TEXCOORD_0.xy;\
+              gl_Position = u_mat_mvp * tmplet_1;\
+          }";
+            let baseFs = "\
+            uniform highp vec4 MainColor;\
+            varying mediump vec2 xlv_TEXCOORD0;\
+            uniform lowp sampler2D _MainTex;\
+            void main()\
+            {\
+                gl_FragData[0] = texture2D(_MainTex, xlv_TEXCOORD0)*MainColor;\
+            }";
+            return Shader.fromCustomData({
+                passes: [
+                    {
+                        program: {
+                            vs: baseVs,
+                            fs: baseFs,
+                        },
+                        states: {
+                        // enableCullFace: false,
+                        },
+                    },
+                ],
+                mapUniformDef: { MainColor: Color.create(), _MainTex: DefTextrue.GIRD },
+                name: "def_baseTex",
+            });
+        }
+        static createAlphaTestShder() {
+            let baseVs = "\
+          attribute vec3 POSITION;\
+          attribute vec2 TEXCOORD_0;\
+          uniform highp mat4 u_mat_mvp;\
+          varying mediump vec2 xlv_TEXCOORD0;\
+          void main()\
+          {\
+              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
+              xlv_TEXCOORD0 = TEXCOORD_0.xy;\
+              gl_Position = u_mat_mvp * tmplet_1;\
+          }";
+            let baseFs = "\
+            uniform highp vec4 MainColor;\
+            uniform lowp float _AlphaCut;\
+            varying mediump vec2 xlv_TEXCOORD0;\
+            uniform lowp sampler2D _MainTex;\
+            void main()\
+            {\
+                lowp vec4 basecolor = texture2D(_MainTex, xlv_TEXCOORD0);\
+                if(basecolor.a < _AlphaCut)\
+                {\
+                    discard;\
+                }\
+                gl_FragData[0] = basecolor;\
+            }";
+            return Shader.fromCustomData({
+                passes: [
+                    {
+                        program: {
+                            vs: baseVs,
+                            fs: baseFs,
+                        },
+                        states: {
+                            enableCullFace: false,
+                        },
+                    },
+                ],
+                mapUniformDef: {
+                    _AlphaCut: 0.5,
+                },
+                name: "def_alphaTex",
+            });
+        }
+    }
+    DefShader.defShader = {};
+    //# sourceMappingURL=defShader.js.map
+
+    class DefMaterial {
+        static fromType(type) {
+            if (this.defMat[type] == null) {
+                let shader = DefShader.fromType(type);
+                if (shader != null) {
+                    let mat = new Material();
+                    mat.shader = shader;
+                    this.defMat[type] = mat;
+                }
+            }
+            return this.defMat[type];
+        }
+    }
+    DefMaterial.defMat = {};
+    //# sourceMappingURL=defMaterial.js.map
+
     class Scene {
         constructor(render, priority = 0) {
             this.root = new Entity().transform;
@@ -7923,8 +8349,21 @@
         addEntity(entity) {
             this.root.addChild(entity.transform);
         }
-        addCamera() {
+        addDefMesh(type, material) {
+            let geometry = DefGeometry.fromType(type);
+            if (geometry != null) {
+                let mesh = this.newEntity("defMesh", ["Mesh"]).getCompByName("Mesh");
+                mesh.geometry = DefGeometry.fromType(type);
+                mesh.material = material || DefMaterial.fromType("base");
+                return mesh;
+            }
+            else {
+                return null;
+            }
+        }
+        addCamera(pos = Vec3.create()) {
             let entity = this.newEntity("camer", ["Camera"]);
+            entity.transform.localPosition = pos;
             return entity.getCompByName("Camera");
         }
         foreachRootNodes(func) {
@@ -8308,435 +8747,97 @@
     //<<<<<<<--------3.  资源本身的描述json，不会被作为资源被assetmgr管理起来-->>>
     //# sourceMappingURL=resource.js.map
 
-    class Texture extends ToyAsset {
-        get texture() {
-            return this._textrue || GlTextrue.WHITE.texture;
+    class RenderTexture extends ToyAsset {
+        get colorTexture() {
+            return this.colorTextureInfo;
         }
-        set texture(value) {
-            this._textrue = value;
+        get depthTexture() {
+            return this.depthTextureInfo;
         }
-        // samplerInfo: TextureOption = new TextureOption();
-        constructor(param) {
-            super(param);
-        }
-        dispose() { }
-        static fromImageSource(img, texOp, texture) {
-            let imaginfo = GlRender.createTextureFromImg(img, texOp);
-            if (texture != null) {
-                texture.texture = imaginfo.texture;
-                texture.texDes = imaginfo.texDes;
-                return texture;
-            }
-            else {
-                let texture = new Texture();
-                texture.texture = imaginfo.texture;
-                texture.texDes = imaginfo.texDes;
-                return texture;
-            }
-        }
-        static fromViewData(viewData, width, height, texOp, texture) {
-            let imaginfo = GlRender.createTextureFromViewData(viewData, width, height, texOp);
-            if (texture != null) {
-                texture.texture = imaginfo.texture;
-                texture.texDes = imaginfo.texDes;
-                return texture;
-            }
-            else {
-                let texture = new Texture();
-                texture.texture = imaginfo.texture;
-                texture.texDes = imaginfo.texDes;
-                return texture;
-            }
-        }
-    }
-    //# sourceMappingURL=texture.js.map
-
-    class DefTextrue {
-        static get WHITE() {
-            if (this._white == null) {
-                this._white = this.createByType("white");
-            }
-            return this._white;
-        }
-        static get GIRD() {
-            if (this._grid == null) {
-                this._grid = this.createByType("grid");
-            }
-            return this._grid;
-        }
-        static createByType(type) {
-            let imaginfo;
-            switch (type) {
-                case "white":
-                    imaginfo = GlTextrue.WHITE;
-                    break;
-                case "grid":
-                    imaginfo = GlTextrue.GIRD;
-                    break;
-            }
-            if (imaginfo != null) {
-                let tex = new Texture();
-                tex.texture = imaginfo.texture;
-                tex.texDes = imaginfo.texDes;
-                return tex;
-            }
-            else {
-                return null;
-            }
-        }
-    }
-    //# sourceMappingURL=defTexture.js.map
-
-    class Material extends ToyAsset {
-        constructor(param) {
-            super(param);
-            this.uniforms = {};
-            this.queue = 0;
-        }
-        set layer(value) {
-            this._layer = value;
-        }
-        get layer() {
-            return this._layer || (this.shader && this.shader.layer) || RenderLayerEnum.Geometry;
-        }
-        setColor(key, value) {
-            this.uniforms[key] = value;
-        }
-        setTexture(key, value) {
-            this.uniforms[key] = value;
-        }
-        setVector4(key, value) {
-            this.uniforms[key] = value;
-        }
-        setVector3(key, value) {
-            this.uniforms[key] = value;
-        }
-        setFloat(key, value) {
-            this.uniforms[key] = value;
+        constructor(op) {
+            super(null);
+            let fboInfo = GlRender.createFrameBuffer(op);
+            Object.assign(this, fboInfo);
         }
         dispose() { }
     }
-    //# sourceMappingURL=material.js.map
+    //# sourceMappingURL=renderTexture.js.map
 
-    class Shader extends ToyAsset {
-        constructor(param) {
-            super(param);
-            this.layer = RenderLayerEnum.Geometry;
-            this.queue = 0;
-        }
-        static fromCustomData(data) {
-            let newAsset = new Shader({ name: data.name || "custom_shader" });
-            newAsset.layer = data.layer || RenderLayerEnum.Geometry;
-            newAsset.queue = data.queue != null ? data.queue : 0;
-            let features = data.feature != null ? [...data.feature, "base"] : ["base"];
-            let passes = data.passes;
-            let featurePasses = {};
-            for (let i = 0; i < features.length; i++) {
-                let type = features[i];
-                let featureStr = getFeaturShderStr(type);
-                let programArr = [];
-                for (let i = 0; i < passes.length; i++) {
-                    let passitem = passes[i];
-                    let program = GlRender.createProgram({
-                        program: {
-                            vs: featureStr + passitem.program.vs,
-                            fs: featureStr + passitem.program.fs,
-                            name: null,
-                        },
-                        states: passitem.states,
-                        uniforms: passitem.uniforms,
-                    });
-                    programArr.push(program);
-                }
-                featurePasses[type] = programArr;
-            }
-            newAsset.passes = featurePasses;
-            if (data.mapUniformDef != null) {
-                newAsset.mapUniformDef = {};
-                for (const key in data.mapUniformDef) {
-                    const _value = data.mapUniformDef[key];
-                    newAsset.mapUniformDef[key] = { value: _value, type: UniformTypeEnum.UNKOWN };
-                }
-            }
-            return newAsset;
-        }
-        dispose() { }
-    }
-    var UniformTypeEnum;
-    (function (UniformTypeEnum) {
-        UniformTypeEnum[UniformTypeEnum["FLOAT"] = 0] = "FLOAT";
-        UniformTypeEnum[UniformTypeEnum["FLOAT_VEC2"] = 1] = "FLOAT_VEC2";
-        UniformTypeEnum[UniformTypeEnum["FLOAT_VEC3"] = 2] = "FLOAT_VEC3";
-        UniformTypeEnum[UniformTypeEnum["FLOAT_VEC4"] = 3] = "FLOAT_VEC4";
-        UniformTypeEnum[UniformTypeEnum["TEXTURE"] = 4] = "TEXTURE";
-        UniformTypeEnum[UniformTypeEnum["UNKOWN"] = 5] = "UNKOWN";
-    })(UniformTypeEnum || (UniformTypeEnum = {}));
-    function getFeaturShderStr(type) {
-        switch (type) {
-            case "base":
-                return "";
-            case "fog":
-                return "#define FOG \n";
-            case "skin":
-                return "#define SKIN \n";
-            case "skin_fog":
-                return "#define SKIN \n" + "#define FOG \n";
-            case "lightmap":
-                return "#define LIGHTMAP \n";
-            case "lightmap_fog":
-                return "#define LIGHTMAP \n" + "#define FOG \n";
-            case "instance":
-                return "#define INSTANCE \n";
-        }
-    }
-    //# sourceMappingURL=shader.js.map
-
-    class DefShader {
-        static fromType(type) {
-            if (this.defShader[type] == null) {
-                switch (type) {
-                    case "color":
-                        this.defShader[type] = this.create2DColorShader();
-                        break;
-                    case "base":
-                        this.defShader[type] = this.create3DBaseShder();
-                        break;
-                    case "2dTex":
-                        this.defShader[type] = this.create2DTextureShader();
-                        break;
-                    case "baseTex":
-                        this.defShader[type] = this.create3DTexShder();
-                        break;
-                    case "alphaTex":
-                        this.defShader[type] = this.createAlphaTestShder();
-                        break;
-                    default:
-                        console.warn("Unkowned default shader type:", type);
-                        return null;
-                }
-            }
-            return this.defShader[type];
-        }
-        static create2DColorShader() {
-            let colorVs = "\
-          attribute vec3 POSITION;\
-          void main()\
-          {\
-              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
-              gl_Position = tmplet_1;\
-          }";
-            let colorFs = "\
-            uniform highp vec4 MainColor;\
-            void main()\
-            {\
-                gl_FragData[0] = MainColor;\
-            }";
-            return Shader.fromCustomData({
-                passes: [
-                    {
-                        program: {
-                            vs: colorVs,
-                            fs: colorFs,
-                            name: "defcolor",
-                        },
-                        states: {
-                            enableCullFace: false,
-                        },
-                    },
-                ],
-                name: "def_color",
-            });
-        }
-        static create2DTextureShader() {
-            let effectVs = "\
-          attribute vec3 POSITION;\
-          attribute vec3 TEXCOORD_0;\
-          varying mediump vec2 xlv_TEXCOORD0;\
-          void main()\
-          {\
-              highp vec4 tmplet_1=vec4(POSITION.xyz*2.0,1.0);\
-              xlv_TEXCOORD0 = TEXCOORD_0.xy;\
-              gl_Position = tmplet_1;\
-          }";
-            let effectFs = "\
-            uniform highp vec4 MainColor;\
-            uniform lowp sampler2D _MainTex;\
-            varying mediump vec2 xlv_TEXCOORD0;\
-            void main()\
-            {\
-                gl_FragData[0] = texture2D(_MainTex, xlv_TEXCOORD0);\
-            }";
-            return Shader.fromCustomData({
-                passes: [
-                    {
-                        program: {
-                            vs: effectVs,
-                            fs: effectFs,
-                        },
-                        states: {
-                            enableCullFace: false,
-                        },
-                    },
-                ],
-                name: "2dTex",
-            });
-        }
-        static create3DBaseShder() {
-            let baseVs = "\
-          attribute vec3 POSITION;\
-          uniform highp mat4 u_mat_mvp;\
-          void main()\
-          {\
-              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
-              gl_Position = u_mat_mvp * tmplet_1;\
-          }";
-            let baseFs = "\
-            uniform highp vec4 MainColor;\
-            void main()\
-            {\
-                gl_FragData[0] = MainColor;\
-            }";
-            return Shader.fromCustomData({
-                passes: [
-                    {
-                        program: {
-                            vs: baseVs,
-                            fs: baseFs,
-                        },
-                        states: {
-                            enableCullFace: false,
-                        },
-                    },
-                ],
-                mapUniformDef: { MainColor: Color.create() },
-                name: "def_base",
-            });
-        }
-        static create3DTexShder() {
-            let baseVs = "\
-          attribute vec3 POSITION;\
-          attribute vec3 TEXCOORD_0;\
-          uniform highp mat4 u_mat_mvp;\
-          varying mediump vec2 xlv_TEXCOORD0;\
-          void main()\
-          {\
-              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
-              xlv_TEXCOORD0 = TEXCOORD_0.xy;\
-              gl_Position = u_mat_mvp * tmplet_1;\
-          }";
-            let baseFs = "\
-            uniform highp vec4 MainColor;\
-            varying mediump vec2 xlv_TEXCOORD0;\
-            uniform lowp sampler2D _MainTex;\
-            void main()\
-            {\
-                gl_FragData[0] = texture2D(_MainTex, xlv_TEXCOORD0)*MainColor;\
-            }";
-            return Shader.fromCustomData({
-                passes: [
-                    {
-                        program: {
-                            vs: baseVs,
-                            fs: baseFs,
-                        },
-                        states: {
-                        // enableCullFace: false,
-                        },
-                    },
-                ],
-                mapUniformDef: { MainColor: Color.create(), _MainTex: DefTextrue.GIRD },
-                name: "def_baseTex",
-            });
-        }
-        static createAlphaTestShder() {
-            let baseVs = "\
-          attribute vec3 POSITION;\
-          attribute vec2 TEXCOORD_0;\
-          uniform highp mat4 u_mat_mvp;\
-          varying mediump vec2 xlv_TEXCOORD0;\
-          void main()\
-          {\
-              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
-              xlv_TEXCOORD0 = TEXCOORD_0.xy;\
-              gl_Position = u_mat_mvp * tmplet_1;\
-          }";
-            let baseFs = "\
-            uniform highp vec4 MainColor;\
-            uniform lowp float _AlphaCut;\
-            varying mediump vec2 xlv_TEXCOORD0;\
-            uniform lowp sampler2D _MainTex;\
-            void main()\
-            {\
-                lowp vec4 basecolor = texture2D(_MainTex, xlv_TEXCOORD0);\
-                if(basecolor.a < _AlphaCut)\
-                {\
-                    discard;\
-                }\
-                gl_FragData[0] = basecolor;\
-            }";
-            return Shader.fromCustomData({
-                passes: [
-                    {
-                        program: {
-                            vs: baseVs,
-                            fs: baseFs,
-                        },
-                        states: {
-                            enableCullFace: false,
-                        },
-                    },
-                ],
-                mapUniformDef: {
-                    _AlphaCut: 0.5,
-                },
-                name: "def_alphaTex",
-            });
-        }
-    }
-    DefShader.defShader = {};
-    //# sourceMappingURL=defShader.js.map
-
-    class Base {
+    class SSAO {
         static done(toy) {
-            let geometry = DefGeometry.fromType("quad");
-            ///------------def shader
-            let shader = DefShader.fromType("baseTex");
-            //-------------custom shader
-            let customeShader = Resource.load("../res/shader/base.shader.json");
-            let material = new Material();
-            material.shader = customeShader;
-            material.setColor("_MainColor", Color.create(1, 0, 0, 1));
-            //-----------load tex
-            let tex = Resource.load("../res/imgs/tes.png");
-            material.setTexture("_MainTex", tex);
-            let obj = new Entity();
-            let mesh = obj.addCompByName("Mesh");
-            mesh.geometry = geometry;
-            mesh.material = material;
-            toy.scene.addEntity(obj);
-            let camobj = new Entity("", ["Camera"]);
-            let trans = camobj.transform;
-            trans.localPosition = Vec3.create(0, 0, 5);
-            // trans.localRotation = Quat.FromEuler(-90, 0, 0);
-            toy.scene.addEntity(camobj);
-            let roty = 0;
-            toy.scene.preUpdate = delta => {
-                roty += delta * 0.01;
-                obj.transform.localRotation = Quat.FromEuler(0, roty, 0, obj.transform.localRotation);
+            //----------------场景
+            toy.scene.addDefMesh("cube");
+            let quad = toy.scene.addDefMesh("quad");
+            quad.material = new Material();
+            quad.material.shader = DefShader.fromType("base");
+            quad.material.setColor("MainColor", Color.create(1, 0, 0, 1));
+            quad.entity.transform.localScale = Vec3.create(3, 3, 3);
+            let cam = toy.scene.addCamera(Vec3.create(5, 5, 5));
+            cam.entity.transform.lookAtPoint(Vec3.ZERO);
+            //------------------------------------------
+            //-------------------SSAO-------------------
+            //------------------------------------------
+            //-----------------半球采样随机点
+            let kernelSize = 16;
+            let kernel = [];
+            for (let i = 0; i < kernelSize; i++) {
+                kernel[i] = Vec3.create(random(-1.0, 1.0), random(-1.0, 1.0), random(0.0, 1.0));
+                Vec3.normalize(kernel[i], kernel[i]);
+                //-------------半径内随机
+                let sphereRandom = random(0, 1);
+                //-------------采样点趋近中心点
+                let scale = i / kernelSize;
+                scale = lerp(0.1, 1.0, scale * scale);
+                Vec3.scale(kernel[i], sphereRandom * scale, kernel[i]);
+            }
+            //----------------noise texture /rot sample point
+            let noiseSize = 16;
+            let colorArr = new Uint8Array(noiseSize * 4);
+            for (let i = 0; i < noiseSize; ++i) {
+                let dir = Vec3.create(random(-1.0, 1.0), random(-1.0, 1.0), 0.0);
+                Vec3.normalize(dir, dir);
+                let r = Math.floor(dir.x * 255);
+                let g = Math.floor(dir.y * 255);
+                let b = 0;
+                let a = 1.0;
+                colorArr[i * 4 + 0] = r;
+                colorArr[i * 4 + 1] = g;
+                colorArr[i * 4 + 2] = b;
+                colorArr[i * 4 + 3] = a;
+            }
+            let tex = Texture.fromViewData(colorArr, 4, 4, {
+                filterMin: GlConstants.NEAREST,
+                filterMax: GlConstants.NEAREST,
+                wrapS: GlConstants.REPEAT,
+                wrapT: GlConstants.REPEAT,
+            });
+            //----------------depthTex
+            cam.targetTexture = new RenderTexture({
+                activeDepthAttachment: true,
+                depthFormat: GlConstants.DEPTH_COMPONENT,
+            });
+            let customeShader = Resource.load("../res/shader/depthTex.shader.json");
+            let quadMat = new Material({ name: "quadMat" });
+            quadMat.shader = customeShader;
+            quadMat.setTexture("_MainTex", cam.targetTexture.depthTexture);
+            // quadMat.setTexture("_MainTex", DefTextrue.GIRD);
+            cam.afterRender = () => {
+                toy.render.renderQuad(quadMat);
             };
         }
     }
-    //# sourceMappingURL=bass.js.map
+    //# sourceMappingURL=ssao.js.map
 
     window.onload = () => {
         let toy = ToyGL.initByHtmlElement(document.getElementById("canvas"));
         AssetLoader.addLoader().then(() => {
-            Base.done(toy);
+            // Base.done(toy);
             // LoadGltf.done(toy);
             // LookAt.done(toy);
             // ShowCull.done(toy);
             // RenderTextureDome.done(toy);
             // DepthTexutreDemo.done(toy);
+            SSAO.done(toy);
         });
     };
     //# sourceMappingURL=main.js.map

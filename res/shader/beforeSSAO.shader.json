@@ -1,0 +1,15 @@
+{
+    "properties": [
+        "_MainTex('MainTex',Texture)='white'{}",
+        "_MainColor('MainColor',Color) = (1,1,1,1)",
+        "_MainTex_ST('tex_st',vector4)=(1,1,0,0)",
+        "_AlphaCut('AlphaCut',Range(0.0,1.0)) = 0.5",
+        "_alpha('alpha',float) = 1.0"
+    ],
+    "passes": [
+        {
+            "vs": "beforeSSAO",
+            "fs": "beforeSSAO"
+        }
+    ]
+}

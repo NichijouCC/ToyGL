@@ -11,8 +11,8 @@ export function bePowerOf2(value: number) {
     return (value & (value - 1)) == 0;
 }
 
-export function lerp(from: number, to: number, lerp: number, out: number) {
-    out = (to - from) * lerp + from;
+export function lerp(from: number, to: number, lerp: number): number {
+    return (to - from) * lerp + from;
 }
 
 export function random(min: number = 0, max: number = 1) {

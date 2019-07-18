@@ -1,11 +1,16 @@
 import { Camera } from "./../ec/components/camera";
-import { Entity } from "../ec/entity";
+import { Entity, Mesh } from "../ec/entity";
 import { Transform } from "../ec/transform";
 import { FrameState, IframeState, Irenderable } from "./frameState";
 import { RenderMachine } from "../render/renderMachine";
 import { CullingMask } from "../ec/ec";
 import { Frustum } from "./frustum";
 import { Debug } from "../debug/debug";
+import { Geometry } from "../resources/assets/geometry";
+import { Material } from "../resources/assets/material";
+import { DefGeometry, DefGeometryType } from "../resources/defAssets/defGeometry";
+import { DefMaterial } from "../resources/defAssets/defMaterial";
+import { Vec3 } from "../mathD/vec3";
 
 export class Scene {
     private root: Transform = new Entity().transform;
@@ -26,8 +31,22 @@ export class Scene {
         this.root.addChild(entity.transform);
     }
 
-    addCamera(): Camera {
+    addDefMesh(type: DefGeometryType, material?: Material) {
+        let geometry = DefGeometry.fromType(type);
+        if (geometry != null) {
+            let mesh = this.newEntity("defMesh", ["Mesh"]).getCompByName("Mesh") as Mesh;
+            mesh.geometry = DefGeometry.fromType(type);
+            mesh.material = material || DefMaterial.fromType("base");
+            return mesh;
+        } else {
+            return null;
+        }
+    }
+
+    addCamera(pos: Vec3 = Vec3.create()): Camera {
         let entity = this.newEntity("camer", ["Camera"]);
+        entity.transform.localPosition = pos;
+
         return entity.getCompByName("Camera") as Camera;
     }
 
