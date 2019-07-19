@@ -8,19 +8,19 @@ export class AutoUniform {
         this.init();
     }
     private init() {
-        this.uniformDic["u_mat_model"] = () => {
+        this.uniformDic["u_mat_m"] = () => {
             return this.renderContext.matrixModel;
         };
-        this.uniformDic["u_mat_view"] = () => {
+        this.uniformDic["u_mat_v"] = () => {
             return this.renderContext.matrixView;
         };
-        this.uniformDic["u_mat_project"] = () => {
+        this.uniformDic["u_mat_p"] = () => {
             return this.renderContext.matrixProject;
         };
-        this.uniformDic["u_mat_ModelView"] = () => {
+        this.uniformDic["u_mat_mv"] = () => {
             return this.renderContext.matrixModelView;
         };
-        this.uniformDic["u_mat_viewproject"] = () => {
+        this.uniformDic["u_mat_vp"] = () => {
             return this.renderContext.matrixViewProject;
         };
         this.uniformDic["u_mat_mvp"] = () => {

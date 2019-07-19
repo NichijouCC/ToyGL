@@ -2,7 +2,7 @@
     "properties": [],
     "passes": [
         {
-            "vs": "depthTex",
+            "vs": "quad",
             "fs": "depthTex"
         }
     ]

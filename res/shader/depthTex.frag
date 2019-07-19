@@ -1,7 +1,7 @@
 precision highp float;
 
 uniform highp vec4 MainColor;
-uniform lowp sampler2D _MainTex;
+uniform lowp sampler2D uTexLinearDepth;
 varying mediump vec2 xlv_TEXCOORD0;
 
 const float cameraNear = 0.01;
@@ -25,6 +25,6 @@ float readDepth( sampler2D depthSampler, vec2 coord ) {
 
 void main()
 {
-   lowp float texDepth=readDepth(_MainTex, xlv_TEXCOORD0);
+   lowp float texDepth=readDepth(uTexLinearDepth, xlv_TEXCOORD0);
     gl_FragData[0] =vec4(vec3(1.0-texDepth),1.0);
 }

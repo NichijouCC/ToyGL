@@ -2,7 +2,7 @@ precision highp float;
 
 uniform float u_fov;
 uniform float u_aspect;
-uniform mat4 u_mat_project;
+uniform mat4 u_mat_p;
 
 uniform lowp sampler2D uTexNormals;
 uniform lowp sampler2D uTexLinearDepth;
@@ -32,12 +32,12 @@ void main()
     mat3 tbn = mat3(tangent, bitangent, normal);
 
     float occlusion = 0.0;
-    for(int i = 0;i<uSampleKernelSize;i++){
+    for(int i = 0;i < 16; i++){
         vec3 sample = tbn * uSampleKernel[i];
         sample = sample * uRadius + origin;
 
         vec4 offset = vec4(sample,1.0);
-        offset = u_mat_project * offset;
+        offset = u_mat_p * offset;
         offset.xy /= offset.w;
         offset.xy = offset.xy * 0.5 + 0.5;
         

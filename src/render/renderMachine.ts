@@ -25,9 +25,19 @@ export class RenderMachine {
         }
         let camrenderList = this.camRenderList[cam.entity.guid];
         camrenderList.clear();
-        for (let i = 0; i < renderList.length; i++) {
-            if (renderList[i].maskLayer & cam.cullingMask) {
-                camrenderList.addRenderer(renderList[i]);
+
+        if (cam.targetTexture && cam.targetTexture.overrideMaterial) {
+            let newMat = cam.targetTexture.overrideMaterial;
+            for (let i = 0; i < renderList.length; i++) {
+                if (renderList[i].maskLayer & cam.cullingMask) {
+                    camrenderList.addRenderer({ ...renderList[i], material: newMat });
+                }
+            }
+        } else {
+            for (let i = 0; i < renderList.length; i++) {
+                if (renderList[i].maskLayer & cam.cullingMask) {
+                    camrenderList.addRenderer(renderList[i]);
+                }
             }
         }
 

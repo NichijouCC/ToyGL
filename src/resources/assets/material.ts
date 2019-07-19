@@ -7,6 +7,7 @@ import { Vec4 } from "../../mathD/vec4";
 import { Vec3 } from "../../mathD/vec3";
 import { RenderTexture } from "./renderTexture";
 import { ItextureInfo } from "../../render/glRender";
+import { Vec2 } from "../../mathD/vec2";
 
 export class Material extends ToyAsset {
     constructor(param?: ItoyAsset) {
@@ -35,6 +36,12 @@ export class Material extends ToyAsset {
         this.uniforms[key] = value;
     }
     setVector3(key: string, value: Vec3) {
+        this.uniforms[key] = value;
+    }
+    setVector3Array(key: string, value: Float32Array) {
+        this.uniforms[key] = value;
+    }
+    setVector2(key: string, value: Vec2) {
         this.uniforms[key] = value;
     }
     setFloat(key: string, value: number) {

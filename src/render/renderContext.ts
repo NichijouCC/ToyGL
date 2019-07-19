@@ -44,7 +44,7 @@ export class RenderContext {
     }
 
     get aspect(): number {
-        return this.curCamera.fov;
+        return this.curCamera.aspect;
     }
     //matrixNormal: matrix = new matrix();
     //最多8灯，再多不管

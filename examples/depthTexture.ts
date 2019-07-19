@@ -8,10 +8,10 @@ import { Vec3 } from "../src/mathD/vec3";
 import { RenderTexture } from "../src/resources/assets/renderTexture";
 import { Material } from "../src/resources/assets/material";
 import { DefShader } from "../src/resources/defAssets/defShader";
-import { GlConstants } from "twebgl";
 import { DefTextrue } from "../src/resources/defAssets/defTexture";
 import { Resource } from "../src/resources/resource";
 import { Shader } from "../src/resources/assets/shader";
+import { GlConstants } from "../src/render/GlConstant";
 
 export class DepthTexutreDemo {
     static done(toy: ToyGL) {
@@ -45,7 +45,7 @@ export class DepthTexutreDemo {
         let customeShader = Resource.load("../res/shader/depthTex.shader.json") as Shader;
         let quadMat = new Material({ name: "quadMat" });
         quadMat.shader = customeShader;
-        quadMat.setTexture("_MainTex", showCam.targetTexture.depthTexture);
+        quadMat.setTexture("uTexLinearDepth", showCam.targetTexture.depthTexture);
         // quadMat.setTexture("_MainTex", DefTextrue.GIRD);
         showCam.afterRender = () => {
             toy.render.renderQuad(quadMat);

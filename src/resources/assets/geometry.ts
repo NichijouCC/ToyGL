@@ -1,8 +1,8 @@
 import { ToyAsset, ItoyAsset } from "../base/toyAsset";
 import { GlRender, IgeometryInfo, IgeometryOptions } from "../../render/glRender";
 import { VertexAttEnum } from "../../render/vertexAttType";
-import { GlConstants } from "twebgl";
 import { IvertexAttrib, IvertexIndex } from "twebgl/dist/types/type";
+import { GlConstants } from "../../render/GlConstant";
 
 export class Geometry extends ToyAsset implements IgeometryInfo {
     atts: { [attName: string]: IvertexAttrib };
