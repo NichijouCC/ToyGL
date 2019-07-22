@@ -40,6 +40,7 @@ export class SSAO {
         let kernelSize = 16.0;
         let kernelArr: Float32Array = new Float32Array(16 * 3);
         for (let i = 0; i < kernelSize; i++) {
+            //----------------半球随机
             let kernel = Vec3.create(random(-1.0, 1.0), random(-1.0, 1.0), random(0.0, 1.0));
             Vec3.normalize(kernel, kernel);
 
@@ -103,7 +104,15 @@ export class SSAO {
         quadMat.setFloat("uRadius", 2.0);
 
         // quadMat.setTexture("_MainTex", DefTextrue.GIRD);
+
+        const gui = new dat.GUI();
+        let ssaoOp = {
+            uRadius: 2.0,
+        };
+        gui.add(ssaoOp, "uRadius", 1.0, 15.0, 0.1);
+
         cam.afterRender = () => {
+            quadMat.setFloat("uRadius", ssaoOp.uRadius);
             toy.render.renderQuad(quadMat);
         };
     }
