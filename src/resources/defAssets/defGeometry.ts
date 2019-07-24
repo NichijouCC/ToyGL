@@ -15,6 +15,7 @@ export class DefGeometry {
                         atts: {
                             POSITION: [-1, -1, 0, -1, 1, 0, 1, 1, 0, 1, -1, 0],
                             TEXCOORD_0: [0, 0, 0, 1, 1, 1, 1, 0],
+                            NORMAL: [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
                         },
                         indices: [0, 2, 1, 0, 3, 2],
                     };
@@ -34,45 +35,52 @@ export class DefGeometry {
     }
 
     private static createCube() {
-        let bassInf: { posarr: number[]; uvArray: number[]; indices: number[] } = {
+        let bassInf: { posarr: number[]; uvArray: number[]; normalArray: number[]; indices: number[] } = {
             posarr: [],
             uvArray: [],
+            normalArray: [],
             indices: [],
         };
         this.addQuad(
             bassInf,
             [-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5],
             [0, 0, 0, 1, 1, 1, 1, 0],
+            [0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
             [0, 2, 1, 0, 3, 2],
         ); //前
         this.addQuad(
             bassInf,
             [-0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5],
             [0, 0, 0, 1, 1, 1, 1, 0],
+            [0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1],
             [0, 1, 2, 0, 2, 3],
         ); //后
         this.addQuad(
             bassInf,
             [-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5],
             [0, 0, 0, 1, 1, 1, 1, 0],
+            [-1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0],
             [0, 1, 2, 0, 2, 3],
         ); //左
         this.addQuad(
             bassInf,
             [0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5],
             [0, 0, 0, 1, 1, 1, 1, 0],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0],
             [0, 2, 1, 0, 3, 2],
         ); //右
         this.addQuad(
             bassInf,
             [-0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5],
             [0, 0, 0, 1, 1, 1, 1, 0],
+            [0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0],
             [0, 2, 1, 0, 3, 2],
         ); //上
         this.addQuad(
             bassInf,
             [-0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5],
             [0, 0, 0, 1, 1, 1, 1, 0],
+            [0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0],
             [0, 1, 2, 0, 2, 3],
         ); //下
         return {
@@ -86,9 +94,10 @@ export class DefGeometry {
     }
 
     private static addQuad(
-        bassInf: { posarr: number[]; uvArray: number[]; indices: number[] },
+        bassInf: { posarr: number[]; uvArray: number[]; normalArray: number[]; indices: number[] },
         posarr: number[],
         uvArray: number[],
+        nomalArray: number[],
         indices: number[],
     ) {
         let maxIndex = bassInf.posarr.length / 3;
@@ -98,6 +107,9 @@ export class DefGeometry {
         }
         for (let i = 0; i < uvArray.length; i++) {
             bassInf.uvArray.push(uvArray[i]);
+        }
+        for (let i = 0; i < nomalArray.length; i++) {
+            bassInf.normalArray.push(nomalArray[i]);
         }
         for (let i = 0; i < indices.length; i++) {
             bassInf.indices.push(maxIndex + indices[i]);

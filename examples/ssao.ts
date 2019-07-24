@@ -16,23 +16,47 @@ import { Vec2 } from "../src/mathD/vec2";
 import { GameScreen } from "../src/gameScreen";
 
 import * as dat from "dat.gui";
+import { Quat } from "../src/mathD/quat";
+import { Camera } from "../src/ec/components/camera";
+import { DefMaterial } from "../src/resources/defAssets/defMaterial";
 
 export class SSAO {
     static done(toy: ToyGL) {
-        let cam = toy.scene.addCamera(Vec3.create(5, 5, 5));
-        cam.entity.transform.lookAtPoint(Vec3.ZERO);
+        let cam = toy.scene.addCamera(Vec3.create(0, 0, 250));
+        // cam.entity.transform.lookAtPoint(Vec3.ZERO);
+        cam.beActiveFrustum = false;
+        // let DamagedHelmet = "./res/glTF/DamagedHelmet/glTF/DamagedHelmet.gltf";
+        // Resource.loadAsync(DamagedHelmet).then(model => {
+        //     let gltf = model as GltfAsset;
 
-        let DamagedHelmet = "./res/glTF/DamagedHelmet/glTF/DamagedHelmet.gltf";
-        Resource.loadAsync(DamagedHelmet).then(model => {
-            let gltf = model as GltfAsset;
+        //     let root = new Entity("rootTag");
+        //     toy.scene.addEntity(root);
+        //     gltf.roots.forEach(item => {
+        //         root.transform.addChild(item.entity.transform);
+        //         // toy.scene.addEntity();
+        //     });
+        // });
+        for (let i = 0; i < 100; i++) {
+            let mat = new Material();
+            mat.shader = DefShader.fromType("base");
+            mat.setColor("MainColor", Color.random());
 
-            let root = new Entity("rootTag");
-            toy.scene.addEntity(root);
-            gltf.roots.forEach(item => {
-                root.transform.addChild(item.entity.transform);
-                // toy.scene.addEntity();
-            });
-        });
+            let mesh = toy.scene.addDefMesh("cube", mat);
+            mesh.entity.transform.localPosition.x = Math.random() * 150 - 80;
+            mesh.entity.transform.localPosition.y = Math.random() * 150 - 80;
+            mesh.entity.transform.localPosition.z = Math.random() * 150 - 80;
+            let scale = Math.random() * 80 + 2;
+            mesh.entity.transform.localScale = Vec3.create(scale, scale, scale);
+            let quat = Quat.create();
+            quat.x = Math.random();
+            quat.y = Math.random();
+            quat.z = Math.random();
+            mesh.entity.transform.localRotation = Quat.normalize(quat, quat);
+        }
+        this.ssao(toy, cam);
+    }
+
+    static ssao(toy: ToyGL, cam: Camera) {
         //------------------------------------------
         //-------------------SSAO-------------------
         //------------------------------------------
@@ -104,6 +128,10 @@ export class SSAO {
         quadMat.setFloat("uRadius", 2.0);
 
         // quadMat.setTexture("_MainTex", DefTextrue.GIRD);
+
+        let quadShader = Resource.load("../res/shader/quad.shader.json") as Shader;
+        quadMat.shader = quadShader;
+        quadMat.setTexture("_MainTex", cam.targetTexture.colorTexture);
 
         const gui = new dat.GUI();
         let ssaoOp = {

@@ -3,13 +3,13 @@ import { GlRender } from "../../render/glRender";
 import { Color } from "../../mathD/color";
 import { DefTextrue } from "./defTexture";
 
-export type shaderType = "color" | "base" | "baseTex" | "alphaTex" | "2dTex";
+export type shaderType = "2dColor" | "base" | "baseTex" | "alphaTex" | "2dTex";
 export class DefShader {
     private static defShader: { [type: string]: Shader } = {};
     static fromType(type: shaderType): Shader {
         if (this.defShader[type] == null) {
             switch (type) {
-                case "color":
+                case "2dColor":
                     this.defShader[type] = this.create2DColorShader();
                     break;
                 case "2dTex":

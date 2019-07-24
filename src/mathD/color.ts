@@ -44,6 +44,13 @@ export class Color extends Float32Array {
             return item;
         }
     }
+    public static random(): Color {
+        let item = new Color(0.8, 0.8, 0.8, 1.0);
+        let color = Math.random();
+        let compRandom = (Math.random() * 3) | 0;
+        item[compRandom] = color;
+        return item;
+    }
     public static clone(from: Color): Color {
         if (Color.Recycle.length > 0) {
             let item = Color.Recycle.pop() as Color;

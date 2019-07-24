@@ -32,7 +32,7 @@ export class Camera implements Icomponent {
      */
     size: number = 2;
 
-    private _near: number = 0.01;
+    private _near: number = 0.1;
     get near(): number {
         return this._near;
     }
