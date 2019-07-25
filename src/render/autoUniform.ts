@@ -28,7 +28,7 @@ export class AutoUniform {
         };
 
         this.uniformDic["u_mat_normal"] = () => {
-            return this.renderContext.matrixNormalToworld;
+            return this.renderContext.matrixModel;
         };
 
         this.uniformDic["u_fov"] = () => {

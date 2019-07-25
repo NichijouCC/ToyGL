@@ -4795,7 +4795,7 @@
                 return this.renderContext.matrixModelViewProject;
             };
             this.uniformDic["u_mat_normal"] = () => {
-                return this.renderContext.matrixNormalToworld;
+                return this.renderContext.matrixModel;
             };
             this.uniformDic["u_fov"] = () => {
                 return this.renderContext.fov;
@@ -5592,6 +5592,7 @@
                 atts: {
                     POSITION: bassInf.posarr,
                     TEXCOORD_0: bassInf.uvArray,
+                    NORMAL: bassInf.normalArray,
                 },
                 indices: bassInf.indices,
             };
@@ -11913,21 +11914,20 @@
             quadMat.setVector3Array("uSampleKernel", kernelArr);
             quadMat.setFloat("uRadius", 2.0);
             // quadMat.setTexture("_MainTex", DefTextrue.GIRD);
-            let quadShader = Resource.load("../res/shader/quad.shader.json");
-            quadMat.shader = quadShader;
-            quadMat.setTexture("_MainTex", cam.targetTexture.colorTexture);
+            // let quadShader = Resource.load("../res/shader/quad.shader.json") as Shader;
+            // quadMat.shader = quadShader;
+            // quadMat.setTexture("_MainTex", cam.targetTexture.colorTexture);
             const gui$$1 = new GUI$1();
             let ssaoOp = {
                 uRadius: 2.0,
             };
-            gui$$1.add(ssaoOp, "uRadius", 1.0, 15.0, 0.1);
+            gui$$1.add(ssaoOp, "uRadius", 0.001, 1.0, 0.001);
             cam.afterRender = () => {
                 quadMat.setFloat("uRadius", ssaoOp.uRadius);
                 toy.render.renderQuad(quadMat);
             };
         }
     }
-    //# sourceMappingURL=ssao.js.map
 
     window.onload = () => {
         let toy = ToyGL.initByHtmlElement(document.getElementById("canvas"));

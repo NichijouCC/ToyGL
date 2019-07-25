@@ -1,5 +1,5 @@
 attribute vec3 POSITION;
-attribute vec3 TEXCOORD_0;
+attribute vec2 TEXCOORD_0;
 varying mediump vec2 xlv_TEXCOORD0;
 void main()
 {

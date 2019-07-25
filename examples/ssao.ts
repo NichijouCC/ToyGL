@@ -129,15 +129,15 @@ export class SSAO {
 
         // quadMat.setTexture("_MainTex", DefTextrue.GIRD);
 
-        let quadShader = Resource.load("../res/shader/quad.shader.json") as Shader;
-        quadMat.shader = quadShader;
-        quadMat.setTexture("_MainTex", cam.targetTexture.colorTexture);
+        // let quadShader = Resource.load("../res/shader/quad.shader.json") as Shader;
+        // quadMat.shader = quadShader;
+        // quadMat.setTexture("_MainTex", cam.targetTexture.colorTexture);
 
         const gui = new dat.GUI();
         let ssaoOp = {
             uRadius: 2.0,
         };
-        gui.add(ssaoOp, "uRadius", 1.0, 15.0, 0.1);
+        gui.add(ssaoOp, "uRadius", 0.001, 1.0, 0.001);
 
         cam.afterRender = () => {
             quadMat.setFloat("uRadius", ssaoOp.uRadius);

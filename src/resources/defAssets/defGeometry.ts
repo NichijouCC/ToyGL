@@ -88,6 +88,7 @@ export class DefGeometry {
             atts: {
                 POSITION: bassInf.posarr,
                 TEXCOORD_0: bassInf.uvArray,
+                NORMAL: bassInf.normalArray,
             },
             indices: bassInf.indices,
         };
