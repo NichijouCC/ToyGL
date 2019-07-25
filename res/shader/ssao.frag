@@ -15,6 +15,13 @@ uniform vec3 uSampleKernel[16];
 uniform float uRadius;
 varying vec2 xlv_TEXCOORD0;
 
+const float cameraNear = 0.01;
+const float cameraFar = 1000.0;
+
+float depth_ZbufferToZview( const float invClipZ, const float near, const float far ) {
+    return ( near * far ) / ( ( far - near ) * invClipZ - far );
+}
+
 void main()
 {
     vec2 ndc= xlv_TEXCOORD0 * 2.0 - vec2(1.0);
@@ -34,7 +41,7 @@ void main()
     float occlusion = 0.0;
     for(int i = 0;i < 16; i++){
         vec3 sample = tbn * uSampleKernel[i];
-        sample = sample * uRadius + origin;
+        sample = sample * uRadius + origin;//z_view
 
         vec4 offset = vec4(sample,1.0);
         offset = u_mat_p * offset;
@@ -42,7 +49,7 @@ void main()
         offset.xy = offset.xy * 0.5 + 0.5;
         
         float sampleDepth = texture2D(uTexLinearDepth,offset.xy).r;
-        
+
         float rangeCheck = abs(origin.z - sampleDepth)<uRadius?1.0:0.0;
         occlusion +=(sampleDepth <= sample.z?1.0:0.0)*rangeCheck;
     }

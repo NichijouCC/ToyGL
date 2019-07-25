@@ -8,18 +8,18 @@ const float cameraNear = 0.01;
 const float cameraFar = 1000.0;
 
 
-float perspectiveDepthToViewZ( const float invClipZ, const float near, const float far ) {
+float depth_ZbufferToZview( const float invClipZ, const float near, const float far ) {
     return ( near * far ) / ( ( far - near ) * invClipZ - far );
 }
 
-float viewZToOrthographicDepth(const float viewZ, const float near, const float far ) {
+float depth_ToLinear(const float viewZ, const float near, const float far ) {
     return ( viewZ + near ) / ( near - far );
 }
 
 float readDepth( sampler2D depthSampler, vec2 coord ) {
     float fragCoordZ = texture2D( depthSampler, coord ).x;
-    float viewZ = perspectiveDepthToViewZ( fragCoordZ, cameraNear, cameraFar);
-    float depth = viewZToOrthographicDepth( viewZ, cameraNear, cameraFar);
+    float viewZ = depth_ZbufferToZview( fragCoordZ, cameraNear, cameraFar);
+    float depth = depth_ToLinear( viewZ, cameraNear, cameraFar);
     return depth;
 }
 
