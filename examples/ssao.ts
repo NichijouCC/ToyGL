@@ -60,9 +60,9 @@ export class SSAO {
         //------------------------------------------
         //-------------------SSAO-------------------
         //------------------------------------------
-        //-----------------半球采样随机点
-        let kernelSize = 16.0;
-        let kernelArr: Float32Array = new Float32Array(16 * 3);
+        //-----------------半球采样随机点--------
+        let kernelSize = 48.0;
+        let kernelArr: Float32Array = new Float32Array(48 * 3);
         for (let i = 0; i < kernelSize; i++) {
             //----------------半球随机
             let kernel = Vec3.create(random(-1.0, 1.0), random(-1.0, 1.0), random(0.0, 1.0));
@@ -123,7 +123,7 @@ export class SSAO {
         quadMat.setTexture("uTexNormals", cam.targetTexture.colorTexture);
         quadMat.setTexture("uTexRandom", tex);
         quadMat.setVector2("uNoiseScale", Vec2.create(GameScreen.Width / 4, GameScreen.Height / 4));
-        quadMat.setFloat("uSampleKernelSize", 16);
+        quadMat.setFloat("uSampleKernelSize", 48);
         quadMat.setVector3Array("uSampleKernel", kernelArr);
         quadMat.setFloat("uRadius", 2.0);
 
@@ -137,7 +137,7 @@ export class SSAO {
         let ssaoOp = {
             uRadius: 2.0,
         };
-        gui.add(ssaoOp, "uRadius", 0.001, 1.0, 0.001);
+        gui.add(ssaoOp, "uRadius", 0.001, 100.0, 0.001);
 
         cam.afterRender = () => {
             quadMat.setFloat("uRadius", ssaoOp.uRadius);

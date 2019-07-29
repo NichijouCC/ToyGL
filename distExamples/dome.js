@@ -1270,6 +1270,7 @@
         gl.bufferData(target, viewData, gl.STATIC_DRAW);
         return buffer;
     }
+    //# sourceMappingURL=twebgl.es5.js.map
 
     var VertexAttEnum;
     (function (VertexAttEnum) {
@@ -1283,6 +1284,7 @@
         VertexAttEnum["WEIGHTS_0"] = "skinWeight";
         VertexAttEnum["JOINTS_0"] = "skinIndex";
     })(VertexAttEnum || (VertexAttEnum = {}));
+    //# sourceMappingURL=vertexAttType.js.map
 
     // export interface IshaderOptions extends IprogramOptions {
     //     layer?: RenderLayerEnum;
@@ -1458,6 +1460,7 @@
             return VertexAttEnum.JOINTS_0;
         }
     }
+    //# sourceMappingURL=glRender.js.map
 
     /**
      * 渲染的层级(从小到大绘制)
@@ -1499,6 +1502,7 @@
         let target = constructor.prototype;
         EC.dic[target.constructor.name] = target.constructor;
     };
+    //# sourceMappingURL=ec.js.map
 
     const EPSILON = 0.000001;
     function clamp(v, min = 0, max = 1) {
@@ -1526,6 +1530,7 @@
     //     vec3.disposeRecycledItems();
     //     vec4.disposeRecycledItems();
     // }
+    //# sourceMappingURL=common.js.map
 
     class Vec3 extends Float32Array {
         constructor(x = 0, y = 0, z = 0) {
@@ -2192,6 +2197,7 @@
     Vec3.ONE = Vec3.create(1, 1, 1);
     Vec3.ZERO = Vec3.create(0, 0, 0);
     Vec3.Recycle = [];
+    //# sourceMappingURL=vec3.js.map
 
     class Mat4 extends Float32Array {
         static create() {
@@ -3920,6 +3926,7 @@
     }
     Mat4.Recycle = [];
     Mat4.Identity = Mat4.create();
+    //# sourceMappingURL=mat4.js.map
 
     /**
      * @private
@@ -4018,6 +4025,7 @@
      * 非透明物体暂时没发现需要按照距离排序（近到远）
      * 透明物体按照距离排序（远到近）
      */
+    //# sourceMappingURL=renderList.js.map
 
     /*! *****************************************************************************
     Copyright (c) Microsoft Corporation. All rights reserved.
@@ -4144,6 +4152,7 @@
     }
     Rect.Recycle = [];
     Rect.Identity = new Rect(0, 0, 1, 1);
+    //# sourceMappingURL=rect.js.map
 
     class Color extends Float32Array {
         constructor(r = 1, g, b = 1, a = 1) {
@@ -4285,6 +4294,7 @@
     }
     Color.WHITE = new Color(1, 1, 1, 1);
     Color.Recycle = [];
+    //# sourceMappingURL=color.js.map
 
     /**
      *
@@ -4341,6 +4351,7 @@
         }
     }
     GameScreen.resizeListenerArr = [];
+    //# sourceMappingURL=gameScreen.js.map
 
     class Plane {
         constructor() {
@@ -4364,6 +4375,7 @@
             this.constant = ds * inverseNormalLength;
         }
     }
+    //# sourceMappingURL=plane.js.map
 
     class Bounds {
         constructor() {
@@ -4511,6 +4523,7 @@
         }
     }
     BoundingSphere.pool = [];
+    //# sourceMappingURL=bounds.js.map
 
     class Frustum {
         constructor(p0 = null, p1 = null, p2 = null, p3 = null, p4 = null, p5 = null) {
@@ -4588,6 +4601,7 @@
             return true;
         }
     }
+    //# sourceMappingURL=frustum.js.map
 
     var ProjectionEnum;
     (function (ProjectionEnum) {
@@ -4705,6 +4719,7 @@
     Camera = __decorate([
         EC.RegComp
     ], Camera);
+    //# sourceMappingURL=camera.js.map
 
     class RenderContext {
         constructor() {
@@ -4752,6 +4767,7 @@
             return this.curCamera.aspect;
         }
     }
+    //# sourceMappingURL=renderContext.js.map
 
     class AutoUniform {
         constructor(renderContext) {
@@ -4816,6 +4832,7 @@
             return this.uniformDic;
         }
     }
+    //# sourceMappingURL=autoUniform.js.map
 
     class ResID {
         static next() {
@@ -4833,6 +4850,7 @@
             this.beDefaultAsset = (param && param.beDefaultAsset) || false;
         }
     }
+    //# sourceMappingURL=toyAsset.js.map
 
     /**
      * Enum containing WebGL Constant values by name.
@@ -5432,6 +5450,7 @@
         // Extensions
         GlConstants[GlConstants["MAX_TEXTURE_MAX_ANISOTROPY_EXT"] = 34047] = "MAX_TEXTURE_MAX_ANISOTROPY_EXT";
     })(GlConstants || (GlConstants = {}));
+    //# sourceMappingURL=GlConstant.js.map
 
     class Geometry extends ToyAsset {
         constructor(param) {
@@ -5524,6 +5543,7 @@
                 throw new Error(`Invalid component type ${componentType}`);
         }
     }
+    //# sourceMappingURL=geometry.js.map
 
     class DefGeometry {
         static fromType(typeEnum) {
@@ -5594,6 +5614,7 @@
         }
     }
     DefGeometry.defGeometry = {};
+    //# sourceMappingURL=defGeometry.js.map
 
     class RenderMachine {
         constructor(cancvas) {
@@ -5668,6 +5689,7 @@
         DrawTypeEnum[DrawTypeEnum["NOFOG"] = 3] = "NOFOG";
         DrawTypeEnum[DrawTypeEnum["NOLIGHTMAP"] = 5] = "NOLIGHTMAP";
     })(DrawTypeEnum || (DrawTypeEnum = {}));
+    //# sourceMappingURL=renderMachine.js.map
 
     class Mat3 extends Float32Array {
         static create() {
@@ -6307,6 +6329,7 @@
         }
     }
     Mat3.Recycle = [];
+    //# sourceMappingURL=Mat3.js.map
 
     class Quat extends Float32Array {
         constructor() {
@@ -7145,6 +7168,7 @@
     }
     Quat.Recycle = [];
     Quat.norot = Quat.create();
+    //# sourceMappingURL=quat.js.map
 
     var Transform_1;
     var DirtyFlagEnum;
@@ -7426,6 +7450,7 @@
         EC.RegComp,
         __metadata("design:paramtypes", [])
     ], Transform);
+    //# sourceMappingURL=transform.js.map
 
     let Mesh = class Mesh {
         constructor() {
@@ -7458,6 +7483,7 @@
     Mesh = __decorate([
         EC.RegComp
     ], Mesh);
+    //# sourceMappingURL=mesh.js.map
 
     var MouseKeyEnum;
     (function (MouseKeyEnum) {
@@ -7559,6 +7585,7 @@
         1: MouseKeyEnum.Middle,
         2: MouseKeyEnum.Right
     };
+    //# sourceMappingURL=mouse.js.map
 
     var KeyCodeEnum;
     (function (KeyCodeEnum) {
@@ -7709,6 +7736,7 @@
     Keyboard.KeyEvent = {};
     Keyboard.anyKeyEvent = {};
     Keyboard.keyDic = {};
+    //# sourceMappingURL=keyboard.js.map
 
     /**
      * 对应mouseevent 的button
@@ -7768,6 +7796,7 @@
             }
         }
     }
+    //# sourceMappingURL=Inputmgr.js.map
 
     let CameraController = class CameraController {
         constructor() {
@@ -7872,6 +7901,7 @@
     CameraController = __decorate([
         EC.RegComp
     ], CameraController);
+    //# sourceMappingURL=cameracontroller.js.map
 
     class Entity {
         constructor(name = null, compsArr = null) {
@@ -7922,6 +7952,7 @@
         return newId.prototype.id++;
     }
     newId.prototype.id = -1;
+    //# sourceMappingURL=entity.js.map
 
     class FrameState {
         constructor() {
@@ -7933,6 +7964,7 @@
             this.cameraList.length = 0;
         }
     }
+    //# sourceMappingURL=frameState.js.map
 
     class Material extends ToyAsset {
         constructor(param) {
@@ -7969,6 +8001,7 @@
         }
         dispose() { }
     }
+    //# sourceMappingURL=material.js.map
 
     class Shader extends ToyAsset {
         constructor(param) {
@@ -8041,6 +8074,7 @@
                 return "#define INSTANCE \n";
         }
     }
+    //# sourceMappingURL=shader.js.map
 
     class Texture extends ToyAsset {
         get texture() {
@@ -8083,6 +8117,7 @@
             }
         }
     }
+    //# sourceMappingURL=texture.js.map
 
     class DefTextrue {
         static get WHITE() {
@@ -8118,6 +8153,7 @@
             }
         }
     }
+    //# sourceMappingURL=defTexture.js.map
 
     class DefShader {
         static fromType(type) {
@@ -8322,6 +8358,7 @@
         }
     }
     DefShader.defShader = {};
+    //# sourceMappingURL=defShader.js.map
 
     class DefMaterial {
         static fromType(type) {
@@ -8337,6 +8374,7 @@
         }
     }
     DefMaterial.defMat = {};
+    //# sourceMappingURL=defMaterial.js.map
 
     class Scene {
         constructor(render, priority = 0) {
@@ -8421,6 +8459,7 @@
             return (item.maskLayer & maskLayer) !== 0;
         }
     }
+    //# sourceMappingURL=scene.js.map
 
     /**
      * The game time class.
@@ -8500,6 +8539,7 @@
             }
         }
     }
+    //# sourceMappingURL=gameTimer.js.map
 
     // import { IassetMgr } from "./resources/type";
     class ToyGL {
@@ -8551,6 +8591,7 @@
             }
         }
     }
+    //# sourceMappingURL=toygl.js.map
 
     var LoadEnum;
     (function (LoadEnum) {
@@ -8559,6 +8600,7 @@
         LoadEnum["Loading"] = "Loading";
         LoadEnum["None"] = "None";
     })(LoadEnum || (LoadEnum = {}));
+    //# sourceMappingURL=loadEnum.js.map
 
     //通过url获取资源的名称(包含尾缀)
     function getFileName(url) {
@@ -8589,6 +8631,7 @@
         let file = url.substr(0, filei);
         return file;
     }
+    //# sourceMappingURL=helper.js.map
 
     /**
      * 资源都继承web3dAsset 实现Iasset接口,有唯一ID
@@ -8744,6 +8787,7 @@
     //<<<<<<<------- 2.  资源的name不作为asset的标识.不然造成一大堆麻烦。如果允许重名资源在assetmgr获取资源的需要通过bundlename /assetname才能正确获取资源,bundlename于asset来说不一定有;
     //new asset的时候还要检查重名资源,允许还是不允许都是麻烦—--->>>>>>>>>>>>>>>>>>>>>>>
     //<<<<<<<--------3.  资源本身的描述json，不会被作为资源被assetmgr管理起来-->>>
+    //# sourceMappingURL=resource.js.map
 
     class RenderTexture extends ToyAsset {
         get colorTexture() {
@@ -8760,6 +8804,7 @@
         }
         dispose() { }
     }
+    //# sourceMappingURL=renderTexture.js.map
 
     class Vec2 extends Float32Array {
         constructor(x = 0, y = 0) {
@@ -9277,6 +9322,7 @@
         }
     }
     Vec2.Recycle = [];
+    //# sourceMappingURL=vec2.js.map
 
     /**
      * dat-gui JavaScript Controller Library
@@ -11771,6 +11817,7 @@
       });
     }
     var GUI$1 = GUI;
+    //# sourceMappingURL=dat.gui.module.js.map
 
     class SSAO {
         static done(toy) {
@@ -11809,9 +11856,9 @@
             //------------------------------------------
             //-------------------SSAO-------------------
             //------------------------------------------
-            //-----------------半球采样随机点
-            let kernelSize = 16.0;
-            let kernelArr = new Float32Array(16 * 3);
+            //-----------------半球采样随机点--------
+            let kernelSize = 48.0;
+            let kernelArr = new Float32Array(48 * 3);
             for (let i = 0; i < kernelSize; i++) {
                 //----------------半球随机
                 let kernel = Vec3.create(random(-1.0, 1.0), random(-1.0, 1.0), random(0.0, 1.0));
@@ -11863,7 +11910,7 @@
             quadMat.setTexture("uTexNormals", cam.targetTexture.colorTexture);
             quadMat.setTexture("uTexRandom", tex);
             quadMat.setVector2("uNoiseScale", Vec2.create(GameScreen.Width / 4, GameScreen.Height / 4));
-            quadMat.setFloat("uSampleKernelSize", 16);
+            quadMat.setFloat("uSampleKernelSize", 48);
             quadMat.setVector3Array("uSampleKernel", kernelArr);
             quadMat.setFloat("uRadius", 2.0);
             // quadMat.setTexture("_MainTex", DefTextrue.GIRD);
@@ -11874,7 +11921,7 @@
             let ssaoOp = {
                 uRadius: 2.0,
             };
-            gui$$1.add(ssaoOp, "uRadius", 0.001, 1.0, 0.001);
+            gui$$1.add(ssaoOp, "uRadius", 0.001, 100.0, 0.001);
             cam.afterRender = () => {
                 quadMat.setFloat("uRadius", ssaoOp.uRadius);
                 toy.render.renderQuad(quadMat);
@@ -11894,6 +11941,7 @@
             SSAO.done(toy);
         });
     };
+    //# sourceMappingURL=main.js.map
 
     class TextAsset extends ToyAsset {
         constructor(name, url) {
@@ -11906,6 +11954,7 @@
             this.content = null;
         }
     }
+    //# sourceMappingURL=textAsset.js.map
 
     var ResponseTypeEnum;
     (function (ResponseTypeEnum) {
@@ -11965,6 +12014,7 @@
             };
         });
     }
+    //# sourceMappingURL=loadtool.js.map
 
     class LoadTxt {
         load(url, onFinish, onProgress) {
@@ -11994,6 +12044,7 @@
     // AssetMgr.RegisterAssetLoader(".vs.glsl", () => _loadtxt);
     // AssetMgr.RegisterAssetLoader(".fs.glsl", () => _loadtxt);
     // AssetMgr.RegisterAssetLoader(".txt", () => _loadtxt);
+    //# sourceMappingURL=loadTxt.js.map
 
     var loadTxt = /*#__PURE__*/Object.freeze({
         LoadTxt: LoadTxt
@@ -12501,6 +12552,7 @@
         }
     }
     Vec4.Recycle = [];
+    //# sourceMappingURL=vec4.js.map
 
     const textureRegexp = /([_0-9a-zA-Z]+)[ ]*\([ ]*'(.+)'[ ]*,[ ]*([0-9a-zA-Z]+)[ ]*\)[ ]*=[ ]*'(.+)'[ ]*\{[ ]*([a-zA-Z]*)[ ]*([a-zA-Z]*)[ ]*\}/;
     const vector4regexp = /([_0-9a-zA-Z]+)[ ]*\([ ]*'(.+)'[ ]*,[ ]*([0-9a-zA-Z]+)[ ]*\)[ ]*=[ ]*\([ ]*([0-9.-]+)[ ]*,[ ]*([0-9.-]+)[ ]*,[ ]*([0-9.-]+)[ ]*,[ ]*([0-9.-]+)[ ]*\)/;
@@ -12671,6 +12723,7 @@
         }
     }
     LoadShader.drawtypeDic = {};
+    //# sourceMappingURL=loadShader.js.map
 
     var loadShader = /*#__PURE__*/Object.freeze({
         LoadShader: LoadShader
@@ -12727,6 +12780,7 @@
             return texture;
         }
     }
+    //# sourceMappingURL=loadTexture.js.map
 
     var loadTexture = /*#__PURE__*/Object.freeze({
         LoadTextureSample: LoadTextureSample,
@@ -12739,6 +12793,7 @@
         }
         dispose() { }
     }
+    //# sourceMappingURL=gltfAsset.js.map
 
     class BinReader {
         constructor(buf, seek = 0) {
@@ -12935,6 +12990,7 @@
             return this.readInt32();
         }
     }
+    //# sourceMappingURL=stream.js.map
 
     var AccessorComponentType;
     (function (AccessorComponentType) {
@@ -13179,6 +13235,7 @@
          */
         TextureWrapMode[TextureWrapMode["REPEAT"] = 10497] = "REPEAT";
     })(TextureWrapMode || (TextureWrapMode = {}));
+    //# sourceMappingURL=gltfJsonStruct.js.map
 
     class ParseCameraNode {
         static parse(index, gltf) {
@@ -13209,6 +13266,7 @@
             return cam;
         }
     }
+    //# sourceMappingURL=parseCameraNode.js.map
 
     class ParseBufferNode {
         static parse(index, gltf) {
@@ -13226,6 +13284,7 @@
             }
         }
     }
+    //# sourceMappingURL=parseBufferNode.js.map
 
     class ParseBufferViewNode {
         static parse(index, gltf) {
@@ -13247,6 +13306,7 @@
             }
         }
     }
+    //# sourceMappingURL=parseBufferViewNode.js.map
 
     class ParseTextureNode {
         static parse(index, gltf) {
@@ -13322,6 +13382,7 @@
             }
         }
     }
+    //# sourceMappingURL=parseTextureNode.js.map
 
     class ParseMaterialNode {
         static parse(index, gltf) {
@@ -13422,6 +13483,7 @@
             }
         }
     }
+    //# sourceMappingURL=parseMaterialNode.js.map
 
     class ParseAccessorNode {
         static parse(index, gltf) {
@@ -13553,6 +13615,7 @@
             }
         }
     }
+    //# sourceMappingURL=parseAccessorNode.js.map
 
     const MapGltfAttributeToToyAtt = {
         POSITION: VertexAttEnum.POSITION,
@@ -13696,6 +13759,7 @@
             }
         }
     }
+    //# sourceMappingURL=parseMeshNode.js.map
 
     class ParseNode {
         static parse(index, gltf) {
@@ -13770,6 +13834,7 @@
             // } else
         }
     }
+    //# sourceMappingURL=parseNode.js.map
 
     class ParseSceneNode {
         static parse(index, gltf) {
@@ -13780,6 +13845,7 @@
             return Promise.all(rootNodes);
         }
     }
+    //# sourceMappingURL=parseSceneNode.js.map
 
     class GltfNodeCache {
         constructor() {
@@ -13904,6 +13970,7 @@
     }
     //------------------extensions
     LoadGlTF.ExtensionDic = {};
+    //# sourceMappingURL=loadglTF.js.map
 
     var loadglTF = /*#__PURE__*/Object.freeze({
         GltfNodeCache: GltfNodeCache,
