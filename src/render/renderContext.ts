@@ -19,6 +19,12 @@ export class RenderContext {
         Mat4.transpose(this._matrixNormalToworld, this._matrixNormalToworld);
         return this._matrixNormalToworld;
     }
+    private _matrixNormalToView: Mat4 = Mat4.create();
+    get matrixNormalToView(): Mat4 {
+        Mat4.invert(this.matrixModelView, this._matrixNormalToView);
+        Mat4.transpose(this._matrixNormalToView, this._matrixNormalToView);
+        return this._matrixNormalToView;
+    }
     private _matrixMV: Mat4 = Mat4.create();
     get matrixModelView(): Mat4 {
         return Mat4.multiply(this.curCamera.ViewProjectMatrix, this.matrixModel, this._matrixMV);

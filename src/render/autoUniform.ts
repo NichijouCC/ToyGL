@@ -1,4 +1,6 @@
 import { RenderContext } from "./renderContext";
+import { Mat4 } from "../mathD/mat4";
+import { Vec3 } from "../mathD/vec3";
 
 export class AutoUniform {
     private uniformDic: { [name: string]: () => any } = {};
@@ -28,7 +30,8 @@ export class AutoUniform {
         };
 
         this.uniformDic["u_mat_normal"] = () => {
-            return this.renderContext.matrixModel;
+            // console.warn(Mat4.transformPoint(Vec3.FORWARD, this.renderContext.matrixNormalToView, Vec3.create()));
+            return this.renderContext.matrixNormalToView;
         };
 
         this.uniformDic["u_fov"] = () => {

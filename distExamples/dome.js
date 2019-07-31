@@ -4726,6 +4726,7 @@
             this.activeTexCount = 0;
             this.viewPortPixel = new Rect(0, 0, 0, 0); //像素的viewport
             this._matrixNormalToworld = Mat4.create();
+            this._matrixNormalToView = Mat4.create();
             this._matrixMV = Mat4.create();
             this._matMVP = Mat4.create();
             //matrixNormal: matrix = new matrix();
@@ -4744,6 +4745,11 @@
             Mat4.invert(this.matrixModel, this._matrixNormalToworld);
             Mat4.transpose(this._matrixNormalToworld, this._matrixNormalToworld);
             return this._matrixNormalToworld;
+        }
+        get matrixNormalToView() {
+            Mat4.invert(this.matrixModelView, this._matrixNormalToView);
+            Mat4.transpose(this._matrixNormalToView, this._matrixNormalToView);
+            return this._matrixNormalToView;
         }
         get matrixModelView() {
             return Mat4.multiply(this.curCamera.ViewProjectMatrix, this.matrixModel, this._matrixMV);
@@ -4795,7 +4801,8 @@
                 return this.renderContext.matrixModelViewProject;
             };
             this.uniformDic["u_mat_normal"] = () => {
-                return this.renderContext.matrixModel;
+                // console.warn(Mat4.transformPoint(Vec3.FORWARD, this.renderContext.matrixNormalToView, Vec3.create()));
+                return this.renderContext.matrixNormalToView;
             };
             this.uniformDic["u_fov"] = () => {
                 return this.renderContext.fov;
@@ -11821,35 +11828,44 @@
 
     class SSAO {
         static done(toy) {
-            let cam = toy.scene.addCamera(Vec3.create(0, 0, 250));
+            let cam = toy.scene.addCamera(Vec3.create(0, 0, 5));
             // cam.entity.transform.lookAtPoint(Vec3.ZERO);
             cam.beActiveFrustum = false;
-            // let DamagedHelmet = "./res/glTF/DamagedHelmet/glTF/DamagedHelmet.gltf";
-            // Resource.loadAsync(DamagedHelmet).then(model => {
-            //     let gltf = model as GltfAsset;
-            //     let root = new Entity("rootTag");
-            //     toy.scene.addEntity(root);
-            //     gltf.roots.forEach(item => {
-            //         root.transform.addChild(item.entity.transform);
-            //         // toy.scene.addEntity();
-            //     });
-            // });
-            for (let i = 0; i < 100; i++) {
-                let mat = new Material();
-                mat.shader = DefShader.fromType("base");
-                mat.setColor("MainColor", Color.random());
-                let mesh = toy.scene.addDefMesh("cube", mat);
-                mesh.entity.transform.localPosition.x = Math.random() * 150 - 80;
-                mesh.entity.transform.localPosition.y = Math.random() * 150 - 80;
-                mesh.entity.transform.localPosition.z = Math.random() * 150 - 80;
-                let scale = Math.random() * 80 + 2;
-                mesh.entity.transform.localScale = Vec3.create(scale, scale, scale);
-                let quat = Quat.create();
-                quat.x = Math.random();
-                quat.y = Math.random();
-                quat.z = Math.random();
-                mesh.entity.transform.localRotation = Quat.normalize(quat, quat);
-            }
+            let DamagedHelmet = "./res/glTF/DamagedHelmet/glTF/DamagedHelmet.gltf";
+            let modelRoot;
+            Resource.loadAsync(DamagedHelmet).then(model => {
+                let gltf = model;
+                let root = new Entity("rootTag");
+                modelRoot = root;
+                toy.scene.addEntity(root);
+                gltf.roots.forEach(item => {
+                    root.transform.addChild(item.entity.transform);
+                    // toy.scene.addEntity();
+                });
+            });
+            toy.scene.preUpdate = delta => {
+                if (modelRoot != null) {
+                    let deltarot = delta * 0.0001;
+                    let rot = Quat.AxisAngle(Vec3.UP, deltarot);
+                    modelRoot.transform.localRotation = Quat.multiply(rot, modelRoot.transform.localRotation);
+                }
+            };
+            // for (let i = 0; i < 100; i++) {
+            //     let mat = new Material();
+            //     mat.shader = DefShader.fromType("base");
+            //     mat.setColor("MainColor", Color.random());
+            //     let mesh = toy.scene.addDefMesh("cube", mat);
+            //     mesh.entity.transform.localPosition.x = Math.random() * 150 - 80;
+            //     mesh.entity.transform.localPosition.y = Math.random() * 150 - 80;
+            //     mesh.entity.transform.localPosition.z = Math.random() * 150 - 80;
+            //     let scale = Math.random() * 80 + 2;
+            //     mesh.entity.transform.localScale = Vec3.create(scale, scale, scale);
+            //     let quat = Quat.create();
+            //     quat.x = Math.random();
+            //     quat.y = Math.random();
+            //     quat.z = Math.random();
+            //     mesh.entity.transform.localRotation = Quat.normalize(quat, quat);
+            // }
             this.ssao(toy, cam);
         }
         static ssao(toy, cam) {
@@ -11857,8 +11873,8 @@
             //-------------------SSAO-------------------
             //------------------------------------------
             //-----------------半球采样随机点--------
-            let kernelSize = 48.0;
-            let kernelArr = new Float32Array(48 * 3);
+            let kernelSize = 16.0;
+            let kernelArr = new Float32Array(kernelSize * 3);
             for (let i = 0; i < kernelSize; i++) {
                 //----------------半球随机
                 let kernel = Vec3.create(random(-1.0, 1.0), random(-1.0, 1.0), random(0.0, 1.0));
@@ -11928,6 +11944,7 @@
             };
         }
     }
+    //# sourceMappingURL=ssao.js.map
 
     window.onload = () => {
         let toy = ToyGL.initByHtmlElement(document.getElementById("canvas"));
