@@ -4201,10 +4201,7 @@
             }
         }
         static random() {
-            let item = new Color(0.8, 0.8, 0.8, 1.0);
-            let color = Math.random();
-            let compRandom = (Math.random() * 3) | 0;
-            item[compRandom] = color;
+            let item = new Color(Math.random() * 0.5 + 0.5, Math.random() * 0.5 + 0.5, Math.random() * 0.5 + 0.5, 1.0);
             return item;
         }
         static clone(from) {
@@ -4752,7 +4749,7 @@
             return this._matrixNormalToView;
         }
         get matrixModelView() {
-            return Mat4.multiply(this.curCamera.ViewProjectMatrix, this.matrixModel, this._matrixMV);
+            return Mat4.multiply(this.curCamera.ViewMatrix, this.matrixModel, this._matrixMV);
         }
         get matrixModelViewProject() {
             return Mat4.multiply(this.curCamera.ViewProjectMatrix, this.matrixModel, this._matMVP);
@@ -4805,10 +4802,16 @@
                 return this.renderContext.matrixNormalToView;
             };
             this.uniformDic["u_fov"] = () => {
-                return this.renderContext.fov;
+                return this.renderContext.curCamera.fov;
             };
             this.uniformDic["u_aspect"] = () => {
-                return this.renderContext.aspect;
+                return this.renderContext.curCamera.aspect;
+            };
+            this.uniformDic["u_cameraNear"] = () => {
+                return this.renderContext.curCamera.near;
+            };
+            this.uniformDic["u_cameraFar"] = () => {
+                return this.renderContext.curCamera.far;
             };
             // this.AutoUniformDic["u_timer"] = () => {
             //     return GameTimer.Time;
@@ -11829,10 +11832,11 @@
     class SSAO {
         static done(toy) {
             let cam = toy.scene.addCamera(Vec3.create(0, 0, 15));
+            cam.far = 200;
             // cam.entity.transform.lookAtPoint(Vec3.ZERO);
             cam.beActiveFrustum = false;
             let modelRoot = toy.scene.newEntity();
-            // Resource.loadAsync(sphereUrl).then(model => {
+            // Resource.loadAsync(DamagedHelmet).then(model => {
             //     let gltf = model as GltfAsset;
             //     gltf.roots.forEach(item => {
             //         modelRoot.transform.addChild(item.entity.transform);
@@ -11851,6 +11855,7 @@
                 mat.shader = DefShader.fromType("base");
                 mat.setColor("MainColor", Color.random());
                 let mesh = toy.scene.addDefMesh("cube", mat);
+                modelRoot.transform.addChild(mesh.entity.transform);
                 mesh.entity.transform.localPosition.x = Math.random() * 10 - 5;
                 mesh.entity.transform.localPosition.y = Math.random() * 10 - 5;
                 mesh.entity.transform.localPosition.z = Math.random() * 10 - 5;
@@ -11924,23 +11929,35 @@
             quadMat.setVector2("uNoiseScale", Vec2.create(GameScreen.Width / 4, GameScreen.Height / 4));
             quadMat.setFloat("uSampleKernelSize", 48);
             quadMat.setVector3Array("uSampleKernel", kernelArr);
-            quadMat.setFloat("uRadius", 1.0);
+            quadMat.setFloat("u_kernelRadius", 1.0);
+            quadMat.setFloat("minDistance", 0.001);
+            quadMat.setFloat("maxDistance", 0.3);
             // quadMat.setTexture("_MainTex", DefTextrue.GIRD);
             // let quadShader = Resource.load("../res/shader/quad.shader.json") as Shader;
             // quadMat.shader = quadShader;
             // quadMat.setTexture("_MainTex", cam.targetTexture.colorTexture);
             const gui$$1 = new GUI$1();
             let ssaoOp = {
-                uRadius: 1.0,
+                // eslint-disable-next-line @typescript-eslint/camelcase
+                u_kernelRadius: 1.0,
+                minDistance: 0.001,
+                maxDistance: 0.3,
+                camerFar: 200,
             };
-            gui$$1.add(ssaoOp, "uRadius", 0.001, 10.0, 0.001);
+            gui$$1.add(ssaoOp, "u_kernelRadius", 0.001, 10.0, 0.001);
+            gui$$1.add(ssaoOp, "minDistance", 0.001, 0.009, 0.001);
+            gui$$1.add(ssaoOp, "maxDistance", 0.001, 0.3, 0.001);
+            gui$$1.add(ssaoOp, "camerFar", 0.1, 200, 1.0).onChange((value) => {
+                cam.far = value;
+            });
             cam.afterRender = () => {
-                quadMat.setFloat("uRadius", ssaoOp.uRadius);
+                quadMat.setFloat("u_kernelRadius", ssaoOp.u_kernelRadius);
+                quadMat.setFloat("minDistance", ssaoOp.minDistance);
+                quadMat.setFloat("maxDistance", ssaoOp.maxDistance);
                 toy.render.renderQuad(quadMat);
             };
         }
     }
-    //# sourceMappingURL=ssao.js.map
 
     window.onload = () => {
         let toy = ToyGL.initByHtmlElement(document.getElementById("canvas"));

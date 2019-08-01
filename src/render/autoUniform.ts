@@ -35,10 +35,16 @@ export class AutoUniform {
         };
 
         this.uniformDic["u_fov"] = () => {
-            return this.renderContext.fov;
+            return this.renderContext.curCamera.fov;
         };
         this.uniformDic["u_aspect"] = () => {
-            return this.renderContext.aspect;
+            return this.renderContext.curCamera.aspect;
+        };
+        this.uniformDic["u_cameraNear"] = () => {
+            return this.renderContext.curCamera.near;
+        };
+        this.uniformDic["u_cameraFar"] = () => {
+            return this.renderContext.curCamera.far;
         };
         // this.AutoUniformDic["u_timer"] = () => {
         //     return GameTimer.Time;

@@ -13,10 +13,9 @@ void main()
     highp vec4 position=vec4(POSITION.xyz,1.0);
     position = u_mat_mvp * position;   
     highp vec4 _normal=u_mat_mv*vec4(NORMAL.xyz,0.0);
-    _normal.xyz=normalize(_normal.xyz);
 
     // scales a normal to between 0 and 1
-    v_normal = _normal.xyz*0.5+vec3(0.5);
+    v_normal = normalize(_normal.xyz)*0.5+vec3(0.5);
 
     gl_Position =position;
 }

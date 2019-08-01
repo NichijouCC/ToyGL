@@ -12,28 +12,35 @@ uniform vec2 uNoiseScale;
 const int uSampleKernelSize=16;
 uniform vec3 uSampleKernel[16];
 
-uniform float uRadius;
+uniform float u_kernelRadius;
+uniform float minDistance;
+uniform float maxDistance;
+
 varying vec2 xlv_TEXCOORD0;
 
-const float cameraNear = 0.01;
-const float cameraFar = 1000.0;
+uniform float u_cameraNear;
+uniform float u_cameraFar;
 
-
-float depth_ZbufferToZview( const float invClipZ, const float near, const float far ) {
-    return ( near * far ) / ( ( far - near ) * invClipZ - far );
+float ZbufferToZview( const float zBuffer, const float near, const float far ) {
+    return ( near * far ) / ( ( far - near ) * zBuffer - far );
+}
+float ZviewToZLinear(const float zview,const float near,const float far)
+{
+    return ( zview + near ) / ( near - far );
 }
 
-float depth_ToLinear(const float viewZ, const float near, const float far ) {
-    return ( viewZ + near ) / ( near - far );
-}
-
-float readDepth( sampler2D depthSampler, vec2 coord ) {
-    float fragCoordZ = texture2D( depthSampler, coord ).x;
-    float viewZ = depth_ZbufferToZview( fragCoordZ, cameraNear, cameraFar);
-    float depth = depth_ToLinear( viewZ, cameraNear, cameraFar);
+float ZbufferToZLinear(const float zBuffer,const float near,const float far)
+{
+    float viewZ = ZbufferToZview( zBuffer, near, far);
+    float depth = ZviewToZLinear( viewZ, near, far);
     return depth;
 }
 
+float linearDepthFromDepthTexture( sampler2D depthSampler, vec2 coord ,const float near,const float far) {
+    float fragCoordZ = texture2D( depthSampler, coord ).x;
+    float depth = ZbufferToZLinear( fragCoordZ, near, far);
+    return depth;
+}
 
 
 void main()
@@ -71,20 +78,27 @@ void main()
     float occlusion = 0.0;
     for(int i = 0;i < uSampleKernelSize; i++){
         vec3 sample = tbn * uSampleKernel[i];
-        sample = sample * uRadius + origin;//z_view
+        sample = sample * u_kernelRadius + origin;//z_view
 
         vec4 offset = vec4(sample,1.0);
         offset = u_mat_p * offset;
         offset.xyz /= offset.w;
         offset.xyz = offset.xyz * 0.5 + 0.5;
 
-        float sampleDepth = texture2D(uTexLinearDepth,offset.xy).r;
+        float realDepth = texture2D(uTexLinearDepth,offset.xy).r;
+        float sampleDepth=offset.z;
+        float rangeCheck = smoothstep(0.0,1.0,u_kernelRadius/abs(sampleDepth - realDepth));
+        occlusion +=(realDepth <= sampleDepth?1.0:0.0)*rangeCheck;
 
-        float rangeCheck = smoothstep(0.0,1.0,uRadius/abs(offset.z - sampleDepth));
-        occlusion +=(sampleDepth <= offset.z?1.0:0.0)*rangeCheck;
-        // occlusion +=(sampleDepth >= floatz?1.0:0.0);
+
+        // float realDepth=linearDepthFromDepthTexture(uTexLinearDepth,offset.xy,u_cameraNear,u_cameraFar);
+        // float sampleDepth=ZbufferToZLinear(offset.z,u_cameraNear,u_cameraFar);
+        // float delta = sampleDepth - realDepth;
+        // if (delta > minDistance && delta < maxDistance) {
+        //     occlusion += 1.0;
+        // }
     }
-    occlusion=occlusion/float(uSampleKernelSize);
-    gl_FragColor =vec4(vec3(1.0-occlusion),1.0);
+    occlusion = occlusion/float(uSampleKernelSize);
+    gl_FragColor = vec4(vec3(1.0-occlusion),1.0);
     // gl_FragColor =texture2D(uTexNormals, xlv_TEXCOORD0);
 }

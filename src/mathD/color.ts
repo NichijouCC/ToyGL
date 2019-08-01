@@ -45,10 +45,7 @@ export class Color extends Float32Array {
         }
     }
     public static random(): Color {
-        let item = new Color(0.8, 0.8, 0.8, 1.0);
-        let color = Math.random();
-        let compRandom = (Math.random() * 3) | 0;
-        item[compRandom] = color;
+        let item = new Color(Math.random() * 0.5 + 0.5, Math.random() * 0.5 + 0.5, Math.random() * 0.5 + 0.5, 1.0);
         return item;
     }
     public static clone(from: Color): Color {
