@@ -22,22 +22,22 @@ import { DefMaterial } from "../src/resources/defAssets/defMaterial";
 
 export class SSAO {
     static done(toy: ToyGL) {
-        let cam = toy.scene.addCamera(Vec3.create(0, 0, 5));
+        let cam = toy.scene.addCamera(Vec3.create(0, 0, 15));
         // cam.entity.transform.lookAtPoint(Vec3.ZERO);
         cam.beActiveFrustum = false;
         let DamagedHelmet = "./res/glTF/DamagedHelmet/glTF/DamagedHelmet.gltf";
-        let modelRoot: Entity;
-        Resource.loadAsync(DamagedHelmet).then(model => {
-            let gltf = model as GltfAsset;
+        let cubeUrl = "../res/glTF/Cube/Cube.gltf";
+        let sphereUrl = "../res/glTF/Sphere/Sphere.gltf";
 
-            let root = new Entity("rootTag");
-            modelRoot = root;
-            toy.scene.addEntity(root);
-            gltf.roots.forEach(item => {
-                root.transform.addChild(item.entity.transform);
-                // toy.scene.addEntity();
-            });
-        });
+        let modelRoot: Entity = toy.scene.newEntity();
+        // Resource.loadAsync(sphereUrl).then(model => {
+        //     let gltf = model as GltfAsset;
+
+        //     gltf.roots.forEach(item => {
+        //         modelRoot.transform.addChild(item.entity.transform);
+        //         // toy.scene.addEntity();
+        //     });
+        // });
 
         toy.scene.preUpdate = delta => {
             if (modelRoot != null) {
@@ -46,23 +46,23 @@ export class SSAO {
                 modelRoot.transform.localRotation = Quat.multiply(rot, modelRoot.transform.localRotation);
             }
         };
-        // for (let i = 0; i < 100; i++) {
-        //     let mat = new Material();
-        //     mat.shader = DefShader.fromType("base");
-        //     mat.setColor("MainColor", Color.random());
+        for (let i = 0; i < 100; i++) {
+            let mat = new Material();
+            mat.shader = DefShader.fromType("base");
+            mat.setColor("MainColor", Color.random());
 
-        //     let mesh = toy.scene.addDefMesh("cube", mat);
-        //     mesh.entity.transform.localPosition.x = Math.random() * 150 - 80;
-        //     mesh.entity.transform.localPosition.y = Math.random() * 150 - 80;
-        //     mesh.entity.transform.localPosition.z = Math.random() * 150 - 80;
-        //     let scale = Math.random() * 80 + 2;
-        //     mesh.entity.transform.localScale = Vec3.create(scale, scale, scale);
-        //     let quat = Quat.create();
-        //     quat.x = Math.random();
-        //     quat.y = Math.random();
-        //     quat.z = Math.random();
-        //     mesh.entity.transform.localRotation = Quat.normalize(quat, quat);
-        // }
+            let mesh = toy.scene.addDefMesh("cube", mat);
+            mesh.entity.transform.localPosition.x = Math.random() * 10 - 5;
+            mesh.entity.transform.localPosition.y = Math.random() * 10 - 5;
+            mesh.entity.transform.localPosition.z = Math.random() * 10 - 5;
+            let scale = Math.random() * 5 + 0.1;
+            mesh.entity.transform.localScale = Vec3.create(scale, scale, scale);
+            let quat = Quat.create();
+            quat.x = Math.random();
+            quat.y = Math.random();
+            quat.z = Math.random();
+            mesh.entity.transform.localRotation = Quat.normalize(quat, quat);
+        }
         this.ssao(toy, cam);
     }
 
@@ -135,7 +135,7 @@ export class SSAO {
         quadMat.setVector2("uNoiseScale", Vec2.create(GameScreen.Width / 4, GameScreen.Height / 4));
         quadMat.setFloat("uSampleKernelSize", 48);
         quadMat.setVector3Array("uSampleKernel", kernelArr);
-        quadMat.setFloat("uRadius", 2.0);
+        quadMat.setFloat("uRadius", 1.0);
 
         // quadMat.setTexture("_MainTex", DefTextrue.GIRD);
 
@@ -145,9 +145,9 @@ export class SSAO {
 
         const gui = new dat.GUI();
         let ssaoOp = {
-            uRadius: 2.0,
+            uRadius: 1.0,
         };
-        gui.add(ssaoOp, "uRadius", 0.001, 100.0, 0.001);
+        gui.add(ssaoOp, "uRadius", 0.001, 10.0, 0.001);
 
         cam.afterRender = () => {
             quadMat.setFloat("uRadius", ssaoOp.uRadius);
