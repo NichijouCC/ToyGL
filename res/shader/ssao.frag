@@ -87,16 +87,18 @@ void main()
 
         float realDepth = texture2D(uTexLinearDepth,offset.xy).r;
         float sampleDepth=offset.z;
-        float rangeCheck = smoothstep(0.0,1.0,u_kernelRadius/abs(sampleDepth - realDepth));
-        occlusion +=(realDepth <= sampleDepth?1.0:0.0)*rangeCheck;
 
+        // float realDepthz=ZbufferToZview(realDepth,u_cameraNear,u_cameraFar);
+        // float sampleDepthz=ZbufferToZview(sampleDepth,u_cameraNear,u_cameraFar);
+        // float rangeCheck = smoothstep(0.0,1.0,u_kernelRadius/abs(sampleDepthz - realDepthz));
+        // occlusion +=(realDepth <= sampleDepth?1.0:0.0)*rangeCheck;
 
-        // float realDepth=linearDepthFromDepthTexture(uTexLinearDepth,offset.xy,u_cameraNear,u_cameraFar);
-        // float sampleDepth=ZbufferToZLinear(offset.z,u_cameraNear,u_cameraFar);
-        // float delta = sampleDepth - realDepth;
-        // if (delta > minDistance && delta < maxDistance) {
-        //     occlusion += 1.0;
-        // }
+        float realDepthz=ZbufferToZview(realDepth,u_cameraNear,u_cameraFar)*-1.0;
+        float sampleDepthz=ZbufferToZview(sampleDepth,u_cameraNear,u_cameraFar)*-1.0;
+        float delta = sampleDepthz - realDepthz;
+        if (delta > minDistance && delta < maxDistance) {
+            occlusion += 1.0;
+        }
     }
     occlusion = occlusion/float(uSampleKernelSize);
     gl_FragColor = vec4(vec3(1.0-occlusion),1.0);

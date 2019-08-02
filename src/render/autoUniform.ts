@@ -30,7 +30,6 @@ export class AutoUniform {
         };
 
         this.uniformDic["u_mat_normal"] = () => {
-            // console.warn(Mat4.transformPoint(Vec3.FORWARD, this.renderContext.matrixNormalToView, Vec3.create()));
             return this.renderContext.matrixNormalToView;
         };
 

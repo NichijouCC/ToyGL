@@ -1,4 +1,4 @@
-import { Icomponent, Ientity, EC } from "../ec";
+import { Icomponent, Ientity, ToyActor } from "../ec";
 import { IframeState } from "../../scene/frameState";
 import { Entity } from "../entity";
 import { Quat } from "../../mathD/quat";
@@ -9,7 +9,7 @@ import { KeyCodeEventEnum, KeyCodeEnum } from "../../input/keyboard";
 import { Camera } from "./camera";
 import { Vec3 } from "../../mathD/vec3";
 
-@EC.RegComp
+@ToyActor.Reg
 export class CameraController implements Icomponent {
     entity: Entity;
     update(frameState: IframeState): void {

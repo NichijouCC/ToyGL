@@ -60,18 +60,32 @@ export interface Irender extends Icomponent {
     // bouningSphere: BoundingSphere;
 }
 
-export class EC {
-    private static dic: { [compName: string]: IcompoentConstructor } = {};
-    static RegComp = (constructor: Function) => {
+export class ToyActor {
+    private static dic: { [compName: string]: any } = {};
+    static Reg = (constructor: Function) => {
         let target = constructor.prototype;
-        EC.dic[target.constructor.name] = target.constructor as IcompoentConstructor;
+        ToyActor.dic[target.constructor.name] = target.constructor;
     };
-    static NewComponent(compname: string): Icomponent {
-        let contr = EC.dic[compname];
+
+    static create(compname: string): any {
+        let contr = ToyActor.dic[compname];
         if (contr) {
             return new contr();
         } else {
             return null;
         }
+    }
+
+    static fromOpt<T>(name: string, opt: T, onCreated?: () => void): T {
+        let newActor = this.create(name);
+        if (newActor != null) {
+            for (let key in opt) {
+                (newActor as any)[key] = (opt as any)[key];
+            }
+        }
+        if (onCreated != null) {
+            onCreated();
+        }
+        return newActor;
     }
 }

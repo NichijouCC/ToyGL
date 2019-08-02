@@ -5,6 +5,21 @@ export type DefGeometryType = "cube" | "quad";
 
 export class DefGeometry {
     private static defGeometry: { [type: string]: Geometry } = {};
+    private static _quad: Geometry;
+    static get QUAD() {
+        if (this._quad == null) {
+            this._quad = this.fromType("quad");
+        }
+        return this._quad;
+    }
+
+    private static _cube: Geometry;
+    static get CUBE() {
+        if (this._cube == null) {
+            this._cube = this.fromType("cube");
+        }
+        return this._cube;
+    }
     static fromType(typeEnum: DefGeometryType): Geometry {
         if (this.defGeometry[typeEnum] == null) {
             let geometryOption: IgeometryOptions;

@@ -3,7 +3,7 @@ import { Entity, Mesh } from "../ec/entity";
 import { Transform } from "../ec/transform";
 import { FrameState, IframeState, Irenderable } from "./frameState";
 import { RenderMachine } from "../render/renderMachine";
-import { CullingMask } from "../ec/ec";
+import { CullingMask, Icomponent, ToyActor } from "../ec/ec";
 import { Frustum } from "./frustum";
 import { Debug } from "../debug/debug";
 import { Geometry } from "../resources/assets/geometry";
@@ -25,6 +25,12 @@ export class Scene {
         let newobj = new Entity(name, compsArr);
         this.addEntity(newobj);
         return newobj;
+    }
+
+    creatEntityFromOpt(opt: Entity): Entity {
+        let newObj = ToyActor.fromOpt<Entity>("Entity", opt);
+        this.addEntity(newObj);
+        return newObj;
     }
 
     addEntity(entity: Entity) {

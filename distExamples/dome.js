@@ -1486,9 +1486,9 @@
         CullingMask[CullingMask["nothing"] = 0] = "nothing";
         CullingMask[CullingMask["modelbeforeui"] = 8] = "modelbeforeui";
     })(CullingMask || (CullingMask = {}));
-    class EC {
-        static NewComponent(compname) {
-            let contr = EC.dic[compname];
+    class ToyActor {
+        static create(compname) {
+            let contr = ToyActor.dic[compname];
             if (contr) {
                 return new contr();
             }
@@ -1496,11 +1496,23 @@
                 return null;
             }
         }
+        static fromOpt(name, opt, onCreated) {
+            let newActor = this.create(name);
+            if (newActor != null) {
+                for (let key in opt) {
+                    newActor[key] = opt[key];
+                }
+            }
+            if (onCreated != null) {
+                onCreated();
+            }
+            return newActor;
+        }
     }
-    EC.dic = {};
-    EC.RegComp = (constructor) => {
+    ToyActor.dic = {};
+    ToyActor.Reg = (constructor) => {
         let target = constructor.prototype;
-        EC.dic[target.constructor.name] = target.constructor;
+        ToyActor.dic[target.constructor.name] = target.constructor;
     };
     //# sourceMappingURL=ec.js.map
 
@@ -4714,7 +4726,7 @@
         dispose() { }
     };
     Camera = __decorate([
-        EC.RegComp
+        ToyActor.Reg
     ], Camera);
     //# sourceMappingURL=camera.js.map
 
@@ -4798,7 +4810,6 @@
                 return this.renderContext.matrixModelViewProject;
             };
             this.uniformDic["u_mat_normal"] = () => {
-                // console.warn(Mat4.transformPoint(Vec3.FORWARD, this.renderContext.matrixNormalToView, Vec3.create()));
                 return this.renderContext.matrixNormalToView;
             };
             this.uniformDic["u_fov"] = () => {
@@ -5556,6 +5567,18 @@
     //# sourceMappingURL=geometry.js.map
 
     class DefGeometry {
+        static get QUAD() {
+            if (this._quad == null) {
+                this._quad = this.fromType("quad");
+            }
+            return this._quad;
+        }
+        static get CUBE() {
+            if (this._cube == null) {
+                this._cube = this.fromType("cube");
+            }
+            return this._cube;
+        }
         static fromType(typeEnum) {
             if (this.defGeometry[typeEnum] == null) {
                 let geometryOption;
@@ -7457,7 +7480,7 @@
         }
     };
     Transform = Transform_1 = __decorate([
-        EC.RegComp,
+        ToyActor.Reg,
         __metadata("design:paramtypes", [])
     ], Transform);
     //# sourceMappingURL=transform.js.map
@@ -7491,7 +7514,7 @@
         dispose() { }
     };
     Mesh = __decorate([
-        EC.RegComp
+        ToyActor.Reg
     ], Mesh);
     //# sourceMappingURL=mesh.js.map
 
@@ -7909,18 +7932,18 @@
         Dispose() { }
     };
     CameraController = __decorate([
-        EC.RegComp
+        ToyActor.Reg
     ], CameraController);
     //# sourceMappingURL=cameracontroller.js.map
 
-    class Entity {
+    let Entity = class Entity {
         constructor(name = null, compsArr = null) {
             this.maskLayer = CullingMask.default;
             this.components = {};
             this.guid = newId();
             this.name = name != null ? name : "newEntity";
             this.beActive = true;
-            this._transform = EC.NewComponent("Transform");
+            this._transform = ToyActor.create("Transform");
             this._transform.entity = this;
             if (compsArr != null) {
                 for (let i = 0; i < compsArr.length; i++) {
@@ -7932,7 +7955,7 @@
             return this._transform;
         }
         addCompByName(name) {
-            let comp = EC.NewComponent(name);
+            let comp = ToyActor.create(name);
             this.components[name] = comp;
             comp.entity = this;
             return comp;
@@ -7957,7 +7980,11 @@
             }
             this.components = null;
         }
-    }
+    };
+    Entity = __decorate([
+        ToyActor.Reg,
+        __metadata("design:paramtypes", [String, Array])
+    ], Entity);
     function newId() {
         return newId.prototype.id++;
     }
@@ -8166,6 +8193,36 @@
     //# sourceMappingURL=defTexture.js.map
 
     class DefShader {
+        static get COLOR2D() {
+            if (this._color2d == null) {
+                this._color2d = this.fromType("2dColor");
+            }
+            return this._color2d;
+        }
+        static get TEX2D() {
+            if (this._tex2d == null) {
+                this._tex2d = this.fromType("2dTex");
+            }
+            return this._tex2d;
+        }
+        static get BASE() {
+            if (this._base == null) {
+                this._base = this.fromType("base");
+            }
+            return this._base;
+        }
+        static get TEX3D() {
+            if (this._baseTex3d == null) {
+                this._baseTex3d = this.fromType("baseTex");
+            }
+            return this._baseTex3d;
+        }
+        static get ALPHATEX() {
+            if (this._alphaTex == null) {
+                this._alphaTex = this.fromType("alphaTex");
+            }
+            return this._alphaTex;
+        }
         static fromType(type) {
             if (this.defShader[type] == null) {
                 switch (type) {
@@ -8397,6 +8454,11 @@
             let newobj = new Entity(name, compsArr);
             this.addEntity(newobj);
             return newobj;
+        }
+        creatEntityFromOpt(opt) {
+            let newObj = ToyActor.fromOpt("Entity", opt);
+            this.addEntity(newObj);
+            return newObj;
         }
         addEntity(entity) {
             this.root.addChild(entity.transform);
@@ -11939,15 +12001,15 @@
             const gui$$1 = new GUI$1();
             let ssaoOp = {
                 // eslint-disable-next-line @typescript-eslint/camelcase
-                u_kernelRadius: 1.0,
-                minDistance: 0.001,
+                u_kernelRadius: 0.5,
+                minDistance: 0.01,
                 maxDistance: 0.3,
                 camerFar: 200,
             };
             gui$$1.add(ssaoOp, "u_kernelRadius", 0.001, 10.0, 0.001);
-            gui$$1.add(ssaoOp, "minDistance", 0.001, 0.009, 0.001);
+            gui$$1.add(ssaoOp, "minDistance", 0.001, 0.03, 0.001);
             gui$$1.add(ssaoOp, "maxDistance", 0.001, 0.3, 0.001);
-            gui$$1.add(ssaoOp, "camerFar", 0.1, 200, 1.0).onChange((value) => {
+            gui$$1.add(ssaoOp, "camerFar", 0.1, 400, 1.0).onChange((value) => {
                 cam.far = value;
             });
             cam.afterRender = () => {
@@ -11958,6 +12020,7 @@
             };
         }
     }
+    //# sourceMappingURL=ssao.js.map
 
     window.onload = () => {
         let toy = ToyGL.initByHtmlElement(document.getElementById("canvas"));

@@ -1,4 +1,4 @@
-import { EC, Icomponent, Ientity } from "./ec";
+import { ToyActor, Icomponent, Ientity } from "./ec";
 import { Vec3 } from "../mathD/vec3";
 import { Quat } from "../mathD/quat";
 import { Mat4 } from "../mathD/mat4";
@@ -13,7 +13,7 @@ enum DirtyFlagEnum {
     WORLDMAT = 0b000010,
 }
 
-@EC.RegComp
+@ToyActor.Reg
 export class Transform implements Icomponent {
     entity: Entity;
     parent: Transform;

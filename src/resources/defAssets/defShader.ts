@@ -6,6 +6,46 @@ import { DefTextrue } from "./defTexture";
 export type shaderType = "2dColor" | "base" | "baseTex" | "alphaTex" | "2dTex";
 export class DefShader {
     private static defShader: { [type: string]: Shader } = {};
+
+    private static _color2d: Shader;
+    static get COLOR2D() {
+        if (this._color2d == null) {
+            this._color2d = this.fromType("2dColor");
+        }
+        return this._color2d;
+    }
+
+    private static _tex2d: Shader;
+    static get TEX2D() {
+        if (this._tex2d == null) {
+            this._tex2d = this.fromType("2dTex");
+        }
+        return this._tex2d;
+    }
+
+    private static _base: Shader;
+    static get BASE() {
+        if (this._base == null) {
+            this._base = this.fromType("base");
+        }
+        return this._base;
+    }
+
+    private static _baseTex3d: Shader;
+    static get TEX3D() {
+        if (this._baseTex3d == null) {
+            this._baseTex3d = this.fromType("baseTex");
+        }
+        return this._baseTex3d;
+    }
+
+    private static _alphaTex: Shader;
+    static get ALPHATEX() {
+        if (this._alphaTex == null) {
+            this._alphaTex = this.fromType("alphaTex");
+        }
+        return this._alphaTex;
+    }
     static fromType(type: shaderType): Shader {
         if (this.defShader[type] == null) {
             switch (type) {

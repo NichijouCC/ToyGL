@@ -1,4 +1,4 @@
-import { Icomponent, Ientity, CullingMask, EC } from "../ec";
+import { Icomponent, Ientity, CullingMask, ToyActor } from "../ec";
 import { Rect } from "../../mathD/rect";
 import { Color } from "../../mathD/color";
 import { IframeState, Irenderable } from "../../scene/frameState";
@@ -20,7 +20,7 @@ export enum ClearEnum {
     NONE = 0b00,
 }
 
-@EC.RegComp
+@ToyActor.Reg
 export class Camera implements Icomponent {
     entity: Ientity;
     projectionType: ProjectionEnum = ProjectionEnum.PERSPECTIVE;

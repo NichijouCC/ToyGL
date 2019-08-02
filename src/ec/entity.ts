@@ -1,6 +1,7 @@
 import { Transform } from "./transform";
-import { Ientity, Icomponent, EC, Irender, CullingMask } from "./ec";
+import { Ientity, Icomponent, ToyActor, Irender, CullingMask } from "./ec";
 
+@ToyActor.Reg
 export class Entity implements Ientity {
     maskLayer: CullingMask = CullingMask.default;
     name: string;
@@ -12,7 +13,7 @@ export class Entity implements Ientity {
         this.guid = newId();
         this.name = name != null ? name : "newEntity";
         this.beActive = true;
-        this._transform = EC.NewComponent("Transform") as Transform;
+        this._transform = ToyActor.create("Transform") as Transform;
         this._transform.entity = this;
 
         if (compsArr != null) {
@@ -27,7 +28,7 @@ export class Entity implements Ientity {
     }
 
     addCompByName(name: string): Icomponent {
-        let comp = EC.NewComponent(name);
+        let comp = ToyActor.create(name);
         this.components[name] = comp;
         comp.entity = this;
         return comp;

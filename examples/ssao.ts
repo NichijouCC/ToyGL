@@ -151,15 +151,15 @@ export class SSAO {
         const gui = new dat.GUI();
         let ssaoOp = {
             // eslint-disable-next-line @typescript-eslint/camelcase
-            u_kernelRadius: 1.0,
-            minDistance: 0.001,
+            u_kernelRadius: 0.5,
+            minDistance: 0.01,
             maxDistance: 0.3,
             camerFar: 200,
         };
         gui.add(ssaoOp, "u_kernelRadius", 0.001, 10.0, 0.001);
-        gui.add(ssaoOp, "minDistance", 0.001, 0.009, 0.001);
+        gui.add(ssaoOp, "minDistance", 0.001, 0.03, 0.001);
         gui.add(ssaoOp, "maxDistance", 0.001, 0.3, 0.001);
-        gui.add(ssaoOp, "camerFar", 0.1, 200, 1.0).onChange((value: number) => {
+        gui.add(ssaoOp, "camerFar", 0.1, 400, 1.0).onChange((value: number) => {
             cam.far = value;
         });
 
