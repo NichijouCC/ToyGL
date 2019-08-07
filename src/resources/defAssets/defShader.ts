@@ -3,7 +3,7 @@ import { GlRender } from "../../render/glRender";
 import { Color } from "../../mathD/color";
 import { DefTextrue } from "./defTexture";
 
-export type shaderType = "2dColor" | "base" | "baseTex" | "alphaTex" | "2dTex";
+export type shaderType = "2dColor" | "3dBase" | "3dColor" | "3dTex" | "alphaTex" | "2dTex";
 export class DefShader {
     private static defShader: { [type: string]: Shader } = {};
 
@@ -24,9 +24,9 @@ export class DefShader {
     }
 
     private static _base: Shader;
-    static get BASE() {
+    static get COLOR3D() {
         if (this._base == null) {
-            this._base = this.fromType("base");
+            this._base = this.fromType("3dColor");
         }
         return this._base;
     }
@@ -34,7 +34,7 @@ export class DefShader {
     private static _baseTex3d: Shader;
     static get TEX3D() {
         if (this._baseTex3d == null) {
-            this._baseTex3d = this.fromType("baseTex");
+            this._baseTex3d = this.fromType("3dTex");
         }
         return this._baseTex3d;
     }
@@ -46,6 +46,13 @@ export class DefShader {
         }
         return this._alphaTex;
     }
+    private static _shadow: Shader;
+    static get SHADOW() {
+        if (this._shadow == null) {
+            this._shadow = this.fromType("3dBase");
+        }
+        return this._shadow;
+    }
     static fromType(type: shaderType): Shader {
         if (this.defShader[type] == null) {
             switch (type) {
@@ -55,10 +62,13 @@ export class DefShader {
                 case "2dTex":
                     this.defShader[type] = this.create2DTextureShader();
                     break;
-                case "base":
+                case "3dBase":
                     this.defShader[type] = this.create3DBaseShder();
                     break;
-                case "baseTex":
+                case "3dColor":
+                    this.defShader[type] = this.create3DColorShder();
+                    break;
+                case "3dTex":
                     this.defShader[type] = this.create3DTexShder();
                     break;
                 case "alphaTex":
@@ -153,6 +163,38 @@ export class DefShader {
               gl_Position = u_mat_mvp * tmplet_1;\
           }";
 
+        let baseFs = "\
+            void main()\
+            {\
+                gl_FragData[0] = vec4(1.0);\
+            }";
+        return Shader.fromCustomData({
+            passes: [
+                {
+                    program: {
+                        vs: baseVs,
+                        fs: baseFs,
+                    },
+                    states: {
+                        enableCullFace: false,
+                    },
+                },
+            ],
+            mapUniformDef: { MainColor: Color.create() },
+            name: "def_base",
+        });
+    }
+    private static create3DColorShder() {
+        let baseVs =
+            "\
+          attribute vec3 POSITION;\
+          uniform highp mat4 u_mat_mvp;\
+          void main()\
+          {\
+              highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
+              gl_Position = u_mat_mvp * tmplet_1;\
+          }";
+
         let baseFs =
             "\
             uniform highp vec4 MainColor;\
@@ -173,7 +215,7 @@ export class DefShader {
                 },
             ],
             mapUniformDef: { MainColor: Color.create() },
-            name: "def_base",
+            name: "def_3dColor",
         });
     }
 
@@ -213,7 +255,7 @@ export class DefShader {
                 },
             ],
             mapUniformDef: { MainColor: Color.create(), _MainTex: DefTextrue.GIRD },
-            name: "def_baseTex",
+            name: "def_3dTex",
         });
     }
     private static createAlphaTestShder() {

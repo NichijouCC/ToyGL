@@ -1,4 +1,5 @@
 import { Camera } from "../ec/components/camera";
+import { Light } from "../ec/components/light";
 
 import { Geometry } from "../resources/assets/geometry";
 import { Material } from "../resources/assets/material";
@@ -9,6 +10,7 @@ import { BoundingSphere } from "./bounds";
 export interface IframeState {
     renderList: Irenderable[];
     cameraList: Camera[];
+    lightList: Light[];
     deltaTime: number;
 }
 
@@ -20,15 +22,14 @@ export interface Irenderable {
     material: Material;
     modelMatrix: Mat4;
     bouningSphere?: BoundingSphere;
+
+    castShadow?: boolean;
+    receiveShadow?: boolean;
 }
 
 export class FrameState implements IframeState {
     deltaTime: number;
     renderList: Irenderable[] = [];
     cameraList: Camera[] = [];
-
-    reInit() {
-        this.renderList.length = 0;
-        this.cameraList.length = 0;
-    }
+    lightList: Light[] = [];
 }

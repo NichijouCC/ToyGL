@@ -10,9 +10,10 @@ export class RenderContext {
     viewPortPixel: Rect = new Rect(0, 0, 0, 0); //像素的viewport
     // campos: vec3;
 
-    get matrixModel(): Mat4 {
-        return this.curRender.modelMatrix;
-    }
+    // get matrixModel(): Mat4 {
+    //     return this.curRender.modelMatrix;
+    // }
+    matrixModel: Mat4;
     private _matrixNormalToworld: Mat4 = Mat4.create();
     get matrixNormalToworld(): Mat4 {
         Mat4.invert(this.matrixModel, this._matrixNormalToworld);
@@ -62,6 +63,6 @@ export class RenderContext {
     lightmap: Texture[] = null;
     // lightmapUV: number = 1;
     // lightmapOffset: vec4 = vec4.create(1, 1, 0, 0);
-    curRender: Irenderable;
+    // curRender: Irenderable;
     curCamera: Camera;
 }

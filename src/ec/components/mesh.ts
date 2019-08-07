@@ -10,7 +10,6 @@ export class Mesh implements Irender {
     mask: CullingMask = CullingMask.default;
     geometry: Geometry;
     material: Material;
-
     update(frameState: IframeState): void {
         if (this.geometry && this.material) {
             frameState.renderList.push({

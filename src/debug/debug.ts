@@ -2,12 +2,14 @@ import { Camera, ProjectionEnum } from "../ec/components/camera";
 import { Geometry } from "../resources/assets/geometry";
 import { GameScreen } from "../gameScreen";
 import { GlBuffer } from "../render/glRender";
-import { GlConstants } from "twebgl";
 import { Irenderable, IframeState } from "../scene/frameState";
 import { DefMaterial } from "../resources/defAssets/defMaterial";
 import { CullingMask } from "../ec/ec";
 import { VertexAttEnum } from "../render/vertexAttType";
 import { Mat4 } from "../mathD/mat4";
+import { GlConstants } from "../render/GlConstant";
+import { DefShader } from "../resources/defAssets/defShader";
+import { Material } from "../resources/assets/material";
 
 export class Debug {
     private static map: { [id: number]: Geometry } = {};
@@ -56,7 +58,7 @@ export class Debug {
                     this.map[camera.entity.guid] = geometry;
                     return {
                         geometry: geometry,
-                        material: DefMaterial.fromType("base"),
+                        material: DefMaterial.fromType("3dColor"),
                         modelMatrix: camera.entity.transform.worldMatrix,
                         maskLayer: CullingMask.default,
                     };
@@ -67,10 +69,21 @@ export class Debug {
             this.map[camera.entity.guid].updateAttData(VertexAttEnum.POSITION, new Float32Array(posArr));
             return {
                 geometry: this.map[camera.entity.guid],
-                material: DefMaterial.fromType("base"),
+                material: this.editorMat(),
                 modelMatrix: camera.entity.transform.worldMatrix,
                 maskLayer: CullingMask.default,
             };
         }
+    }
+
+    private static _edirotMat: Material;
+    static editorMat() {
+        if (this._edirotMat == null) {
+            let mat = new Material();
+            mat.shader = DefShader.fromType("3dColor");
+            mat.queue = 1;
+            this._edirotMat = mat;
+        }
+        return this._edirotMat;
     }
 }

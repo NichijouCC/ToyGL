@@ -14,9 +14,9 @@ window.onload = () => {
         // Base.done(toy);
         // LoadGltf.done(toy);
         // LookAt.done(toy);
-        // ShowCull.done(toy);
+        ShowCull.done(toy);
         // RenderTextureDome.done(toy);
         // DepthTexutreDemo.done(toy);
-        SSAO.done(toy);
+        // SSAO.done(toy);
     });
 };

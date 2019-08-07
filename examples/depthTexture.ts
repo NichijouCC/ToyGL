@@ -20,7 +20,7 @@ export class DepthTexutreDemo {
         let showCam = scene.addCamera();
         showCam.backgroundColor = Color.create(1, 0.5, 1, 1);
         let geometry = DefGeometry.fromType("cube");
-        let mat = DefMaterial.fromType("baseTex");
+        let mat = DefMaterial.fromType("3dTex");
 
         let rotObj = scene.newEntity("rotObj", ["Mesh"]);
         let meshcomp = rotObj.getCompByName("Mesh") as Mesh;

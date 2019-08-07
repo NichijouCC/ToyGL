@@ -17,7 +17,7 @@ export class Base {
         let geometry = DefGeometry.fromType("quad");
 
         ///------------def shader
-        let shader = DefShader.fromType("baseTex");
+        let shader = DefShader.fromType("3dTex");
         //-------------custom shader
         let customeShader = Resource.load("../res/shader/base.shader.json") as Shader;
 

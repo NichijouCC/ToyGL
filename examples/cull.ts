@@ -14,8 +14,25 @@ import { Color } from "../src/mathD/color";
 
 export class ShowCull {
     static done(toy: ToyGL) {
+        let cam = toy.scene.addCamera(); //cull camera
+        cam.entity.transform.localPosition = Vec3.create(0, 20, 0);
+        cam.entity.transform.lookAtPoint(Vec3.ZERO);
+        cam.viewport = Rect.create(0, 0, 0.5, 0.5);
+
+        let observeCam = toy.scene.addCamera();
+        observeCam.entity.beActive = false;
+        observeCam.entity.transform.localPosition = Vec3.create(150, 150, 150);
+        observeCam.entity.transform.lookAtPoint(Vec3.ZERO);
+        observeCam.viewport = Rect.create(0, 0, 1.0, 1.0);
+        observeCam.clearFlag = ClearEnum.COLOR | ClearEnum.DEPTH;
+
+        cam.afterRender = (render, arr) => {
+            arr.push(Debug.drawCameraWireframe(cam));
+            render.drawCamera(observeCam, arr);
+        };
+
         let geometry = DefGeometry.fromType("cube");
-        let mat = DefMaterial.fromType("baseTex");
+        let mat = DefMaterial.fromType("3dTex");
         mat.setTexture("_MainTex", DefTextrue.GIRD);
 
         let sideCount = 100 / 2;
@@ -33,7 +50,7 @@ export class ShowCull {
         let mesh = obj.addCompByName("Mesh") as Mesh;
         mesh.geometry = geometry;
         let whiteMat = new Material();
-        whiteMat.shader = DefShader.fromType("baseTex");
+        whiteMat.shader = DefShader.fromType("3dTex");
         whiteMat.setTexture("_MainTex", DefTextrue.GIRD);
         whiteMat.setColor("MainColor", Color.create(1, 0, 0, 1));
 
@@ -41,23 +58,6 @@ export class ShowCull {
         obj.transform.localPosition = Vec3.create(0, 0, 0);
         obj.transform.localScale = Vec3.create(150, 0.1, 150);
         toy.scene.addEntity(obj);
-
-        let cam = toy.scene.addCamera(); //cull camera
-        cam.entity.transform.localPosition = Vec3.create(0, 20, 0);
-        cam.entity.transform.lookAtPoint(Vec3.ZERO);
-        cam.viewport = Rect.create(0, 0, 0.5, 0.5);
-
-        let observeCam = toy.scene.addCamera();
-        observeCam.entity.beActive = false;
-        observeCam.entity.transform.localPosition = Vec3.create(150, 150, 150);
-        observeCam.entity.transform.lookAtPoint(Vec3.ZERO);
-        observeCam.viewport = Rect.create(0.5, 0.5, 0.5, 0.5);
-        observeCam.clearFlag = ClearEnum.NONE;
-
-        cam.afterRender = (render, arr) => {
-            arr.push(Debug.drawCameraWireframe(cam));
-            render.drawCamera(observeCam, arr);
-        };
 
         let totalTime = 0;
         toy.scene.preUpdate = delta => {

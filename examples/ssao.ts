@@ -49,7 +49,7 @@ export class SSAO {
         };
         for (let i = 0; i < 100; i++) {
             let mat = new Material();
-            mat.shader = DefShader.fromType("base");
+            mat.shader = DefShader.fromType("3dColor");
             mat.setColor("MainColor", Color.random());
 
             let mesh = toy.scene.addDefMesh("cube", mat);

@@ -42,7 +42,7 @@ export class Scene {
         if (geometry != null) {
             let mesh = this.newEntity("defMesh", ["Mesh"]).getCompByName("Mesh") as Mesh;
             mesh.geometry = DefGeometry.fromType(type);
-            mesh.material = material || DefMaterial.fromType("base");
+            mesh.material = material || DefMaterial.fromType("3dColor");
             return mesh;
         } else {
             return null;
@@ -62,13 +62,19 @@ export class Scene {
         }
     }
 
+    private initFrameState(frameState: FrameState) {
+        frameState.renderList.length = 0;
+        frameState.cameraList.length = 0;
+    }
+
     preUpdate: (deltatime: number) => void;
 
     update(deltatime: number) {
         if (this.preUpdate) {
             this.preUpdate(deltatime);
         }
-        this.frameState.reInit();
+        this.initFrameState(this.frameState);
+
         this.frameState.deltaTime = deltatime;
         this.foreachRootNodes(node => {
             this._updateNode(node, this.frameState);
@@ -78,20 +84,32 @@ export class Scene {
             return a.priority - b.priority;
         });
 
+        //------------------------shadow mapping
+        if (this.frameState.lightList.length > 0) {
+            let castShadowList = this.frameState.renderList.filter(item => {
+                return item.castShadow;
+            });
+            for (let i = 0; i < this.frameState.lightList.length; i++) {
+                let light = this.frameState.lightList[i];
+                this.render.renderShadowMap(light, castShadowList);
+            }
+        }
+
         for (let i = 0; i < this.frameState.cameraList.length; i++) {
             let cam = this.frameState.cameraList[i];
+            let _renderList = this.frameState.renderList.filter(item => {
+                return this.maskCheck(cam.cullingMask, item) && this.frusumCheck(cam.frustum, item);
+            });
+            // let _frameState = { ...this.frameState, renderList: _renderList };
 
             // Debug.drawCameraWireframe(cam, this.frameState);
             // this.frameState.renderList = [Debug.showCameraWireframe(cam)];
-            let arr = this.frameState.renderList.filter(item => {
-                return this.maskCheck(cam.cullingMask, item) && this.frusumCheck(cam.frustum, item);
-            });
             if (cam.preRender) {
-                cam.preRender(this.render, arr);
+                cam.preRender(this.render, _renderList);
             }
-            this.render.drawCamera(cam, arr);
+            this.render.drawCamera(cam, _renderList, this.frameState.lightList);
             if (cam.afterRender) {
-                cam.afterRender(this.render, arr);
+                cam.afterRender(this.render, _renderList);
             }
         }
     }
