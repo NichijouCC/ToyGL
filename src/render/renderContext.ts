@@ -3,6 +3,7 @@ import { Texture } from "../resources/assets/texture";
 import { Camera } from "../ec/components/camera";
 import { Mat4 } from "../mathD/mat4";
 import { Irenderable } from "../scene/frameState";
+import { RenderTexture } from "../resources/assets/renderTexture";
 
 export class RenderContext {
     activeTexCount: number = 0;
@@ -65,4 +66,6 @@ export class RenderContext {
     // lightmapOffset: vec4 = vec4.create(1, 1, 0, 0);
     // curRender: Irenderable;
     curCamera: Camera;
+
+    lightShadowTex: RenderTexture[] = [];
 }

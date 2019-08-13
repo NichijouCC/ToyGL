@@ -18,7 +18,7 @@ export class RenderTextureDome {
         let showCam = scene.addCamera();
         showCam.backgroundColor = Color.create(1, 0.5, 1, 1);
         let geometry = DefGeometry.fromType("cube");
-        let mat = DefMaterial.fromType("baseTex");
+        let mat = DefMaterial.fromType("3dTex");
 
         let rotObj = scene.newEntity("rotObj", ["Mesh"]);
         let meshcomp = rotObj.getCompByName("Mesh") as Mesh;
@@ -41,7 +41,7 @@ export class RenderTextureDome {
         let showMesh = showObj.getCompByName("Mesh") as Mesh;
         showMesh.geometry = geometry;
         showMesh.material = new Material();
-        showMesh.material.shader = DefShader.fromType("baseTex");
+        showMesh.material.shader = DefShader.fromType("3dTex");
         showMesh.material.setTexture("_MainTex", showCam.targetTexture.colorTexture);
 
         let cam = toy.scene.addCamera();

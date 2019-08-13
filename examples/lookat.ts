@@ -17,7 +17,7 @@ export class LookAt {
         let mesh = centerEnity.getCompByName("Mesh") as Mesh;
         mesh.geometry = geometry;
         mesh.material = new Material();
-        mesh.material.shader = DefShader.fromType("baseTex");
+        mesh.material.shader = DefShader.fromType("3dTex");
         mesh.material.setTexture("_MainTex", DefTextrue.GIRD);
 
         let rotMesh = rotEntity.getCompByName("Mesh") as Mesh;
