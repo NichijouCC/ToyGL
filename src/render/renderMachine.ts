@@ -79,7 +79,7 @@ export class RenderMachine {
         }
     }
 
-    renderShadowMap(light: Light, renderlist: Irenderable[]): ItextureInfo {
+    renderShadowDepthTex(light: Light, renderlist: Irenderable[]): ItextureInfo {
         let list = renderlist.filter(item => {
             return (item.maskLayer & light.cullingMask) !== 0;
         });

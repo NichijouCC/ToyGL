@@ -4,11 +4,9 @@ import { DefMaterial } from "../src/resources/defAssets/defMaterial";
 import { Mesh } from "../src/ec/entity";
 import { Quat } from "../src/mathD/quat";
 import { Vec3 } from "../src/mathD/vec3";
-import { Scene } from "../src/scene/scene";
 import { RenderTexture } from "../src/resources/assets/renderTexture";
 import { Material } from "../src/resources/assets/material";
 import { DefShader } from "../src/resources/defAssets/defShader";
-import { DefTextrue } from "../src/resources/defAssets/defTexture";
 import { Color } from "../src/mathD/color";
 
 export class RenderTextureDome {
@@ -18,7 +16,7 @@ export class RenderTextureDome {
         let showCam = scene.addCamera();
         showCam.backgroundColor = Color.create(1, 0.5, 1, 1);
         let geometry = DefGeometry.fromType("cube");
-        let mat = DefMaterial.fromType("baseTex");
+        let mat = DefMaterial.fromType("3dTex");
 
         let rotObj = scene.newEntity("rotObj", ["Mesh"]);
         let meshcomp = rotObj.getCompByName("Mesh") as Mesh;
@@ -41,7 +39,7 @@ export class RenderTextureDome {
         let showMesh = showObj.getCompByName("Mesh") as Mesh;
         showMesh.geometry = geometry;
         showMesh.material = new Material();
-        showMesh.material.shader = DefShader.fromType("baseTex");
+        showMesh.material.shader = DefShader.fromType("3dTex");
         showMesh.material.setTexture("_MainTex", showCam.targetTexture.colorTexture);
 
         let cam = toy.scene.addCamera();

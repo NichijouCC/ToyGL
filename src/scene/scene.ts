@@ -91,7 +91,7 @@ export class Scene {
             });
             for (let i = 0; i < this.frameState.lightList.length; i++) {
                 let light = this.frameState.lightList[i];
-                this.render.renderShadowMap(light, castShadowList);
+                this.render.renderShadowDepthTex(light, castShadowList);
             }
         }
 
