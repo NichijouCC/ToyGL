@@ -1,34 +1,38 @@
 export class ShaderSource {
+    sources: string[];
     defines: string[];
-    source: string;
 
-    static getDependencyNode(name, glslSource, nodes) {
-        var dependencyNode;
+    private _combinedShader: string;
+    get combindedShader(): string {
+        if (this._combinedShader == null) {
+            let combinedSources = "";
 
-        // check if already loaded
-        for (var i = 0; i < nodes.length; ++i) {
-            if (nodes[i].name === name) {
-                dependencyNode = nodes[i];
+            for (let i = 0; i < this.defines.length; i++) {
+                if (this.defines[i] != null) {
+                    combinedSources += "#define " + this.defines[i] + "\n";
+                }
+            }
+            for (let i = 0; i < this.sources.length; i++) {
+                if (this.sources[i] != null) {
+                    // #line needs to be on its own line.
+                    combinedSources += "\n#line 0\n" + this.sources[i];
+                }
+            }
+            this._combinedShader = this.appendShader(new ShaderNode("main", combinedSources), []);
+        }
+        return this._combinedShader;
+    }
+
+    private appendShader(shader: ShaderNode, dependsOn: string[]): string {
+        let combined = "";
+        for (let i = 0; i < shader.dependsOn.length; i++) {
+            if (dependsOn.indexOf(shader.dependsOn[i].name) != -1) {
+                let appendStr = this.appendShader(shader.dependsOn[i], dependsOn);
+                dependsOn.push(shader.dependsOn[i].name);
+                combined += appendStr;
             }
         }
-
-        if (!defined(dependencyNode)) {
-            // strip doc comments so we don't accidentally try to determine a dependency for something found
-            // in a comment
-            glslSource = removeComments(glslSource);
-
-            // create new node
-            dependencyNode = {
-                name: name,
-                glslSource: glslSource,
-                dependsOn: [],
-                requiredBy: [],
-                evaluated: false,
-            };
-            nodes.push(dependencyNode);
-        }
-
-        return dependencyNode;
+        return combined + shader.glslSource;
     }
 }
 
@@ -43,11 +47,11 @@ export class ShaderNode {
         // remove inline comments
         source = source.replace(/\/\/.*/g, "");
         // remove multiline comment block
-        return source.replace(/\/\*\*[\s\S]*?\*\//gm, function (match) {
+        return source.replace(/\/\*\*[\s\S]*?\*\//gm, function(match) {
             // preserve the number of lines in the comment block so the line numbers will be correct when debugging shaders
-            var numberOfLines = match.match(/\n/gm).length;
-            var replacement = "";
-            for (var lineNumber = 0; lineNumber < numberOfLines; ++lineNumber) {
+            let numberOfLines = match.match(/\n/gm).length;
+            let replacement = "";
+            for (let lineNumber = 0; lineNumber < numberOfLines; ++lineNumber) {
                 replacement += "\n";
             }
             return replacement;
@@ -55,6 +59,7 @@ export class ShaderNode {
     }
 
     constructor(name: string, source: string) {
+        this.name = name;
         let glslStr = ShaderNode.removeComments(source);
         this.glslSource = glslStr;
         var czmMatches = glslStr.match(/\bczm_[a-zA-Z0-9_]*/g);
