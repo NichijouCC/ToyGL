@@ -26,7 +26,7 @@ export class ShaderSource {
     private appendShader(shader: ShaderNode, dependsOn: string[]): string {
         let combined = "";
         for (let i = 0; i < shader.dependsOn.length; i++) {
-            if (dependsOn.indexOf(shader.dependsOn[i].name) != -1) {
+            if (dependsOn.indexOf(shader.dependsOn[i].name) == -1) {
                 let appendStr = this.appendShader(shader.dependsOn[i], dependsOn);
                 dependsOn.push(shader.dependsOn[i].name);
                 combined += appendStr;
