@@ -44,13 +44,12 @@ export class Mat3 extends Float32Array {
     public static disposeRecycledItems() {
         Mat3.Recycle.length = 0;
     }
-    // public constructor()
-    // {
-    //     super(9);
-    //     this[0]=1;
-    //     this[4]=1;
-    //     this[8]=1;
-    // }
+    constructor() {
+        super(9);
+        this[0] = 1;
+        this[4] = 1;
+        this[8] = 1;
+    }
 
     /**
      * Copies the upper-left 3x3 values into the given mat3.

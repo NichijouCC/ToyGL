@@ -156,11 +156,11 @@ export class DefShader {
         let baseVs =
             "\
           attribute vec3 POSITION;\
-          uniform highp mat4 u_mat_mvp;\
+          uniform highp mat4 czm_modelViewp;\
           void main()\
           {\
               highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
-              gl_Position = u_mat_mvp * tmplet_1;\
+              gl_Position = czm_modelViewp * tmplet_1;\
           }";
 
         let baseFs = "\
@@ -188,11 +188,11 @@ export class DefShader {
         let baseVs =
             "\
           attribute vec3 POSITION;\
-          uniform highp mat4 u_mat_mvp;\
+          uniform highp mat4 czm_modelViewp;\
           void main()\
           {\
               highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
-              gl_Position = u_mat_mvp * tmplet_1;\
+              gl_Position = czm_modelViewp * tmplet_1;\
           }";
 
         let baseFs =
@@ -224,13 +224,13 @@ export class DefShader {
             "\
           attribute vec3 POSITION;\
           attribute vec3 TEXCOORD_0;\
-          uniform highp mat4 u_mat_mvp;\
+          uniform highp mat4 czm_modelViewp;\
           varying mediump vec2 xlv_TEXCOORD0;\
           void main()\
           {\
               highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
               xlv_TEXCOORD0 = TEXCOORD_0.xy;\
-              gl_Position = u_mat_mvp * tmplet_1;\
+              gl_Position = czm_modelViewp * tmplet_1;\
           }";
 
         let baseFs =
@@ -263,13 +263,13 @@ export class DefShader {
             "\
           attribute vec3 POSITION;\
           attribute vec2 TEXCOORD_0;\
-          uniform highp mat4 u_mat_mvp;\
+          uniform highp mat4 czm_modelViewp;\
           varying mediump vec2 xlv_TEXCOORD0;\
           void main()\
           {\
               highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
               xlv_TEXCOORD0 = TEXCOORD_0.xy;\
-              gl_Position = u_mat_mvp * tmplet_1;\
+              gl_Position = czm_modelViewp * tmplet_1;\
           }";
 
         let baseFs =
