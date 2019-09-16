@@ -72,7 +72,7 @@ export class Vec4 extends Float32Array {
     public static disposeRecycledItems() {
         Vec4.Recycle.length = 0;
     }
-    private constructor(x: number = 0, y: number = 0, z: number = 0, w: number = 0) {
+    constructor(x: number = 0, y: number = 0, z: number = 0, w: number = 0) {
         super(4);
         this[0] = x;
         this[1] = y;

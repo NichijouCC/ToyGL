@@ -64,7 +64,7 @@ export class Quat extends Float32Array {
     public static disposeRecycledItems() {
         Quat.Recycle.length = 0;
     }
-    private constructor() {
+    constructor() {
         super(4);
         // this[0]=0;
         // this[1]=0;

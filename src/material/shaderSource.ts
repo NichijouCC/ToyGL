@@ -1,7 +1,11 @@
 export class ShaderSource {
-    sources: string[];
-    defines: string[];
+    private sources: string[];
+    private defines: string[];
 
+    constructor(source: string, defines: string[]) {
+        this.sources = [source];
+        this.defines = defines;
+    }
     private _combinedShader: string;
     get combindedShader(): string {
         if (this._combinedShader == null) {
@@ -47,7 +51,7 @@ export class ShaderNode {
         // remove inline comments
         source = source.replace(/\/\/.*/g, "");
         // remove multiline comment block
-        return source.replace(/\/\*\*[\s\S]*?\*\//gm, function(match) {
+        return source.replace(/\/\*\*[\s\S]*?\*\//gm, function (match) {
             // preserve the number of lines in the comment block so the line numbers will be correct when debugging shaders
             let numberOfLines = match.match(/\n/gm).length;
             let replacement = "";
@@ -101,4 +105,9 @@ export class BuiltInGLSL {
             return null;
         }
     }
+
+    static addShaderNode(name: string, source: string) {
+        this.sourceMap[name] = source;
+    }
 }
+

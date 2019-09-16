@@ -2,8 +2,7 @@ import { GlRender, ItextureInfo } from "./glRender";
 import { Irenderable, FrameState, IframeState } from "../scene/frameState";
 import { RenderList } from "./renderList";
 import { ClearEnum, Camera } from "../ec/components/camera";
-import { RenderContext } from "./renderContext";
-import { AutoUniform } from "./autoUniform";
+import { UniformState } from "./uniformState";
 import { Material } from "../resources/assets/material";
 import { DefGeometry } from "../resources/defAssets/defGeometry";
 import { Rect } from "../mathD/rect";
@@ -15,10 +14,9 @@ import { Mat4 } from "../mathD/mat4";
 import { DefMaterial } from "../resources/defAssets/defMaterial";
 
 export class RenderMachine {
-    private rendercontext: RenderContext;
+    private rendercontext: UniformState;
     constructor(cancvas: HTMLCanvasElement) {
-        this.rendercontext = new RenderContext();
-        GlRender.autoUniform = new AutoUniform(this.rendercontext);
+        this.rendercontext = new UniformState();
         GlRender.init(cancvas, { extentions: ["WEBGL_depth_texture"] });
     }
     private camRenderList: { [cameraId: number]: RenderList } = {};

@@ -64,7 +64,7 @@ export class Color extends Float32Array {
     public static disposeRecycledItems() {
         Color.Recycle.length = 0;
     }
-    private constructor(r: number = 1, g: number, b: number = 1, a: number = 1) {
+    constructor(r: number = 1, g: number, b: number = 1, a: number = 1) {
         super(4);
         this[0] = r;
         this[1] = g;

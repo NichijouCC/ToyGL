@@ -33,9 +33,9 @@ import {
     IfboInfo,
     setFboInfoWithCached,
 } from "twebgl";
-import { AutoUniform } from "./autoUniform";
 import { UniformTypeEnum } from "../resources/assets/shader";
 import { VertexAttEnum } from "./vertexAttType";
+import { AutoUniforms } from "./autoUniform";
 export {
     IprogramInfo,
     IgeometryInfo,
@@ -60,7 +60,6 @@ export {
 export class GlRender {
     private static context: WebGLRenderingContext;
     private static canvas: HTMLCanvasElement;
-    static autoUniform: AutoUniform;
     static init(canvas: HTMLCanvasElement, options: IcontextOptions = {}) {
         this.context = setUpWebgl(canvas, options);
         this.canvas = canvas;
@@ -165,8 +164,8 @@ export class GlRender {
         for (const key in uniformsDic) {
             if (uniforms[key] != null) {
                 uniformsDic[key].setter(uniforms[key]);
-            } else if (this.autoUniform && this.autoUniform.autoUniforms[key]) {
-                let value = this.autoUniform.autoUniforms[key]();
+            } else if (AutoUniforms.containAuto(key)) {
+                let value = AutoUniforms.getvalue(key);
                 uniformsDic[key].setter(value);
             } else {
                 uniformsDic[key].setter(mapUniformDef && mapUniformDef[key].value);

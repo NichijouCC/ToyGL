@@ -5,7 +5,7 @@ import { Mat4 } from "../mathD/mat4";
 import { Irenderable } from "../scene/frameState";
 import { RenderTexture } from "../resources/assets/renderTexture";
 
-export class RenderContext {
+export class UniformState {
     activeTexCount: number = 0;
 
     viewPortPixel: Rect = new Rect(0, 0, 0, 0); //像素的viewport

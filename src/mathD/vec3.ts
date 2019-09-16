@@ -75,7 +75,7 @@ export class Vec3 extends Float32Array {
         Vec3.Recycle.length = 0;
     }
 
-    private constructor(x: number = 0, y: number = 0, z: number = 0) {
+    constructor(x: number = 0, y: number = 0, z: number = 0) {
         super(3);
         this[0] = x;
         this[1] = y;

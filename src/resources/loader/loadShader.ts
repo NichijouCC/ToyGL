@@ -158,10 +158,10 @@ export class LoadShader implements IassetLoader {
                         mapUniformDef[key] = { type: UniformTypeEnum.FLOAT_VEC4, value: _vector };
                         break;
                     case "texture":
-                        mapUniformDef[key] = { type: UniformTypeEnum.TEXTURE, value: null }; //words[4]
+                        mapUniformDef[key] = { type: UniformTypeEnum.SAMPLER_2D, value: null }; //words[4]
                         break;
                     case "cubetexture":
-                        mapUniformDef[key] = { type: UniformTypeEnum.TEXTURE, value: null };
+                        mapUniformDef[key] = { type: UniformTypeEnum.SAMPLER_2D, value: null };
                         break;
                     default:
                         let errorMsg =
