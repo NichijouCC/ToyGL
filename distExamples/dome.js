@@ -1,10 +1,11 @@
 
-(function(l, i, v, e) { v = l.createElement(i); v.async = 1; v.src = '//' + (location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; e = l.getElementsByTagName(i)[0]; e.parentNode.insertBefore(v, e)})(document, 'script');
+(function (l, i, v, e) { v = l.createElement(i); v.async = 1; v.src = '//' + (location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; e = l.getElementsByTagName(i)[0]; e.parentNode.insertBefore(v, e) })(document, 'script');
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
-    typeof define === 'function' && define.amd ? define(factory) :
-    (factory());
-}(this, (function () { 'use strict';
+        typeof define === 'function' && define.amd ? define(factory) :
+            (factory());
+}(this, (function () {
+    'use strict';
 
     /* DataType */
     var BYTE = 0x1400;
@@ -852,7 +853,7 @@
     and limitations under the License.
     ***************************************************************************** */
 
-    var __assign = function() {
+    var __assign = function () {
         __assign = Object.assign || function __assign(t) {
             for (var s, i = 1, n = arguments.length; i < n; i++) {
                 s = arguments[i];
@@ -4765,37 +4766,37 @@
             this.init();
         }
         init() {
-            this.uniformDic["u_mat_m"] = () => {
+            this.uniformDic["czm_model"] = () => {
                 return this.renderContext.matrixModel;
             };
-            this.uniformDic["u_mat_v"] = () => {
+            this.uniformDic["czm_view"] = () => {
                 return this.renderContext.matrixView;
             };
-            this.uniformDic["u_mat_p"] = () => {
+            this.uniformDic["czm_projection"] = () => {
                 return this.renderContext.matrixProject;
             };
-            this.uniformDic["u_mat_mv"] = () => {
+            this.uniformDic["czm_modelView"] = () => {
                 return this.renderContext.matrixModelView;
             };
-            this.uniformDic["u_mat_vp"] = () => {
+            this.uniformDic["czm_viewp"] = () => {
                 return this.renderContext.matrixViewProject;
             };
-            this.uniformDic["u_mat_mvp"] = () => {
+            this.uniformDic["czm_modelViewp"] = () => {
                 return this.renderContext.matrixModelViewProject;
             };
-            this.uniformDic["u_mat_normal"] = () => {
+            this.uniformDic["czm_normal"] = () => {
                 return this.renderContext.matrixNormalToView;
             };
-            this.uniformDic["u_fov"] = () => {
+            this.uniformDic["czm_fov"] = () => {
                 return this.renderContext.curCamera.fov;
             };
-            this.uniformDic["u_aspect"] = () => {
+            this.uniformDic["czm_aspect"] = () => {
                 return this.renderContext.curCamera.aspect;
             };
-            this.uniformDic["u_cameraNear"] = () => {
+            this.uniformDic["czm_near"] = () => {
                 return this.renderContext.curCamera.near;
             };
-            this.uniformDic["u_cameraFar"] = () => {
+            this.uniformDic["czm_far"] = () => {
                 return this.renderContext.curCamera.far;
             };
             // this.AutoUniformDic["u_timer"] = () => {
@@ -5951,11 +5952,11 @@
         static create3DBaseShder() {
             let baseVs = "\
           attribute vec3 POSITION;\
-          uniform highp mat4 u_mat_mvp;\
+          uniform highp mat4 czm_modelViewp;\
           void main()\
           {\
               highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
-              gl_Position = u_mat_mvp * tmplet_1;\
+              gl_Position = czm_modelViewp * tmplet_1;\
           }";
             let baseFs = "\
             void main()\
@@ -5981,11 +5982,11 @@
         static create3DColorShder() {
             let baseVs = "\
           attribute vec3 POSITION;\
-          uniform highp mat4 u_mat_mvp;\
+          uniform highp mat4 czm_modelViewp;\
           void main()\
           {\
               highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
-              gl_Position = u_mat_mvp * tmplet_1;\
+              gl_Position = czm_modelViewp * tmplet_1;\
           }";
             let baseFs = "\
             uniform highp vec4 MainColor;\
@@ -6013,13 +6014,13 @@
             let baseVs = "\
           attribute vec3 POSITION;\
           attribute vec3 TEXCOORD_0;\
-          uniform highp mat4 u_mat_mvp;\
+          uniform highp mat4 czm_modelViewp;\
           varying mediump vec2 xlv_TEXCOORD0;\
           void main()\
           {\
               highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
               xlv_TEXCOORD0 = TEXCOORD_0.xy;\
-              gl_Position = u_mat_mvp * tmplet_1;\
+              gl_Position = czm_modelViewp * tmplet_1;\
           }";
             let baseFs = "\
             uniform highp vec4 MainColor;\
@@ -6037,7 +6038,7 @@
                             fs: baseFs,
                         },
                         states: {
-                        // enableCullFace: false,
+                            // enableCullFace: false,
                         },
                     },
                 ],
@@ -6049,13 +6050,13 @@
             let baseVs = "\
           attribute vec3 POSITION;\
           attribute vec2 TEXCOORD_0;\
-          uniform highp mat4 u_mat_mvp;\
+          uniform highp mat4 czm_modelViewp;\
           varying mediump vec2 xlv_TEXCOORD0;\
           void main()\
           {\
               highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
               xlv_TEXCOORD0 = TEXCOORD_0.xy;\
-              gl_Position = u_mat_mvp * tmplet_1;\
+              gl_Position = czm_modelViewp * tmplet_1;\
           }";
             let baseFs = "\
             uniform highp vec4 MainColor;\
@@ -9015,17 +9016,17 @@
                 }
             })
                 .then(value => {
-                text.content = value;
-                if (onFinish) {
-                    onFinish(text, { url: url, loadState: LoadEnum.Success });
-                }
-            })
+                    text.content = value;
+                    if (onFinish) {
+                        onFinish(text, { url: url, loadState: LoadEnum.Success });
+                    }
+                })
                 .catch(error => {
-                let errorMsg = "ERROR:Load Txt/json Error!\n  Info: LOAD URL: " + url + "  LOAD MSG:" + error.message;
-                if (onFinish) {
-                    onFinish(text, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
-                }
-            });
+                    let errorMsg = "ERROR:Load Txt/json Error!\n  Info: LOAD URL: " + url + "  LOAD MSG:" + error.message;
+                    if (onFinish) {
+                        onFinish(text, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
+                    }
+                });
             return text;
         }
     }
@@ -10089,36 +10090,36 @@
             let shader = new Shader({ name: name, URL: url });
             loadText(url)
                 .then(txt => {
-                let json = JSON.parse(txt);
-                let layer = getShaderLayerFromStr(json.layer || "Geometry");
-                let queue = json.queue != null ? json.queue : 0;
-                let defUniform = LoadShader.parseProperties(json.properties, name);
-                let features = json.feature != null ? [...json.feature, "base"] : ["base"];
-                let index = url.lastIndexOf("/");
-                let shaderurl = url.substring(0, index + 1);
-                LoadShader.ParseShaderPass(features, json.passes, shaderurl, name)
-                    .then(progamArr => {
-                    shader.layer = layer;
-                    shader.queue = queue;
-                    shader.mapUniformDef = defUniform;
-                    shader.passes = progamArr;
-                    if (onFinish) {
-                        onFinish(shader, { url: url, loadState: LoadEnum.Success });
-                    }
+                    let json = JSON.parse(txt);
+                    let layer = getShaderLayerFromStr(json.layer || "Geometry");
+                    let queue = json.queue != null ? json.queue : 0;
+                    let defUniform = LoadShader.parseProperties(json.properties, name);
+                    let features = json.feature != null ? [...json.feature, "base"] : ["base"];
+                    let index = url.lastIndexOf("/");
+                    let shaderurl = url.substring(0, index + 1);
+                    LoadShader.ParseShaderPass(features, json.passes, shaderurl, name)
+                        .then(progamArr => {
+                            shader.layer = layer;
+                            shader.queue = queue;
+                            shader.mapUniformDef = defUniform;
+                            shader.passes = progamArr;
+                            if (onFinish) {
+                                onFinish(shader, { url: url, loadState: LoadEnum.Success });
+                            }
+                        })
+                        .catch(error => {
+                            let errorMsg = "ERROR: parse shader Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + error.message;
+                            if (onFinish) {
+                                onFinish(shader, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
+                            }
+                        });
                 })
-                    .catch(error => {
-                    let errorMsg = "ERROR: parse shader Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + error.message;
+                .catch(err => {
+                    let errorMsg = "ERROR: Load shader Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
                     if (onFinish) {
                         onFinish(shader, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
                     }
                 });
-            })
-                .catch(err => {
-                let errorMsg = "ERROR: Load shader Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
-                if (onFinish) {
-                    onFinish(shader, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
-                }
-            });
             return shader;
         }
         static parseProperties(properties, name) {
@@ -10173,10 +10174,10 @@
                             mapUniformDef[key] = { type: UniformTypeEnum.FLOAT_VEC4, value: _vector };
                             break;
                         case "texture":
-                            mapUniformDef[key] = { type: UniformTypeEnum.TEXTURE, value: null }; //words[4]
+                            mapUniformDef[key] = { type: UniformTypeEnum.SAMPLER_2D, value: null }; //words[4]
                             break;
                         case "cubetexture":
-                            mapUniformDef[key] = { type: UniformTypeEnum.TEXTURE, value: null };
+                            mapUniformDef[key] = { type: UniformTypeEnum.SAMPLER_2D, value: null };
                             break;
                         default:
                             let errorMsg = "ERROR: parse shader(" +
@@ -10238,17 +10239,17 @@
             let texture = new Texture({ name: name, URL: url });
             loadImg(url)
                 .then(img => {
-                texture = Texture.fromImageSource(img, null, texture);
-                if (onFinish) {
-                    onFinish(texture, { url: url, loadState: LoadEnum.Success });
-                }
-            })
+                    texture = Texture.fromImageSource(img, null, texture);
+                    if (onFinish) {
+                        onFinish(texture, { url: url, loadState: LoadEnum.Success });
+                    }
+                })
                 .catch(err => {
-                let errorMsg = "ERROR: Load Image Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
-                if (onFinish) {
-                    onFinish(texture, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
-                }
-            });
+                    let errorMsg = "ERROR: Load Image Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
+                    if (onFinish) {
+                        onFinish(texture, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
+                    }
+                });
             return texture;
         }
     }
@@ -10259,27 +10260,27 @@
             //-------------load image des
             loadText(url)
                 .then(txt => {
-                let desjson = JSON.parse(txt);
-                let imgName = desjson.texture;
-                let desname = getFileName(url);
-                let imgurl = url.replace(desname, imgName);
-                loadImg(imgurl)
-                    .then(img => {
-                    texture = Texture.fromImageSource(img, null, texture);
-                    if (onFinish) {
-                        onFinish(texture, { url: url, loadState: LoadEnum.Success });
-                    }
+                    let desjson = JSON.parse(txt);
+                    let imgName = desjson.texture;
+                    let desname = getFileName(url);
+                    let imgurl = url.replace(desname, imgName);
+                    loadImg(imgurl)
+                        .then(img => {
+                            texture = Texture.fromImageSource(img, null, texture);
+                            if (onFinish) {
+                                onFinish(texture, { url: url, loadState: LoadEnum.Success });
+                            }
+                        })
+                        .catch(err => {
+                            let errorMsg = "ERROR: Load Image Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
+                            if (onFinish) {
+                                onFinish(texture, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
+                            }
+                        });
                 })
-                    .catch(err => {
-                    let errorMsg = "ERROR: Load Image Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
-                    if (onFinish) {
-                        onFinish(texture, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
-                    }
-                });
-            })
                 .catch(err => {
-                let errorMsg = "ERROR: Load Image Des Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
-            });
+                    let errorMsg = "ERROR: Load Image Des Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
+                });
             return texture;
         }
     }
@@ -11357,18 +11358,18 @@
             this.onFinish = onFinish;
             this.loadAsync(url)
                 .then(gltfJson => {
-                let scene = gltfJson.scene ? gltfJson.scene : 0;
-                ParseSceneNode.parse(scene, gltfJson).then(trans => {
-                    asset.roots = trans;
-                    if (this.onFinish) {
-                        this.onFinish(asset, { loadState: LoadEnum.Success, url: url });
-                    }
-                });
-            })
+                    let scene = gltfJson.scene ? gltfJson.scene : 0;
+                    ParseSceneNode.parse(scene, gltfJson).then(trans => {
+                        asset.roots = trans;
+                        if (this.onFinish) {
+                            this.onFinish(asset, { loadState: LoadEnum.Success, url: url });
+                        }
+                    });
+                })
                 .catch(error => {
-                let errorMsg = "ERROR: Load GLTFAsset Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + error.message;
-                console.error(errorMsg);
-            });
+                    let errorMsg = "ERROR: Load GLTFAsset Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + error.message;
+                    console.error(errorMsg);
+                });
             return asset;
         }
         static regExtension(type, extension) {

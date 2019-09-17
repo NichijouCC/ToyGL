@@ -1,7 +1,7 @@
 attribute highp vec4 POSITION;
 attribute mediump vec4 TEXCOORD_0;
 
-uniform highp mat4 u_mat_mvp;
+uniform highp mat4 czm_modelViewp;
 uniform mediump vec4 _MainTex_ST;  
 varying mediump vec2 xlv_TEXCOORD0;
 
@@ -78,7 +78,7 @@ void main()
     position =calcVertex(position,_glesBlendIndex4,_glesBlendWeight4);
     #endif
 	//light
-    position = (u_mat_mvp * position);    
+    position = (czm_modelViewp * position);    
 
     #ifdef FOG
     factor = (glstate_fog_end - abs(position.z))/(glstate_fog_end - glstate_fog_start); 

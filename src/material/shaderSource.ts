@@ -1,3 +1,5 @@
+import { BuiltInGLSL } from "./czmBuiltins";
+
 export class ShaderSource {
     private sources: string[];
     private defines: string[];
@@ -51,7 +53,7 @@ export class ShaderNode {
         // remove inline comments
         source = source.replace(/\/\/.*/g, "");
         // remove multiline comment block
-        return source.replace(/\/\*\*[\s\S]*?\*\//gm, function (match) {
+        return source.replace(/\/\*\*[\s\S]*?\*\//gm, match => {
             // preserve the number of lines in the comment block so the line numbers will be correct when debugging shaders
             let numberOfLines = match.match(/\n/gm).length;
             let replacement = "";
@@ -84,30 +86,3 @@ export class ShaderNode {
         }
     }
 }
-
-export class BuiltInGLSL {
-    static sourceMap: { [name: string]: string };
-
-    static nodeMap: { [name: string]: ShaderNode } = {};
-
-    static beContain(name: string): boolean {
-        return this.sourceMap[name] != null;
-    }
-
-    static getShaderNode(name: string): ShaderNode {
-        if (this.nodeMap[name] != null) {
-            return this.nodeMap[name];
-        } else if (this.sourceMap[name] != null) {
-            let node = new ShaderNode(name, this.sourceMap[name]);
-            this.nodeMap[name] = node;
-            return node;
-        } else {
-            return null;
-        }
-    }
-
-    static addShaderNode(name: string, source: string) {
-        this.sourceMap[name] = source;
-    }
-}
-

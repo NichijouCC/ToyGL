@@ -1,6 +1,6 @@
 import { IassetLoader, IassetLoadInfo, Iasset } from "./type";
 import { LoadEnum } from "./base/loadEnum";
-import { IprogramInfo } from "../render/glRender";
+import { IprogramInfo } from "../render/webglRender";
 import { getAssetExtralName } from "./base/helper";
 /**
  * 资源都继承web3dAsset 实现Iasset接口,有唯一ID

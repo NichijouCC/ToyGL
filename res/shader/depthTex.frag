@@ -4,8 +4,8 @@ uniform highp vec4 MainColor;
 uniform lowp sampler2D uTexLinearDepth;
 varying mediump vec2 xlv_TEXCOORD0;
 
-uniform float u_cameraNear;
-uniform float u_cameraFar;
+uniform float czm_near;
+uniform float czm_far;
 
 
 float ZbufferToZview( const float zBuffer, const float near, const float far ) {
@@ -31,6 +31,6 @@ float linearDepthFromDepthTexture( sampler2D depthSampler, vec2 coord ,const flo
 
 void main()
 {
-   lowp float texDepth=linearDepthFromDepthTexture(uTexLinearDepth, xlv_TEXCOORD0,u_cameraNear,u_cameraFar);
+   lowp float texDepth=linearDepthFromDepthTexture(uTexLinearDepth, xlv_TEXCOORD0,czm_near,czm_far);
     gl_FragData[0] =vec4(vec3(1.0-texDepth),1.0);
 }

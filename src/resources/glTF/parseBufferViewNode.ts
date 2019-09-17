@@ -1,6 +1,6 @@
 import { ParseBufferNode } from "./parseBufferNode";
 import { IgltfJson, IgltfBufferview } from "./loadglTF";
-import { GlBuffer } from "../../render/glRender";
+import { GlBuffer } from "../../render/webglRender";
 
 export class ParseBufferViewNode {
     static parse(index: number, gltf: IgltfJson): Promise<IgltfBufferview> {

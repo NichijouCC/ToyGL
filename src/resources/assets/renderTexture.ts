@@ -1,5 +1,5 @@
 import { ToyAsset, ItoyAsset } from "../base/toyAsset";
-import { ItextureInfo, ItextureDesInfo, GlRender, GlTextrue } from "../../render/glRender";
+import { ItextureInfo, ItextureDesInfo, WebglRender, GlTextrue } from "../../render/webglRender";
 import { IfboInfo, IfboOption } from "twebgl";
 import { Material } from "./material";
 import { GlConstants } from "../../render/GlConstant";
@@ -22,12 +22,12 @@ export class RenderTexture extends ToyAsset implements IfboInfo {
 
     constructor(op?: IfboOption, overrideMaterial?: Material) {
         super(null);
-        let fboInfo = GlRender.createFrameBuffer(op);
+        let fboInfo = WebglRender.createFrameBuffer(op);
         Object.assign(this, fboInfo);
         this.overrideMaterial = overrideMaterial;
     }
     overrideMaterial: Material;
-    dispose(): void {}
+    dispose(): void { }
 }
 
 export class ShadowTexture implements IfboInfo {
@@ -37,7 +37,7 @@ export class ShadowTexture implements IfboInfo {
     colorTextureInfo: ItextureInfo;
     depthTextureInfo?: ItextureInfo;
     constructor() {
-        let fboInfo = GlRender.createFrameBuffer({
+        let fboInfo = WebglRender.createFrameBuffer({
             activeDepthAttachment: true,
             depthFormat: GlConstants.DEPTH_COMPONENT,
         });

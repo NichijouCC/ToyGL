@@ -1,4 +1,4 @@
-import { GlRender, IgeometryOptions } from "../../render/glRender";
+import { WebglRender, IgeometryOptions } from "../../render/webglRender";
 import { Geometry } from "../assets/geometry";
 
 export type DefGeometryType = "cube" | "quad";

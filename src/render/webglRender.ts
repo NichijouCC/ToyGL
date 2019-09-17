@@ -13,6 +13,9 @@ import {
     IprogramState,
     IviewArr,
     IvertexIndex,
+    IbassProgramOption,
+    IbassProgramInfo,
+    IuniformInfo,
 } from "twebgl/dist/types/type";
 
 import {
@@ -32,10 +35,12 @@ import {
     IfboOption,
     IfboInfo,
     setFboInfoWithCached,
+    createBassProgramInfo,
 } from "twebgl";
 import { UniformTypeEnum } from "../resources/assets/shader";
 import { VertexAttEnum } from "./vertexAttType";
 import { AutoUniforms } from "./autoUniform";
+import { UniformState } from "./uniformState";
 export {
     IprogramInfo,
     IgeometryInfo,
@@ -57,9 +62,10 @@ export {
 //     layer: RenderLayerEnum;
 // }
 
-export class GlRender {
+export class WebglRender {
     private static context: WebGLRenderingContext;
     private static canvas: HTMLCanvasElement;
+    static uniformState: UniformState = new UniformState();
     static init(canvas: HTMLCanvasElement, options: IcontextOptions = {}) {
         this.context = setUpWebgl(canvas, options);
         this.canvas = canvas;
@@ -127,6 +133,10 @@ export class GlRender {
         return info;
     }
 
+    static createShaderProgram(op: IbassProgramOption): ShaderProgram {
+        return createBassProgramInfo(this.context, op.vs, op.fs, op.name);
+    }
+
     static createTextureFromImg(img: TexImageSource, texop?: ItextureDesInfo): ItextureInfo {
         return createTextureFromImageSource(this.context, { ...texop, img: img });
     }
@@ -165,7 +175,7 @@ export class GlRender {
             if (uniforms[key] != null) {
                 uniformsDic[key].setter(uniforms[key]);
             } else if (AutoUniforms.containAuto(key)) {
-                let value = AutoUniforms.getvalue(key);
+                let value = AutoUniforms.getvalue(key, this.uniformState);
                 uniformsDic[key].setter(value);
             } else {
                 uniformsDic[key].setter(mapUniformDef && mapUniformDef[key].value);
@@ -196,7 +206,7 @@ export class GlBuffer {
     viewData: ArrayBufferView;
     static fromViewData(target: number, data: ArrayBufferView): GlBuffer {
         let newBuferr = new GlBuffer();
-        newBuferr.buffer = GlRender.createBuffer(target, data);
+        newBuferr.buffer = WebglRender.createBuffer(target, data);
         newBuferr.viewData = data;
         return newBuferr;
     }
@@ -218,7 +228,7 @@ export class VertexAttribute implements IvertexAttrib {
     divisor?: number;
 
     static fromViewArr(type: VertexAttEnum, data: IviewArr) {
-        let attinfo = GlRender.createAttributeBufferInfo(type, data);
+        let attinfo = WebglRender.createAttributeBufferInfo(type, data);
         let att = Object.assign(new VertexAttribute(), attinfo);
         return att;
     }
@@ -237,7 +247,7 @@ export class GlTextrue {
     private static _white: ItextureInfo;
     static get WHITE(): ItextureInfo {
         if (this._white == null) {
-            this._white = GlRender.createTextureFromViewData(new Uint8Array([255, 255, 255, 255]), 1, 1);
+            this._white = WebglRender.createTextureFromViewData(new Uint8Array([255, 255, 255, 255]), 1, 1);
         }
         return this._white;
     }
@@ -264,7 +274,7 @@ export class GlTextrue {
                     }
                 }
             }
-            this._grid = GlRender.createTextureFromViewData(data, width, height);
+            this._grid = WebglRender.createTextureFromViewData(data, width, height);
         }
         return this._grid;
     }
@@ -299,4 +309,14 @@ export function getAttTypeFromName(attName: string): string {
     if (attName.indexOf("index") != -1) {
         return VertexAttEnum.JOINTS_0;
     }
+}
+
+export class ShaderProgram implements IbassProgramInfo {
+    id: number;
+    programName: string;
+    program: WebGLProgram;
+    uniformsDic: { [name: string]: IuniformInfo };
+    attsDic: { [name: string]: IattributeInfo };
+
+    //-------
 }

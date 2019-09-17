@@ -1,5 +1,5 @@
 import { ToyAsset, ItoyAsset } from "../base/toyAsset";
-import { GlRender, IgeometryInfo, IgeometryOptions } from "../../render/glRender";
+import { WebglRender, IgeometryInfo, IgeometryOptions } from "../../render/webglRender";
 import { VertexAttEnum } from "../../render/vertexAttType";
 import { IvertexAttrib, IvertexIndex } from "twebgl/dist/types/type";
 import { GlConstants } from "../../render/GlConstant";
@@ -14,10 +14,10 @@ export class Geometry extends ToyAsset implements IgeometryInfo {
     constructor(param?: ItoyAsset) {
         super(param);
     }
-    dispose(): void {}
+    dispose(): void { }
 
     static fromCustomData(data: IgeometryOptions) {
-        let geometry = GlRender.createGeometry(data);
+        let geometry = WebglRender.createGeometry(data);
         let newAsset = new Geometry({ name: "custom_Mesh" });
         Object.assign(newAsset, geometry);
         return newAsset;
@@ -38,9 +38,9 @@ export class Geometry extends ToyAsset implements IgeometryInfo {
 
     updateAttData(type: VertexAttEnum, data: number[] | ArrayBufferView) {
         if (data instanceof Array) {
-            GlRender.updateGeometry(this, type, new Float32Array(data));
+            WebglRender.updateGeometry(this, type, new Float32Array(data));
         } else {
-            GlRender.updateGeometry(this, type, data);
+            WebglRender.updateGeometry(this, type, data);
         }
     }
 }

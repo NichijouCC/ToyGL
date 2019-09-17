@@ -1,7 +1,7 @@
 import { Texture } from "../assets/texture";
 import { loadImg } from "../../io/loadtool";
 import { LoadTextureSample } from "../loader/loadTexture";
-import { GlRender, ItexImageDataOption, ItexViewDataOption, ItextureDesInfo } from "../../render/glRender";
+import { WebglRender, ItexImageDataOption, ItexViewDataOption, ItextureDesInfo } from "../../render/webglRender";
 import { ParseBufferViewNode } from "./parseBufferViewNode";
 import { IgltfJson } from "./loadglTF";
 import { TextureWrapMode } from "./gltfJsonStruct";
@@ -37,7 +37,7 @@ export class ParseTextureNode {
                         }
                     }
 
-                    let imaginfo = GlRender.createTextureFromImg(img, texOp);
+                    let imaginfo = WebglRender.createTextureFromImg(img, texOp);
                     texture.texture = imaginfo.texture;
                     texture.texDes = imaginfo.texDes;
 
@@ -67,7 +67,7 @@ export class ParseTextureNode {
                             texOp.filterMin = samplerinfo.minFilter;
                         }
                     }
-                    let imaginfo = GlRender.createTextureFromViewData(viewnode.viewBuffer, 100, 100, texOp);
+                    let imaginfo = WebglRender.createTextureFromViewData(viewnode.viewBuffer, 100, 100, texOp);
                     texture.texture = imaginfo.texture;
                     texture.texDes = imaginfo.texDes;
 

@@ -1,7 +1,7 @@
 import { Camera, ProjectionEnum } from "../ec/components/camera";
 import { Geometry } from "../resources/assets/geometry";
 import { GameScreen } from "../gameScreen";
-import { GlBuffer } from "../render/glRender";
+import { GlBuffer } from "../render/webglRender";
 import { Irenderable, IframeState } from "../scene/frameState";
 import { DefMaterial } from "../resources/defAssets/defMaterial";
 import { CullingMask } from "../ec/ec";

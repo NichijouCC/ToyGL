@@ -6,7 +6,7 @@ import { RenderLayerEnum } from "../../ec/ec";
 import { Vec2 } from "../../mathD/vec2";
 import { Vec4 } from "../../mathD/vec4";
 import { Vec3 } from "../../mathD/vec3";
-import { GlRender, IprogramState, IprogramInfo } from "../../render/glRender";
+import { WebglRender, IprogramState, IprogramInfo } from "../../render/webglRender";
 import { DrawTypeEnum } from "../../render/renderMachine";
 import { LoadEnum } from "../base/loadEnum";
 
@@ -198,7 +198,7 @@ export class LoadShader implements IassetLoader {
                     let vsStr = featureStr + str[0];
                     let fsStr = featureStr + str[1];
 
-                    return GlRender.createProgram({
+                    return WebglRender.createProgram({
                         program: {
                             vs: vsStr,
                             fs: fsStr,

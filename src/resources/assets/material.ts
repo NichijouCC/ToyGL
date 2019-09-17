@@ -6,7 +6,7 @@ import { Color } from "../../mathD/color";
 import { Vec4 } from "../../mathD/vec4";
 import { Vec3 } from "../../mathD/vec3";
 import { RenderTexture } from "./renderTexture";
-import { ItextureInfo } from "../../render/glRender";
+import { ItextureInfo } from "../../render/webglRender";
 import { Vec2 } from "../../mathD/vec2";
 
 export class Material extends ToyAsset {
@@ -47,5 +47,5 @@ export class Material extends ToyAsset {
     setFloat(key: string, value: number) {
         this.uniforms[key] = value;
     }
-    dispose(): void {}
+    dispose(): void { }
 }

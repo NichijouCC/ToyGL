@@ -1,8 +1,8 @@
 precision highp float;
 
-uniform float u_fov;
-uniform float u_aspect;
-uniform mat4 u_mat_p;
+uniform float czm_fov;
+uniform float czm_aspect;
+uniform mat4 czm_projection;
 
 uniform lowp sampler2D uTexNormals;
 uniform lowp sampler2D uTexLinearDepth;
@@ -18,8 +18,8 @@ uniform float maxDistance;
 
 varying vec2 xlv_TEXCOORD0;
 
-uniform float u_cameraNear;
-uniform float u_cameraFar;
+uniform float czm_near;
+uniform float czm_far;
 
 float ZbufferToZview( const float zBuffer, const float near, const float far ) {
     return ( near * far ) / ( ( far - near ) * zBuffer - far );
@@ -47,23 +47,23 @@ void main()
 {
     
     vec2 ndc= xlv_TEXCOORD0 * 2.0 - vec2(1.0);
-    // float thfov = tan(u_fov / 2.0); // can do this on the CPU
-    // vec3 viewray = vec3(ndc.x * thfov * u_aspect,ndc.y * thfov,-1.0);
+    // float thfov = tan(czm_fov / 2.0); // can do this on the CPU
+    // vec3 viewray = vec3(ndc.x * thfov * czm_aspect,ndc.y * thfov,-1.0);
 
 
     // vec3 origin = viewray * texture2D(uTexLinearDepth, xlv_TEXCOORD0).r;
 
     float depth=texture2D(uTexLinearDepth, xlv_TEXCOORD0).r;
-    float A= u_mat_p[2][2];
-    float B= u_mat_p[3][2];
+    float A= czm_projection[2][2];
+    float B= czm_projection[3][2];
     float z_ndc = 2.0 * depth - 1.0;
     float z_eye = B/(A + z_ndc);
 
-    vec3 viewray = vec3(ndc.x/u_mat_p[0][0],ndc.y/u_mat_p[1][1],-1.0);
+    vec3 viewray = vec3(ndc.x/czm_projection[0][0],ndc.y/czm_projection[1][1],-1.0);
     vec3 origin = viewray * z_eye;
 
     // float ndc_z = texture2D(uTexLinearDepth, xlv_TEXCOORD0).r;
-    // mat4 inversePrjMat = inverse_mat4(u_mat_p);
+    // mat4 inversePrjMat = inverse_mat4(czm_projection);
     // vec4 viewPosH = inversePrjMat * vec4( ndc.x, ndc.y, 2.0 * ndc_z - 1.0, 1.0);
     // vec3 origin = viewPosH.xyz / viewPosH.w;
 
@@ -81,20 +81,20 @@ void main()
         sample = sample * u_kernelRadius + origin;//z_view
 
         vec4 offset = vec4(sample,1.0);
-        offset = u_mat_p * offset;
+        offset = czm_projection * offset;
         offset.xyz /= offset.w;
         offset.xyz = offset.xyz * 0.5 + 0.5;
 
         float realDepth = texture2D(uTexLinearDepth,offset.xy).r;
         float sampleDepth=offset.z;
 
-        // float realDepthz=ZbufferToZview(realDepth,u_cameraNear,u_cameraFar);
-        // float sampleDepthz=ZbufferToZview(sampleDepth,u_cameraNear,u_cameraFar);
+        // float realDepthz=ZbufferToZview(realDepth,czm_near,czm_far);
+        // float sampleDepthz=ZbufferToZview(sampleDepth,czm_near,czm_far);
         // float rangeCheck = smoothstep(0.0,1.0,u_kernelRadius/abs(sampleDepthz - realDepthz));
         // occlusion +=(realDepth <= sampleDepth?1.0:0.0)*rangeCheck;
 
-        float realDepthz=ZbufferToZview(realDepth,u_cameraNear,u_cameraFar)*-1.0;
-        float sampleDepthz=ZbufferToZview(sampleDepth,u_cameraNear,u_cameraFar)*-1.0;
+        float realDepthz=ZbufferToZview(realDepth,czm_near,czm_far)*-1.0;
+        float sampleDepthz=ZbufferToZview(sampleDepth,czm_near,czm_far)*-1.0;
         float delta = sampleDepthz - realDepthz;
         if (delta > minDistance && delta < maxDistance) {
             occlusion += 1.0;

@@ -1,5 +1,5 @@
 import { ToyAsset, ItoyAsset } from "../base/toyAsset";
-import { IprogramInfo, GlRender, IprogramOptions } from "../../render/glRender";
+import { IprogramInfo, WebglRender, IprogramOptions } from "../../render/webglRender";
 import { RenderLayerEnum } from "../../ec/ec";
 
 export class Shader extends ToyAsset {
@@ -28,7 +28,7 @@ export class Shader extends ToyAsset {
             let programArr = [];
             for (let i = 0; i < passes.length; i++) {
                 let passitem = passes[i];
-                let program = GlRender.createProgram({
+                let program = WebglRender.createProgram({
                     program: {
                         vs: featureStr + (passitem.program as any).vs,
                         fs: featureStr + (passitem.program as any).fs,

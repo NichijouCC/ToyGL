@@ -1,5 +1,5 @@
 import { Shader } from "../assets/shader";
-import { GlRender } from "../../render/glRender";
+import { WebglRender } from "../../render/webglRender";
 import { Color } from "../../mathD/color";
 import { DefTextrue } from "./defTexture";
 

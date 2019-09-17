@@ -1,4 +1,4 @@
-import { GlRender, GlTextrue } from "./../../render/glRender";
+import { WebglRender, GlTextrue } from "../../render/webglRender";
 import { Texture } from "./../assets/texture";
 export class DefTextrue {
     private static _white: Texture;

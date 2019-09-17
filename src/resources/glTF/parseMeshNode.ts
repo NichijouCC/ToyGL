@@ -3,7 +3,7 @@ import { IgltfMeshPrimitive, AccessorComponentType } from "./gltfJsonStruct";
 import { Material } from "../assets/material";
 import { ParseMaterialNode } from "./parseMaterialNode";
 import { Geometry } from "../assets/geometry";
-import { IgeometryOptions, IgeometryInfo } from "../../render/glRender";
+import { IgeometryOptions, IgeometryInfo } from "../../render/webglRender";
 import { ParseAccessorNode } from "./parseAccessorNode";
 import { VertexAttEnum } from "../../render/vertexAttType";
 import { IviewData } from "twebgl/dist/types/type";

@@ -1,8 +1,7 @@
-import { GlRender, ItextureInfo } from "./glRender";
+import { WebglRender, ItextureInfo } from "./webglRender";
 import { Irenderable, FrameState, IframeState } from "../scene/frameState";
 import { RenderList } from "./renderList";
 import { ClearEnum, Camera } from "../ec/components/camera";
-import { UniformState } from "./uniformState";
 import { Material } from "../resources/assets/material";
 import { DefGeometry } from "../resources/defAssets/defGeometry";
 import { Rect } from "../mathD/rect";
@@ -12,18 +11,19 @@ import { GlConstants } from "./GlConstant";
 import { Geometry } from "../resources/assets/geometry";
 import { Mat4 } from "../mathD/mat4";
 import { DefMaterial } from "../resources/defAssets/defMaterial";
+import { UniformState } from "./uniformState";
 
 export class RenderMachine {
     private rendercontext: UniformState;
     constructor(cancvas: HTMLCanvasElement) {
-        this.rendercontext = new UniformState();
-        GlRender.init(cancvas, { extentions: ["WEBGL_depth_texture"] });
+        WebglRender.init(cancvas, { extentions: ["WEBGL_depth_texture"] });
+        this.rendercontext = WebglRender.uniformState;
     }
     private camRenderList: { [cameraId: number]: RenderList } = {};
     private lightShadowTex: { [lightId: number]: RenderTexture } = {};
 
     drawCamera(cam: Camera, renderList: Irenderable[], lightList?: Light[]) {
-        GlRender.setFrameBuffer(cam.targetTexture);
+        WebglRender.setFrameBuffer(cam.targetTexture);
 
         if (this.camRenderList[cam.entity.guid] == null) {
             this.camRenderList[cam.entity.guid] = new RenderList(cam);
@@ -48,9 +48,9 @@ export class RenderMachine {
 
         //----------- set global State
         if (cam.targetTexture == null) {
-            GlRender.setViewPort(cam.viewport);
+            WebglRender.setViewPort(cam.viewport);
         }
-        GlRender.setClear(
+        WebglRender.setClear(
             cam.clearFlag & ClearEnum.DEPTH ? true : false,
             cam.clearFlag & ClearEnum.COLOR ? cam.backgroundColor : null,
             cam.clearFlag & ClearEnum.STENCIL ? true : false,
@@ -66,13 +66,13 @@ export class RenderMachine {
     }
 
     renderQuad(mat: Material, pass: number = 0) {
-        GlRender.setFrameBuffer(null);
-        GlRender.setViewPort(Rect.Identity);
+        WebglRender.setFrameBuffer(null);
+        WebglRender.setViewPort(Rect.Identity);
         let shader = mat.shader;
         if (shader != null) {
             let passes = shader.passes && shader.passes["base"];
             if (passes != null) {
-                GlRender.drawObject(DefGeometry.fromType("quad"), passes[pass], mat.uniforms, shader.mapUniformDef);
+                WebglRender.drawObject(DefGeometry.fromType("quad"), passes[pass], mat.uniforms, shader.mapUniformDef);
             }
         }
     }
@@ -87,9 +87,9 @@ export class RenderMachine {
                 depthFormat: GlConstants.DEPTH_COMPONENT,
             });
         }
-        GlRender.setFrameBuffer(this.lightShadowTex[light.entity.guid]);
-        GlRender.setViewPort(Rect.Identity);
-        GlRender.setClear(true, null, false);
+        WebglRender.setFrameBuffer(this.lightShadowTex[light.entity.guid]);
+        WebglRender.setViewPort(Rect.Identity);
+        WebglRender.setClear(true, null, false);
         for (let i = 0; i < list.length; i++) {
             this.drawMesh(list[i].geometry, DefMaterial.fromType("3dBase"), list[i].modelMatrix);
         }
@@ -104,7 +104,7 @@ export class RenderMachine {
             let passes = shader.passes && shader.passes["base"];
             if (passes != null) {
                 for (let i = 0; i < passes.length; i++) {
-                    GlRender.drawObject(geometry, passes[i], material.uniforms, shader.mapUniformDef);
+                    WebglRender.drawObject(geometry, passes[i], material.uniforms, shader.mapUniformDef);
                 }
             }
         }
