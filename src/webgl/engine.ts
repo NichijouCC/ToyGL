@@ -1,4 +1,8 @@
 import { EngineCapability } from "./engineCapability";
+import { GlConstants } from "../render/GlConstant";
+import { Color } from "../mathD/color";
+import { Vec4 } from "../mathD/vec4";
+import { EngineGlState } from "./engineGlState";
 
 export interface IengineOption {
     disableWebgl2?: boolean;
@@ -6,6 +10,7 @@ export interface IengineOption {
 export class Engine {
     private _gl: WebGLRenderingContext;
     private _caps: EngineCapability;
+    private _glState: EngineGlState;
     private _webGLVersion: number;
     constructor(canvasOrContext: HTMLCanvasElement | WebGLRenderingContext, option?: IengineOption) {
         if (canvasOrContext == null) {
@@ -34,6 +39,9 @@ export class Engine {
             this._webGLVersion = 2.0;
         }
 
+        this._caps = new EngineCapability(this._gl, this._webGLVersion);
+        this._glState = new EngineGlState(this._gl);
+
         console.log(` ฅ(๑˙o˙๑)ฅ  v${Engine.Version} - ${this.description}`);
     }
     handleContextLost() {
@@ -46,75 +54,127 @@ export class Engine {
         let description = "WebGL" + this._webGLVersion;
         return description;
     }
-    private initContext() {
-        this._caps = new EngineCapability();
-        // Extensions
-        this._caps.standardDerivatives =
-            this._webGLVersion > 1 || this._gl.getExtension("OES_standard_derivatives") !== null;
 
-        this._caps.astc =
-            this._gl.getExtension("WEBGL_compressed_texture_astc") ||
-            this._gl.getExtension("WEBKIT_WEBGL_compressed_texture_astc");
-        this._caps.s3tc =
-            this._gl.getExtension("WEBGL_compressed_texture_s3tc") ||
-            this._gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc");
-        this._caps.pvrtc =
-            this._gl.getExtension("WEBGL_compressed_texture_pvrtc") ||
-            this._gl.getExtension("WEBKIT_WEBGL_compressed_texture_pvrtc");
-        this._caps.etc1 =
-            this._gl.getExtension("WEBGL_compressed_texture_etc1") ||
-            this._gl.getExtension("WEBKIT_WEBGL_compressed_texture_etc1");
-        this._caps.etc2 =
-            this._gl.getExtension("WEBGL_compressed_texture_etc") ||
-            this._gl.getExtension("WEBKIT_WEBGL_compressed_texture_etc") ||
-            this._gl.getExtension("WEBGL_compressed_texture_es3_0"); // also a requirement of OpenGL ES 3
-
-        this._caps.textureAnisotropicFilterExtension =
-            this._gl.getExtension("EXT_texture_filter_anisotropic") ||
-            this._gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic") ||
-            this._gl.getExtension("MOZ_EXT_texture_filter_anisotropic");
-        this._caps.maxAnisotropy = this._caps.textureAnisotropicFilterExtension
-            ? this._gl.getParameter(this._caps.textureAnisotropicFilterExtension.MAX_TEXTURE_MAX_ANISOTROPY_EXT)
-            : 0;
-        this._caps.uintIndices = this._webGLVersion > 1 || this._gl.getExtension("OES_element_index_uint") !== null;
-        this._caps.fragmentDepthSupported = this._webGLVersion > 1 || this._gl.getExtension("EXT_frag_depth") !== null;
-        this._caps.highPrecisionShaderSupported = false;
-        this._caps.timerQuery =
-            this._gl.getExtension("EXT_disjoint_timer_query_webgl2") ||
-            this._gl.getExtension("EXT_disjoint_timer_query");
-        if (this._caps.timerQuery) {
-            if (this._webGLVersion === 1) {
-                this._gl.getQuery = (this._caps.timerQuery as any).getQueryEXT.bind(this._caps.timerQuery);
+    private _currentProgram: WebGLProgram;
+    private _setProgram(program: WebGLProgram): void {
+        if (this._currentProgram !== program) {
+            this._gl.useProgram(program);
+            this._currentProgram = program;
+        }
+    }
+    createVertexBuffer(data: DataArray, dynamic: boolean = false): WebGLBuffer {
+        let vbo = this._gl.createBuffer();
+        this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vbo);
+        if (data instanceof Array) {
+            this._gl.bufferData(
+                this._gl.ARRAY_BUFFER,
+                new Float32Array(data),
+                dynamic ? this._gl.DYNAMIC_DRAW : this._gl.STATIC_DRAW,
+            );
+        } else {
+            this._gl.bufferData(this._gl.ARRAY_BUFFER, data, dynamic ? this._gl.DYNAMIC_DRAW : this._gl.STATIC_DRAW);
+        }
+        return vbo;
+    }
+    creatIndexBuffer(indices: IndicesArray, dynamic: boolean = false): WebGLBuffer {
+        let ebo = this._gl.createBuffer();
+        this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, ebo);
+        const data = this._normalizeIndexData(indices);
+        this._gl.bufferData(
+            this._gl.ELEMENT_ARRAY_BUFFER,
+            data,
+            dynamic ? this._gl.DYNAMIC_DRAW : this._gl.STATIC_DRAW,
+        );
+        return ebo;
+    }
+    createGLProgramInfo(gl: WebGLRenderingContext, vsSource: string, fsSource: string): WebGLProgram {
+        let vsShader = this.createShader(vsSource, ShaderTypeEnum.VS);
+        let fsShader = this.createShader(fsSource, ShaderTypeEnum.FS);
+        if (vsShader && fsShader) {
+            let item = gl.createProgram();
+            gl.attachShader(item, vsShader);
+            gl.attachShader(item, fsShader);
+            gl.linkProgram(item);
+            let check = gl.getProgramParameter(item, gl.LINK_STATUS);
+            if (check == false) {
+                let debguInfo =
+                    "ERROR: compile program Error!" +
+                    "VS:" +
+                    vsSource +
+                    "   FS:" +
+                    fsSource +
+                    "\n" +
+                    gl.getProgramInfoLog(item);
+                alert(debguInfo);
+                gl.deleteProgram(item);
+                return null;
+            } else {
+                return item;
+                // let attsInfo = getAttributesInfo(gl, item);
+                // let uniformsInfo = getUniformsInfo(gl, item);
+                // return new BassProgram(name, item, uniformsInfo, attsInfo);
+                // return { program: item, programName: name, uniformsDic: uniformsInfo, attsDic: attsInfo };
             }
-            this._caps.canUseTimestampForTimerQuery =
-                this._gl.getQuery(this._caps.timerQuery.TIMESTAMP_EXT, this._caps.timerQuery.QUERY_COUNTER_BITS_EXT) >
-                0;
+        } else {
+            return null;
+        }
+    }
+
+    private createShader(source: string, type: ShaderTypeEnum): WebGLProgram {
+        let target = type == ShaderTypeEnum.VS ? this._gl.VERTEX_SHADER : this._gl.FRAGMENT_SHADER;
+        let item = this._gl.createShader(target);
+
+        this._gl.shaderSource(item, source);
+        this._gl.compileShader(item);
+        let check = this._gl.getShaderParameter(item, this._gl.COMPILE_STATUS);
+        if (check == false) {
+            let debug =
+                type == ShaderTypeEnum.VS
+                    ? "ERROR: compile  VS Shader Error! VS:"
+                    : "ERROR: compile FS Shader Error! FS:";
+            debug = debug + name + ".\n";
+            alert(debug + this._gl.getShaderInfoLog(item));
+            this._gl.deleteShader(item);
+            return null;
+        } else {
+            return item;
+        }
+    }
+
+    //------- tool
+    private _normalizeIndexData(indices: IndicesArray): Uint16Array | Uint32Array {
+        if (indices instanceof Uint16Array) {
+            return indices;
         }
 
-        // Checks if some of the format renders first to allow the use of webgl inspector.
-        this._caps.colorBufferFloat = this._webGLVersion > 1 && this._gl.getExtension("EXT_color_buffer_float");
+        // Check 32 bit support
+        if (this._caps.uintIndices) {
+            if (indices instanceof Uint32Array) {
+                return indices;
+            } else {
+                // number[] or Int32Array, check if 32 bit is necessary
+                for (var index = 0; index < indices.length; index++) {
+                    if (indices[index] >= 65535) {
+                        return new Uint32Array(indices);
+                    }
+                }
 
-        this._caps.textureFloat = this._webGLVersion > 1 || this._gl.getExtension("OES_texture_float") ? true : false;
-        this._caps.textureFloatLinearFiltering =
-            this._caps.textureFloat && this._gl.getExtension("OES_texture_float_linear") ? true : false;
-        this._caps.textureFloatRender = this._caps.textureFloat && this._canRenderToFloatFramebuffer() ? true : false;
+                return new Uint16Array(indices);
+            }
+        }
 
-        this._caps.textureHalfFloat =
-            this._webGLVersion > 1 || this._gl.getExtension("OES_texture_half_float") ? true : false;
-        this._caps.textureHalfFloatLinearFiltering =
-            this._webGLVersion > 1 ||
-            (this._caps.textureHalfFloat && this._gl.getExtension("OES_texture_half_float_linear"))
-                ? true
-                : false;
-        this._caps.textureHalfFloatRender = this._caps.textureHalfFloat && this._canRenderToHalfFloatFramebuffer();
-
-        this._caps.textureLOD =
-            this._webGLVersion > 1 || this._gl.getExtension("EXT_shader_texture_lod") ? true : false;
-
-        this._caps.multiview = this._gl.getExtension("OVR_multiview2");
+        // No 32 bit support, force conversion to 16 bit (values greater 16 bit are lost)
+        return new Uint16Array(indices);
     }
 }
 
+export enum ShaderTypeEnum {
+    VS,
+    FS,
+}
+
+export type IndicesArray = number[] | Int32Array | Uint32Array | Uint16Array;
+export type DataArray = number[] | ArrayBuffer | ArrayBufferView;
 export class Event {
     private listener: ((...args: any) => void)[] = [];
     addEventListener(func: (...args: any) => void) {
