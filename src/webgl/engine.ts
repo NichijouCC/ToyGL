@@ -3,6 +3,8 @@ import { GlConstants } from "../render/GlConstant";
 import { Color } from "../mathD/color";
 import { Vec4 } from "../mathD/vec4";
 import { EngineGlState } from "./engineGlState";
+import { IshaderProgram } from "./declaration";
+import { WebglShaderProgram } from "./engineProgram";
 
 export interface IengineOption {
     disableWebgl2?: boolean;
@@ -54,15 +56,7 @@ export class Engine {
         let description = "WebGL" + this._webGLVersion;
         return description;
     }
-
-    private _currentProgram: WebGLProgram;
-    private _setProgram(program: WebGLProgram): void {
-        if (this._currentProgram !== program) {
-            this._gl.useProgram(program);
-            this._currentProgram = program;
-        }
-    }
-    createVertexBuffer(data: DataArray, dynamic: boolean = false): WebGLBuffer {
+    createVertexBuffer(data: DataArray, dynamic: boolean = false): IdataBuffer {
         let vbo = this._gl.createBuffer();
         this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vbo);
         if (data instanceof Array) {
@@ -74,9 +68,9 @@ export class Engine {
         } else {
             this._gl.bufferData(this._gl.ARRAY_BUFFER, data, dynamic ? this._gl.DYNAMIC_DRAW : this._gl.STATIC_DRAW);
         }
-        return vbo;
+        return new WebglDataBuffer(vbo);
     }
-    creatIndexBuffer(indices: IndicesArray, dynamic: boolean = false): WebGLBuffer {
+    createIndexBuffer(indices: IndicesArray, dynamic: boolean = false): IdataBuffer {
         let ebo = this._gl.createBuffer();
         this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, ebo);
         const data = this._normalizeIndexData(indices);
@@ -85,60 +79,109 @@ export class Engine {
             data,
             dynamic ? this._gl.DYNAMIC_DRAW : this._gl.STATIC_DRAW,
         );
-        return ebo;
+        return new WebglDataBuffer(ebo);
     }
-    createGLProgramInfo(gl: WebGLRenderingContext, vsSource: string, fsSource: string): WebGLProgram {
-        let vsShader = this.createShader(vsSource, ShaderTypeEnum.VS);
-        let fsShader = this.createShader(fsSource, ShaderTypeEnum.FS);
-        if (vsShader && fsShader) {
-            let item = gl.createProgram();
-            gl.attachShader(item, vsShader);
-            gl.attachShader(item, fsShader);
-            gl.linkProgram(item);
-            let check = gl.getProgramParameter(item, gl.LINK_STATUS);
-            if (check == false) {
-                let debguInfo =
-                    "ERROR: compile program Error!" +
-                    "VS:" +
-                    vsSource +
-                    "   FS:" +
-                    fsSource +
-                    "\n" +
-                    gl.getProgramInfoLog(item);
-                alert(debguInfo);
-                gl.deleteProgram(item);
-                return null;
-            } else {
-                return item;
-                // let attsInfo = getAttributesInfo(gl, item);
-                // let uniformsInfo = getUniformsInfo(gl, item);
-                // return new BassProgram(name, item, uniformsInfo, attsInfo);
-                // return { program: item, programName: name, uniformsDic: uniformsInfo, attsDic: attsInfo };
+    createShaderProgram(vs: string, fs: string): IshaderProgram {
+        return new WebglShaderProgram(this._gl, vs, fs);
+    }
+
+    private bindVertexBuffersAttributes(vertexBuffers: { [key: string]: VertexBuffer }, program: IshaderProgram): void {
+        for (const key in program.attsDic) {
+            let vertexInfo = vertexBuffers[key];
+            let attLocation = program.attsDic[key].location;
+            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexInfo.buffer);
+            this._gl.enableVertexAttribArray(attLocation);
+            this._gl.vertexAttribPointer(
+                attLocation,
+                vertexInfo.componentSize,
+                vertexInfo.componentDataType,
+                vertexInfo.normalize,
+                vertexInfo.bytesStride,
+                vertexInfo.bytesOffset,
+            );
+            if (vertexInfo.divisor !== undefined) {
+                this._gl.vertexAttribDivisor(attLocation, vertexInfo.divisor);
             }
-        } else {
-            return null;
+        }
+    }
+    private _cachedIndexBuffer: IdataBuffer;
+    bindIndexBuffer(indexbuffer: IdataBuffer, force = false) {
+        if (force || indexbuffer != this._cachedIndexBuffer) {
+            this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, indexbuffer.buffer);
+            this._cachedIndexBuffer = indexbuffer;
+        }
+    }
+    private _cachedShaderProgram: IshaderProgram;
+    bindShaderProgram(program: IshaderProgram, force = false) {
+        if (force || program != this._cachedShaderProgram) {
+            this._gl.useProgram(program.program);
+            this._cachedShaderProgram = program;
         }
     }
 
-    private createShader(source: string, type: ShaderTypeEnum): WebGLProgram {
-        let target = type == ShaderTypeEnum.VS ? this._gl.VERTEX_SHADER : this._gl.FRAGMENT_SHADER;
-        let item = this._gl.createShader(target);
+    private _cachedVertexBuffers: { [key: string]: VertexBuffer };
+    bindBuffers(
+        vertexBuffers: { [key: string]: VertexBuffer },
+        indexbuffer: IdataBuffer,
+        program: IshaderProgram,
+        force = false,
+    ) {
+        if (force || this._cachedVertexBuffers != vertexBuffers || this._cachedShaderProgram != program) {
+            this._cachedVertexBuffers = vertexBuffers;
 
-        this._gl.shaderSource(item, source);
-        this._gl.compileShader(item);
-        let check = this._gl.getShaderParameter(item, this._gl.COMPILE_STATUS);
-        if (check == false) {
-            let debug =
-                type == ShaderTypeEnum.VS
-                    ? "ERROR: compile  VS Shader Error! VS:"
-                    : "ERROR: compile FS Shader Error! FS:";
-            debug = debug + name + ".\n";
-            alert(debug + this._gl.getShaderInfoLog(item));
-            this._gl.deleteShader(item);
-            return null;
-        } else {
-            return item;
+            this.bindVertexBuffersAttributes(vertexBuffers, program);
         }
+        this.bindIndexBuffer(indexbuffer, force);
+    }
+
+    //------------------------------------------
+    //                RELEASE
+    //-----------------------------------------
+    releaseBuffer(buffer: IdataBuffer) {
+        this._gl.deleteBuffer(buffer.buffer);
+    }
+
+    releaseProgram(program: IshaderProgram) {
+        this._gl.deleteProgram(program.program);
+    }
+    //---------------------------------------------
+    //           VertexArrayObject
+    //---------------------------------------------
+    createVertexArrayObject(
+        vertexBuffers: { [key: string]: VertexBuffer },
+        indexBuffer: IdataBuffer,
+        program: IshaderProgram,
+    ): WebGLVertexArrayObject {
+        var vao = this._gl.createVertexArray();
+        this._gl.bindVertexArray(vao);
+        this.bindVertexBuffersAttributes(vertexBuffers, program);
+        this.bindIndexBuffer(indexBuffer, true);
+        this._gl.bindVertexArray(null);
+        return vao;
+    }
+    private _cachedVertexArrayObject: WebGLVertexArrayObject;
+    bindVertexArrayObject(vao: WebGLVertexArrayObject, force = false) {
+        if (force || this._cachedVertexArrayObject !== vao) {
+            this._cachedVertexArrayObject = vao;
+
+            this._gl.bindVertexArray(vao);
+            this._cachedVertexBuffers = null;
+            this._cachedIndexBuffer = null;
+        }
+        this._gl.bindVertexArray(vao);
+    }
+    releaseVertexArrayObject(vao: WebGLVertexArrayObject) {
+        this._gl.deleteVertexArray(vao);
+    }
+    //---------------------------------------------------------
+    //                    global state
+    //---------------------------------------------------------
+    setViewPort(port: Vec4) {
+        this._glState.setViewPort(port[0], port[1], port[2], port[3]);
+    }
+
+    clear(clearDepth: number | null, clearColor: Float32Array | null, clearStencil: number | null) {
+        this._glState.setClear(clearDepth, clearColor, clearStencil);
     }
 
     //------- tool
@@ -146,7 +189,6 @@ export class Engine {
         if (indices instanceof Uint16Array) {
             return indices;
         }
-
         // Check 32 bit support
         if (this._caps.uintIndices) {
             if (indices instanceof Uint32Array) {
@@ -158,19 +200,45 @@ export class Engine {
                         return new Uint32Array(indices);
                     }
                 }
-
                 return new Uint16Array(indices);
             }
         }
-
         // No 32 bit support, force conversion to 16 bit (values greater 16 bit are lost)
         return new Uint16Array(indices);
     }
 }
 
-export enum ShaderTypeEnum {
-    VS,
-    FS,
+export interface IdataBuffer {
+    readonly buffer: any;
+}
+
+export class WebglDataBuffer implements IdataBuffer {
+    private _buffer: WebGLBuffer;
+    constructor(buffer: WebGLBuffer) {
+        this._buffer = buffer;
+    }
+    get buffer() {
+        return this._buffer;
+    }
+}
+
+export class VertexBuffer implements IdataBuffer {
+    private _buffer: WebglDataBuffer;
+
+    componentSize: number;
+    componentDataType: number;
+    // size?: number;
+    normalize: boolean;
+    bytesStride: number;
+    bytesOffset: number;
+    divisor?: number;
+
+    // constructor(buffer: WebglDataBuffer) {
+    //     this._buffer = buffer;
+    // }
+    get buffer() {
+        return this._buffer.buffer;
+    }
 }
 
 export type IndicesArray = number[] | Int32Array | Uint32Array | Uint16Array;
