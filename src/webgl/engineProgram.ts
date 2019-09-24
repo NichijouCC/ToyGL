@@ -91,7 +91,8 @@ function getUniformsInfo(gl: WebGLRenderingContext, program: WebGLProgram): { [n
         if (location == null) continue;
 
         let func = getUniformSetter(gl, type, beArray, location);
-        uniformDic[name] = { name: name, location: location, type: type, setter: func };
+        let checkFuc = checkUniformEqual(gl, type, beArray);
+        uniformDic[name] = { name: name, location: location, type: type, setter: func, checkEqualFuc: checkFuc };
     }
     return uniformDic;
 }
@@ -184,86 +185,143 @@ function getUniformSetter(
     }
 }
 
-function checkUniformEqual(gl: WebGLRenderingContext, uniformType: number) {
+function checkUniformEqual(gl: WebGLRenderingContext, uniformType: number, beArray: boolean) {
     switch (uniformType) {
         case gl.FLOAT:
             if (beArray) {
-                return (value: any) => {
-                    gl.uniform1fv(location, value);
+                return (left: number[], right: number[]) => {
+                    if (left.length != right.length) {
+                        return false;
+                    }
+                    for (let i = 0; i < left.length; i++) {
+                        if (left[i] != right[i]) {
+                            return false;
+                        }
+                    }
+                    return true;
                 };
             } else {
-                return (value: any) => {
-                    gl.uniform1f(location, value);
+                return (left: number, right: number) => {
+                    return left == right;
                 };
             }
 
         case gl.FLOAT_VEC2:
-            return (value: Float32Array) => {
-                gl.uniform2fv(location, value);
+            return (left: Float32Array, right: Float32Array) => {
+                for (let i = 0; i < 2; i++) {
+                    if (left[i] != right[i]) {
+                        return false;
+                    }
+                }
+                return true;
             };
 
         case gl.FLOAT_VEC3:
-            return (value: Float32Array) => {
-                gl.uniform3fv(location, value);
+            return (left: Float32Array, right: Float32Array) => {
+                for (let i = 0; i < 3; i++) {
+                    if (left[i] != right[i]) {
+                        return false;
+                    }
+                }
+                return true;
             };
 
         case gl.FLOAT_VEC4:
-            return (value: Float32Array) => {
-                gl.uniform4fv(location, value);
+            return (left: Float32Array, right: Float32Array) => {
+                for (let i = 0; i < 4; i++) {
+                    if (left[i] != right[i]) {
+                        return false;
+                    }
+                }
+                return true;
             };
-
         case gl.INT:
         case gl.BOOL:
             if (beArray) {
-                return (value: number[]) => {
-                    gl.uniform1iv(location, value);
+                return (left: number[], right: number[]) => {
+                    if (left.length != right.length) {
+                        return false;
+                    }
+                    for (let i = 0; i < left.length; i++) {
+                        if (left[i] != right[i]) {
+                            return false;
+                        }
+                    }
+                    return true;
                 };
             } else {
-                return (value: number) => {
-                    gl.uniform1i(location, value);
+                return (left: number, right: number) => {
+                    return left == right;
                 };
             }
 
         case gl.INT_VEC2:
         case gl.BOOL_VEC2:
-            return (value: number[]) => {
-                gl.uniform2iv(location, value);
+            return (left: number[], right: number[]) => {
+                for (let i = 0; i < 2; i++) {
+                    if (left[i] != right[i]) {
+                        return false;
+                    }
+                }
+                return true;
             };
 
         case gl.INT_VEC3:
         case gl.BOOL_VEC3:
-            return (value: number[]) => {
-                gl.uniform3iv(location, value);
+            return (left: number[], right: number[]) => {
+                for (let i = 0; i < 3; i++) {
+                    if (left[i] != right[i]) {
+                        return false;
+                    }
+                }
+                return true;
             };
 
         case gl.INT_VEC4:
         case gl.BOOL_VEC4:
-            return (value: number[]) => {
-                gl.uniform4fv(location, value);
+            return (left: number[], right: number[]) => {
+                for (let i = 0; i < 4; i++) {
+                    if (left[i] != right[i]) {
+                        return false;
+                    }
+                }
+                return true;
             };
 
         case gl.FLOAT_MAT2:
-            return (value: Float32Array) => {
-                gl.uniformMatrix2fv(location, false, value);
+            return (left: Float32Array, right: Float32Array) => {
+                for (let i = 0; i < left.length; i++) {
+                    if (left[i] != right[i]) {
+                        return false;
+                    }
+                }
+                return true;
             };
         case gl.FLOAT_MAT3:
-            return (value: Float32Array) => {
-                gl.uniformMatrix3fv(location, false, value);
+            return (left: Float32Array, right: Float32Array) => {
+                for (let i = 0; i < left.length; i++) {
+                    if (left[i] != right[i]) {
+                        return false;
+                    }
+                }
+                return true;
             };
-
         case gl.FLOAT_MAT4:
-            return (value: Float32Array) => {
-                gl.uniformMatrix4fv(location, false, value);
+            return (left: Float32Array, right: Float32Array) => {
+                for (let i = 0; i < left.length; i++) {
+                    if (left[i] != right[i]) {
+                        return false;
+                    }
+                }
+                return true;
             };
 
         case gl.SAMPLER_2D:
-            return (value: ItextureInfo) => {
-                gl.activeTexture(gl.TEXTURE0 + value.bindPoint);
-                gl.bindTexture(gl.TEXTURE_2D, value.value);
-                gl.uniform1i(location, value.bindPoint);
+            return (left: ItextureInfo, right: ItextureInfo) => {
+                return left === right;
             };
         default:
-            console.error("uniformSetter not handle type:" + uniformType + " yet!");
+            console.error("uniform equal check not handle type:" + uniformType + " yet!");
     }
 }
 export interface ItextureInfo {

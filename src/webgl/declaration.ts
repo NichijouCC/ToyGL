@@ -10,6 +10,7 @@ export interface IuniformInfo {
     type: number;
     location: WebGLUniformLocation;
     setter: (value: any) => void;
+    checkEqualFuc: (newValue: any, oldValue: any) => boolean;
 }
 /**
  * shderprogram的 attribute info
