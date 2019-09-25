@@ -5,6 +5,7 @@ import { Vec4 } from "../mathD/vec4";
 import { EngineGlState } from "./engineGlState";
 import { IshaderProgram } from "./declaration";
 import { WebglShaderProgram } from "./engineProgram";
+import { ItexViewDataOption, EngineTexture, ItextureInfo, ItexImageDataOption } from "./engineTexture";
 
 export interface IengineOption {
     disableWebgl2?: boolean;
@@ -133,7 +134,15 @@ export class Engine {
         }
         this.bindIndexBuffer(indexbuffer, force);
     }
-
+    //------------------------------------------
+    //                 TEXTURE
+    //-----------------------------------------
+    createTextureFromTypedArray(texOP: ItexViewDataOption): ItextureInfo {
+        return EngineTexture.createTextureFromTypedArray(this._gl, texOP, this._webGLVersion);
+    }
+    createTextureFromImageSource(texOP: ItexImageDataOption): ItextureInfo {
+        return EngineTexture.createTextureFromImageSource(this._gl, texOP, this._webGLVersion);
+    }
     //------------------------------------------
     //                RELEASE
     //-----------------------------------------
