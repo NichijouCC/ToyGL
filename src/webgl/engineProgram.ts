@@ -35,7 +35,10 @@ export class WebglShaderProgram implements IshaderProgram {
     }
     private _cachedUniforms: { [name: string]: any } = {};
     setUniform(uniform: string, value: any) {
-        if (value != this._cachedUniforms[uniform]) {
+        let uniformInfo = this.uniformsDic[uniform];
+        if (!uniformInfo.checkEqualFuc(value, this._cachedUniforms[uniform])) {
+            uniformInfo.setter(value);
+            this._cachedUniforms[uniform] = value;
         }
     }
 }

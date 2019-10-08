@@ -1,8 +1,9 @@
 import { NearestPOT, filterFallback, isPowerOf2 } from "./tool";
+//tip:TEXTURE_MAG_FILTER 固定为LINEAR https://community.khronos.org/t/bilinear-and-trilinear-cant-see-a-difference/39405
 
 export class EngineTexture implements ItextureInfo {
     texture: WebGLTexture;
-    texDes: ItextureDesInfo;
+    texDes: ItexImageDataOption | ItexViewDataOption;
     private _gl: WebGLRenderingContext;
     static createTextureFromTypedArray(
         gl: WebGLRenderingContext,
@@ -14,8 +15,8 @@ export class EngineTexture implements ItextureInfo {
         let texDes = checkTextureOption(texOP, gl, webGLVersion);
 
         gl.bindTexture(texDes.target, tex);
-        gl.texParameteri(texDes.target, gl.TEXTURE_MAG_FILTER, texDes.filterMax);
-        gl.texParameteri(texDes.target, gl.TEXTURE_MIN_FILTER, texDes.filterMin);
+        gl.texParameteri(texDes.target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(texDes.target, gl.TEXTURE_MIN_FILTER, texDes.filterModel);
         gl.texParameteri(texDes.target, gl.TEXTURE_WRAP_S, texDes.wrapS);
         gl.texParameteri(texDes.target, gl.TEXTURE_WRAP_T, texDes.wrapT);
 
@@ -71,8 +72,8 @@ export class EngineTexture implements ItextureInfo {
         let texDes = checkTextureOption(texOP, gl, webGLVersion);
 
         gl.bindTexture(texDes.target, tex);
-        gl.texParameteri(texDes.target, gl.TEXTURE_MAG_FILTER, texDes.filterMax);
-        gl.texParameteri(texDes.target, gl.TEXTURE_MIN_FILTER, texDes.filterMin);
+        gl.texParameteri(texDes.target, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(texDes.target, gl.TEXTURE_MIN_FILTER, texDes.filterModel);
         gl.texParameteri(texDes.target, gl.TEXTURE_WRAP_S, texDes.wrapS);
         gl.texParameteri(texDes.target, gl.TEXTURE_WRAP_T, texDes.wrapT);
 
@@ -106,11 +107,11 @@ export class EngineTexture implements ItextureInfo {
     updateTextureFiltereParameter(filterMin: number, filterMax: number) {
         if (!this.texture) return;
         if (this.texDes.enableMipMap) {
-            this.texDes.filterMax = filterMax || this._gl.LINEAR;
-            this.texDes.filterMin = filterMin || this._gl.NEAREST_MIPMAP_LINEAR;
+            // this.texDes.filterMax = filterMax || this._gl.LINEAR;
+            this.texDes.filterModel = filterMin || this._gl.NEAREST_MIPMAP_LINEAR;
         } else {
-            this.texDes.filterMax = filterFallback(this._gl, filterMax);
-            this.texDes.filterMin = filterFallback(this._gl, filterMin);
+            // this.texDes.filterMax = filterFallback(this._gl, filterMax);
+            this.texDes.filterModel = filterFallback(this._gl, filterMin);
 
             if (filterMin != this._gl.NEAREST || filterMin != this._gl.LINEAR) {
                 console.warn("texture mimap filter need Img size be power of 2 And enable mimap option!");
@@ -123,7 +124,7 @@ function checkTextureOption(
     texOP: ItexImageDataOption | ItexViewDataOption,
     gl: WebGLRenderingContext,
     webGLVersion: number,
-) {
+): ItexImageDataOption | ItexViewDataOption {
     let texdes = { ...texOP };
 
     texdes.target = (texOP && texOP.target) || gl.TEXTURE_2D;
@@ -144,25 +145,25 @@ function checkTextureOption(
     texdes.wrapS = (texOP && texOP.wrapS) || gl.REPEAT;
     texdes.wrapT = (texOP && texOP.wrapT) || gl.REPEAT;
     if (texdes.enableMipMap) {
-        texdes.filterMax = (texOP && texOP.filterMax) || gl.LINEAR;
-        texdes.filterMin = (texOP && texOP.filterMin) || gl.NEAREST_MIPMAP_LINEAR;
+        // texdes.filterMax = (texOP && texOP.filterMax) || gl.LINEAR;
+        texdes.filterModel = (texOP && texOP.filterModel) || gl.NEAREST_MIPMAP_LINEAR;
     } else {
-        texdes.filterMax = texOP && texOP.filterMax ? filterFallback(gl, texOP.filterMax) : gl.LINEAR;
-        texdes.filterMin = texOP && texOP.filterMin ? filterFallback(gl, texOP.filterMax) : gl.LINEAR;
+        // texdes.filterMax = texOP && texOP.filterMax ? filterFallback(gl, texOP.filterMax) : gl.LINEAR;
+        texdes.filterModel = texOP && texOP.filterModel ? filterFallback(gl, texOP.filterModel) : gl.LINEAR;
     }
     return texdes;
 }
 
 export interface ItextureInfo {
     texture: WebGLTexture;
-    texDes: ItextureDesInfo;
+    texDes: ItexImageDataOption | ItexViewDataOption;
 }
 
 export interface ItextureDesInfo {
     target?: number;
     // ----------------texParameteri-------------
-    filterMax?: number;
-    filterMin?: number;
+    // filterMax?: number;
+    filterModel?: number;
     /**
      * 为了uv滚动
      */

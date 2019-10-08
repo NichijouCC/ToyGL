@@ -1,3 +1,5 @@
+import { EngineTexture } from "./engineTexture";
+
 export enum ShaderTypeEnum {
     VS,
     FS,
@@ -24,4 +26,29 @@ export interface IshaderProgram {
     readonly program: any;
     readonly uniformsDic: { [name: string]: IuniformInfo };
     readonly attsDic: { [attName: string]: IattributeInfo };
+}
+
+export interface IframeBufferAttachment {
+    type: "color" | "depth" | "depthWithStencil" | "stencil";
+    beTexture?: boolean;
+    format?: number;
+    textureOptions?: {
+        pixelFormat?: number;
+        wrapS?: number;
+        wrapT?: number;
+        filterMin?: number;
+        filterMax?: number;
+        pixelDatatype?: number;
+    };
+}
+
+export interface IframeBufferInfo {
+    frameBuffer: WebGLFramebuffer;
+    width: number;
+    height: number;
+    attachInfos: {
+        attachment: WebGLRenderbuffer | EngineTexture;
+        type: "color" | "depth" | "depthWithStencil" | "stencil";
+        beTexture: boolean;
+    }[];
 }

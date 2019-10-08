@@ -3,7 +3,7 @@ import { GlConstants } from "../render/GlConstant";
 import { Color } from "../mathD/color";
 import { Vec4 } from "../mathD/vec4";
 import { EngineGlState } from "./engineGlState";
-import { IshaderProgram } from "./declaration";
+import { IshaderProgram, IframeBufferAttachment, IframeBufferInfo } from "./declaration";
 import { WebglShaderProgram } from "./engineProgram";
 import { ItexViewDataOption, EngineTexture, ItextureInfo, ItexImageDataOption } from "./engineTexture";
 
@@ -183,13 +183,124 @@ export class Engine {
         this._gl.deleteVertexArray(vao);
     }
     //---------------------------------------------------------
+    //                    FRAME BUFFER
+    //---------------------------------------------------------
+    createRenderTargetTexture(options?: { colorFromat: number }) {}
+
+    createFrameBuffer(op: {
+        width?: number;
+        height?: number;
+        attachments: IframeBufferAttachment[];
+    }): IframeBufferInfo {
+        let gl = this._gl;
+        let fbo = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+        let width = op.width || gl.drawingBufferWidth;
+        let height = op.height || gl.drawingBufferHeight;
+        let colorAttachmentCount = 0;
+        let attachInfos = op.attachments.map(attachmentOp => {
+            switch (attachmentOp.type) {
+                case "color":
+                    let attachmentPoint = gl.COLOR_ATTACHMENT0 + colorAttachmentCount++;
+                    if (attachmentOp.beTexture) {
+                        let tex = this.createTextureFromTypedArray({
+                            width: width,
+                            height: height,
+                            viewData: null,
+                            pixelFormat:
+                                (attachmentOp.textureOptions && attachmentOp.textureOptions.pixelFormat) || gl.RGBA,
+                            pixelDatatype:
+                                (attachmentOp.textureOptions && attachmentOp.textureOptions.pixelDatatype) ||
+                                gl.UNSIGNED_BYTE,
+                            wrapS:
+                                (attachmentOp.textureOptions && attachmentOp.textureOptions.wrapS) || gl.CLAMP_TO_EDGE,
+                            wrapT:
+                                (attachmentOp.textureOptions && attachmentOp.textureOptions.wrapT) || gl.CLAMP_TO_EDGE,
+                            filterModel:
+                                (attachmentOp.textureOptions && attachmentOp.textureOptions.filterMin) || gl.NEAREST,
+                            enableMipMap: false,
+                        });
+                        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex.texture, 0);
+                        return { attachment: tex, type: attachmentOp.type, beTexture: true };
+                    } else {
+                        let attachmentItem = gl.createRenderbuffer();
+                        gl.bindRenderbuffer(gl.RENDERBUFFER, attachmentItem);
+                        gl.renderbufferStorage(gl.RENDERBUFFER, attachmentOp.format || gl.RGBA, width, height);
+                        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, attachmentPoint, gl.RENDERBUFFER, attachmentItem);
+                        return { attachment: attachmentItem, type: attachmentOp.type, beTexture: false };
+                    }
+                case "depth":
+                    if (attachmentOp.beTexture) {
+                        let tex = this.createTextureFromTypedArray({
+                            width: width,
+                            height: height,
+                            viewData: null,
+                            pixelFormat:
+                                (attachmentOp.textureOptions && attachmentOp.textureOptions.pixelFormat) ||
+                                gl.DEPTH_COMPONENT,
+                            pixelDatatype:
+                                (attachmentOp.textureOptions && attachmentOp.textureOptions.pixelDatatype) ||
+                                gl.UNSIGNED_SHORT,
+                            wrapS:
+                                (attachmentOp.textureOptions && attachmentOp.textureOptions.wrapS) || gl.CLAMP_TO_EDGE,
+                            wrapT:
+                                (attachmentOp.textureOptions && attachmentOp.textureOptions.wrapT) || gl.CLAMP_TO_EDGE,
+                            filterModel:
+                                (attachmentOp.textureOptions && attachmentOp.textureOptions.filterMin) || gl.NEAREST,
+                            enableMipMap: false,
+                        });
+                        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, tex.texture, 0);
+                        return { attachment: tex, type: attachmentOp.type, beTexture: true };
+                    } else {
+                        var attachmentItem = gl.createRenderbuffer();
+                        gl.bindRenderbuffer(gl.RENDERBUFFER, attachmentItem);
+                        gl.renderbufferStorage(
+                            gl.RENDERBUFFER,
+                            attachmentOp.format || gl.DEPTH_COMPONENT16,
+                            width,
+                            height,
+                        );
+                        gl.framebufferRenderbuffer(
+                            gl.FRAMEBUFFER,
+                            gl.DEPTH_ATTACHMENT,
+                            gl.RENDERBUFFER,
+                            attachmentItem,
+                        );
+                        return { attachment: attachmentItem, type: attachmentOp.type, beTexture: false };
+                    }
+                case "depthWithStencil":
+                    var attachmentItem = gl.createRenderbuffer();
+                    gl.bindRenderbuffer(gl.RENDERBUFFER, attachmentItem);
+                    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, width, height);
+                    gl.framebufferRenderbuffer(
+                        gl.FRAMEBUFFER,
+                        gl.DEPTH_STENCIL_ATTACHMENT,
+                        gl.RENDERBUFFER,
+                        attachmentItem,
+                    );
+                    return { attachment: attachmentItem, type: attachmentOp.type, beTexture: false };
+
+                case "stencil":
+                    let format = attachmentOp.format || gl.STENCIL_INDEX8;
+                    var attachmentItem = gl.createRenderbuffer();
+                    gl.bindRenderbuffer(gl.RENDERBUFFER, attachmentItem);
+                    gl.renderbufferStorage(gl.RENDERBUFFER, format, width, height);
+                    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.STENCIL_ATTACHMENT, gl.RENDERBUFFER, attachmentItem);
+                    return { attachment: attachmentItem, type: attachmentOp.type, beTexture: false };
+            }
+        });
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        return { frameBuffer: fbo, width: width, height: height, attachInfos: attachInfos };
+    }
+
+    //---------------------------------------------------------
     //                    global state
     //---------------------------------------------------------
     setViewPort(port: Vec4) {
         this._glState.setViewPort(port[0], port[1], port[2], port[3]);
     }
 
-    clear(clearDepth: number | null, clearColor: Float32Array | null, clearStencil: number | null) {
+    setClear(clearDepth: number | null, clearColor: Float32Array | null, clearStencil: number | null) {
         this._glState.setClear(clearDepth, clearColor, clearStencil);
     }
 
@@ -214,6 +325,32 @@ export class Engine {
         }
         // No 32 bit support, force conversion to 16 bit (values greater 16 bit are lost)
         return new Uint16Array(indices);
+    }
+
+    //---------------------------------------------
+    //                  DRAW
+    //---------------------------------------------
+    drawElementsType(
+        drawMode: number,
+        indexStart: number,
+        indexCount: number,
+        indexFormat: number,
+        instancesCount?: number,
+    ): void {
+        var mult = indexFormat === this._gl.UNSIGNED_INT ? 4 : 2;
+        if (instancesCount) {
+            this._gl.drawElementsInstanced(drawMode, indexCount, indexFormat, indexStart * mult, instancesCount);
+        } else {
+            this._gl.drawElements(drawMode, indexCount, indexFormat, indexStart * mult);
+        }
+    }
+
+    drawArraysType(drawMode: number, verticesStart: number, verticesCount: number, instancesCount?: number): void {
+        if (instancesCount) {
+            this._gl.drawArraysInstanced(drawMode, verticesStart, verticesCount, instancesCount);
+        } else {
+            this._gl.drawArrays(drawMode, verticesStart, verticesCount);
+        }
     }
 }
 
