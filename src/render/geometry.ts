@@ -4,8 +4,22 @@ import { getComponentsizeFromVertexAttType, getGLTypeForTypedArray } from "./hel
 import { GlConstants } from "./GlConstant";
 
 export interface IgeometryOptions {
-    atts: { [keyName: string]: DataArray };
-    indices?: DataArray;
+    atts?: {
+        [keyName: string]: {
+            data: DataArray;
+            beDynamic?: boolean;
+            option?: {
+                componentSize?: number;
+                componentDataType?: number;
+                normalize?: boolean;
+                bytesStride?: number;
+                bytesOffset?: number;
+                divisor?: number;
+                count?: number;
+            };
+        };
+    };
+    indices?: { data: DataArray; beDynamic?: boolean };
     primitiveType?: number;
 }
 
@@ -19,9 +33,18 @@ export class Geometry {
     offset: number;
     primitiveType: number;
     constructor(engine: Engine, option: IgeometryOptions) {
-        for (const key in option.atts) {
-            let attData = option.atts[key];
-            this.atts[key] = new VertexBuffer(key, new Buffer(engine, attData));
+        if (option.atts != null) {
+            for (const key in option.atts) {
+                let attop = option.atts[key];
+                this.atts[key] = new VertexBuffer(
+                    key as VertexAttEnum,
+                    new Buffer(engine, attop.data, attop.beDynamic),
+                    attop.option,
+                );
+            }
+        }
+        if (option.indices != null) {
+            this.indices = new IndexBuffer(new Buffer(engine, option.indices.data, option.indices.beDynamic));
         }
     }
 
