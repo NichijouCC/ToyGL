@@ -52,7 +52,7 @@ export class Geometry {
         kind: string,
         data: DataArray,
         beDynamic: boolean = false,
-        option: {
+        option?: {
             componentSize?: number;
             componentDataType?: number;
             normalize?: boolean;
@@ -62,12 +62,12 @@ export class Geometry {
             count?: number;
         },
     ): void {
-        let buffer = new VertexBuffer(data, kind, new Buffer(this._engine, data, beDynamic), option);
+        let buffer = new VertexBuffer(kind as VertexAttEnum, new Buffer(this._engine, data, beDynamic), option);
         this.atts[kind] = buffer;
     }
 
     setIndexData(data: DataArray, beDynamic: boolean = false) {
-        let buffer = new IndexBuffer(new Buffer(this._engine, data, beDynamic), {});
+        let buffer = new IndexBuffer(new Buffer(this._engine, data, beDynamic));
         this.indices = buffer;
     }
 }
@@ -104,7 +104,7 @@ export class VertexBuffer {
             : getComponentsizeFromVertexAttType(vertexType);
         this.componentDataType = option.componentDataType
             ? option.componentDataType
-            : buffer.DataType || GlConstants.FLOAT;
+            : buffer.dataGlType || GlConstants.FLOAT;
         this.normalize = option.normalize === true;
         this.bytesStride = option.bytesStride != null ? option.bytesStride : 0;
         this.bytesOffset = option.bytesOffset != null ? option.bytesOffset : 0;
@@ -115,6 +115,7 @@ export class VertexBuffer {
 }
 
 export class Buffer {
+    private _engine: Engine;
     private _data: DataArray;
     private _buffer: IdataBuffer;
     readonly beDynamic: boolean;
@@ -126,7 +127,7 @@ export class Buffer {
     get buffer() {
         return this._buffer;
     }
-    get DataType() {
+    get dataGlType() {
         if (this._data instanceof Array) {
             return GlConstants.FLOAT;
         } else if (this._data instanceof ArrayBuffer) {
@@ -136,17 +137,20 @@ export class Buffer {
             return getGLTypeForTypedArray(this._data);
         }
     }
+
+    updateData(data: DataArray) {}
 }
 
 export class IndexBuffer {
     readonly buffer: Buffer;
     count: number;
     readonly componentDataType: number;
-    constructor(buffer: Buffer, option: { componentDataType?: number; count?: number }) {
+    constructor(buffer: Buffer, option?: { componentDataType?: number; count?: number }) {
+        option = option || {};
         this.buffer = buffer;
         this.componentDataType = option.componentDataType
             ? option.componentDataType
-            : buffer.DataType || GlConstants.UNSIGNED_SHORT;
+            : buffer.dataGlType || GlConstants.UNSIGNED_SHORT;
         this.count = option.count;
     }
 }

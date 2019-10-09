@@ -1,6 +1,6 @@
-import { IuniformInfo, IattributeInfo, ShaderTypeEnum, IshaderProgram } from "./declaration";
+import { IuniformInfo, IattributeInfo, ShaderTypeEnum, IshaderNode } from "./declaration";
 
-export class WebglShaderProgram implements IshaderProgram {
+export class WebglShaderNode implements IshaderNode {
     program: WebGLProgram;
     uniformsDic: { [name: string]: IuniformInfo };
     attsDic: { [attName: string]: IattributeInfo };

@@ -1,11 +1,7 @@
 /* eslint-disable prettier/prettier */
-import { IprogramOptions, IprogramState } from "../render/webglRender";
-import { IbassProgramInfo, IbassProgramOption, IuniformInfo, IattributeInfo } from "twebgl/dist/types/type";
-import { createBassProgramInfo } from "twebgl";
-import { GlConstants } from "../render/GlConstant";
 import { IpassState } from "../render/renderState";
 
-export type IshaderProgramOption =
+export type IshaderNodeOption =
     {
         name?: string;
         webglProgram: WebGLProgram;
@@ -16,29 +12,28 @@ export type IshaderProgramOption =
     };
 
 export interface IshaderPassOption {
-    program: IshaderProgramOption | ShaderProgram;
+    node: IshaderNodeOption | ShaderNode;
     defUniform?: { [name: string]: any };
     states?: IpassState;
 }
 
 export class ShaderPass {
-    program: ShaderProgram;
-    uniforms?: { [name: string]: any };
+    node: ShaderNode;
     readonly defUniforms: { [name: string]: any };
     readonly states?: IpassState;
 
     constructor(option: IshaderPassOption) {
-        if (option.program instanceof ShaderProgram) {
-            this.program = option.program;
+        if (option.node instanceof ShaderNode) {
+            this.node = option.node;
         } else {
-            this.program = new ShaderProgram(option.program);
+            this.node = new ShaderNode(option.node);
         }
         this.defUniforms = option.defUniform;
         this.states = option.states;
     }
 }
 
-export class ShaderProgram {
+export class ShaderNode {
     readonly id: number;
     readonly name?: string;
     readonly program: WebGLProgram;
@@ -46,7 +41,7 @@ export class ShaderProgram {
     readonly attsDic: { [name: string]: IattributeInfo };
     readonly combinedVs: string;
     readonly combinedFs: string;
-    constructor(option: IshaderProgramOption) {
+    constructor(option: IshaderNodeOption) {
         this.name = option.name;
     }
 }

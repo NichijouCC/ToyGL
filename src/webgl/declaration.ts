@@ -22,7 +22,7 @@ export interface IattributeInfo {
     location: number;
 }
 
-export interface IshaderProgram {
+export interface IshaderNode {
     readonly program: any;
     readonly uniformsDic: { [name: string]: IuniformInfo };
     readonly attsDic: { [attName: string]: IattributeInfo };

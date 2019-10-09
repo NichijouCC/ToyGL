@@ -3,8 +3,8 @@ import { GlConstants } from "../render/GlConstant";
 import { Color } from "../mathD/color";
 import { Vec4 } from "../mathD/vec4";
 import { EngineGlState } from "./engineGlState";
-import { IshaderProgram, IframeBufferAttachment, IframeBufferInfo } from "./declaration";
-import { WebglShaderProgram } from "./engineProgram";
+import { IshaderNode, IframeBufferAttachment, IframeBufferInfo } from "./declaration";
+import { WebglShaderNode } from "./engineProgram";
 import { ItexViewDataOption, EngineTexture, ItextureInfo, ItexImageDataOption } from "./engineTexture";
 
 export interface IengineOption {
@@ -82,11 +82,11 @@ export class Engine {
         );
         return new WebglDataBuffer(ebo);
     }
-    createShaderProgram(vs: string, fs: string): IshaderProgram {
-        return new WebglShaderProgram(this._gl, vs, fs);
+    createShaderNode(vs: string, fs: string): IshaderNode {
+        return new WebglShaderNode(this._gl, vs, fs);
     }
 
-    private bindVertexBuffersAttributes(vertexBuffers: { [key: string]: VertexBuffer }, program: IshaderProgram): void {
+    private bindVertexBuffersAttributes(vertexBuffers: { [key: string]: VertexBuffer }, program: IshaderNode): void {
         for (const key in program.attsDic) {
             let vertexInfo = vertexBuffers[key];
             let attLocation = program.attsDic[key].location;
@@ -112,8 +112,8 @@ export class Engine {
             this._cachedIndexBuffer = indexbuffer;
         }
     }
-    private _cachedShaderProgram: IshaderProgram;
-    bindShaderProgram(program: IshaderProgram, force = false) {
+    private _cachedShaderProgram: IshaderNode;
+    bindShaderProgram(program: IshaderNode, force = false) {
         if (force || program != this._cachedShaderProgram) {
             this._gl.useProgram(program.program);
             this._cachedShaderProgram = program;
@@ -124,7 +124,7 @@ export class Engine {
     bindBuffers(
         vertexBuffers: { [key: string]: VertexBuffer },
         indexbuffer: IdataBuffer,
-        program: IshaderProgram,
+        program: IshaderNode,
         force = false,
     ) {
         if (force || this._cachedVertexBuffers != vertexBuffers || this._cachedShaderProgram != program) {
@@ -150,7 +150,7 @@ export class Engine {
         this._gl.deleteBuffer(buffer.buffer);
     }
 
-    releaseProgram(program: IshaderProgram) {
+    releaseProgram(program: IshaderNode) {
         this._gl.deleteProgram(program.program);
     }
     //---------------------------------------------
@@ -159,7 +159,7 @@ export class Engine {
     createVertexArrayObject(
         vertexBuffers: { [key: string]: VertexBuffer },
         indexBuffer: IdataBuffer,
-        program: IshaderProgram,
+        program: IshaderNode,
     ): WebGLVertexArrayObject {
         var vao = this._gl.createVertexArray();
         this._gl.bindVertexArray(vao);
