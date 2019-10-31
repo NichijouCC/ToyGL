@@ -57,7 +57,7 @@ export class Engine {
         let description = "WebGL" + this._webGLVersion;
         return description;
     }
-    createVertexBuffer(data: DataArray, dynamic: boolean = false): IdataBuffer {
+    createArrayBuffer(data: DataArray, dynamic: boolean = false): IdataBuffer {
         let vbo = this._gl.createBuffer();
         this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vbo);
         if (data instanceof Array) {
@@ -71,7 +71,7 @@ export class Engine {
         }
         return new WebglDataBuffer(vbo);
     }
-    createIndexBuffer(indices: IndicesArray, dynamic: boolean = false): IdataBuffer {
+    createElementBuffer(indices: IndicesArray, dynamic: boolean = false): IdataBuffer {
         let ebo = this._gl.createBuffer();
         this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, ebo);
         const data = this._normalizeIndexData(indices);
@@ -368,8 +368,8 @@ export class WebglDataBuffer implements IdataBuffer {
     }
 }
 
-export class VertexBuffer implements IdataBuffer {
-    private _buffer: WebglDataBuffer;
+export class VertexBuffer {
+    private _buffer: IdataBuffer;
 
     componentSize: number;
     componentDataType: number;
@@ -379,9 +379,6 @@ export class VertexBuffer implements IdataBuffer {
     bytesOffset: number;
     divisor?: number;
 
-    // constructor(buffer: WebglDataBuffer) {
-    //     this._buffer = buffer;
-    // }
     get buffer() {
         return this._buffer.buffer;
     }
