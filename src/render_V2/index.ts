@@ -87,7 +87,6 @@ export class Buffer {
     }
     update(context: Context) {
         if (this.beDirty) {
-            context.engine.crea;
         }
     }
 }

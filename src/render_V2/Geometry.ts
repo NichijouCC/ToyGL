@@ -1,21 +1,22 @@
 import { IndicesArray } from "../webgl/engine";
 import { GlConstants } from "../render/GlConstant";
 import { GeometryAttribute } from "./GeometryAttribute";
+import { BoundingSphere } from "../scene/bounds";
+import { FrameState } from "./FrameState";
 
 export class Geometry {
     atts: {
         [keyName: string]: GeometryAttribute;
     };
     indices?: IndicesArray;
-    vaoDic: {
-        [programeId: number]: WebGLVertexArrayObject;
-    };
     // vao?: WebGLVertexArrayObject;
     primitiveType: number;
+    boundingSphere: BoundingSphere;
     constructor(option: IgeometryOptions) {
         this.atts = option.atts;
         this.indices = option.indices;
         this.primitiveType = option.primitiveType != null ? option.primitiveType : GlConstants.TRIANGLES;
+        this.boundingSphere = option.boundingSphere;
     }
 }
 export interface IgeometryOptions {
@@ -24,4 +25,5 @@ export interface IgeometryOptions {
     };
     indices?: IndicesArray;
     primitiveType?: number;
+    boundingSphere?: BoundingSphere;
 }
