@@ -6,6 +6,7 @@ import { DrawCommand } from "./DrawCommand";
 export class Primitive {
     geometryInstances: GeometryInstance | GeometryInstance[];
     appearance: any;
+    private _appearance: any;
     modelMatrix: Mat4;
 
     show: boolean;
@@ -13,6 +14,7 @@ export class Primitive {
     vertexCacheOptimize: boolean;
     cull: boolean;
     private drawCommand: DrawCommand[];
+    private _va: any;
     constructor(option: Primitive) {
         this.geometryInstances = option.geometryInstances;
         this.appearance = option.appearance;
@@ -25,6 +27,33 @@ export class Primitive {
     }
 
     update(frameState: FrameState) {
+
+        //----------------------------------------------------
+        //                  load batch createvao
+        //----------------------------------------------------
+
+
+
+        //------------check show
+
+
+
+        //----------------------------------------------------
+        //                draw commond      
+        //----------------------------------------------------
+        let createRS = false;
+        let createSP = false;
+        if (this._appearance != this.appearance) {
+            this._appearance = this.appearance;
+            createSP = true;
+        }
+
+        if (createSP) {
+            //creat shader program
+        }
+        if (createSP) {
+
+        }
 
     }
 }
