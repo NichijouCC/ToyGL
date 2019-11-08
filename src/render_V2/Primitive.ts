@@ -2,11 +2,38 @@ import { GeometryInstance } from "./GeometryInstance";
 import { Mat4 } from "../mathD/mat4";
 import { FrameState } from "./FrameState";
 import { DrawCommand } from "./DrawCommand";
+import { IvertexArray } from "../webgl/Ibase";
 
 export class Primitive {
-    geometryInstances: GeometryInstance | GeometryInstance[];
-    appearance: any;
+    private _geometryInstances: GeometryInstance | GeometryInstance[];
+    private geometryDirty: boolean = false;
+    set geometryInstances(value: GeometryInstance | GeometryInstance[]) {
+        if (this._geometryInstances != value) {
+            this.geometryDirty = true;
+        } else {
+            if (value instanceof Array && this._geometryInstances instanceof Array) {
+                if (value.length != this._geometryInstances.length) {
+                    this.geometryDirty = true;
+                } else {
+                    for (let i = 0; i < value.length; i++) {
+                        if (value[i] != this._geometryInstances[i]) {
+                            this.geometryDirty = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        this._geometryInstances = value;
+    }
     private _appearance: any;
+    private appearanceDirty: boolean = false;
+    set appearance(value: any) {
+        if (this._appearance != value) {
+            this.appearanceDirty = true;
+        }
+        this._appearance = value;
+    }
     modelMatrix: Mat4;
 
     show: boolean;
@@ -14,7 +41,7 @@ export class Primitive {
     vertexCacheOptimize: boolean;
     cull: boolean;
     private drawCommand: DrawCommand[];
-    private _va: any;
+    private _va: IvertexArray;
     constructor(option: Primitive) {
         this.geometryInstances = option.geometryInstances;
         this.appearance = option.appearance;
@@ -27,7 +54,6 @@ export class Primitive {
     }
 
     update(frameState: FrameState) {
-
         //----------------------------------------------------
         //                  load batch createvao
         //----------------------------------------------------
@@ -41,19 +67,10 @@ export class Primitive {
         //----------------------------------------------------
         //                draw commond      
         //----------------------------------------------------
-        let createRS = false;
-        let createSP = false;
-        if (this._appearance != this.appearance) {
-            this._appearance = this.appearance;
-            createSP = true;
-        }
-
-        if (createSP) {
+        if (this.appearanceDirty) {
             //creat shader program
         }
-        if (createSP) {
-
-        }
+        if ()
 
     }
 }

@@ -1,23 +1,19 @@
 import { getGLTypeForTypedArray } from "../render/helper";
 import { glTypeToByteSize } from "../resources/assets/geometry";
 
-interface IbufferOptionA {
-    gl: WebGLRenderingContext;
-    bufferTarget: number;
-    typedArray: ArrayBufferView;
-    usage: number;
-}
-interface IbufferOptionB {
-    gl: WebGLRenderingContext;
-    bufferTarget: number;
-    sizeInBytes: number;
-    usage: number;
-}
-/**
- *
- *
- *
- */
+export type bufferOption =
+    | {
+          gl: WebGLRenderingContext;
+          bufferTarget: number;
+          typedArray: ArrayBufferView;
+          usage: number;
+      }
+    | {
+          gl: WebGLRenderingContext;
+          bufferTarget: number;
+          sizeInBytes: number;
+          usage: number;
+      };
 export class Buffer {
     readonly bufferTarget: number;
     readonly usage: number;
@@ -25,7 +21,7 @@ export class Buffer {
     readonly sizeInBytes: number;
     private _buffer: WebGLBuffer;
     private _gl: WebGLRenderingContext;
-    constructor(options: IbufferOptionA | IbufferOptionB) {
+    constructor(options: bufferOption) {
         let gl = options.gl;
         this._gl = options.gl;
         this.bufferTarget = options.bufferTarget;
@@ -60,16 +56,18 @@ export class Buffer {
     }
 }
 
-export interface IvertexBufferOptionA {
-    gl: WebGLRenderingContext;
-    usage: number;
-    sizeInBytes: number;
-}
-export interface IvertexBufferOptionB {
-    gl: WebGLRenderingContext;
-    usage: number;
-    typedArray: ArrayBufferView;
-}
+export type vertexBufferOption =
+    | {
+          gl: WebGLRenderingContext;
+          usage: number;
+          sizeInBytes: number;
+      }
+    | {
+          gl: WebGLRenderingContext;
+          usage: number;
+          typedArray: ArrayBufferView;
+      };
+
 export class VertexBuffer extends Buffer {
     componentSize: number;
     componentDataType: number;
@@ -78,28 +76,29 @@ export class VertexBuffer extends Buffer {
     bytesStride: number;
     bytesOffset: number;
     divisor?: number;
-    constructor(options: IvertexBufferOptionA | IvertexBufferOptionB) {
+    constructor(options: vertexBufferOption) {
         super({ ...options, bufferTarget: options.gl.ARRAY_BUFFER });
     }
 }
 
-export interface IindexBufferOptionA {
-    gl: WebGLRenderingContext;
-    usage: number;
-    sizeInBytes: number;
-    indexDatatype: number;
-}
-export interface IindexBufferOptionB {
-    gl: WebGLRenderingContext;
-    usage: number;
-    typedArray: ArrayBufferView;
-}
+export type IndexBufferOption =
+    | {
+          gl: WebGLRenderingContext;
+          usage: number;
+          sizeInBytes: number;
+          indexDatatype: number;
+      }
+    | {
+          gl: WebGLRenderingContext;
+          usage: number;
+          typedArray: ArrayBufferView;
+      };
 
 export class IndexBuffer extends Buffer {
     readonly indexDatatype: number;
     readonly bytesPerIndex: number;
     readonly numberOfIndices: number;
-    constructor(options: IvertexBufferOptionA | IindexBufferOptionB) {
+    constructor(options: IndexBufferOption) {
         super({ ...options, bufferTarget: options.gl.ELEMENT_ARRAY_BUFFER });
         this.indexDatatype = (options as any).indexDatatype;
         let typedArray = (options as any).typedArray;

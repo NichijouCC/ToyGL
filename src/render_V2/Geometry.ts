@@ -3,11 +3,10 @@ import { GlConstants } from "../render/GlConstant";
 import { GeometryAttribute } from "./GeometryAttribute";
 import { BoundingSphere } from "../scene/bounds";
 import { FrameState } from "./FrameState";
+import { VertexArray } from "../webgl/vertextArray";
 
 export class Geometry {
-    atts: {
-        [keyName: string]: GeometryAttribute;
-    };
+    atts: { [keyName: string]: GeometryAttribute };
     indices?: IndicesArray;
     // vao?: WebGLVertexArrayObject;
     primitiveType: number;
@@ -20,9 +19,7 @@ export class Geometry {
     }
 }
 export interface IgeometryOptions {
-    atts?: {
-        [keyName: string]: GeometryAttribute;
-    };
+    atts?: { [keyName: string]: GeometryAttribute };
     indices?: IndicesArray;
     primitiveType?: number;
     boundingSphere?: BoundingSphere;

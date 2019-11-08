@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { EngineCapability } from "./engineCapability";
 import { GlConstants } from "../render/GlConstant";
 import { Color } from "../mathD/color";
@@ -6,6 +7,8 @@ import { EngineGlState } from "./engineGlState";
 import { IshaderNode, IframeBufferAttachment, IframeBufferInfo } from "./declaration";
 import { WebglShaderNode } from "./engineProgram";
 import { ItexViewDataOption, EngineTexture, ItextureInfo, ItexImageDataOption } from "./engineTexture";
+import { VertexBuffer, IndexBuffer } from "./buffer";
+import { IvertexAttribute, VertexArray } from "./vertextArray";
 
 export interface IengineOption {
     disableWebgl2?: boolean;
@@ -13,6 +16,9 @@ export interface IengineOption {
 export class Engine {
     private _gl: WebGLRenderingContext;
     private _caps: EngineCapability;
+    get caps(): EngineCapability {
+        return this._caps;
+    }
     private _glState: EngineGlState;
     private _webGLVersion: number;
     constructor(canvasOrContext: HTMLCanvasElement | WebGLRenderingContext, option?: IengineOption) {
@@ -24,12 +30,12 @@ export class Engine {
             if (!option.disableWebgl2) {
                 try {
                     this._gl = canvasOrContext.getContext("webgl2", option) as any;
-                } catch (e) {}
+                } catch (e) { }
             }
             if (!this._gl) {
                 try {
                     this._gl = canvasOrContext.getContext("webgl", option) as any;
-                } catch (e) {}
+                } catch (e) { }
             }
             if (!this._gl) {
                 throw new Error("webgl not supported");
@@ -57,54 +63,47 @@ export class Engine {
         let description = "WebGL" + this._webGLVersion;
         return description;
     }
-    createArrayBuffer(data: DataArray, dynamic: boolean = false): IdataBuffer {
-        let vbo = this._gl.createBuffer();
-        this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vbo);
-        if (data instanceof Array) {
-            this._gl.bufferData(
-                this._gl.ARRAY_BUFFER,
-                new Float32Array(data),
-                dynamic ? this._gl.DYNAMIC_DRAW : this._gl.STATIC_DRAW,
-            );
+    createArrayBuffer(data: ArrayBufferView | number, dynamic: boolean = false): VertexBuffer {
+        let usage = dynamic ? this._gl.DYNAMIC_DRAW : this._gl.STATIC_DRAW;
+        if (typeof data == "number") {
+            return new VertexBuffer({ gl: this._gl, usage: usage, sizeInBytes: data });
         } else {
-            this._gl.bufferData(this._gl.ARRAY_BUFFER, data, dynamic ? this._gl.DYNAMIC_DRAW : this._gl.STATIC_DRAW);
+            return new VertexBuffer({ gl: this._gl, usage: usage, typedArray: data });
         }
-        return new WebglDataBuffer(vbo);
     }
-    createElementBuffer(indices: IndicesArray, dynamic: boolean = false): IdataBuffer {
-        let ebo = this._gl.createBuffer();
-        this._gl.bindBuffer(this._gl.ELEMENT_ARRAY_BUFFER, ebo);
-        const data = this._normalizeIndexData(indices);
-        this._gl.bufferData(
-            this._gl.ELEMENT_ARRAY_BUFFER,
-            data,
-            dynamic ? this._gl.DYNAMIC_DRAW : this._gl.STATIC_DRAW,
-        );
-        return new WebglDataBuffer(ebo);
+
+    createElementBuffer(options: { data: ArrayBufferView | number; indexDatatype?: number; dynamic?: boolean; }): IndexBuffer {
+        options.dynamic = options.dynamic ?? false;
+        let usage = options.dynamic ? this._gl.DYNAMIC_DRAW : this._gl.STATIC_DRAW;
+        if (typeof options.data == "number") {
+            return new IndexBuffer({ gl: this._gl, usage: usage, sizeInBytes: options.data, indexDatatype: options.indexDatatype });
+        } else {
+            return new IndexBuffer({ gl: this._gl, usage: usage, typedArray: options.data, });
+        }
     }
     createShaderNode(vs: string, fs: string): IshaderNode {
         return new WebglShaderNode(this._gl, vs, fs);
     }
 
-    private bindVertexBuffersAttributes(vertexBuffers: { [key: string]: VertexBuffer }, program: IshaderNode): void {
-        for (const key in program.attsDic) {
-            let vertexInfo = vertexBuffers[key];
-            let attLocation = program.attsDic[key].location;
-            this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexInfo.buffer);
-            this._gl.enableVertexAttribArray(attLocation);
-            this._gl.vertexAttribPointer(
-                attLocation,
-                vertexInfo.componentSize,
-                vertexInfo.componentDataType,
-                vertexInfo.normalize,
-                vertexInfo.bytesStride,
-                vertexInfo.bytesOffset,
-            );
-            if (vertexInfo.divisor !== undefined) {
-                this._gl.vertexAttribDivisor(attLocation, vertexInfo.divisor);
-            }
-        }
-    }
+    // private bindVertexBuffersAttributes(vertexBuffers: { [key: string]: IvertexAttribute }, program: IshaderNode): void {
+    //     for (const key in program.attsDic) {
+    //         let vertexInfo = vertexBuffers[key];
+    //         let attLocation = program.attsDic[key].location;
+    //         this._gl.bindBuffer(this._gl.ARRAY_BUFFER, vertexInfo.buffer);
+    //         this._gl.enableVertexAttribArray(attLocation);
+    //         this._gl.vertexAttribPointer(
+    //             attLocation,
+    //             vertexInfo.componentSize,
+    //             vertexInfo.componentDataType,
+    //             vertexInfo.normalize,
+    //             vertexInfo.bytesStride,
+    //             vertexInfo.bytesOffset,
+    //         );
+    //         if (vertexInfo.divisor !== undefined) {
+    //             this._gl.vertexAttribDivisor(attLocation, vertexInfo.divisor);
+    //         }
+    //     }
+    // }
     private _cachedIndexBuffer: IdataBuffer;
     bindIndexBuffer(indexbuffer: IdataBuffer, force = false) {
         if (force || indexbuffer != this._cachedIndexBuffer) {
@@ -121,19 +120,19 @@ export class Engine {
     }
 
     private _cachedVertexBuffers: { [key: string]: VertexBuffer };
-    bindBuffers(
-        vertexBuffers: { [key: string]: VertexBuffer },
-        indexbuffer: IdataBuffer,
-        program: IshaderNode,
-        force = false,
-    ) {
-        if (force || this._cachedVertexBuffers != vertexBuffers || this._cachedShaderProgram != program) {
-            this._cachedVertexBuffers = vertexBuffers;
+    // bindBuffers(
+    //     vertexBuffers: { [key: string]: VertexBuffer },
+    //     indexbuffer: IdataBuffer,
+    //     program: IshaderNode,
+    //     force = false,
+    // ) {
+    //     if (force || this._cachedVertexBuffers != vertexBuffers || this._cachedShaderProgram != program) {
+    //         this._cachedVertexBuffers = vertexBuffers;
 
-            this.bindVertexBuffersAttributes(vertexBuffers, program);
-        }
-        this.bindIndexBuffer(indexbuffer, force);
-    }
+    //         this.bindVertexBuffersAttributes(vertexBuffers, program);
+    //     }
+    //     this.bindIndexBuffer(indexbuffer, force);
+    // }
     //------------------------------------------
     //                 TEXTURE
     //-----------------------------------------
@@ -156,23 +155,18 @@ export class Engine {
     //---------------------------------------------
     //           VertexArrayObject
     //---------------------------------------------
-    createVertexArrayObject(
-        vertexBuffers: { [key: string]: VertexBuffer },
-        indexBuffer: IdataBuffer,
-        program: IshaderNode,
-    ): WebGLVertexArrayObject {
-        var vao = this._gl.createVertexArray();
-        this._gl.bindVertexArray(vao);
-        this.bindVertexBuffersAttributes(vertexBuffers, program);
-        this.bindIndexBuffer(indexBuffer, true);
-        this._gl.bindVertexArray(null);
-        return vao;
+    createVertexArrayObject(vertexAttributes: IvertexAttribute[], indexBuffer?: IndexBuffer): WebGLVertexArrayObject {
+        return new VertexArray({
+            gl: this._gl,
+            vertexArrayObject: this._caps.vertexArrayObject,
+            attributes: vertexAttributes,
+            indexBuffer: indexBuffer
+        });
     }
     private _cachedVertexArrayObject: WebGLVertexArrayObject;
     bindVertexArrayObject(vao: WebGLVertexArrayObject, force = false) {
         if (force || this._cachedVertexArrayObject !== vao) {
             this._cachedVertexArrayObject = vao;
-
             this._gl.bindVertexArray(vao);
             this._cachedVertexBuffers = null;
             this._cachedIndexBuffer = null;
@@ -185,7 +179,7 @@ export class Engine {
     //---------------------------------------------------------
     //                    FRAME BUFFER
     //---------------------------------------------------------
-    createRenderTargetTexture(options?: { colorFromat: number }) {}
+    createRenderTargetTexture(options?: { colorFromat: number }) { }
 
     createFrameBuffer(op: {
         width?: number;
@@ -365,22 +359,6 @@ export class WebglDataBuffer implements IdataBuffer {
     }
     get buffer() {
         return this._buffer;
-    }
-}
-
-export class VertexBuffer {
-    private _buffer: IdataBuffer;
-
-    componentSize: number;
-    componentDataType: number;
-    // size?: number;
-    normalize: boolean;
-    bytesStride: number;
-    bytesOffset: number;
-    divisor?: number;
-
-    get buffer() {
-        return this._buffer.buffer;
     }
 }
 
