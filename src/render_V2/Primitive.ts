@@ -70,7 +70,6 @@ export class Primitive {
         if (this.appearanceDirty) {
             //creat shader program
         }
-        if ()
 
     }
 }
