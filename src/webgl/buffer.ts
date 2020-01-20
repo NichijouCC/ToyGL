@@ -1,15 +1,16 @@
 import { getGLTypeForTypedArray } from "../render/helper";
 import { glTypeToByteSize } from "../resources/assets/geometry";
+import { Context } from "../core/context";
 
 export type bufferOption =
     | {
-          gl: WebGLRenderingContext;
+          context: Context;
           bufferTarget: number;
           typedArray: ArrayBufferView;
           usage: number;
       }
     | {
-          gl: WebGLRenderingContext;
+          context: Context;
           bufferTarget: number;
           sizeInBytes: number;
           usage: number;
@@ -22,8 +23,8 @@ export class Buffer {
     private _buffer: WebGLBuffer;
     private _gl: WebGLRenderingContext;
     constructor(options: bufferOption) {
-        let gl = options.gl;
-        this._gl = options.gl;
+        let gl = options.context.gl;
+        this._gl = gl;
         this.bufferTarget = options.bufferTarget;
         this.usage = options.usage;
         this.typedArray = (options as any).typedArray;
@@ -54,16 +55,54 @@ export class Buffer {
     dispose() {
         this._gl.deleteBuffer(this._buffer);
     }
+
+    /*
+     * @example
+     * // Example 1. Create a dynamic vertex buffer 16 bytes in size.
+     * var buffer = Buffer.createVertexBuffer({
+     *     context : context,
+     *     sizeInBytes : 16,
+     *     usage : BufferUsage.DYNAMIC_DRAW
+     * });
+     *
+     * @example
+     * // Example 2. Create a dynamic vertex buffer from three floating-point values.
+     * // The data copied to the vertex buffer is considered raw bytes until it is
+     * // interpreted as vertices using a vertex array.
+     * var positionBuffer = buffer.createVertexBuffer({
+     *     context : context,
+     *     typedArray : new Float32Array([0, 0, 0]),
+     *     usage : BufferUsage.STATIC_DRAW
+     * });
+     */
+    static createVertexBuffer(options:{context:Context,sizeInBytes:number,usage:BufferUsageEnum}|{context:Context,typedArray:TypedArray,usage:BufferUsageEnum}){
+        return new VertexBuffer({
+            context: options.context,
+            typedArray: (options as any).typedArray,
+            sizeInBytes: (options as any).sizeInBytes,
+            usage: options.usage
+        });
+    }
+
+    static createIndexBuffer(options: IndexBufferOption){
+        return new IndexBuffer({
+            context:options.context,
+            usage:options.usage,
+            typedArray: (options as any).typedArray,
+            sizeInBytes: (options as any).sizeInBytes,
+            indexDatatype:(options as any).indexDatatype
+        });
+    }
 }
 
 export type vertexBufferOption =
     | {
-          gl: WebGLRenderingContext;
+          context: Context;
           usage: number;
           sizeInBytes: number;
       }
     | {
-          gl: WebGLRenderingContext;
+          context: Context;
           usage: number;
           typedArray: ArrayBufferView;
       };
@@ -77,19 +116,19 @@ export class VertexBuffer extends Buffer {
     bytesOffset: number;
     divisor?: number;
     constructor(options: vertexBufferOption) {
-        super({ ...options, bufferTarget: options.gl.ARRAY_BUFFER });
+        super({ ...options, bufferTarget: BufferTargetEnum.ARRAY_BUFFER });
     }
 }
 
 export type IndexBufferOption =
     | {
-          gl: WebGLRenderingContext;
+          context: Context;
           usage: number;
           sizeInBytes: number;
           indexDatatype: number;
       }
     | {
-          gl: WebGLRenderingContext;
+          context: Context;
           usage: number;
           typedArray: ArrayBufferView;
       };
@@ -99,7 +138,7 @@ export class IndexBuffer extends Buffer {
     readonly bytesPerIndex: number;
     readonly numberOfIndices: number;
     constructor(options: IndexBufferOption) {
-        super({ ...options, bufferTarget: options.gl.ELEMENT_ARRAY_BUFFER });
+        super({ ...options, bufferTarget: BufferTargetEnum.ELEMENT_ARRAY_BUFFER });
         this.indexDatatype = (options as any).indexDatatype;
         let typedArray = (options as any).typedArray;
         if (typedArray) {
@@ -109,3 +148,14 @@ export class IndexBuffer extends Buffer {
         this.numberOfIndices = this.sizeInBytes / this.bytesPerIndex;
     }
 }
+
+export enum BufferTargetEnum{
+    ARRAY_BUFFER,
+    ELEMENT_ARRAY_BUFFER
+}
+
+export enum BufferUsageEnum{
+    STATIC_DRAW,
+    DYNAMIC_DRAW
+}
+export type TypedArray=Float32Array

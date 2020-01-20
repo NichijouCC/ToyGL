@@ -1,3 +1,18 @@
+/**
+ * 
+ * @example useage
+ * ```
+ * let pos= new GeometryAttribute({
+ *       componentDatatype : ComponentDatatype.FLOAT,
+ *       componentsPerAttribute : 3,
+ *       values : new Float32Array([
+ *         0.0, 0.0, 0.0,
+ *         7500000.0, 0.0, 0.0,
+ *         0.0, 7500000.0, 0.0
+ *       ])
+ *     })
+ * 
+ */
 export class GeometryAttribute {
     componentDatatype: number;
     componentsPerAttribute: number;

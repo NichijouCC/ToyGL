@@ -66,9 +66,9 @@ export class Engine {
     createArrayBuffer(data: ArrayBufferView | number, dynamic: boolean = false): VertexBuffer {
         let usage = dynamic ? this._gl.DYNAMIC_DRAW : this._gl.STATIC_DRAW;
         if (typeof data == "number") {
-            return new VertexBuffer({ gl: this._gl, usage: usage, sizeInBytes: data });
+            return new VertexBuffer({ context: this._gl, usage: usage, sizeInBytes: data });
         } else {
-            return new VertexBuffer({ gl: this._gl, usage: usage, typedArray: data });
+            return new VertexBuffer({ context: this._gl, usage: usage, typedArray: data });
         }
     }
 
@@ -76,9 +76,9 @@ export class Engine {
         options.dynamic = options.dynamic ?? false;
         let usage = options.dynamic ? this._gl.DYNAMIC_DRAW : this._gl.STATIC_DRAW;
         if (typeof options.data == "number") {
-            return new IndexBuffer({ gl: this._gl, usage: usage, sizeInBytes: options.data, indexDatatype: options.indexDatatype });
+            return new IndexBuffer({ context: this._gl, usage: usage, sizeInBytes: options.data, indexDatatype: options.indexDatatype });
         } else {
-            return new IndexBuffer({ gl: this._gl, usage: usage, typedArray: options.data, });
+            return new IndexBuffer({ context: this._gl, usage: usage, typedArray: options.data, });
         }
     }
     createShaderNode(vs: string, fs: string): IshaderNode {
