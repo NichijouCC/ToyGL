@@ -7,8 +7,8 @@ import { EngineGlState } from "./engineGlState";
 import { IshaderNode, IframeBufferAttachment, IframeBufferInfo } from "./declaration";
 import { WebglShaderNode } from "./engineProgram";
 import { ItexViewDataOption, EngineTexture, ItextureInfo, ItexImageDataOption } from "./engineTexture";
-import { VertexBuffer, IndexBuffer } from "./buffer";
-import { IvertexAttribute, VertexArray } from "./vertextArray";
+import { VertexBuffer, IndexBuffer } from "./Buffer";
+import { IvertexAttribute, VertexArray } from "./VertextArray";
 
 export interface IengineOption {
     disableWebgl2?: boolean;

@@ -16,8 +16,9 @@
 export class GeometryAttribute {
     componentDatatype: number;
     componentsPerAttribute: number;
-    normalize: boolean = false;
-    values: ArrayBufferView;
+    normalize: boolean;
+    values?: ArrayBufferView;
+    value?:any;
     constructor(option: IgeometryAttributeOptions) {
         this.values = option.values;
         this.componentDatatype = option.componentDatatype;
@@ -29,5 +30,6 @@ interface IgeometryAttributeOptions {
     componentDatatype: number;
     componentsPerAttribute: number;
     normalize?: boolean;
-    values: ArrayBufferView;
+    values?: ArrayBufferView;
+    value?:any;
 }

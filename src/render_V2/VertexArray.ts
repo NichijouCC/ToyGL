@@ -1,5 +1,5 @@
 import { Context } from "../core/context";
-import { IndexBuffer } from "../webgl/buffer";
+import { IndexBuffer } from "../webgl/Buffer";
 
 /**
  * Creates a vertex array, which defines the attributes making up a vertex, and contains an optional index buffer
