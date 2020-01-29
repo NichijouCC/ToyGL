@@ -1,9 +1,8 @@
-import { ToyActor, Icomponent, Ientity } from "./ec";
 import { Vec3 } from "../mathD/vec3";
 import { Quat } from "../mathD/quat";
 import { Mat4 } from "../mathD/mat4";
 import { IframeState } from "../scene/frameState";
-import { Entity } from "./entity";
+import { Entity } from "../ec/entity";
 
 enum DirtyFlagEnum {
     WWORLD_POS = 0b000100,
@@ -13,14 +12,13 @@ enum DirtyFlagEnum {
     WORLDMAT = 0b000010,
 }
 
-@ToyActor.Reg
-export class Transform implements Icomponent {
+export class Transform{
     entity: Entity;
     parent: Transform;
     children: Transform[] = [];
     private dirtyFlag: number = 0;
 
-    private constructor() {}
+    constructor() {}
 
     _localPosition: Vec3 = Vec3.create();
     _localRotation: Quat = Quat.create();

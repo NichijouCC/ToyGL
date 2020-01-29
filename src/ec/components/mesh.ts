@@ -3,10 +3,11 @@ import { Material } from "../../resources/assets/material";
 import { Geometry } from "../../resources/assets/geometry";
 import { IframeState } from "../../scene/frameState";
 import { BoundingSphere } from "../../scene/bounds";
+import { Entity } from "../entity";
 
 @ToyActor.Reg
 export class Mesh implements Irender {
-    entity: Ientity;
+    entity: Entity;
     mask: CullingMask = CullingMask.default;
     geometry: Geometry;
     material: Material;
@@ -18,7 +19,7 @@ export class Mesh implements Irender {
                 // program: this._material.program,
                 // uniforms: this._material.uniforms,
                 material: this.material,
-                modelMatrix: this.entity.transform.worldMatrix,
+                modelMatrix: this.entity.worldMatrix,
                 bouningSphere: this.boundingSphere,
             });
         }

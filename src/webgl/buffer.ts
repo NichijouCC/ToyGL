@@ -1,16 +1,16 @@
 import { getGLTypeForTypedArray } from "../render/helper";
 import { glTypeToByteSize } from "../resources/assets/geometry";
-import { Context } from "../core/context";
+import { GraphicsDevice } from "./GraphicsDevice";
 
 export type bufferOption =
     | {
-          context: Context;
+          context: GraphicsDevice;
           bufferTarget: number;
           typedArray: ArrayBufferView;
           usage: number;
       }
     | {
-          context: Context;
+          context: GraphicsDevice;
           bufferTarget: number;
           sizeInBytes: number;
           usage: number;
@@ -75,7 +75,7 @@ export class Buffer {
      *     usage : BufferUsage.STATIC_DRAW
      * });
      */
-    static createVertexBuffer(options:{context:Context,sizeInBytes:number,usage:BufferUsageEnum}|{context:Context,typedArray:ArrayBufferView,usage:BufferUsageEnum}){
+    static createVertexBuffer(options:{context:GraphicsDevice,sizeInBytes:number,usage:BufferUsageEnum}|{context:GraphicsDevice,typedArray:ArrayBufferView,usage:BufferUsageEnum}){
         return new VertexBuffer({
             context: options.context,
             typedArray: (options as any).typedArray,
@@ -97,12 +97,12 @@ export class Buffer {
 
 export type vertexBufferOption =
     | {
-          context: Context;
+          context: GraphicsDevice;
           usage: number;
           sizeInBytes: number;
       }
     | {
-          context: Context;
+          context: GraphicsDevice;
           usage: number;
           typedArray: ArrayBufferView;
       };
@@ -124,13 +124,13 @@ export type IndicesArray=Uint16Array|Uint32Array;
 
 export type IndexBufferOption =
     | {
-          context: Context;
+          context: GraphicsDevice;
           usage: number;
           sizeInBytes: number;
           indexDatatype: number;
       }
     | {
-          context: Context;
+          context: GraphicsDevice;
           usage: number;
           typedArray: IndicesArray;
       };
@@ -160,4 +160,4 @@ export enum BufferUsageEnum{
     STATIC_DRAW,
     DYNAMIC_DRAW
 }
-export type TypedArray=Float32Array
+

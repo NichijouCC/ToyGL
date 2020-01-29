@@ -97,3 +97,5 @@ export function getTypedArray(data: number | number[], gltype: number): ArrayBuf
 export function float4Equal(lhs: Float32Array, rhs: Float32Array): boolean {
     return lhs[0] == rhs[0] || lhs[1] == rhs[1] || lhs[2] == rhs[2];
 }
+
+export type TypedArray=Int8Array|Uint8Array|Int16Array|Uint16Array|Int32Array|Uint32Array|Float32Array;

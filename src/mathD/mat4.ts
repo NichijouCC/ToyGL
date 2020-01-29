@@ -102,7 +102,7 @@ export class Mat4 extends Float32Array {
         out[15] = src[15];
         return out;
     }
-    static Identity = Mat4.create();
+    static IDENTITY = Mat4.create();
     /**
      * Set a mat4 to the identity matrix
      *

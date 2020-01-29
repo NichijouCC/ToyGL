@@ -1,7 +1,8 @@
 import { VertexBuffer, IndexBuffer, BufferUsageEnum, Buffer } from "./Buffer";
 import { IvertexArray } from "./Ibase";
-import { Context } from "../core/context";
+import { GraphicsDevice } from "./GraphicsDevice";
 import { Geometry } from "../core/Geometry";
+import { Config } from "../core/Config";
 
 export interface IvertexAttribute {
     index: number; // 0;
@@ -115,7 +116,7 @@ export class VertexArray implements IvertexArray {
     private _vao: any;
     private _gl: WebGLRenderingContext;
     constructor(options: {
-        context: Context;
+        context: GraphicsDevice;
         attributes: IvertexAttribute[];
         indexBuffer?: IndexBuffer;
     }) {
@@ -186,7 +187,6 @@ export class VertexArray implements IvertexArray {
      * var va = VertexArray.fromGeometry({
      *     context            : context,
      *     geometry           : geometry,
-     *     attributeLocations : GeometryPipeline.createAttributeLocations(geometry),
      * });
      *
      * @example
@@ -195,7 +195,6 @@ export class VertexArray implements IvertexArray {
      * var va = VertexArray.fromGeometry({
      *     context            : context,
      *     geometry           : geometry,
-     *     attributeLocations : GeometryPipeline.createAttributeLocations(geometry),
      *     bufferUsage        : BufferUsage.STATIC_DRAW,
      *     interleave         : true
      * });
@@ -207,21 +206,23 @@ export class VertexArray implements IvertexArray {
      *
      */
     static fromGeometry(options:{
-       context:Context,
+       context:GraphicsDevice,
        geometry:Geometry,
-       attributeLocations:{[attname:string]:number},
        bufferUsage?:BufferUsageEnum,
        interleave?:boolean}){
+
+        let usage=options.bufferUsage??BufferUsageEnum.STATIC_DRAW;
+        let geAtts= options.geometry.attributes;
+
+
         if(options.interleave){
             //todo
         }else
         {
-            let geAtts= options.geometry.attributes;
-            let usage=options.bufferUsage??BufferUsageEnum.STATIC_DRAW;
             let attArr= Object.keys(geAtts).map(attName=>{
                 let geAtt=geAtts[attName];
                 let att:IvertexAttribute={
-                    index:options.attributeLocations[attName],
+                    index:Config.getAttLocationFromName(attName as any),
                     componentDatatype : geAtt.componentDatatype,
                     componentsPerAttribute : geAtt.componentsPerAttribute,
                     normalize : geAtt.normalize
@@ -270,7 +271,7 @@ export class VertexAttribute implements IvertexAttribute{
     readonly instanceDivisor: number;
 
     private _gl:WebGLRenderingContext;
-    constructor(options:{context:Context,att:IvertexAttribute,index?:number} ){
+    constructor(options:{context:GraphicsDevice,att:IvertexAttribute,index?:number} ){
 
         //todo  check 
         if (options.att.vertexBuffer==null && options.att.value==null) {

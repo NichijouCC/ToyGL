@@ -1,5 +1,5 @@
-import { Context } from "../core/Context";
+import { GraphicsDevice } from "../webgl/GraphicsDevice";
 
 export class FrameState {
-    context: Context;
+    context: GraphicsDevice;
 }

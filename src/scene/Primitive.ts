@@ -3,6 +3,10 @@ import { Mat4 } from "../mathD/mat4";
 import { FrameState } from "../render_V2/FrameState";
 import { DrawCommand } from "../render_V2/DrawCommand";
 import { IvertexArray } from "../webgl/Ibase";
+import { VertexArray } from "../webgl/VertextArray";
+import { GeometryPipeline } from "../core/GeometryPipeline";
+import { BufferUsageEnum } from "../webgl/Buffer";
+import { Geometry } from "../core/Geometry";
 
 
 /**
@@ -73,27 +77,18 @@ import { IvertexArray } from "../webgl/Ibase";
  * }));
  */
 export class Primitive {
-    private _geometryInstances: GeometryInstance | GeometryInstance[];
+    private _geometryInstances: GeometryInstance[];
     private geometryDirty: boolean = false;
-    set geometryInstances(value: GeometryInstance | GeometryInstance[]) {
-        if (this._geometryInstances != value) {
-            this.geometryDirty = true;
-        } else {
-            if (value instanceof Array && this._geometryInstances instanceof Array) {
-                if (value.length != this._geometryInstances.length) {
-                    this.geometryDirty = true;
-                } else {
-                    for (let i = 0; i < value.length; i++) {
-                        if (value[i] != this._geometryInstances[i]) {
-                            this.geometryDirty = true;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
+    set geometryInstances(value: GeometryInstance[]) {
         this._geometryInstances = value;
+        this.geometryDirty=true;
     }
+    get geometryInstances(){
+        return this._geometryInstances;
+    }
+
+    _batchedGeometrys:Geometry;
+
     private _appearance: any;
     private appearanceDirty: boolean = false;
     set appearance(value: any) {
@@ -109,7 +104,7 @@ export class Primitive {
     vertexCacheOptimize: boolean;
     cull: boolean;
     private drawCommand: DrawCommand[];
-    private _va: IvertexArray;
+    vas: VertexArray;
     constructor(option: Primitive) {
         this.geometryInstances = option.geometryInstances;
         this.appearance = option.appearance;
@@ -123,9 +118,21 @@ export class Primitive {
 
     update(frameState: FrameState) {
         //----------------------------------------------------
-        //                  load batch createvao
+        //                  batch createvao
         //----------------------------------------------------
 
+
+        if(this._batchedGeometrys==null){
+            this._batchedGeometrys= batchPrimitive(this);
+        }else
+        {
+            if(this.vas==null){
+                this.vas= createVertexArray(this._batchedGeometrys,frameState);
+            }else
+            {
+
+            }
+        }
 
 
         //------------check show
@@ -139,61 +146,26 @@ export class Primitive {
             //creat shader program
         }
     }
+
 }
 
 
-// export function createVertexArray(primitive:Primitive, frameState:FrameState) {
-//     var attributeLocations = primitive._attributeLocations;
-//     var geometries = primitive._geometries;
-//     var scene3DOnly = frameState.scene3DOnly;
-//     var context = frameState.context;
 
-//     var va = [];
-//     var length = geometries.length;
-//     for (var i = 0; i < length; ++i) {
-//         var geometry = geometries[i];
+function batchPrimitive(primitive:Primitive){
+    let insArr= primitive.geometryInstances.map(ins=>{
+        //step1: clone ins  todo
+        let cloneIns=ins;
+        //step2: 变换顶点数据
+        return GeometryPipeline.transformToWorldCoordinates(cloneIns);
+    });
+    //step3: 合并ins todo
+    let batchGeometry=GeometryPipeline.combineGeometryInstances(insArr);
 
-//         va.push(VertexArray.fromGeometry({
-//             context : context,
-//             geometry : geometry,
-//             attributeLocations : attributeLocations,
-//             bufferUsage : BufferUsage.STATIC_DRAW,
-//             interleave : primitive._interleave
-//         }));
+    return batchGeometry
+}
 
-//         if (defined(primitive._createBoundingVolumeFunction)) {
-//             primitive._createBoundingVolumeFunction(frameState, geometry);
-//         } else {
-//             primitive._boundingSpheres.push(BoundingSphere.clone(geometry.boundingSphere));
-//             primitive._boundingSphereWC.push(new BoundingSphere());
 
-//             if (!scene3DOnly) {
-//                 var center = geometry.boundingSphereCV.center;
-//                 var x = center.x;
-//                 var y = center.y;
-//                 var z = center.z;
-//                 center.x = z;
-//                 center.y = x;
-//                 center.z = y;
-
-//                 primitive._boundingSphereCV.push(BoundingSphere.clone(geometry.boundingSphereCV));
-//                 primitive._boundingSphere2D.push(new BoundingSphere());
-//                 primitive._boundingSphereMorph.push(new BoundingSphere());
-//             }
-//         }
-//     }
-
-//     primitive._va = va;
-//     primitive._primitiveType = geometries[0].primitiveType;
-
-//     if (primitive.releaseGeometryInstances) {
-//         primitive.geometryInstances = undefined;
-//     }
-
-//     primitive._geometries = undefined;
-//     setReady(primitive, frameState, PrimitiveState.COMPLETE, undefined);
-// }
-
+   
 
 export interface IprimitiveOption {
     geometryInstances: GeometryInstance | GeometryInstance[];
@@ -204,4 +176,10 @@ export interface IprimitiveOption {
     interleave?: boolean;
     vertexCacheOptimize?: boolean;
     cull?: boolean;
+}
+
+
+export class Primitive2{
+    geometry:Geometry;
+    material:Material
 }

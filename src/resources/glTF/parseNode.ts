@@ -3,17 +3,17 @@ import { Mat4 } from "../../mathD/mat4";
 import { Vec3 } from "../../mathD/vec3";
 import { Quat } from "../../mathD/quat";
 import { ParseCameraNode } from "./parseCameraNode";
-import { Transform } from "../../ec/transform";
+import { Transform } from "../../core/Transform";
 import { ParseMeshNode } from "./parseMeshNode";
 import { IgltfJson } from "./loadglTF";
 import { Mesh } from "../../ec/components/mesh";
 
 export class ParseNode {
-    static parse(index: number, gltf: IgltfJson): Promise<Transform> {
+    static parse(index: number, gltf: IgltfJson): Promise<Entity> {
         let node = gltf.nodes[index];
 
         let name = node.name || "node" + index;
-        let trans = new Entity(name).transform;
+        let trans = new Entity(name);
 
         if (node.matrix) {
             trans.localMatrix = Mat4.fromArray(node.matrix);
@@ -42,7 +42,7 @@ export class ParseNode {
                     mesh.geometry = item.geometry;
                     mesh.material = item.material;
 
-                    trans.addChild(entity.transform);
+                    trans.addChild(entity);
                 }
             });
             allTask.push(task);

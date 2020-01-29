@@ -1,6 +1,6 @@
 import { Camera } from "./../ec/components/camera";
 import { Entity, Mesh } from "../ec/entity";
-import { Transform } from "../ec/transform";
+import { Transform } from "../core/Transform";
 import { FrameState, IframeState, Irenderable } from "./frameState";
 import { RenderMachine } from "../render/renderMachine";
 import { CullingMask, Icomponent, ToyActor } from "../ec/ec";

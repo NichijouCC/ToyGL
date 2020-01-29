@@ -59,7 +59,7 @@ export class Debug {
                     return {
                         geometry: geometry,
                         material: DefMaterial.fromType("3dColor"),
-                        modelMatrix: camera.entity.transform.worldMatrix,
+                        modelMatrix: camera.entity.worldMatrix,
                         maskLayer: CullingMask.default,
                     };
                 case ProjectionEnum.ORTHOGRAPH:

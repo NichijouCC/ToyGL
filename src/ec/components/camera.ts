@@ -7,6 +7,7 @@ import { GameScreen } from "../../gameScreen";
 import { Frustum } from "../../scene/frustum";
 import { RenderMachine } from "../../render/renderMachine";
 import { RenderTexture } from "../../resources/assets/renderTexture";
+import { Entity } from "../entity";
 
 export enum ProjectionEnum {
     PERSPECTIVE,
@@ -22,7 +23,7 @@ export enum ClearEnum {
 
 @ToyActor.Reg
 export class Camera implements Icomponent {
-    entity: Ientity;
+    entity: Entity;
     projectionType: ProjectionEnum = ProjectionEnum.PERSPECTIVE;
     //perspective 透视投影
     fov: number = Math.PI * 0.25; //透视投影的fov//verticle field of view
@@ -68,7 +69,7 @@ export class Camera implements Icomponent {
     private _viewMatrix: Mat4 = Mat4.create();
     get ViewMatrix(): Mat4 {
         if (this.needComputeViewMat) {
-            let camworld = this.entity.transform.worldMatrix;
+            let camworld = this.entity.worldMatrix;
             //视矩阵刚好是摄像机世界矩阵的逆
             Mat4.invert(camworld, this._viewMatrix);
             this.needComputeViewMat = false;

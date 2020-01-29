@@ -1,4 +1,4 @@
-import { Transform } from "./transform";
+import { Transform } from "../core/Transform";
 import { IframeState } from "../scene/frameState";
 
 export interface Ientity {

@@ -26,7 +26,7 @@ export class CameraController implements Icomponent {
 
     rotAngle: Vec3 = Vec3.create();
     active() {
-        Quat.ToEuler(this.entity.transform.localRotation, this.rotAngle);
+        Quat.ToEuler(this.entity.localRotation, this.rotAngle);
         Input.addMouseEventListener(MouseEventEnum.Move, ev => {
             if (Input.getMouseDown(MouseKeyEnum.Right)) {
                 this.doRotate(ev.movementX, ev.movementY);
@@ -49,43 +49,43 @@ export class CameraController implements Icomponent {
         if (Input.getMouseDown(MouseKeyEnum.Right)) {
             if (Input.getKeyDown(KeyCodeEnum.A)) {
                 this.moveSpeed += this.movemul * delta;
-                this.entity.transform.getRightInWorld(this.moveVector);
+                this.entity.getRightInWorld(this.moveVector);
                 Vec3.scale(this.moveVector, -1 * this.moveSpeed * delta, this.moveVector);
                 // vec3.scale(this.moveVector,this.inverseDir,this.moveVector);
-                Vec3.add(this.entity.transform.localPosition, this.moveVector, this.entity.transform.localPosition);
+                Vec3.add(this.entity.localPosition, this.moveVector, this.entity.localPosition);
             }
             if (Input.getKeyDown(KeyCodeEnum.D)) {
                 this.moveSpeed += this.movemul * delta;
-                this.entity.transform.getRightInWorld(this.moveVector);
+                this.entity.getRightInWorld(this.moveVector);
                 Vec3.scale(this.moveVector, this.moveSpeed * delta, this.moveVector);
                 // vec3.scale(this.moveVector,this.inverseDir,this.moveVector);
-                Vec3.add(this.entity.transform.localPosition, this.moveVector, this.entity.transform.localPosition);
+                Vec3.add(this.entity.localPosition, this.moveVector, this.entity.localPosition);
             }
             if (Input.getKeyDown(KeyCodeEnum.W)) {
                 this.moveSpeed += this.movemul * delta;
-                this.entity.transform.getForwardInWorld(this.moveVector);
+                this.entity.getForwardInWorld(this.moveVector);
                 Vec3.scale(this.moveVector, this.moveSpeed * delta, this.moveVector);
                 Vec3.scale(this.moveVector, this.inverseDir, this.moveVector);
-                Vec3.add(this.entity.transform.localPosition, this.moveVector, this.entity.transform.localPosition);
+                Vec3.add(this.entity.localPosition, this.moveVector, this.entity.localPosition);
             }
             if (Input.getKeyDown(KeyCodeEnum.S)) {
                 this.moveSpeed += this.movemul * delta;
-                this.entity.transform.getForwardInWorld(this.moveVector);
+                this.entity.getForwardInWorld(this.moveVector);
                 Vec3.scale(this.moveVector, -1 * this.moveSpeed * delta, this.moveVector);
                 Vec3.scale(this.moveVector, this.inverseDir, this.moveVector);
-                Vec3.add(this.entity.transform.localPosition, this.moveVector, this.entity.transform.localPosition);
+                Vec3.add(this.entity.localPosition, this.moveVector, this.entity.localPosition);
             }
             if (Input.getKeyDown(KeyCodeEnum.E)) {
                 this.moveSpeed += this.movemul * delta;
                 Vec3.scale(Vec3.UP, this.moveSpeed * delta, this.moveVector);
-                Vec3.add(this.entity.transform.localPosition, this.moveVector, this.entity.transform.localPosition);
+                Vec3.add(this.entity.localPosition, this.moveVector, this.entity.localPosition);
             }
             if (Input.getKeyDown(KeyCodeEnum.Q)) {
                 this.moveSpeed += this.movemul * delta;
                 Vec3.scale(Vec3.DOWN, this.moveSpeed * delta, this.moveVector);
-                Vec3.add(this.entity.transform.localPosition, this.moveVector, this.entity.transform.localPosition);
+                Vec3.add(this.entity.localPosition, this.moveVector, this.entity.localPosition);
             }
-            // this.entity.transform.markDirty();
+            // this.entity.markDirty();
         }
     }
     private camrot = Quat.create();
@@ -95,17 +95,17 @@ export class CameraController implements Icomponent {
         // this.rotAngle[0] %= 360;
         // this.rotAngle[1] %= 360;
         Quat.FromEuler(0, rotateX * this.rotateSpeed * this.inverseDir, 0, this.camrot);
-        Quat.multiply(this.camrot, this.entity.transform.localRotation, this.entity.transform.localRotation);
+        Quat.multiply(this.camrot, this.entity.localRotation, this.entity.localRotation);
         Quat.FromEuler(rotateY * this.rotateSpeed * this.inverseDir, 0, 0, this.camrot);
-        Quat.multiply(this.entity.transform.localRotation, this.camrot, this.entity.transform.localRotation);
-        // this.entity.transform.markDirty();
+        Quat.multiply(this.entity.localRotation, this.camrot, this.entity.localRotation);
+        // this.entity.markDirty();
     }
     private doMouseWheel(ev: ClickEvent) {
         if (this.entity.getCompByName("Camera") == null) return;
-        this.entity.transform.getForwardInWorld(this.moveVector);
+        this.entity.getForwardInWorld(this.moveVector);
         Vec3.scale(this.moveVector, this.wheelSpeed * ev.rotateDelta * 0.01 * this.inverseDir, this.moveVector);
-        Vec3.add(this.entity.transform.localPosition, this.moveVector, this.entity.transform.localPosition);
-        // this.entity.transform.markDirty();
+        Vec3.add(this.entity.localPosition, this.moveVector, this.entity.localPosition);
+        // this.entity.markDirty();
     }
     Dispose() {}
 }

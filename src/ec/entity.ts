@@ -1,8 +1,8 @@
-import { Transform } from "./transform";
+import { Transform } from "../core/Transform";
 import { Ientity, Icomponent, ToyActor, Irender, CullingMask } from "./ec";
 
 @ToyActor.Reg
-export class Entity implements Ientity {
+export class Entity extends Transform implements Ientity {
     maskLayer: CullingMask = CullingMask.default;
     name: string;
     readonly guid: number;
@@ -10,6 +10,7 @@ export class Entity implements Ientity {
     components: { [name: string]: Icomponent } = {};
 
     constructor(name: string = null, compsArr: string[] = null) {
+        super();
         this.guid = newId();
         this.name = name != null ? name : "newEntity";
         this.beActive = true;
@@ -61,6 +62,6 @@ function newId(): number {
 }
 newId.prototype.id = -1;
 
-export * from "./transform";
+export * from "../core/Transform";
 export * from "./components/mesh";
 export * from "./components/cameracontroller";

@@ -1,6 +1,7 @@
 import { Geometry } from "./Geometry";
 import { Mat4 } from "../mathD/mat4";
 import { GeometryAttribute } from "./GeometryAttribute";
+import { TypedArray } from "./TypedArray";
 
 /**
  * @example
@@ -13,7 +14,6 @@ import { GeometryAttribute } from "./GeometryAttribute";
  * });
  * var instanceBottom = new GeometryInstance({
  *   geometry : geometry,
- *   modelMatrix : new Matrix()
  *   attributes : {
  *     color : ColorGeometryInstanceAttribute.fromColor(Color.AQUA)
  *   },
@@ -21,30 +21,26 @@ import { GeometryAttribute } from "./GeometryAttribute";
  * });
  * var instanceTop = new GeometryInstance({
  *   geometry : geometry,
- *   modelMatrix : new Matrix()
  *   attributes : {
  *     color : ColorGeometryInstanceAttribute.fromColor(Color.AQUA)
  *   },
  *   id : 'top'
- * });
+ * }); 
  *
  */
 export class GeometryInstance {
-    geometry: Geometry;
-    modelMatrix: Mat4;
-    attributes: { [keyName: string]: GeometryAttribute };
+    readonly geometry: Geometry;
+    attributes: { [keyName: string]: TypedArray };
     readonly id: number;
     constructor(options: IgeometryInstanceOption) {
         this.geometry = options.geometry;
         this.attributes = options.attributes;
         this.id = options.id;
-        this.modelMatrix = options.modelMatrix || Mat4.identity();
     }
 }
 
 export interface IgeometryInstanceOption {
     geometry: Geometry;
-    modelMatrix?: Mat4;
-    attributes?: { [keyName: string]: GeometryAttribute };
+    attributes?: { [keyName: string]: TypedArray };
     id: number;
 }
