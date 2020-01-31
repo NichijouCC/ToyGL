@@ -177,9 +177,3 @@ export interface IprimitiveOption {
     vertexCacheOptimize?: boolean;
     cull?: boolean;
 }
-
-
-export class Primitive2{
-    geometry:Geometry;
-    material:Material
-}

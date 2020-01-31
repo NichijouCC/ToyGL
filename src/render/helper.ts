@@ -1,4 +1,4 @@
-import { VertexAttEnum } from "./vertexAttType";
+import { VertexAttEnum } from "../webgl/VertexAttType";
 
 /* DataType */
 const BYTE = 0x1400;

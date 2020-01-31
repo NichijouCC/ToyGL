@@ -1,7 +1,7 @@
 import { GlConstants } from "../render/GlConstant";
 import { GeometryAttribute } from "./GeometryAttribute";
 import { BoundingSphere } from "../scene/bounds";
-import { IndicesArray } from "../webgl/Buffer";
+import { IndicesArray } from "../webgl/IndexBuffer";
 /**
  * 
  * @example useage

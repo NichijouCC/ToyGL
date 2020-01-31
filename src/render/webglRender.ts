@@ -38,7 +38,7 @@ import {
     createBassProgramInfo,
 } from "twebgl";
 import { UniformTypeEnum } from "../resources/assets/shader";
-import { VertexAttEnum } from "./vertexAttType";
+import { VertexAttEnum } from "../webgl/VertexAttType";
 import { AutoUniforms } from "./autoUniform";
 import { UniformState } from "./uniformState";
 export {

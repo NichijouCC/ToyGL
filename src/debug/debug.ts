@@ -5,7 +5,7 @@ import { GlBuffer } from "../render/webglRender";
 import { Irenderable, IframeState } from "../scene/frameState";
 import { DefMaterial } from "../resources/defAssets/defMaterial";
 import { CullingMask } from "../ec/ec";
-import { VertexAttEnum } from "../render/vertexAttType";
+import { VertexAttEnum } from "../webgl/VertexAttType";
 import { Mat4 } from "../mathD/mat4";
 import { GlConstants } from "../render/GlConstant";
 import { DefShader } from "../resources/defAssets/defShader";

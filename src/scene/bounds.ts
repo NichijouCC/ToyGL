@@ -1,7 +1,7 @@
 import { Vec3 } from "../mathD/vec3";
 import { Geometry } from "../resources/assets/geometry";
 import { Mat4 } from "../mathD/mat4";
-import { VertexAttEnum } from "../render/vertexAttType";
+import { VertexAttEnum } from "../webgl/VertexAttType";
 
 export class Bounds {
     maxPoint: Vec3 = Vec3.create();

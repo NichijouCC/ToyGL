@@ -1,7 +1,8 @@
-import { GraphicsDevice } from "../webgl/GraphicsDevice";
+import { Shader } from "./Shader";
+import { RenderLayerEnum } from "./RenderLayer";
 
 export class Material {
-    uniforms: { [name: string]: any } = {};
+    uniformParameters: { [name: string]: any } = {};
     shader: Shader;
     private _layer: RenderLayerEnum;
     queue: number = 0;
@@ -14,22 +15,7 @@ export class Material {
     }
 
     setParameter(uniformKey:string,value:any){
-
+        this.uniformParameters[uniformKey]=value;
     }
     dispose(): void { }
-}
-
-
-
-
-
-/**
- * 渲染的层级(从小到大绘制)
- */
-export enum RenderLayerEnum {
-    Background = 1000,
-    Geometry = 2000,
-    AlphaTest = 2450,
-    Transparent = 3000, //透明
-    Overlay = 4000, //Overlay层
 }

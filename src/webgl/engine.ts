@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { EngineCapability } from "./engineCapability";
+import { DeviceCapability } from "./DeviceCapability";
 import { GlConstants } from "../render/GlConstant";
 import { Color } from "../mathD/color";
 import { Vec4 } from "../mathD/vec4";
@@ -7,7 +7,8 @@ import { EngineGlState } from "./engineGlState";
 import { IshaderNode, IframeBufferAttachment, IframeBufferInfo } from "./declaration";
 import { WebglShaderNode } from "./engineProgram";
 import { ItexViewDataOption, EngineTexture, ItextureInfo, ItexImageDataOption } from "./engineTexture";
-import { VertexBuffer, IndexBuffer } from "./Buffer";
+import { IndexBuffer } from "./IndexBuffer";
+import { VertexBuffer } from "./VertexBuffer";
 import { IvertexAttribute, VertexArray } from "./VertextArray";
 
 export interface IengineOption {
@@ -15,8 +16,8 @@ export interface IengineOption {
 }
 export class Engine {
     private _gl: WebGLRenderingContext;
-    private _caps: EngineCapability;
-    get caps(): EngineCapability {
+    private _caps: DeviceCapability;
+    get caps(): DeviceCapability {
         return this._caps;
     }
     private _glState: EngineGlState;
@@ -48,7 +49,7 @@ export class Engine {
             this._webGLVersion = 2.0;
         }
 
-        this._caps = new EngineCapability(this._gl, this._webGLVersion);
+        this._caps = new DeviceCapability(this._gl, this._webGLVersion);
         this._glState = new EngineGlState(this._gl);
 
         console.log(` ฅ(๑˙o˙๑)ฅ  v${Engine.Version} - ${this.description}`);

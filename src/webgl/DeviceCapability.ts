@@ -2,7 +2,7 @@ import { GlConstants } from "../render/GlConstant";
 
 /* eslint-disable @typescript-eslint/class-name-casing */
 /* eslint-disable @typescript-eslint/camelcase */
-export class EngineCapability {
+export class DeviceCapability {
     /** Maximum textures units per fragment shader */
     public maxTexturesImageUnits: number;
     /** Maximum texture units per vertex shader */

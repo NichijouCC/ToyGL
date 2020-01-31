@@ -1,6 +1,7 @@
-import { IvertexAttribute } from "./VertextArray";
 import { GraphicsDevice } from "./GraphicsDevice";
-import { VertexAttEnum } from "../render/vertexAttType";
+import { RenderLayerEnum } from "../core/RenderLayer";
+import { UniformTypeEnum } from "./UniformType";
+import { VertexAttEnum } from "./VertexAttribute";
 
 /**
  * shaderProgram 的uniform info
@@ -9,6 +10,10 @@ export interface IuniformInfo {
     name: string;
     type:UniformTypeEnum;
     location: WebGLUniformLocation;
+    /**
+     * uniform value 缓存，用于减少shader uniform state changes
+     */
+    value?:any;
 }
 /**
  * shderprogram的 attribute info
@@ -24,13 +29,6 @@ export interface Ishader {
     program: WebGLProgram;
     uniforms: { [name: string]: IuniformInfo };
     attributes: { [name: string]: IattributeInfo };
-}
-
-export interface IshaderOption{
-    context:GraphicsDevice;
-    attributes:{[attName:string]:VertexAttEnum};
-    vsStr:string;
-    fsStr:string;
 }
 
 /***
@@ -58,34 +56,80 @@ export interface IshaderOption{
 export class Shader implements Ishader{
     program: WebGLProgram;    
     uniforms: { [name: string]: IuniformInfo; };
+    samples:{[name:string]:any};
     attributes: { [name: string]: IattributeInfo; };
+    /**
+     * uniform value guid 缓存，用于更新修改的uniform
+     */
+    private _cachedUniform:{[name: string]:number}={};
     constructor(options:IshaderOption){
         let res= options.context.complileAndLinkShader(options);
         if(res){
             this.program=res.shader;
             this.uniforms=res.uniforms;
+            this.samples=res.samples;
             this.attributes=res.attributes;
+
+            //---------------------初始化 uniforms缓存值 为null
+            let type:UniformTypeEnum;
+            for(let key in this.uniforms){
+                type=this.uniforms[key].type;
+                if(type==UniformTypeEnum.FLOAT||type===UniformTypeEnum.INT||type===UniformTypeEnum.BOOL){
+                    this.uniforms[key].value=null;
+                }else{
+                    this.uniforms[key].value=[null,null,null,null]
+                }
+            }
+        }
+
+        this.bind=()=>{
+            options.context.bindShader(this.program);
+        }
+        this.unbind=()=>{
+            options.context.bindShader(null);
+        }
+
+        this.setUniform = (name:string,value:VersionData)=>{
+            let _cahched= this._cachedUniform[name];
+            if(_cahched==null||_cahched!=value.guid){
+                this._cachedUniform[name]=value.guid;
+                options.context.setUniform(this.uniforms[name],value);
+            }
         }
     }
+
+    setUniform(key:string,value:VersionData){}
+
+    bind(){}
+    unbind(){}
 }
 
-export enum UniformTypeEnum{
-    FLOAT="FLOAT",
-    FLOAT_VEC2="FLOAT_VEC2",
-    FLOAT_VEC3="FLOAT_VEC3",
-    FLOAT_VEC4="FLOAT_VEC4",
-    INT="INT",
-    BOOL="BOOL",
-    INT_VEC2="INT_VEC2",
-    BOOL_VEC2="BOOL_VEC2",
-    INT_VEC3="INT_VEC3",
-    BOOL_VEC3="BOOL_VEC3",
-    INT_VEC4="INT_VEC4",
-    BOOL_VEC4="BOOL_VEC4",
-    FLOAT_MAT2="FLOAT_MAT2",
-    FLOAT_MAT3="FLOAT_MAT3",
-    FLOAT_MAT4="FLOAT_MAT4",
-    FLOAT_ARRAY="FLOAT_ARRAY",
-    BOOL_ARRAY="BOOL_ARRAY",
-    INT_ARRAY="INT_ARRAY"
+
+export interface IshaderOption{
+    context:GraphicsDevice;
+    attributes:{[attName:string]:VertexAttEnum};
+    vsStr:string;
+    fsStr:string;
+}
+
+let guid=0;
+export class VersionData{
+    private _guid:number;
+    private _value:any;
+    constructor(value:any){
+        this._guid=guid++;
+        this.value=value;
+    }
+
+    set value(value:any){
+        this._value=value;
+        this._guid=guid++;
+    }
+    get value(){
+        return this._value;
+    }
+
+    get guid(){
+        return this._guid;
+    }
 }

@@ -1,6 +1,6 @@
 import { ToyAsset, ItoyAsset } from "../base/toyAsset";
 import { WebglRender, IgeometryInfo, IgeometryOptions } from "../../render/webglRender";
-import { VertexAttEnum } from "../../render/vertexAttType";
+import { VertexAttEnum } from "../../webgl/VertexAttType";
 import { IvertexAttrib, IvertexIndex } from "twebgl/dist/types/type";
 import { GlConstants } from "../../render/GlConstant";
 

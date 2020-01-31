@@ -1,30 +1,27 @@
-import { getGLTypeForTypedArray } from "../render/helper";
-import { glTypeToByteSize } from "../resources/assets/geometry";
 import { GraphicsDevice } from "./GraphicsDevice";
 
 export type bufferOption =
     | {
           context: GraphicsDevice;
-          bufferTarget: number;
+          bufferTarget: BufferTargetEnum;
           typedArray: ArrayBufferView;
-          usage: number;
+          usage: BufferUsageEnum;
       }
     | {
           context: GraphicsDevice;
-          bufferTarget: number;
+          bufferTarget: BufferTargetEnum;
           sizeInBytes: number;
-          usage: number;
+          usage: BufferUsageEnum;
       };
 export class Buffer {
-    readonly bufferTarget: number;
-    readonly usage: number;
-    readonly typedArray: ArrayBufferView;
-    readonly sizeInBytes: number;
-    private _buffer: WebGLBuffer;
-    private _gl: WebGLRenderingContext;
-    constructor(options: bufferOption) {
-        let gl = options.context.gl;
-        this._gl = gl;
+    protected bufferTarget: BufferTargetEnum;
+    protected usage: BufferUsageEnum;
+    protected typedArray: ArrayBufferView;
+    protected sizeInBytes: number;
+    protected _buffer: WebGLBuffer;
+    private device: GraphicsDevice;
+    protected constructor(options: bufferOption) {
+        this.device = options.context;
         this.bufferTarget = options.bufferTarget;
         this.usage = options.usage;
         this.typedArray = (options as any).typedArray;
@@ -34,130 +31,33 @@ export class Buffer {
         if (hasTypedArray) {
             this.sizeInBytes = this.typedArray.byteLength;
         }
-        let buffer = gl.createBuffer();
-        gl.bindBuffer(this.bufferTarget, buffer);
         if (hasTypedArray) {
-            gl.bufferData(this.bufferTarget, this.typedArray, this.usage);
+            this._buffer=options.context.createBuffer(this.bufferTarget,this.typedArray,this.usage);
         } else {
-            gl.bufferData(this.bufferTarget, this.sizeInBytes, this.usage);
+            this._buffer=options.context.createBuffer(this.bufferTarget,this.sizeInBytes,this.usage);
         }
-        gl.bindBuffer(this.bufferTarget, null);
-        this._buffer = buffer;
     }
 
     bind() {
-        this._gl.bindBuffer(this.bufferTarget, this._buffer);
+        this.device.bindBuffer(this._buffer,this.bufferTarget);
     }
-    unBind() {
-        this._gl.bindBuffer(this.bufferTarget, null);
+    unbind() {
+        this.device.bindBuffer(null,this.bufferTarget);
     }
 
     dispose() {
-        this._gl.deleteBuffer(this._buffer);
-    }
-
-    /*
-     * @example
-     * // Example 1. Create a dynamic vertex buffer 16 bytes in size.
-     * var buffer = Buffer.createVertexBuffer({
-     *     context : context,
-     *     sizeInBytes : 16,
-     *     usage : BufferUsage.DYNAMIC_DRAW
-     * });
-     *
-     * @example
-     * // Example 2. Create a dynamic vertex buffer from three floating-point values.
-     * // The data copied to the vertex buffer is considered raw bytes until it is
-     * // interpreted as vertices using a vertex array.
-     * var positionBuffer = buffer.createVertexBuffer({
-     *     context : context,
-     *     typedArray : new Float32Array([0, 0, 0]),
-     *     usage : BufferUsage.STATIC_DRAW
-     * });
-     */
-    static createVertexBuffer(options:{context:GraphicsDevice,sizeInBytes:number,usage:BufferUsageEnum}|{context:GraphicsDevice,typedArray:ArrayBufferView,usage:BufferUsageEnum}){
-        return new VertexBuffer({
-            context: options.context,
-            typedArray: (options as any).typedArray,
-            sizeInBytes: (options as any).sizeInBytes,
-            usage: options.usage
-        });
-    }
-
-    static createIndexBuffer(options: IndexBufferOption){
-        return new IndexBuffer({
-            context:options.context,
-            usage:options.usage,
-            typedArray: (options as any).typedArray,
-            sizeInBytes: (options as any).sizeInBytes,
-            indexDatatype:(options as any).indexDatatype
-        });
+        this.device.destroyBuffer(this._buffer);
     }
 }
 
-export type vertexBufferOption =
-    | {
-          context: GraphicsDevice;
-          usage: number;
-          sizeInBytes: number;
-      }
-    | {
-          context: GraphicsDevice;
-          usage: number;
-          typedArray: ArrayBufferView;
-      };
-
-export class VertexBuffer extends Buffer {
-    componentSize: number;
-    componentDataType: number;
-    // size?: number;
-    normalize: boolean;
-    bytesStride: number;
-    bytesOffset: number;
-    divisor?: number;
-    constructor(options: vertexBufferOption) {
-        super({ ...options, bufferTarget: BufferTargetEnum.ARRAY_BUFFER });
-    }
-}
-
-export type IndicesArray=Uint16Array|Uint32Array;
-
-export type IndexBufferOption =
-    | {
-          context: GraphicsDevice;
-          usage: number;
-          sizeInBytes: number;
-          indexDatatype: number;
-      }
-    | {
-          context: GraphicsDevice;
-          usage: number;
-          typedArray: IndicesArray;
-      };
-
-export class IndexBuffer extends Buffer {
-    readonly indexDatatype: number;
-    readonly bytesPerIndex: number;
-    readonly numberOfIndices: number;
-    constructor(options: IndexBufferOption) {
-        super({ ...options, bufferTarget: BufferTargetEnum.ELEMENT_ARRAY_BUFFER } as any);
-        this.indexDatatype = (options as any).indexDatatype;
-        let typedArray = (options as any).typedArray;
-        if (typedArray) {
-            this.indexDatatype = getGLTypeForTypedArray(typedArray);
-        }
-        this.bytesPerIndex = glTypeToByteSize(this.indexDatatype);
-        this.numberOfIndices = this.sizeInBytes / this.bytesPerIndex;
-    }
-}
 
 export enum BufferTargetEnum{
-    ARRAY_BUFFER,
-    ELEMENT_ARRAY_BUFFER
+    ARRAY_BUFFER="ARRAY_BUFFER",
+    ELEMENT_ARRAY_BUFFER="ARRAY_BUFFER"
 }
 
 export enum BufferUsageEnum{
-    STATIC_DRAW,
-    DYNAMIC_DRAW
+    STATIC_DRAW="STATIC_DRAW",
+    DYNAMIC_DRAW="DYNAMIC_DRAW"
 }
 

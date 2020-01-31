@@ -13,7 +13,7 @@ import { DefMaterial } from "../resources/defAssets/defMaterial";
 import { Vec3 } from "../mathD/vec3";
 
 export class Scene {
-    private root: Transform = new Entity().transform;
+    private root: Entity = new Entity();
     private frameState: FrameState = new FrameState();
     private render: RenderMachine;
     readonly priority: number;
@@ -34,7 +34,7 @@ export class Scene {
     }
 
     addEntity(entity: Entity) {
-        this.root.addChild(entity.transform);
+        this.root.addChild(entity);
     }
 
     addDefMesh(type: DefGeometryType, material?: Material) {

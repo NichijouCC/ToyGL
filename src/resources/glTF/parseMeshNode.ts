@@ -5,7 +5,7 @@ import { ParseMaterialNode } from "./parseMaterialNode";
 import { Geometry } from "../assets/geometry";
 import { IgeometryOptions, IgeometryInfo } from "../../render/webglRender";
 import { ParseAccessorNode } from "./parseAccessorNode";
-import { VertexAttEnum } from "../../render/vertexAttType";
+import { VertexAttEnum } from "../../webgl/VertexAttType";
 import { IviewData } from "twebgl/dist/types/type";
 
 const MapGltfAttributeToToyAtt = {

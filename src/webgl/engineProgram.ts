@@ -1,4 +1,11 @@
 import { IuniformInfo, IattributeInfo, ShaderTypeEnum, IshaderNode } from "./declaration";
+import {GraphicsDevice,test} from './GraphicsDevice'
+declare module './GraphicsDevice'{
+    export enum test{
+
+    }
+    
+}
 
 export class WebglShaderNode implements IshaderNode {
     program: WebGLProgram;
