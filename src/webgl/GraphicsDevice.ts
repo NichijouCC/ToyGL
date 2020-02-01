@@ -1,72 +1,128 @@
-import { Engine } from "./engine";
-import { DeviceCapability } from "./DeviceCapability";
-import { IattributeInfo, IuniformInfo, IshaderOption } from "./Shader";
-import { UniformTypeEnum } from "./UniformType";
-import { TypedArray } from "../core/TypedArray";
-import { BufferTargetEnum, BufferUsageEnum } from "./Buffer";
-import { IvertexAttribute, VertexAttEnum, ComponentDatatypeEnum } from "./VertexAttribute";
 
-export class GraphicsDevice {
-    gl:WebGLRenderingContext;
-    private _caps: DeviceCapability;
-    get caps(): DeviceCapability {
-        return this._caps;
-    }
-    readonly uniformSetter:{[uniformType:string]:(uniform:any,value:any)=>void} ={};
-    readonly gltypeToUniformType:{[glType:number]:UniformTypeEnum}={};
-    readonly bufferUsageToGLNumber:{[useage:string]:number}={};
-    readonly bufferTargetToGLNumber:{[useage:string]:number}={};
-    readonly vertexAttributeFuncMap:{[size:number]:(index:number,value:any)=>any}={};
-    constructor(){
-        let gl:WebGLRenderingContext;
+import { DeviceCapability } from "./DeviceCapability";
+import { IattributeInfo, IuniformInfo, IshaderProgramOption, ShaderProgam, VersionData } from "./ShaderProgam";
+import { UniformTypeEnum } from "./UniformType";
+import { BufferTargetEnum, BufferUsageEnum, BufferConfig } from "./Buffer";
+import { VertexLocation } from "./VertexAttribute";
+import { VertexAttEnum } from "./VertexAttEnum";
+import { GlConstants } from "./GLconstant";
+import { VertexArray } from "./VertextArray";
+import { DeviceLimit } from "./DeviceLimit";
+
+export interface IengineOption
+{
+    disableWebgl2?: boolean;
+}
+
+export class GraphicsDevice
+{
+
+    gl: WebGLRenderingContext;
+    readonly webGLVersion: number;
+    readonly caps: DeviceCapability;
+    readonly limit: DeviceLimit;
+
+    readonly uniformSetter: { [uniformType: string]: (uniform: any, value: any) => void } = {};
+    readonly gltypeToUniformType: { [glType: number]: UniformTypeEnum } = {};
+    readonly bufferUsageToGLNumber: { [useage: string]: number } = {};
+    readonly bufferTargetToGLNumber: { [useage: string]: number } = {};
+    readonly vertexAttributeSetter: { [size: number]: (index: number, value: any) => any } = {};
+    constructor(canvasOrContext: HTMLCanvasElement | WebGLRenderingContext, option?: IengineOption)
+    {
+        if (canvasOrContext == null) return;
+        option = option || {};
+        let gl: WebGLRenderingContext;
+        if (canvasOrContext instanceof HTMLCanvasElement)
+        {
+            if (!option.disableWebgl2)
+            {
+                try
+                {
+                    gl = canvasOrContext.getContext("webgl2", option) as any;
+                } catch (e) { }
+            }
+            if (!gl)
+            {
+                try
+                {
+                    gl = canvasOrContext.getContext("webgl", option) as any;
+                } catch (e) { }
+            }
+            if (!gl)
+            {
+                throw new Error("webgl not supported");
+            }
+            canvasOrContext.addEventListener("webglcontextlost", this.handleContextLost, false);
+        } else
+        {
+            gl = canvasOrContext;
+        }
+        if (gl.renderbufferStorageMultisample)
+        {
+            this.webGLVersion = 2.0;
+        }
+
+        this.caps = new DeviceCapability(this);
+        this.limit = new DeviceLimit(this);
+
+        //-------------config init
+        BufferConfig.init(this);
 
         //------------------------uniform 
-
-
         var scopeX, scopeY, scopeZ, scopeW;
         var uniformValue;
-        this.uniformSetter[UniformTypeEnum.BOOL] = function (uniform, value) {
-            if (uniform.value !== value) {
+        this.uniformSetter[UniformTypeEnum.BOOL] = function (uniform, value)
+        {
+            if (uniform.value !== value)
+            {
                 gl.uniform1i(uniform.locationId, value);
                 uniform.value = value;
             }
         };
         this.uniformSetter[UniformTypeEnum.INT] = this.uniformSetter[UniformTypeEnum.BOOL];
-        this.uniformSetter[UniformTypeEnum.FLOAT] = function (uniform, value) {
-            if (uniform.value !== value) {
+        this.uniformSetter[UniformTypeEnum.FLOAT] = function (uniform, value)
+        {
+            if (uniform.value !== value)
+            {
                 gl.uniform1f(uniform.locationId, value);
                 uniform.value = value;
             }
         };
-        this.uniformSetter[UniformTypeEnum.FLOAT_VEC2]  = function (uniform, value) {
+        this.uniformSetter[UniformTypeEnum.FLOAT_VEC2] = function (uniform, value)
+        {
             uniformValue = uniform.value;
             scopeX = value[0];
             scopeY = value[1];
-            if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY) {
+            if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY)
+            {
                 gl.uniform2fv(uniform.locationId, value);
                 uniformValue[0] = scopeX;
                 uniformValue[1] = scopeY;
             }
         };
-        this.uniformSetter[UniformTypeEnum.FLOAT_VEC3]  = function (uniform, value) {
+        this.uniformSetter[UniformTypeEnum.FLOAT_VEC3] = function (uniform, value)
+        {
             uniformValue = uniform.value;
             scopeX = value[0];
             scopeY = value[1];
             scopeZ = value[2];
-            if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ) {
+            if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ)
+            {
                 gl.uniform3fv(uniform.locationId, value);
                 uniformValue[0] = scopeX;
                 uniformValue[1] = scopeY;
                 uniformValue[2] = scopeZ;
             }
         };
-        this.uniformSetter[UniformTypeEnum.FLOAT_VEC4]  = function (uniform, value) {
+        this.uniformSetter[UniformTypeEnum.FLOAT_VEC4] = function (uniform, value)
+        {
             uniformValue = uniform.value;
             scopeX = value[0];
             scopeY = value[1];
             scopeZ = value[2];
             scopeW = value[3];
-            if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ || uniformValue[3] !== scopeW) {
+            if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ || uniformValue[3] !== scopeW)
+            {
                 gl.uniform4fv(uniform.locationId, value);
                 uniformValue[0] = scopeX;
                 uniformValue[1] = scopeY;
@@ -74,23 +130,27 @@ export class GraphicsDevice {
                 uniformValue[3] = scopeW;
             }
         };
-        this.uniformSetter[UniformTypeEnum.INT_VEC2] = function (uniform, value) {
+        this.uniformSetter[UniformTypeEnum.INT_VEC2] = function (uniform, value)
+        {
             uniformValue = uniform.value;
             scopeX = value[0];
             scopeY = value[1];
-            if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY) {
+            if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY)
+            {
                 gl.uniform2iv(uniform.locationId, value);
                 uniformValue[0] = scopeX;
                 uniformValue[1] = scopeY;
             }
         };
         this.uniformSetter[UniformTypeEnum.BOOL_VEC2] = this.uniformSetter[UniformTypeEnum.INT_VEC2];
-        this.uniformSetter[UniformTypeEnum.INT_VEC3] = function (uniform, value) {
+        this.uniformSetter[UniformTypeEnum.INT_VEC3] = function (uniform, value)
+        {
             uniformValue = uniform.value;
             scopeX = value[0];
             scopeY = value[1];
             scopeZ = value[2];
-            if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ) {
+            if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ)
+            {
                 gl.uniform3iv(uniform.locationId, value);
                 uniformValue[0] = scopeX;
                 uniformValue[1] = scopeY;
@@ -98,13 +158,15 @@ export class GraphicsDevice {
             }
         };
         this.uniformSetter[UniformTypeEnum.BOOL_VEC3] = this.uniformSetter[UniformTypeEnum.INT_VEC3];
-        this.uniformSetter[UniformTypeEnum.INT_VEC4] = function (uniform, value) {
+        this.uniformSetter[UniformTypeEnum.INT_VEC4] = function (uniform, value)
+        {
             uniformValue = uniform.value;
             scopeX = value[0];
             scopeY = value[1];
             scopeZ = value[2];
             scopeW = value[3];
-            if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ || uniformValue[3] !== scopeW) {
+            if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ || uniformValue[3] !== scopeW)
+            {
                 gl.uniform4iv(uniform.locationId, value);
                 uniformValue[0] = scopeX;
                 uniformValue[1] = scopeY;
@@ -113,245 +175,249 @@ export class GraphicsDevice {
             }
         };
         this.uniformSetter[UniformTypeEnum.BOOL_VEC4] = this.uniformSetter[UniformTypeEnum.INT_VEC4];
-        this.uniformSetter[UniformTypeEnum.FLOAT_MAT2]  = function (uniform, value) {
+        this.uniformSetter[UniformTypeEnum.FLOAT_MAT2] = function (uniform, value)
+        {
             gl.uniformMatrix2fv(uniform.locationId, false, value);
         };
-        this.uniformSetter[UniformTypeEnum.FLOAT_MAT3]  = function (uniform, value) {
+        this.uniformSetter[UniformTypeEnum.FLOAT_MAT3] = function (uniform, value)
+        {
             gl.uniformMatrix3fv(uniform.locationId, false, value);
         };
-        this.uniformSetter[UniformTypeEnum.FLOAT_MAT4]  = function (uniform, value) {
+        this.uniformSetter[UniformTypeEnum.FLOAT_MAT4] = function (uniform, value)
+        {
             gl.uniformMatrix4fv(uniform.locationId, false, value);
         };
-        this.uniformSetter[UniformTypeEnum.FLOAT_ARRAY] = function (uniform, value) {
+        this.uniformSetter[UniformTypeEnum.FLOAT_ARRAY] = function (uniform, value)
+        {
             gl.uniform1fv(uniform.locationId, value);
         };
 
-        this.gltypeToUniformType[gl.FLOAT]=UniformTypeEnum.FLOAT;
-        this.gltypeToUniformType[gl.FLOAT_VEC2]=UniformTypeEnum.FLOAT_VEC2;
-        this.gltypeToUniformType[gl.FLOAT_VEC3]=UniformTypeEnum.FLOAT_VEC3;
-        this.gltypeToUniformType[gl.FLOAT_VEC4]=UniformTypeEnum.FLOAT_VEC4;
-        this.gltypeToUniformType[gl.INT]=UniformTypeEnum.INT;
-        this.gltypeToUniformType[gl.INT_VEC2]=UniformTypeEnum.INT_VEC2;
-        this.gltypeToUniformType[gl.INT_VEC3]=UniformTypeEnum.INT_VEC3;
-        this.gltypeToUniformType[gl.INT_VEC4]=UniformTypeEnum.INT_VEC4;
-        this.gltypeToUniformType[gl.BOOL]=UniformTypeEnum.BOOL;
-        this.gltypeToUniformType[gl.BOOL_VEC2]=UniformTypeEnum.BOOL_VEC2;
-        this.gltypeToUniformType[gl.BOOL_VEC3]=UniformTypeEnum.BOOL_VEC3;
-        this.gltypeToUniformType[gl.BOOL_VEC4]=UniformTypeEnum.BOOL_VEC4;
-        this.gltypeToUniformType[gl.FLOAT_MAT2]=UniformTypeEnum.FLOAT_MAT2;
-        this.gltypeToUniformType[gl.FLOAT_MAT3]=UniformTypeEnum.FLOAT_MAT3;
-        this.gltypeToUniformType[gl.FLOAT_MAT4]=UniformTypeEnum.FLOAT_MAT4;
+        this.gltypeToUniformType[gl.FLOAT] = UniformTypeEnum.FLOAT;
+        this.gltypeToUniformType[gl.FLOAT_VEC2] = UniformTypeEnum.FLOAT_VEC2;
+        this.gltypeToUniformType[gl.FLOAT_VEC3] = UniformTypeEnum.FLOAT_VEC3;
+        this.gltypeToUniformType[gl.FLOAT_VEC4] = UniformTypeEnum.FLOAT_VEC4;
+        this.gltypeToUniformType[gl.INT] = UniformTypeEnum.INT;
+        this.gltypeToUniformType[gl.INT_VEC2] = UniformTypeEnum.INT_VEC2;
+        this.gltypeToUniformType[gl.INT_VEC3] = UniformTypeEnum.INT_VEC3;
+        this.gltypeToUniformType[gl.INT_VEC4] = UniformTypeEnum.INT_VEC4;
+        this.gltypeToUniformType[gl.BOOL] = UniformTypeEnum.BOOL;
+        this.gltypeToUniformType[gl.BOOL_VEC2] = UniformTypeEnum.BOOL_VEC2;
+        this.gltypeToUniformType[gl.BOOL_VEC3] = UniformTypeEnum.BOOL_VEC3;
+        this.gltypeToUniformType[gl.BOOL_VEC4] = UniformTypeEnum.BOOL_VEC4;
+        this.gltypeToUniformType[gl.FLOAT_MAT2] = UniformTypeEnum.FLOAT_MAT2;
+        this.gltypeToUniformType[gl.FLOAT_MAT3] = UniformTypeEnum.FLOAT_MAT3;
+        this.gltypeToUniformType[gl.FLOAT_MAT4] = UniformTypeEnum.FLOAT_MAT4;
+        this.gltypeToUniformType[gl.SAMPLER_2D] = UniformTypeEnum.SAMPLER_2D;
+        this.gltypeToUniformType[gl.SAMPLER_CUBE] = UniformTypeEnum.SAMPLER_CUBE;
 
         //------------------buffer
-        this.bufferTargetToGLNumber[BufferTargetEnum.ARRAY_BUFFER]=gl.ARRAY_BUFFER;
-        this.bufferTargetToGLNumber[BufferTargetEnum.ELEMENT_ARRAY_BUFFER]=gl.ELEMENT_ARRAY_BUFFER;
+        this.bufferTargetToGLNumber[BufferTargetEnum.ARRAY_BUFFER] = gl.ARRAY_BUFFER;
+        this.bufferTargetToGLNumber[BufferTargetEnum.ELEMENT_ARRAY_BUFFER] = gl.ELEMENT_ARRAY_BUFFER;
 
-        this.bufferUsageToGLNumber[BufferUsageEnum.STATIC_DRAW]=gl.STATIC_DRAW;
-        this.bufferUsageToGLNumber[BufferUsageEnum.DYNAMIC_DRAW]=gl.DYNAMIC_DRAW;
-
-
+        this.bufferUsageToGLNumber[BufferUsageEnum.STATIC_DRAW] = gl.STATIC_DRAW;
+        this.bufferUsageToGLNumber[BufferUsageEnum.DYNAMIC_DRAW] = gl.DYNAMIC_DRAW;
 
         //------------------attribute
-        this.vertexAttributeFuncMap[1]=(index,value)=>{
-            this.gl.vertexAttrib1f(index,value)
+        this.vertexAttributeSetter[1] = (index, value) =>
+        {
+            this.gl.vertexAttrib1f(index, value)
         }
-        this.vertexAttributeFuncMap[2]=(index,value)=>{
-            this.gl.vertexAttrib2fv(index,value)
+        this.vertexAttributeSetter[2] = (index, value) =>
+        {
+            this.gl.vertexAttrib2fv(index, value)
         }
-        this.vertexAttributeFuncMap[3]=(index,value)=>{
-            this.gl.vertexAttrib3fv(index,value)
+        this.vertexAttributeSetter[3] = (index, value) =>
+        {
+            this.gl.vertexAttrib3fv(index, value)
         }
-        this.vertexAttributeFuncMap[4]=(index,value)=>{
-            this.gl.vertexAttrib4fv(index,value)
+        this.vertexAttributeSetter[4] = (index, value) =>
+        {
+            this.gl.vertexAttrib4fv(index, value)
         }
+
+        VertexLocation.registAttributeType(VertexAttEnum.POSITION);
+        VertexLocation.registAttributeType(VertexAttEnum.TEXCOORD_0);
+        VertexLocation.registAttributeType(VertexAttEnum.COLOR_0);
+        VertexLocation.registAttributeType(VertexAttEnum.NORMAL);
+        VertexLocation.registAttributeType(VertexAttEnum.TANGENT);
+        VertexLocation.registAttributeType(VertexAttEnum.JOINTS_0);
+        VertexLocation.registAttributeType(VertexAttEnum.WEIGHTS_0);
+        VertexLocation.registAttributeType(VertexAttEnum.TEXCOORD_1);
+        VertexLocation.registAttributeType(VertexAttEnum.TEXCOORD_2);
+
+    }
+
+    handleContextLost = () =>
+    {
+        throw new Error("Method not implemented.");
     }
     //--------------------------------------uniform
-    private getUniformTypeFromGLtype(gltype:number,beArray?:boolean){
-        let gl=this.gl;
-        if(beArray){
-            if(gltype==gl.FLOAT){
+    private getUniformTypeFromGLtype(gltype: number, beArray?: boolean)
+    {
+        let gl = this.gl;
+        if (beArray)
+        {
+            if (gltype == gl.FLOAT)
+            {
                 return UniformTypeEnum.FLOAT_ARRAY
             }
-            else if(gltype==gl.BOOL){
+            else if (gltype == gl.BOOL)
+            {
                 return UniformTypeEnum.BOOL_ARRAY
-            }else if(gltype==gl.INT){
+            } else if (gltype == gl.INT)
+            {
                 return UniformTypeEnum.INT
             }
         }
-        let type=this.gltypeToUniformType[gltype];
-        if(type==null){
-            console.error("unhandle uniform GLtype:",gltype);
+        let type = this.gltypeToUniformType[gltype];
+        if (type == null)
+        {
+            console.error("unhandle uniform GLtype:", gltype);
         }
         return type;
-    }
-    //----------------------------------------buffer
-    createBuffer(target:BufferTargetEnum,sizeOrTypedArray:number|ArrayBufferView,useage:BufferUsageEnum){
-        let gl=this.gl;
-        let bufferTarget=this.bufferTargetToGLNumber[target];
-        let bufferUseage=this.bufferUsageToGLNumber[useage];
-        let buffer = gl.createBuffer();
-        gl.bindBuffer(bufferTarget, buffer);
-        gl.bufferData(bufferTarget, sizeOrTypedArray as any, bufferUseage);
-        gl.bindBuffer(bufferTarget, null);
-        return buffer
-    }
-
-    bindBuffer(buffer:WebGLBuffer,target:BufferTargetEnum){
-        this.gl.bindBuffer(this.bufferTargetToGLNumber[target],buffer);
-    }
-
-    destroyBuffer(buffer:WebGLBuffer){
-        this.gl.deleteBuffer(buffer);
-    }
-
-    bindVertexAttribute_Buffer(att:IvertexAttribute){
-        this.gl.enableVertexAttribArray(att.index);
-        this.gl.vertexAttribPointer(
-            att.index,
-            att.componentsPerAttribute,
-            att.componentDatatype,
-            att.normalize,
-            att.strideInBytes,
-            att.offsetInBytes,
-        );
-        if (att.instanceDivisor !== undefined) {
-            this.gl.vertexAttribDivisor(att.index, att.instanceDivisor);
-        }
-    }
-    unbindVertexAttribute_Buffer(att:IvertexAttribute){
-        this.gl.disableVertexAttribArray(att.index);
-        if (att.instanceDivisor !== undefined) {
-            this.gl.vertexAttribDivisor(att.index, 0);
-        }
-    }
-
-    bindVertexAttribute_Value(att:IvertexAttribute,value:[]|TypedArray){
-        this.vertexAttributeFuncMap[att.componentsPerAttribute](att.index,value)
-    }
-
-    createVertexArray(){
-        if (this.caps.vertexArrayObject) {
-            return this.gl.createVertexArray();
-        }
-        return null
-    }
-
-    bindVertexArray(vao:any){
-        this.gl.bindVertexArray(vao);
     }
 
     /**
      * 创建shader
      * @param definition 
      */
-    complileAndLinkShader(definition:IshaderOption){
-        let gl=this.gl;
-        let vsshader=this.compileShaderSource(gl,definition.vsStr,true);
-        let fsshader=this.compileShaderSource(gl,definition.fsStr,false);
-    
-        if(vsshader&&fsshader){
+    complileAndLinkShader(definition: IshaderProgramOption)
+    {
+        let gl = this.gl;
+        let vsshader = this.compileShaderSource(gl, definition.vsStr, true);
+        let fsshader = this.compileShaderSource(gl, definition.fsStr, false);
+
+        if (vsshader && fsshader)
+        {
             let shader = gl.createProgram();
             gl.attachShader(shader, vsshader);
             gl.attachShader(shader, fsshader);
             gl.linkProgram(shader);
             let check = gl.getProgramParameter(shader, gl.LINK_STATUS);
-            if (check == false) {
+            if (check == false)
+            {
                 let debguInfo = "ERROR: compile program Error! \n" + gl.getProgramInfoLog(shader);
                 console.error(debguInfo);
                 gl.deleteProgram(shader);
                 return null;
-            } else {
-                let attributes= this.getAttributesInfo(gl, shader);
-                let uniforms = this.getUniformsInfo(gl, shader);
+            } else
+            {
+                let attributes = this.getAttributesInfo(gl, shader);
+                let { uniformDic, sampleDic } = this.getUniformsInfo(gl, shader);
                 //TODO :SMAPLES
-                let samples={};
-                return {shader,attributes,uniforms,samples}
+                let samples = {};
+                return { shader, attributes, uniforms: uniformDic, samples: sampleDic }
             }
         }
     }
 
-    bindShader(program:WebGLProgram){
-        this.gl.useProgram(program);
+    setUniform(uniform: IuniformInfo, value: any)
+    {
+        this.uniformSetter[uniform.type](uniform, value)
     }
-    
-    private  compileShaderSource(gl:WebGLRenderingContext,source: string,beVertex:boolean) {
+
+    private compileShaderSource(gl: WebGLRenderingContext, source: string, beVertex: boolean)
+    {
         let target = beVertex ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER;
         let item = gl.createShader(target);
         gl.shaderSource(item, source);
         gl.compileShader(item);
         let check = gl.getShaderParameter(item, gl.COMPILE_STATUS);
-        if (check == false) {
-            let debug =beVertex ? "ERROR: compile  VS Shader Error! VS:" : "ERROR: compile FS Shader Error! FS:";
+        if (check == false)
+        {
+            let debug = beVertex ? "ERROR: compile  VS Shader Error! VS:" : "ERROR: compile FS Shader Error! FS:";
             debug = debug + name + ".\n";
             console.error(debug + gl.getShaderInfoLog(item));
             gl.deleteShader(item);
-        } else {
+        } else
+        {
             return item
         }
     }
-    
-    private  getAttributesInfo(
+
+    private getAttributesInfo(
         gl: WebGLRenderingContext,
         program: WebGLProgram,
-    ): { [attName: string]: IattributeInfo } {
+    ): { [attName: string]: IattributeInfo }
+    {
         let attdic: { [attName: string]: IattributeInfo } = {};
         let numAttribs = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
-        for (let i = 0; i < numAttribs; i++) {
+        for (let i = 0; i < numAttribs; i++)
+        {
             let attribInfo = gl.getActiveAttrib(program, i);
             if (!attribInfo) break;
             let attName = attribInfo.name;
             let attlocation = gl.getAttribLocation(program, attName);
-    
+
             attdic[attName] = { name: attName, location: attlocation };
         }
         return attdic;
     }
-    
-    private  getUniformsInfo(gl: WebGLRenderingContext, program: WebGLProgram): { [name: string]: IuniformInfo } {
+
+    private getUniformsInfo(gl: WebGLRenderingContext, program: WebGLProgram)
+    {
         let uniformDic: { [name: string]: IuniformInfo } = {};
+        let sampleDic: { [name: string]: IuniformInfo } = {};
+
         let numUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
-    
-        for (let i = 0; i < numUniforms; i++) {
+
+        for (let i = 0; i < numUniforms; i++)
+        {
             let uniformInfo = gl.getActiveUniform(program, i);
             if (!uniformInfo) break;
-    
+
             let name = uniformInfo.name;
             let type = uniformInfo.type;
             let location = gl.getUniformLocation(program, name);
-    
+
             let beArray = false;
             // remove the array suffix.
-            if (name.substr(-3) === "[0]") {
+            if (name.substr(-3) === "[0]")
+            {
                 beArray = true;
                 name = name.substr(0, name.length - 3);
             }
             if (location == null) continue;
-    
-            uniformDic[name] = { 
-                name: name, 
-                location: location, 
-                type: this.getUniformTypeFromGLtype(type,beArray)
+
+            let uniformtype = this.getUniformTypeFromGLtype(type, beArray);
+            let newUniformElemt = {
+                name: name,
+                location: location,
+                type: uniformtype,
             };
+
+            if (uniformtype == UniformTypeEnum.SAMPLER_2D || uniformtype == UniformTypeEnum.SAMPLER_CUBE)
+            {
+                sampleDic[name] = newUniformElemt;
+            } else
+            {
+                uniformDic[name] = newUniformElemt;
+            }
         }
-        return uniformDic;
+        return { uniformDic, sampleDic };
     }
 
     //-----------------------------gl state
-    setClear(clearDepth: number | null, clearColor: Float32Array | null, clearStencil: number | null) {
+    setClear(clearDepth: number | null, clearColor: Float32Array | null, clearStencil: number | null)
+    {
         let cleartag = 0;
-        if (clearDepth != null) {
+        if (clearDepth != null)
+        {
             this.gl.clearDepth(clearDepth);
             cleartag |= this.gl.DEPTH_BUFFER_BIT;
         }
-        if (clearColor != null) {
+        if (clearColor != null)
+        {
             this.gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
             cleartag |= this.gl.COLOR_BUFFER_BIT;
         }
-        if (clearStencil != null) {
+        if (clearStencil != null)
+        {
             this.gl.clearStencil(0);
             cleartag |= this.gl.STENCIL_BUFFER_BIT;
         }
-        if (cleartag != 0) {
+        if (cleartag != 0)
+        {
             this.gl.clear(cleartag);
         }
     }
@@ -360,14 +426,16 @@ export class GraphicsDevice {
     private _cachedViewPortY: number;
     private _cachedViewPortWidth: number;
     private _cachedViewPortHeight: number;
-    setViewPort(x: number, y: number, width: number, height: number, force = false) {
+    setViewPort(x: number, y: number, width: number, height: number, force = false)
+    {
         if (
             force ||
             x != this._cachedViewPortX ||
             y != this._cachedViewPortY ||
             width != this._cachedViewPortWidth ||
             height != this._cachedViewPortHeight
-        ) {
+        )
+        {
             this.gl.viewport(x, y, width, height);
             this._cachedViewPortX = x;
             this._cachedViewPortY = y;
@@ -380,14 +448,16 @@ export class GraphicsDevice {
     private _cacheColorMaskG: boolean;
     private _cacheColorMaskB: boolean;
     private _cacheColorMaskA: boolean;
-    setColorMaskWithCached(maskR: boolean, maskG: boolean, maskB: boolean, maskA: boolean, force = false) {
+    setColorMaskWithCached(maskR: boolean, maskG: boolean, maskB: boolean, maskA: boolean, force = false)
+    {
         if (
             force ||
             this._cacheColorMaskR != maskR ||
             this._cacheColorMaskG != maskG ||
             this._cacheColorMaskB != maskB ||
             this._cacheColorMaskA != maskA
-        ) {
+        )
+        {
             this.gl.colorMask(maskR, maskG, maskB, maskA);
             this._cacheColorMaskR = maskR;
             this._cacheColorMaskG = maskG;
@@ -397,20 +467,27 @@ export class GraphicsDevice {
     }
     _cachedEnableCullFace: boolean;
     _cachedCullFace: boolean;
-    setCullFaceState(enableCullFace: boolean = true, cullBack: boolean = true, force = false) {
-        if (force || this._cachedEnableCullFace != enableCullFace) {
+    setCullFaceState(enableCullFace: boolean = true, cullBack: boolean = true, force = false)
+    {
+        if (force || this._cachedEnableCullFace != enableCullFace)
+        {
             this._cachedEnableCullFace = enableCullFace;
-            if (enableCullFace) {
+            if (enableCullFace)
+            {
                 this.gl.enable(this.gl.CULL_FACE);
-                if (force || this._cachedCullFace != cullBack) {
+                if (force || this._cachedCullFace != cullBack)
+                {
                     this._cachedCullFace = cullBack;
                     this.gl.cullFace(cullBack ? this.gl.BACK : this.gl.FRONT);
                 }
-            } else {
+            } else
+            {
                 this.gl.disable(this.gl.CULL_FACE);
             }
-        } else {
-            if (force || this._cachedCullFace != cullBack) {
+        } else
+        {
+            if (force || this._cachedCullFace != cullBack)
+            {
                 this._cachedCullFace = cullBack;
 
                 this.gl.cullFace(cullBack ? this.gl.BACK : this.gl.FRONT);
@@ -419,16 +496,21 @@ export class GraphicsDevice {
     }
     private _cachedDepthWrite: boolean;
     private _cachedDepthTest: boolean;
-    setDepthState(depthWrite: boolean = true, depthTest: boolean = true, force = false) {
-        if (force || this._cachedDepthWrite != depthWrite) {
+    setDepthState(depthWrite: boolean = true, depthTest: boolean = true, force = false)
+    {
+        if (force || this._cachedDepthWrite != depthWrite)
+        {
             this._cachedDepthWrite = depthWrite;
             this.gl.depthMask(depthWrite);
         }
-        if (force || this._cachedDepthTest != depthTest) {
+        if (force || this._cachedDepthTest != depthTest)
+        {
             this._cachedDepthTest = depthTest;
-            if (depthTest) {
+            if (depthTest)
+            {
                 this.gl.enable(this.gl.DEPTH_TEST);
-            } else {
+            } else
+            {
                 this.gl.disable(this.gl.DEPTH_TEST);
             }
         }
@@ -444,22 +526,28 @@ export class GraphicsDevice {
         blendSrc: number = this.gl.ONE,
         blendDst: number = this.gl.ONE_MINUS_SRC_ALPHA,
         force = false,
-    ) {
-        if (force || this._cachedEnableBlend != enableBlend) {
+    )
+    {
+        if (force || this._cachedEnableBlend != enableBlend)
+        {
             this._cachedEnableBlend = enableBlend;
-            if (enableBlend) {
+            if (enableBlend)
+            {
                 this.gl.enable(this.gl.BLEND);
 
-                if (force || this._cachedBlendEquation != blendEquation) {
+                if (force || this._cachedBlendEquation != blendEquation)
+                {
                     this._cachedBlendEquation = blendEquation;
                     this.gl.blendEquation(blendEquation);
                 }
-                if (force || this._cachedBlendFuncSrc != blendSrc || this._cachedBlendFuncDst != blendDst) {
+                if (force || this._cachedBlendFuncSrc != blendSrc || this._cachedBlendFuncDst != blendDst)
+                {
                     this._cachedBlendFuncSrc = blendSrc;
                     this._cachedBlendFuncDst = blendDst;
                     this.gl.blendFunc(blendSrc, blendDst);
                 }
-            } else {
+            } else
+            {
                 this.gl.disable(this.gl.BLEND);
             }
         }
@@ -480,15 +568,18 @@ export class GraphicsDevice {
         stencilFail: number = this.gl.KEEP,
         stencilPassZfail: number = this.gl.REPLACE,
         stencilFaileZpass: number = this.gl.KEEP,
-    ) {
-        if (this._cachedEnableStencilTest != enableStencilTest) {
+    )
+    {
+        if (this._cachedEnableStencilTest != enableStencilTest)
+        {
             this._cachedEnableStencilTest = enableStencilTest;
             this.gl.enable(this.gl.STENCIL_TEST);
             if (
                 this._cachedStencilFunc != stencilFunc ||
                 this._cachedStencilRefValue != stencilRefValue ||
                 this._cachedStencilMask != stencilMask
-            ) {
+            )
+            {
                 this._cachedStencilFunc = stencilFunc;
                 this._cachedStencilRefValue = stencilRefValue;
                 this._cachedStencilMask = stencilMask;
@@ -499,7 +590,8 @@ export class GraphicsDevice {
                 this._cachedStencilFail != stencilFail ||
                 this._cachedStencilPassZfail != stencilPassZfail ||
                 this._cachedStencilFaileZpass != stencilFaileZpass
-            ) {
+            )
+            {
                 this._cachedStencilFail = stencilFail;
                 this._cachedStencilPassZfail = stencilPassZfail;
                 this._cachedStencilFaileZpass = stencilFaileZpass;
@@ -508,4 +600,36 @@ export class GraphicsDevice {
         }
     }
 
+    draw(primitive: IPrimitive, numInstances: number)
+    {
+
+    }
+}
+
+export class DrawCommand
+{
+    shaderProgram: ShaderProgam;
+    uniformMap: { [name: string]: VersionData };
+    vertexArray: VertexArray;
+    count: number;
+    offset: number;
+    instanceCount: number;
+}
+
+export interface IPrimitive
+{
+    type: PrimitiveTypeEnum,
+    base: 0,
+    count: 3,
+    indexed: false
+}
+
+export enum PrimitiveTypeEnum
+{
+    POINTS = GlConstants.POINTS,
+    LINES = GlConstants.LINES,
+    LINE_LOOP = GlConstants.LINE_LOOP,
+    LINE_STRIP = GlConstants.LINE_STRIP,
+    TRIANGLES = GlConstants.TRIANGLES,
+    TRIANGLE_FAN = GlConstants.TRIANGLE_FAN
 }

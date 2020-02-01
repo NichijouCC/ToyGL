@@ -1,8 +1,11 @@
 import { VertexBuffer } from "./VertexBuffer";
 import { GraphicsDevice } from "./GraphicsDevice";
+import { ComponentDatatypeEnum } from "./ComponentDatatypeEnum";
+import { VertexAttEnum } from "./VertexAttEnum";
 
 export interface IvertexAttribute {
-    index: number; // 0;
+    // index: number; // 0;
+    type:string|VertexAttEnum
     enabled: boolean; // true;
     // vertexBuffer: VertexBuffer; // positionBuffer;
     // value:any;
@@ -14,7 +17,8 @@ export interface IvertexAttribute {
     instanceDivisor: number; // 0; // not instanced
 }
 export interface IvertexAttributeOption {
-    index?: number; // 0;
+    // index?: number; // 0;
+    type:string|VertexAttEnum
     enabled?: boolean; // true;
     // vertexBuffer: VertexBuffer; // positionBuffer;
     // value:any;
@@ -30,7 +34,7 @@ export interface IvertexAttributeOption {
  * @example useage
  * var attributes = new VertexAttribute(
  *     {
- *         index                  : 2,
+ *         type                  : VertexAttEnum.POSITION,
  *         componentsPerAttribute : 3,
  *         componentDatatype      : ComponentDatatype.FLOAT,
  *         offsetInBytes          : 0,
@@ -39,7 +43,8 @@ export interface IvertexAttributeOption {
  */
 export class VertexAttribute implements IvertexAttribute
 {
-    readonly index: number;
+    readonly index:number;
+    readonly type: string;
     readonly enabled: boolean;
     readonly componentsPerAttribute: number;
     readonly componentDatatype: number;
@@ -49,7 +54,8 @@ export class VertexAttribute implements IvertexAttribute
     readonly instanceDivisor: number;
     constructor(att: IvertexAttributeOption)
     {
-        this.index = att.index;
+        this.type = att.type;
+        this.index=VertexLocation.fromAttributeType(this.type);
         this.enabled = att.enabled ?? true; // true;
         this.componentsPerAttribute = att.componentsPerAttribute; // 3;
         this.componentDatatype = att.componentDatatype ?? ComponentDatatypeEnum.FLOAT; // FLOAT;
@@ -60,84 +66,23 @@ export class VertexAttribute implements IvertexAttribute
     }
 }
 
-export enum ComponentDatatypeEnum{
+export class VertexLocation{
+    private static attLocationMap:{[type:string]:number}={};
+    static fromAttributeType(type:VertexAttEnum|string){
+        let location=this.attLocationMap[type];
+        if(location==null){
+            console.warn(`regist new attribute Type: ${type}`);
+            this.registAttributeType(type);
+        }
+        return this.attLocationMap[type];
+    }
     /**
-     * Int8Array
+     * 注册vertex attribute 类型
+     * @param name 
      */
-    BYTE = 0x1400,
-    /**
-     * Uint8Array
-     */
-    UNSIGNED_BYTE = 0x1401,
-    /**
-     * Int16Array
-     */
-    SHORT = 0x1402,
-    /**
-     * Uint16Array
-     */
-    UNSIGNED_SHORT = 0x1403,
-    /**
-     * Int32Array
-     */
-    INT = 0x1404,
-    /**
-     * Uint32Array
-     */
-    UNSIGNED_INT = 0x1405,
-    /**
-     * Float32Array
-     */
-    FLOAT = 0x1406,
-    /**
-     * Uint16Array
-     */
-    UNSIGNED_SHORT_4_4_4_4 = 0x8033,
-    /**
-     * Uint16Array
-     */
-    UNSIGNED_SHORT_5_5_5_1 = 0x8034,
-    /**
-     * Uint16Array
-     */
-    UNSIGNED_SHORT_5_6_5 = 0x8363,
-    /**
-     * Uint16Array
-     */
-    HALF_FLOAT = 0x140b,
-    /**
-     * Uint32Array
-     */
-    UNSIGNED_INT_2_10_10_10_REV = 0x8368,
-    /**
-     * Uint32Array
-     */
-    UNSIGNED_INT_10F_11F_11F_REV = 0x8c3b,
-    /**
-     * Uint32Array
-     */
-    UNSIGNED_INT_5_9_9_9_REV = 0x8c3e,
-    /**
-     * Uint32Array
-     */
-    FLOAT_32_UNSIGNED_INT_24_8_REV = 0x8dad,
-    /**
-     * Uint32Array
-     */
-    UNSIGNED_INT_24_8 = 0x84fa,
+    private static locationId=-1;
+    static registAttributeType(name:string){
+        this.attLocationMap[name]=this.locationId++;
+    }
 }
-export enum VertexAttEnum {
-    POSITION = "position",
-    NORMAL = "normal",
-    TANGENT = "tangent",
-    TEXCOORD_0 = "uv",
-    TEXCOORD_1 = "uv1",
-    TEXCOORD_2 = "uv2",
-
-    COLOR_0 = "color",
-    WEIGHTS_0 = "skinWeight",
-    JOINTS_0 = "skinIndex",
-}
-
-
 

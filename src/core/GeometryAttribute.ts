@@ -1,3 +1,5 @@
+import { VertexAttEnum } from "../webgl/VertexAttEnum";
+
 /**
  * 
  * @example useage
@@ -14,6 +16,7 @@
  * 
  */
 export class GeometryAttribute {
+    type:VertexAttEnum|string
     componentDatatype: number;
     componentsPerAttribute: number;
     normalize: boolean;

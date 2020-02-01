@@ -1,19 +1,17 @@
-import { Shader } from "../webgl/Shader";
+import { ShaderProgam, IshaderProgramOption } from "../webgl/ShaderProgam";
 import { RenderLayerEnum } from "./RenderLayer";
-import { IshaderOption } from "../webgl/GraphicsDevice";
 
-interface IglShaderOption extends IshaderOption{
+interface IshaderOption extends IshaderProgramOption{
     layer?:RenderLayerEnum;
     queue?:number;
 }
 
-class GlShader extends Shader{
+export class Shader extends ShaderProgam{
     layer:RenderLayerEnum;
     queue:number;
-    constructor(options:IglShaderOption){
+    constructor(options:IshaderOption){
         super(options);
         this.layer=options.layer||RenderLayerEnum.Geometry;
         this.queue=options.queue??0;
     }
 }
-export {GlShader as Shader,IglShaderOption as IshaderOption}

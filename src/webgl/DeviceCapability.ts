@@ -1,8 +1,10 @@
 import { GlConstants } from "../render/GlConstant";
+import { GraphicsDevice } from "./GraphicsDevice";
 
 /* eslint-disable @typescript-eslint/class-name-casing */
 /* eslint-disable @typescript-eslint/camelcase */
-export class DeviceCapability {
+export class DeviceCapability
+{
     /** Maximum textures units per fragment shader */
     public maxTexturesImageUnits: number;
     /** Maximum texture units per vertex shader */
@@ -66,7 +68,7 @@ export class DeviceCapability {
     /** Defines if draw buffers extension is supported */
     public drawBuffersExtension: boolean;
     /** Defines if depth textures are supported */
-    public depthTextureExtension: boolean;
+    public depthTexture: boolean;
     /** Defines if float color buffer are supported */
     public colorBufferFloat: boolean;
     /** Gets disjoint timer query extension (null if not supported) */
@@ -82,7 +84,10 @@ export class DeviceCapability {
     /** Max number of texture samples for MSAA */
     public maxMSAASamples = 1;
 
-    constructor(_gl: WebGLRenderingContext, _webGLVersion: number) {
+    constructor(context: GraphicsDevice)
+    {
+        let _gl = context.gl;
+        let _webGLVersion = context.webGLVersion;
         // Extensions
         this.standardDerivatives = _webGLVersion > 1 || _gl.getExtension("OES_standard_derivatives") !== null;
         this.astc =
@@ -114,8 +119,10 @@ export class DeviceCapability {
         this.highPrecisionShaderSupported = false;
         this.timerQuery =
             _gl.getExtension("EXT_disjoint_timer_query_webgl2") || _gl.getExtension("EXT_disjoint_timer_query");
-        if (this.timerQuery) {
-            if (_webGLVersion === 1) {
+        if (this.timerQuery)
+        {
+            if (_webGLVersion === 1)
+            {
                 _gl.getQuery = (this.timerQuery as any).getQueryEXT.bind(this.timerQuery);
             }
             this.canUseTimestampForTimerQuery =
@@ -147,24 +154,30 @@ export class DeviceCapability {
         this.parallelShaderCompile = _gl.getExtension("KHR_parallel_shader_compile");
 
         // Depth Texture
-        if (_webGLVersion > 1) {
-            this.depthTextureExtension = true;
-        } else {
+        if (_webGLVersion > 1)
+        {
+            this.depthTexture = true;
+        } else
+        {
             var depthTextureExtension = _gl.getExtension("WEBGL_depth_texture");
 
-            if (depthTextureExtension != null) {
-                this.depthTextureExtension = true;
+            if (depthTextureExtension != null)
+            {
+                this.depthTexture = true;
                 // _gl.UNSIGNED_INT_24_8 = depthTextureExtension.UNSIGNED_INT_24_8_WEBGL;
             }
         }
 
         // Vertex array object
-        if (_webGLVersion > 1) {
+        if (_webGLVersion > 1)
+        {
             this.vertexArrayObject = true;
-        } else {
+        } else
+        {
             var vertexArrayObjectExtension = _gl.getExtension("OES_vertex_array_object");
 
-            if (vertexArrayObjectExtension != null) {
+            if (vertexArrayObjectExtension != null)
+            {
                 this.vertexArrayObject = true;
                 _gl.createVertexArray = vertexArrayObjectExtension.createVertexArrayOES.bind(
                     vertexArrayObjectExtension,
@@ -173,36 +186,45 @@ export class DeviceCapability {
                 _gl.deleteVertexArray = vertexArrayObjectExtension.deleteVertexArrayOES.bind(
                     vertexArrayObjectExtension,
                 );
-            } else {
+            } else
+            {
                 this.vertexArrayObject = false;
             }
         }
 
         // Instances count
-        if (_webGLVersion > 1) {
+        if (_webGLVersion > 1)
+        {
             this.instancedArrays = true;
-        } else {
+        } else
+        {
             var instanceExtension = _gl.getExtension("ANGLE_instanced_arrays");
 
-            if (instanceExtension != null) {
+            if (instanceExtension != null)
+            {
                 this.instancedArrays = true;
                 _gl.drawArraysInstanced = instanceExtension.drawArraysInstancedANGLE.bind(instanceExtension);
                 _gl.drawElementsInstanced = instanceExtension.drawElementsInstancedANGLE.bind(instanceExtension);
                 _gl.vertexAttribDivisor = instanceExtension.vertexAttribDivisorANGLE.bind(instanceExtension);
-            } else {
+            } else
+            {
                 this.instancedArrays = false;
             }
         }
     }
 
-    private _canRenderToFloatFramebuffer(_gl: WebGLRenderingContext, _webGLVersion: number): boolean {
-        if (_webGLVersion > 1) {
+    private _canRenderToFloatFramebuffer(_gl: WebGLRenderingContext, _webGLVersion: number): boolean
+    {
+        if (_webGLVersion > 1)
+        {
             return this.colorBufferFloat;
         }
         return CheckCanRenderToFrameBuffer(_gl, GlConstants.FLOAT);
     }
-    private _canRenderToHalfFloatFramebuffer(_gl: WebGLRenderingContext, _webGLVersion: number): boolean {
-        if (_webGLVersion > 1) {
+    private _canRenderToHalfFloatFramebuffer(_gl: WebGLRenderingContext, _webGLVersion: number): boolean
+    {
+        if (_webGLVersion > 1)
+        {
             return this.colorBufferFloat;
         }
         return CheckCanRenderToFrameBuffer(_gl, GlConstants.HALF_FLOAT);
@@ -212,8 +234,9 @@ export class DeviceCapability {
 export function CheckCanRenderToFrameBuffer(
     gl: WebGLRenderingContext,
     texType: GlConstants.FLOAT | GlConstants.HALF_FLOAT,
-) {
-    while (gl.getError() !== gl.NO_ERROR) {}
+)
+{
+    while (gl.getError() !== gl.NO_ERROR) { }
 
     let successful = true;
 
@@ -233,13 +256,15 @@ export function CheckCanRenderToFrameBuffer(
     successful = successful && gl.getError() === gl.NO_ERROR;
 
     //try render by clearing frame buffer's color buffer
-    if (successful) {
+    if (successful)
+    {
         gl.clear(gl.COLOR_BUFFER_BIT);
         successful = successful && gl.getError() === gl.NO_ERROR;
     }
 
     //try reading from frame to ensure render occurs (just creating the FBO is not sufficient to determine if rendering is supported)
-    if (successful) {
+    if (successful)
+    {
         //in practice it's sufficient to just read from the backbuffer rather than handle potentially issues reading from the texture
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         let readFormat = gl.RGBA;
@@ -255,7 +280,7 @@ export function CheckCanRenderToFrameBuffer(
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
     //clear accumulated errors
-    while (!successful && gl.getError() !== gl.NO_ERROR) {}
+    while (!successful && gl.getError() !== gl.NO_ERROR) { }
 
     return successful;
 }

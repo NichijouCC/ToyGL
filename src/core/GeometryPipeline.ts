@@ -2,8 +2,8 @@ import { GeometryInstance } from "./GeometryInstance";
 import { Mat4 } from "../mathD/mat4";
 import { TypedArray } from "./TypedArray";
 import { Vec3 } from "../mathD/vec3";
-import { GeometryAttEnum } from "./Config";
 import { Geometry } from "./Geometry";
+import { VertexAttEnum } from "../webgl/VertexAttEnum";
 
 export class GeometryPipeline{
     static transformToWorldCoordinates(instance:GeometryInstance,modelMatrix:Mat4){
@@ -12,15 +12,15 @@ export class GeometryPipeline{
             return instance;
         }
         let attributes = instance.geometry.attributes;
-        let posAtt=attributes[GeometryAttEnum.POSITION];
+        let posAtt=attributes[VertexAttEnum.POSITION];
         if(posAtt){
             transformPoint(modelMatrix, posAtt.values as any);
         }
-        let normalAtt=attributes[GeometryAttEnum.NORMAL];
+        let normalAtt=attributes[VertexAttEnum.NORMAL];
         if(normalAtt){
             transformVector(modelMatrix,normalAtt.values as any);
         }
-        let tangentAtt=attributes[GeometryAttEnum.TANGENT];
+        let tangentAtt=attributes[VertexAttEnum.TANGENT];
         if(normalAtt){
             transformVector(modelMatrix,tangentAtt.values as any);
         }

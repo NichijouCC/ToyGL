@@ -2,12 +2,12 @@ import { BufferUsageEnum, Buffer } from "./Buffer";
 import { IndexBuffer } from "./IndexBuffer";
 import { GraphicsDevice } from "./GraphicsDevice";
 import { Geometry } from "../core/Geometry";
-import { Config } from "../core/Config";
 import { VertexBuffer, IvertexData, VertexValue } from "./VertexBuffer";
-import { IvertexAttribute } from "./VertexAttribute";
+import { IvertexAttributeOption } from "./VertexAttribute";
+import { IglElement } from "../core/IglElement";
 
 
-export class VertexArray{
+export class VertexArray implements IglElement{
     private vertexbuffers: IvertexData[];
     private indexbuffer: IndexBuffer;
     private _vao: any;
@@ -19,24 +19,33 @@ export class VertexArray{
 
         this.vertexbuffers=options.vertexbuffers;
         this.indexbuffer = options.indexBuffer;
-        let vao =options.context.createVertexArray();
-        if(vao){
-            options.context.bindVertexArray(vao);
+        let gl=options.context.gl;
+
+        if (options.context.caps.vertexArrayObject) {
+
+            this._bind=()=>{
+                gl.bindVertexArray(this._vao);
+            }
+            this._unbind=()=>{
+                gl.bindVertexArray(null);
+            }
+
+            let vao=gl.createVertexArray();
+            gl.bindVertexArray(vao)
             this.bindVertexBufferOrValue(this.vertexbuffers, this.indexbuffer);
-            options.context.bindVertexArray(null);
+            gl.bindVertexArray(null)
             this._vao=vao;
 
-            this.bind=()=>{
-                options.context.bindVertexArray(this._vao);
+            this.destroy=()=>{
+                gl.deleteVertexArray(this._vao);
             }
-            this.unbind=()=>{
-                options.context.bindVertexArray(null);
-            }
-        }else{
-            this.bind=()=>{
+
+        }else
+        {
+            this._bind=()=>{
                 this.bindVertexBufferOrValue(this.vertexbuffers, this.indexbuffer);
             }
-            this.unbind=()=>{
+            this._unbind=()=>{
                 this.unbindAttributes(this.vertexbuffers, this.indexbuffer);
             }
         }
@@ -58,9 +67,22 @@ export class VertexArray{
             indexBuffer.unbind();
         }
     }
+    private _bind() {}
+    private _unbind() {}
 
-    bind() {}
-    unbind() {}
+    private static _cachedvertexArray:VertexArray;
+    bind() {
+        if(VertexArray._cachedvertexArray!=this){
+            this._bind();
+            VertexArray._cachedvertexArray=this;
+        }
+    }
+    unbind() {
+        this._unbind();
+        VertexArray._cachedvertexArray=null;
+    }
+
+    destroy(){}
 
     /**
      * Creates a vertex array from a geometry.  A geometry contains vertex attributes and optional index data
@@ -104,7 +126,7 @@ export class VertexArray{
 
 
         if(options.interleave){
-            //todo
+            //TODO 
         }else
         {
             let vertexbuffers= Object.keys(geAtts).map(attName=>{
@@ -112,12 +134,12 @@ export class VertexArray{
                 let vertexData:IvertexData;
 
                 let geAtt=geAtts[attName];
-                let att:IvertexAttribute={
-                    index:Config.getAttLocationFromName(attName as any),
+                let att:IvertexAttributeOption={
+                    type:geAtt.type,
                     componentDatatype : geAtt.componentDatatype,
                     componentsPerAttribute : geAtt.componentsPerAttribute,
                     normalize : geAtt.normalize
-                } as any;
+                };
 
                 if(geAtt.values){
                     vertexData=new VertexBuffer({
