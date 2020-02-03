@@ -1,7 +1,8 @@
-import { Transform } from "../core/Transform";
+import { Transform } from "../scene/Transform";
 import { IframeState } from "../scene/frameState";
 
-export interface Ientity {
+export interface Ientity
+{
     readonly guid: number;
     beActive: boolean;
     maskLayer: CullingMask;
@@ -14,10 +15,12 @@ export interface Ientity {
     dispose(): void;
 }
 
-export interface IcompoentConstructor {
-    new (): Icomponent;
+export interface IcompoentConstructor
+{
+    new(): Icomponent;
 }
-export interface Icomponent {
+export interface Icomponent
+{
     entity: Ientity;
     update(frameState: IframeState): void;
     dispose(): void;
@@ -26,7 +29,8 @@ export interface Icomponent {
 /**
  * 渲染的层级(从小到大绘制)
  */
-export enum RenderLayerEnum {
+export enum RenderLayerEnum
+{
     Background = 1000,
     Geometry = 2000,
     AlphaTest = 2450,
@@ -36,7 +40,8 @@ export enum RenderLayerEnum {
 /**
  * 渲染mask枚举
  */
-export enum CullingMask {
+export enum CullingMask
+{
     ui = 0x00000001,
     default = 0x00000002,
     editor = 0x00000004,
@@ -48,7 +53,8 @@ export enum CullingMask {
 /**
  * 渲染器接口 继承自组件接口
  */
-export interface Irender extends Icomponent {
+export interface Irender extends Icomponent
+{
     // layer: RenderLayerEnum;
     // queue: number;
     mask: CullingMask;
@@ -60,30 +66,39 @@ export interface Irender extends Icomponent {
     // bouningSphere: BoundingSphere;
 }
 
-export class ToyActor {
+export class ToyActor
+{
     private static dic: { [compName: string]: any } = {};
-    static Reg = (constructor: Function) => {
+    static Reg = (constructor: Function) =>
+    {
         let target = constructor.prototype;
         ToyActor.dic[target.constructor.name] = target.constructor;
     };
 
-    static create(compname: string): any {
+    static create(compname: string): any
+    {
         let contr = ToyActor.dic[compname];
-        if (contr) {
+        if (contr)
+        {
             return new contr();
-        } else {
+        } else
+        {
             return null;
         }
     }
 
-    static fromOpt<T>(name: string, opt: T, onCreated?: () => void): T {
+    static fromOpt<T>(name: string, opt: T, onCreated?: () => void): T
+    {
         let newActor = this.create(name);
-        if (newActor != null) {
-            for (let key in opt) {
+        if (newActor != null)
+        {
+            for (let key in opt)
+            {
                 (newActor as any)[key] = (opt as any)[key];
             }
         }
-        if (onCreated != null) {
+        if (onCreated != null)
+        {
             onCreated();
         }
         return newActor;

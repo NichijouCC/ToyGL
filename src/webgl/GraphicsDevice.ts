@@ -600,28 +600,46 @@ export class GraphicsDevice
         }
     }
 
-    draw(primitive: IPrimitive, numInstances: number)
+    draw(command: DrawCommand, uniformValues: { [key: string]: VersionData })
     {
+        command.shaderProgram.bind();
+        command.shaderProgram.bindUniforms(uniformValues);
+        command.vertexArray.bind();
 
+        let instanceCount = command.instanceCount;
+        let indexbuffer = command.vertexArray.indexbuffer;
+        if (indexbuffer)
+        {
+            let offset = indexbuffer.bytesPerIndex * command.offset;
+            if (instanceCount != 0)
+            {
+                this.gl.drawElementsInstanced(command.primitiveType, command.count, indexbuffer.indexDatatype, offset, instanceCount);
+            } else
+            {
+                this.gl.drawElements(command.primitiveType, command.count, indexbuffer.indexDatatype, offset);
+            }
+        } else
+        {
+            if (instanceCount != 0)
+            {
+                this.gl.drawArraysInstanced(command.primitiveType, command.offset, command.count, command.instanceCount);
+            } else
+            {
+                this.gl.drawArrays(command.primitiveType, command.offset, command.count);
+            }
+        }
     }
 }
 
 export class DrawCommand
 {
     shaderProgram: ShaderProgam;
-    uniformMap: { [name: string]: VersionData };
     vertexArray: VertexArray;
+    uniformMap: { [name: string]: VersionData };
+    primitiveType: PrimitiveTypeEnum;
     count: number;
     offset: number;
     instanceCount: number;
-}
-
-export interface IPrimitive
-{
-    type: PrimitiveTypeEnum,
-    base: 0,
-    count: 3,
-    indexed: false
 }
 
 export enum PrimitiveTypeEnum

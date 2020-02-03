@@ -1,10 +1,11 @@
 import { Geometry } from "../core/Geometry";
-import { Material } from "../core/Material";
-import { Transform } from "../core/Transform";
+import { Material } from "./Material";
+import { Transform } from "./Transform";
 
-export class MeshInstance{
-    geometry:Geometry;
-    material:Material;
-    tranform:Transform;
+export class MeshInstance
+{
+    geometry: Geometry;
+    material: Material;
+    tranform: Transform;
 
 }

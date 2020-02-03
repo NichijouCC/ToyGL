@@ -1,11 +1,13 @@
 import { ToyAsset, ItoyAsset } from "../base/toyAsset";
-import { Transform } from "../../core/Transform";
+import { Transform } from "../../scene/Transform";
 
-export class GltfAsset extends ToyAsset {
-    constructor(param?: ItoyAsset) {
+export class GltfAsset extends ToyAsset
+{
+    constructor(param?: ItoyAsset)
+    {
         super(param);
     }
 
     roots: Transform[];
-    dispose(): void {}
+    dispose(): void { }
 }

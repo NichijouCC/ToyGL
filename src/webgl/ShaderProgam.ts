@@ -90,7 +90,7 @@ export class ShaderProgam implements IshaderProgam
             }
         }
     }
-    bindUniform(key: string, value: VersionData) { }
+    private bindUniform(key: string, value: VersionData) { }
 
     bindUniforms(value: { [name: string]: VersionData })
     {
