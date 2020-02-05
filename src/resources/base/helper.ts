@@ -1,10 +1,12 @@
 //通过url获取资源的名称(包含尾缀)
-export function getFileName(url: string): string {
+export function getFileName(url: string): string
+{
     let filei = url.lastIndexOf("/");
     let file = url.substr(filei + 1);
     return file;
 }
-export function getFileNameWithoutExtralName(url: string): string {
+export function getFileNameWithoutExtralName(url: string): string
+{
     let filei = url.lastIndexOf("/");
     let file = url.substr(filei + 1);
 
@@ -23,7 +25,8 @@ export function getFileNameWithoutExtralName(url: string): string {
 //     }
 //     return type;
 // }
-export function getAssetExtralName(url: string): string {
+export function getAssetExtralName(url: string): string
+{
     let index = url.lastIndexOf("/");
     let filename = url.substr(index + 1);
     index = filename.indexOf(".", 0);
@@ -31,7 +34,8 @@ export function getAssetExtralName(url: string): string {
     return extname;
 }
 
-export function getAssetFlode(url: string): string {
+export function getAssetDirectory(url: string): string
+{
     let filei = url.lastIndexOf("/");
     let file = url.substr(0, filei);
     return file;

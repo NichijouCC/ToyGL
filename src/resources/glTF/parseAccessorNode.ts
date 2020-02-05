@@ -1,11 +1,26 @@
 import { AccessorComponentType } from "./gltfJsonStruct";
 import { IgltfJson } from "./loadglTF";
 import { ParseBufferViewNode } from "./parseBufferViewNode";
-import { IviewData } from "twebgl/dist/types/type";
+import { BufferTargetEnum, Buffer, BufferUsageEnum } from "../../webgl/Buffer";
+import { GraphicsDevice } from "../../webgl/GraphicsDevice";
+import { getTypedArray, getTypeArrCtorFromGLtype, getPerElementBytesFromGLtype, TypedArray } from "../../core/TypedArray";
 
-export class ParseAccessorNode {
-    static parse(index: number, gltf: IgltfJson): Promise<IviewData> {
-        let arrayInfo: IviewData = {};
+export interface IaccessorData
+{
+    componentSize: number;
+    componentDataType: number;
+    count: number;
+    normalize: boolean;
+    bytesOffset: number;
+    bytesStride: number;
+    typedArray: TypedArray;
+}
+
+export class ParseAccessorNode
+{
+    static parse(index: number, gltf: IgltfJson): Promise<IaccessorData>
+    {
+        let arrayInfo: IaccessorData = {} as any;
         // return new Promise<AccessorNode>((resolve,reject)=>{
         let accessor = gltf.accessors[index];
 
@@ -14,78 +29,55 @@ export class ParseAccessorNode {
         arrayInfo.count = accessor.count;
         arrayInfo.normalize = accessor.normalized;
 
-        if (accessor.bufferView != null) {
+        if (accessor.bufferView != null)
+        {
             let viewindex = accessor.bufferView;
+            return ParseBufferViewNode.parse(viewindex, gltf).then(value =>
+            {
+                let typedArray = getTypedArray(value.viewBuffer, accessor.componentType) as any;
+                arrayInfo.bytesOffset = accessor.byteOffset;
+                arrayInfo.bytesStride = value.byteStride;
 
-            return ParseBufferViewNode.parse(viewindex, gltf).then(value => {
-                if (accessor.sparse != null) {
-                    let cloneArr = value.viewBuffer.slice(accessor.byteOffset);
-                    arrayInfo.bytesOffset = 0;
-                    arrayInfo.value = cloneArr;
-                    arrayInfo.bytesStride = value.byteStride;
-
+                if (accessor.sparse != null)
+                {
+                    typedArray = typedArray.slice(0);
                     let indicesInfo = accessor.sparse.indices;
                     let valuesInfo = accessor.sparse.values;
+
+                    let count = accessor.sparse.count;
+
                     Promise.all([
                         ParseBufferViewNode.parse(indicesInfo.bufferView, gltf),
                         ParseBufferViewNode.parse(valuesInfo.bufferView, gltf),
-                    ]).then(arr => {
-                        let indicesArr = this.getTypedArr(
-                            arr[0].viewBuffer,
-                            indicesInfo.byteOffset,
-                            indicesInfo.componentType,
-                            accessor.count,
-                        );
-                        let valueArr = arr[1].viewBuffer;
+                    ]).then(arr =>
+                    {
+                        let indicesArr = getTypedArray(arr[0].viewBuffer, indicesInfo.componentType, indicesInfo.byteOffset)
+                        let sparseValueArr = getTypedArray(arr[1].viewBuffer, accessor.componentType, valuesInfo.byteOffset);
 
-                        let elementByte = this.getBytesForAccessor(accessor.type, accessor.componentType);
-                        let realStride =
-                            arrayInfo.bytesStride != null && arrayInfo.bytesStride != 0
-                                ? arrayInfo.bytesStride
-                                : elementByte;
-                        for (let i = 0; i < indicesArr.length; i++) {
+                        let componentNumber = this.getComponentSize(accessor.type);
+                        for (let i = 0; i < count; i++)
+                        {
                             let index = indicesArr[i];
-                            for (let k = 0; k < elementByte; k++) {
-                                cloneArr[index * realStride + k] = valueArr[index * elementByte + k];
+                            for (let k = 0; k < componentNumber; k++)
+                            {
+                                typedArray[index + k] = sparseValueArr[index + k];
                             }
                         }
                     });
-                } else {
-                    arrayInfo.bytesOffset = accessor.byteOffset;
-                    arrayInfo.value = value.viewBuffer;
-                    arrayInfo.bytesStride = value.byteStride;
-                    arrayInfo.glBuffer = value.glBuffer.buffer;
-                    return arrayInfo;
                 }
+                arrayInfo.typedArray = typedArray;
+                return arrayInfo;
             });
-        } else {
-            let viewBuffer = this.GetTyedArryByLen(accessor.componentType, accessor.count);
-            arrayInfo.value = viewBuffer;
-            return Promise.resolve(arrayInfo);
+        } else
+        {
+            throw new Error("accessor.bufferView is null");
         }
     }
 
-    static GetTyedArryByLen(componentType: AccessorComponentType, Len: number) {
-        switch (componentType) {
-            case AccessorComponentType.BYTE:
-                return new Int8Array(Len);
-            case AccessorComponentType.UNSIGNED_BYTE:
-                return new Uint8Array(Len);
-            case AccessorComponentType.SHORT:
-                return new Int16Array(Len);
-            case AccessorComponentType.UNSIGNED_SHORT:
-                return new Uint16Array(Len);
-            case AccessorComponentType.UNSIGNED_INT:
-                return new Uint32Array(Len);
-            case AccessorComponentType.FLOAT:
-                return new Float32Array(Len);
-            default:
-                throw new Error(`Invalid component type ${componentType}`);
-        }
-    }
-
-    private static getComponentSize(type: string): number {
-        switch (type) {
+    private static getComponentSize(type: string): number
+    {
+        switch (type)
+        {
             case "SCALAR":
                 return 1;
             case "VEC2":
@@ -99,56 +91,6 @@ export class ParseAccessorNode {
                 return 9;
             case "MAT4":
                 return 16;
-        }
-    }
-
-    private static getBytesForAccessor(type: string, componentType: AccessorComponentType): number {
-        let componentNumber = this.getComponentSize(type);
-        let byte = this.getbytesFormGLtype(componentType);
-        return componentNumber * byte;
-    }
-
-    private static getTypedArr(
-        viewBuffer: Uint8Array,
-        offset: number,
-        componentType: AccessorComponentType,
-        count?: number,
-    ) {
-        offset = offset != null ? offset : 0;
-        switch (componentType) {
-            case AccessorComponentType.BYTE:
-                return new Int8Array(viewBuffer, offset, count);
-            case AccessorComponentType.UNSIGNED_BYTE:
-                return new Uint8Array(viewBuffer, offset, count);
-            case AccessorComponentType.SHORT:
-                return new Int16Array(viewBuffer, offset, count);
-            case AccessorComponentType.UNSIGNED_SHORT:
-                return new Uint16Array(viewBuffer, offset, count);
-            case AccessorComponentType.UNSIGNED_INT:
-                return new Uint32Array(viewBuffer, offset, count);
-            case AccessorComponentType.FLOAT:
-                return new Float32Array(viewBuffer, offset, count);
-            default:
-                throw new Error(`Invalid component type ${componentType}`);
-        }
-    }
-
-    private static getbytesFormGLtype(componentType: AccessorComponentType) {
-        switch (componentType) {
-            case AccessorComponentType.BYTE:
-                return 1;
-            case AccessorComponentType.UNSIGNED_BYTE:
-                return 1;
-            case AccessorComponentType.SHORT:
-                return 2;
-            case AccessorComponentType.UNSIGNED_SHORT:
-                return 2;
-            case AccessorComponentType.UNSIGNED_INT:
-                return 4;
-            case AccessorComponentType.FLOAT:
-                return 4;
-            default:
-                throw "unsupported AccessorComponentType to bytesPerElement";
         }
     }
 }

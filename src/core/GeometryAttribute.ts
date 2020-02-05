@@ -15,26 +15,30 @@ import { VertexAttEnum } from "../webgl/VertexAttEnum";
  *     })
  * 
  */
-export class GeometryAttribute {
-    type:VertexAttEnum|string
+export class GeometryAttribute
+{
+    type: VertexAttEnum | string
     componentDatatype: number;
     componentsPerAttribute: number;
     normalize: boolean;
     values?: ArrayBufferView;
-    value?:any;
-    constructor(option: IgeometryAttributeOptions) {
+    value?: any;
+    constructor(option: IgeometryAttributeOptions)
+    {
         this.values = option.values;
         this.componentDatatype = option.componentDatatype;
         this.componentsPerAttribute = option.componentsPerAttribute;
         this.normalize = option.normalize != null ? option.normalize : false;
     }
 }
-interface IgeometryAttributeOptions {
+export interface IgeometryAttributeOptions
+{
     componentDatatype: number;
     componentsPerAttribute: number;
     normalize?: boolean;
     values?: ArrayBufferView;
-    value?:any;
+    value?: any;
+    type?: VertexAttEnum | string;
 }
 
 

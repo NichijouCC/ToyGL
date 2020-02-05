@@ -2,7 +2,6 @@ import { GeometryInstance } from "../core/GeometryInstance";
 import { Mat4 } from "../mathD/mat4";
 import { FrameState } from "../render_V2/FrameState";
 import { DrawCommand } from "../render_V2/DrawCommand";
-import { IvertexArray } from "../webgl/Ibase";
 import { VertexArray } from "../webgl/VertextArray";
 import { GeometryPipeline } from "../core/GeometryPipeline";
 import { BufferUsageEnum } from "../webgl/Buffer";
@@ -76,23 +75,28 @@ import { Geometry } from "../core/Geometry";
  *   appearance : new PerInstanceColorAppearance()
  * }));
  */
-export class Primitive {
+export class Primitive
+{
     private _geometryInstances: GeometryInstance[];
     private geometryDirty: boolean = false;
-    set geometryInstances(value: GeometryInstance[]) {
+    set geometryInstances(value: GeometryInstance[])
+    {
         this._geometryInstances = value;
-        this.geometryDirty=true;
+        this.geometryDirty = true;
     }
-    get geometryInstances(){
+    get geometryInstances()
+    {
         return this._geometryInstances;
     }
 
-    _batchedGeometrys:Geometry;
+    _batchedGeometrys: Geometry;
 
     private _appearance: any;
     private appearanceDirty: boolean = false;
-    set appearance(value: any) {
-        if (this._appearance != value) {
+    set appearance(value: any)
+    {
+        if (this._appearance != value)
+        {
             this.appearanceDirty = true;
         }
         this._appearance = value;
@@ -105,7 +109,8 @@ export class Primitive {
     cull: boolean;
     private drawCommand: DrawCommand[];
     vas: VertexArray;
-    constructor(option: Primitive) {
+    constructor(option: Primitive)
+    {
         this.geometryInstances = option.geometryInstances;
         this.appearance = option.appearance;
         this.modelMatrix = option.modelMatrix || Mat4.identity();
@@ -116,19 +121,22 @@ export class Primitive {
         this.cull = option.cull ?? true;
     }
 
-    update(frameState: FrameState) {
+    update(frameState: FrameState)
+    {
         //----------------------------------------------------
         //                  batch createvao
         //----------------------------------------------------
 
 
-        if(this._batchedGeometrys==null){
-            this._batchedGeometrys= batchPrimitive(this);
-        }else
+        if (this._batchedGeometrys == null)
         {
-            if(this.vas==null){
-                this.vas= createVertexArray(this._batchedGeometrys,frameState);
-            }else
+            this._batchedGeometrys = batchPrimitive(this);
+        } else
+        {
+            if (this.vas == null)
+            {
+                this.vas = createVertexArray(this._batchedGeometrys, frameState);
+            } else
             {
 
             }
@@ -142,7 +150,8 @@ export class Primitive {
         //----------------------------------------------------
         //                draw commond      
         //----------------------------------------------------
-        if (this.appearanceDirty) {
+        if (this.appearanceDirty)
+        {
             //creat shader program
         }
     }
@@ -151,23 +160,26 @@ export class Primitive {
 
 
 
-function batchPrimitive(primitive:Primitive){
-    let insArr= primitive.geometryInstances.map(ins=>{
+function batchPrimitive(primitive: Primitive)
+{
+    let insArr = primitive.geometryInstances.map(ins =>
+    {
         //step1: clone ins  todo
-        let cloneIns=ins;
+        let cloneIns = ins;
         //step2: 变换顶点数据
         return GeometryPipeline.transformToWorldCoordinates(cloneIns);
     });
     //step3: 合并ins todo
-    let batchGeometry=GeometryPipeline.combineGeometryInstances(insArr);
+    let batchGeometry = GeometryPipeline.combineGeometryInstances(insArr);
 
     return batchGeometry
 }
 
 
-   
 
-export interface IprimitiveOption {
+
+export interface IprimitiveOption
+{
     geometryInstances: GeometryInstance | GeometryInstance[];
     appearance?: any;
     modelMatrix?: Mat4;

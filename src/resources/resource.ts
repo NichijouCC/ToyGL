@@ -18,8 +18,10 @@ import { getAssetExtralName } from "./base/helper";
  *
  */
 
-export class AssetLoader {
-    static RegisterAssetLoader(extral: string, factory: IassetLoader) {
+export class AssetLoader
+{
+    static registerAssetLoader(extral: string, factory: IassetLoader)
+    {
         // this.ExtendNameDic[extral] = type;
         console.warn("loader type:", extral);
         this.RESLoadDic[extral] = factory;
@@ -27,7 +29,8 @@ export class AssetLoader {
     //private static ExtendNameDic: { [name: string]: AssetExtralEnum } = {};
     private static RESLoadDic: { [ExtralName: string]: IassetLoader } = {};
 
-    static getAssetLoader(url: string): IassetLoader {
+    static getAssetLoader(url: string): IassetLoader
+    {
         let extralType = getAssetExtralName(url);
         let factory = this.RESLoadDic[extralType];
         return factory;
@@ -39,24 +42,30 @@ export class AssetLoader {
 
     // private static RESExtensionLoadDic: { [ExtralName: string]: () => IassetLoader } = {};
 
-    static async addLoader() {
-        await import("./loader/loadTxt").then(mod => {
-            this.RegisterAssetLoader(".txt", new mod.LoadTxt());
+    static addLoader()
+    {
+        import("./loader/loadTxt").then(mod =>
+        {
+            this.registerAssetLoader(".txt", new mod.LoadTxt());
         });
-        await import("./loader/loadShader").then(mod => {
-            this.RegisterAssetLoader(".shader.json", new mod.LoadShader());
+        import("./loader/loadShader").then(mod =>
+        {
+            this.registerAssetLoader(".shader.json", new mod.LoadShader());
         });
-        await import("./loader/loadTexture").then(mod => {
-            this.RegisterAssetLoader(".png", new mod.LoadTextureSample());
-            this.RegisterAssetLoader(".jpg", new mod.LoadTextureSample());
+        import("./loader/loadTexture").then(mod =>
+        {
+            this.registerAssetLoader(".png", new mod.LoadTextureSample());
+            this.registerAssetLoader(".jpg", new mod.LoadTextureSample());
         });
-        await import("./glTF/loadglTF").then(mod => {
-            this.RegisterAssetLoader(".gltf", new mod.LoadGlTF());
+        import("./glTF/loadglTF").then(mod =>
+        {
+            this.registerAssetLoader(".gltf", new mod.default());
         });
     }
 }
 
-export class Resource {
+export class Resource
+{
     //#endregion
     /**
      * 调用load方法就会塞到这里面来
@@ -69,10 +78,13 @@ export class Resource {
      */
     private static loadingUrl: { [url: string]: ((asset: Iasset | null, loadInfo?: IassetLoadInfo) => void)[] } = {}; //
 
-    static getAssetLoadInfo(url: string): IassetLoadInfo | null {
-        if (this.loadMap[url]) {
+    static getAssetLoadInfo(url: string): IassetLoadInfo | null
+    {
+        if (this.loadMap[url])
+        {
             return this.loadMap[url].loadinfo;
-        } else {
+        } else
+        {
             return null;
         }
     }
@@ -86,16 +98,21 @@ export class Resource {
         url: string,
         onFinish: ((asset: Iasset | null, loadInfo?: IassetLoadInfo) => void) | null = null,
         onProgress: (progress: number) => void = null,
-    ): Iasset | null {
-        if (this.loadMap[url]) {
-            if (onFinish) {
-                switch (this.loadMap[url].loadinfo.loadState) {
+    ): Iasset | null
+    {
+        if (this.loadMap[url])
+        {
+            if (onFinish)
+            {
+                switch (this.loadMap[url].loadinfo.loadState)
+                {
                     case LoadEnum.Success:
                     case LoadEnum.Failed:
                         onFinish(this.loadMap[url].asset, this.loadMap[url].loadinfo);
                         break;
                     case LoadEnum.Loading:
-                        if (this.loadingUrl[url] == null) {
+                        if (this.loadingUrl[url] == null)
+                        {
                             this.loadingUrl[url] = [];
                         }
                         this.loadingUrl[url].push(onFinish);
@@ -107,12 +124,14 @@ export class Resource {
                 }
             }
             return this.loadMap[url].asset;
-        } else {
+        } else
+        {
             let factory: IassetLoader = AssetLoader.getAssetLoader(url);
             let _state: IassetLoadInfo = { url: url, loadState: LoadEnum.None };
             this.loadMap[url] = { asset: null, loadinfo: _state };
 
-            if (factory == null) {
+            if (factory == null)
+            {
                 let errorMsg =
                     "ERROR: load Asset error. INfo: not have Load Func to handle (" +
                     getAssetExtralName(url) +
@@ -120,26 +139,32 @@ export class Resource {
                     url;
                 _state.err = new Error(errorMsg);
                 console.error(errorMsg);
-                if (onFinish) {
+                if (onFinish)
+                {
                     onFinish(null, _state);
                 }
                 return null;
-            } else {
+            } else
+            {
                 let asset = factory.load(
                     url,
-                    (asset, state) => {
+                    (asset, state) =>
+                    {
                         //-------------------------------存进资源存储map
                         _state.loadState = state.loadState;
                         //---------------------回调事件
-                        if (onFinish) {
+                        if (onFinish)
+                        {
                             onFinish(asset, state);
                         }
                         //------------------监听此资源loadfinish的事件
                         let arr = this.loadingUrl[url];
                         this.loadingUrl[url] = null;
                         delete this.loadingUrl[url]; //set loadingUrl null
-                        if (arr) {
-                            arr.forEach(func => {
+                        if (arr)
+                        {
+                            arr.forEach(func =>
+                            {
                                 func(asset, state);
                             });
                         }
@@ -153,12 +178,17 @@ export class Resource {
         }
     }
 
-    static loadAsync(url: string): Promise<Iasset> {
-        return new Promise((resolve, reject) => {
-            this.load(url, (asset, loadInfo) => {
-                if (loadInfo.loadState == LoadEnum.Success) {
+    static loadAsync(url: string): Promise<Iasset>
+    {
+        return new Promise((resolve, reject) =>
+        {
+            this.load(url, (asset, loadInfo) =>
+            {
+                if (loadInfo.loadState == LoadEnum.Success)
+                {
                     resolve(asset);
-                } else {
+                } else
+                {
                     reject(new Error("Load Failed."));
                 }
             });

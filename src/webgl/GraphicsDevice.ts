@@ -613,19 +613,19 @@ export class GraphicsDevice
             let offset = indexbuffer.bytesPerIndex * command.offset;
             if (instanceCount != 0)
             {
-                this.gl.drawElementsInstanced(command.primitiveType, command.count, indexbuffer.indexDatatype, offset, instanceCount);
+                this.gl.drawElementsInstanced(command.modeType, command.count, indexbuffer.indexDatatype, offset, instanceCount);
             } else
             {
-                this.gl.drawElements(command.primitiveType, command.count, indexbuffer.indexDatatype, offset);
+                this.gl.drawElements(command.modeType, command.count, indexbuffer.indexDatatype, offset);
             }
         } else
         {
             if (instanceCount != 0)
             {
-                this.gl.drawArraysInstanced(command.primitiveType, command.offset, command.count, command.instanceCount);
+                this.gl.drawArraysInstanced(command.modeType, command.offset, command.count, command.instanceCount);
             } else
             {
-                this.gl.drawArrays(command.primitiveType, command.offset, command.count);
+                this.gl.drawArrays(command.modeType, command.offset, command.count);
             }
         }
     }
@@ -636,13 +636,13 @@ export class DrawCommand
     shaderProgram: ShaderProgam;
     vertexArray: VertexArray;
     uniformMap: { [name: string]: VersionData };
-    primitiveType: PrimitiveTypeEnum;
+    modeType: ModeTypeEnum;
     count: number;
     offset: number;
     instanceCount: number;
 }
 
-export enum PrimitiveTypeEnum
+export enum ModeTypeEnum
 {
     POINTS = GlConstants.POINTS,
     LINES = GlConstants.LINES,

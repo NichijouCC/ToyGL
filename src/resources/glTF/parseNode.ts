@@ -1,4 +1,4 @@
-import { Entity } from "../../ec/entity";
+
 import { Mat4 } from "../../mathD/mat4";
 import { Vec3 } from "../../mathD/vec3";
 import { Quat } from "../../mathD/quat";
@@ -7,52 +7,57 @@ import { Transform } from "../../scene/Transform";
 import { ParseMeshNode } from "./parseMeshNode";
 import { IgltfJson } from "./loadglTF";
 import { Mesh } from "../../ec/components/mesh";
+import { Entity } from "../../framework/Entity";
+import { Camera } from "../../ec/components/camera";
+import { GraphicsDevice } from "../../webgl/GraphicsDevice";
+import { MeshInstance } from "../../scene/MeshInstance";
 
 export class ParseNode
 {
-    static parse(index: number, gltf: IgltfJson): Promise<Entity>
+    static parse(index: number, gltf: IgltfJson, context: GraphicsDevice): Promise<{ entity: Entity, instances: MeshInstance[] }>
     {
         let node = gltf.nodes[index];
 
         let name = node.name || "node" + index;
-        let trans = new Entity(name);
+        let entity = new Entity(name);
+        let instances: MeshInstance[];
 
         if (node.matrix)
         {
-            trans.localMatrix = Mat4.fromArray(node.matrix);
+            entity.localMatrix = Mat4.fromArray(node.matrix);
         }
         if (node.translation)
         {
-            Vec3.copy(node.translation, trans.localPosition);
+            Vec3.copy(node.translation, entity.localPosition);
         }
         if (node.rotation)
         {
-            Quat.copy(node.rotation, trans.localRotation);
+            Quat.copy(node.rotation, entity.localRotation);
         }
         if (node.scale)
         {
-            Vec3.copy(node.scale, trans.localScale);
+            Vec3.copy(node.scale, entity.localScale);
         }
 
         if (node.camera != null)
         {
-            let cam = ParseCameraNode.parse(node.camera, gltf);
-            trans.entity.addComp(cam);
+            let camera = entity.addComponent("Camera");
+            let cam = ParseCameraNode.parse(node.camera, gltf, camera as any);
         }
 
         let allTask: Promise<void>[] = [];
         if (node.mesh != null)
         {
-            let task = ParseMeshNode.parse(node.mesh, gltf).then(primitives =>
+            let task = ParseMeshNode.parse(node.mesh, gltf, context).then(primitives =>
             {
+                instances = [];
                 for (let item of primitives)
                 {
-                    let entity = new Entity("subPrimitive", ["Mesh"]);
-                    let mesh = entity.getCompByName("Mesh") as Mesh;
-                    mesh.geometry = item.geometry;
-                    mesh.material = item.material;
-
-                    trans.addChild(entity);
+                    let instance = new MeshInstance();
+                    instance.mesh = item.mesh;
+                    instance.material = item.material;
+                    instance.node = entity;
+                    instances.push(instance);
                 }
             });
             allTask.push(task);
@@ -63,16 +68,16 @@ export class ParseNode
             for (let i = 0; i < node.children.length; i++)
             {
                 let nodeindex = node.children[i];
-                let childTask = this.parse(nodeindex, gltf).then(child =>
+                let childTask = this.parse(nodeindex, gltf, context).then(child =>
                 {
-                    trans.addChild(child);
+                    entity.addChild(child.entity);
                 });
                 allTask.push(childTask);
             }
         }
         return Promise.all(allTask).then(() =>
         {
-            return trans;
+            return { entity, instances };
         });
 
         // if (node.skin != null && node.mesh != null) {

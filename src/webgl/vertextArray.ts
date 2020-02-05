@@ -2,30 +2,121 @@ import { BufferUsageEnum, Buffer } from "./Buffer";
 import { IndexBuffer } from "./IndexBuffer";
 import { GraphicsDevice } from "./GraphicsDevice";
 import { Geometry } from "../core/Geometry";
-import { VertexBuffer, IvertexData, VertexValue } from "./VertexBuffer";
-import { IvertexAttributeOption } from "./VertexAttribute";
+import { VertexBuffer, VertexValue } from "./VertexBuffer";
+import { IvertexAttributeOption, VertexAttribute } from "./VertexAttribute";
 import { IglElement } from "../core/IglElement";
 
-
+/**
+ * Creates a vertex array, which defines the attributes making up a vertex, and contains an optional index buffer
+ * to select vertices for rendering.  Attributes are defined using object literals as shown in Example 1 below.
+ * 
+ * @example
+ * // Example 1. Create a vertex array with vertices made up of three floating point
+ * // values, e.g., a position, from a single vertex buffer.  No index buffer is used.
+ * var positionBuffer = Buffer.createVertexBuffer({
+ *     context : context,
+ *     sizeInBytes : 12,
+ *     usage : BufferUsage.STATIC_DRAW
+ * });
+ * var attributes = [
+ *     {
+ *         index                  : 0,
+ *         enabled                : true,
+ *         vertexBuffer           : positionBuffer,
+ *         componentsPerAttribute : 3,
+ *         componentDatatype      : ComponentDatatype.FLOAT,
+ *         normalize              : false,
+ *         offsetInBytes          : 0,
+ *         strideInBytes          : 0 // tightly packed
+ *         instanceDivisor        : 0 // not instanced
+ *     }
+ * ];
+ * var va = new VertexArray({
+ *     context : context,
+ *     attributes : attributes
+ * });
+ *
+ * @example
+ * // Example 2. Create a vertex array with vertices from two different vertex buffers.
+ * // Each vertex has a three-component position and three-component normal.
+ * var positionBuffer = Buffer.createVertexBuffer({
+ *     context : context,
+ *     sizeInBytes : 12,
+ *     usage : BufferUsage.STATIC_DRAW
+ * });
+ * var normalBuffer = Buffer.createVertexBuffer({
+ *     context : context,
+ *     sizeInBytes : 12,
+ *     usage : BufferUsage.STATIC_DRAW
+ * });
+ * var attributes = [
+ *     {
+ *         index                  : 0,
+ *         vertexBuffer           : positionBuffer,
+ *         componentsPerAttribute : 3,
+ *         componentDatatype      : ComponentDatatype.FLOAT
+ *     },
+ *     {
+ *         index                  : 1,
+ *         vertexBuffer           : normalBuffer,
+ *         componentsPerAttribute : 3,
+ *         componentDatatype      : ComponentDatatype.FLOAT
+ *     }
+ * ];
+ * var va = new VertexArray({
+ *     context : context,
+ *     attributes : attributes
+ * });
+ *
+ * @example
+ * // Example 3. Creates the same vertex layout as Example 2 using a single
+ * // vertex buffer, instead of two.
+ * var buffer = Buffer.createVertexBuffer({
+ *     context : context,
+ *     sizeInBytes : 24,
+ *     usage : BufferUsage.STATIC_DRAW
+ * });
+ * var attributes = [
+ *     {
+ *         vertexBuffer           : buffer,
+ *         componentsPerAttribute : 3,
+ *         componentDatatype      : ComponentDatatype.FLOAT,
+ *         offsetInBytes          : 0,
+ *         strideInBytes          : 24
+ *     },
+ *     {
+ *         vertexBuffer           : buffer,
+ *         componentsPerAttribute : 3,
+ *         componentDatatype      : ComponentDatatype.FLOAT,
+ *         normalize              : true,
+ *         offsetInBytes          : 12,
+ *         strideInBytes          : 24
+ *     }
+ * ];
+ * var va = new VertexArray({
+ *     context : context,
+ *     attributes : attributes
+ * });
+ *
+ */
 export class VertexArray implements IglElement
 {
-    private vertexbuffers: IvertexData[];
+    private vertexAttributes: VertexAttribute[];
     indexbuffer: IndexBuffer;
     private _vao: any;
     constructor(options: {
         context: GraphicsDevice;
-        vertexbuffers: IvertexData[];
+        vertexAttributes: IvertexAttributeOption[];
         indexBuffer?: IndexBuffer;
     })
     {
 
-        this.vertexbuffers = options.vertexbuffers;
+        this.vertexAttributes = options.vertexAttributes.map(item => new VertexAttribute({ context: options.context, att: item }));
         this.indexbuffer = options.indexBuffer;
         let gl = options.context.gl;
 
         if (options.context.caps.vertexArrayObject)
         {
-
             this._bind = () =>
             {
                 gl.bindVertexArray(this._vao);
@@ -37,7 +128,7 @@ export class VertexArray implements IglElement
 
             let vao = gl.createVertexArray();
             gl.bindVertexArray(vao)
-            this.bindVertexBufferOrValue(this.vertexbuffers, this.indexbuffer);
+            this.bindVertexAttributes(gl, this.vertexAttributes, this.indexbuffer);
             gl.bindVertexArray(null)
             this._vao = vao;
 
@@ -50,31 +141,31 @@ export class VertexArray implements IglElement
         {
             this._bind = () =>
             {
-                this.bindVertexBufferOrValue(this.vertexbuffers, this.indexbuffer);
+                this.bindVertexAttributes(gl, this.vertexAttributes, this.indexbuffer);
             }
             this._unbind = () =>
             {
-                this.unbindAttributes(this.vertexbuffers, this.indexbuffer);
+                this.unbindAttributes(gl, this.vertexAttributes, this.indexbuffer);
             }
         }
     }
 
-    private bindVertexBufferOrValue(vertexBuffers: IvertexData[], indexBuffer?: IndexBuffer): void
+    private bindVertexAttributes(gl: WebGLRenderingContext, vertexAtts: VertexAttribute[], indexBuffer?: IndexBuffer): void
     {
-        for (let i = 0; i < vertexBuffers.length; i++)
+        for (let i = 0; i < vertexAtts.length; i++)
         {
-            vertexBuffers[i].bind()
+            vertexAtts[i].bind();
         }
         if (indexBuffer)
         {
             indexBuffer.bind();
         }
     }
-    private unbindAttributes(vertexBuffers: IvertexData[], indexBuffer?: IndexBuffer)
+    private unbindAttributes(gl: WebGLRenderingContext, vertexAtts: VertexAttribute[], indexBuffer?: IndexBuffer)
     {
-        for (let i = 0; i < vertexBuffers.length; i++)
+        for (let i = 0; i < vertexAtts.length; i++)
         {
-            vertexBuffers[i].unbind()
+            vertexAtts[i].unbind();
         }
         if (indexBuffer)
         {
@@ -149,36 +240,30 @@ export class VertexArray implements IglElement
             //TODO 
         } else
         {
-            let vertexbuffers = Object.keys(geAtts).map(attName =>
+            let vertexAtts = Object.keys(geAtts).map(attName =>
             {
-
-                let vertexData: IvertexData;
 
                 let geAtt = geAtts[attName];
                 let att: IvertexAttributeOption = {
                     type: geAtt.type,
                     componentDatatype: geAtt.componentDatatype,
                     componentsPerAttribute: geAtt.componentsPerAttribute,
-                    normalize: geAtt.normalize
+                    normalize: geAtt.normalize,
+
                 };
 
                 if (geAtt.values)
                 {
-                    vertexData = new VertexBuffer({
+                    att.vertexBuffer = new VertexBuffer({
                         context: options.context,
-                        bufferFormat: [att],
                         usage: BufferUsageEnum.STATIC_DRAW,
                         typedArray: geAtt.values
                     });
                 } else
                 {
-                    vertexData = new VertexValue({
-                        context: options.context,
-                        value: geAtt.value,
-                        attribute: att
-                    });
+                    att.value = geAtt.value
                 }
-                return vertexData;
+                return att;
             })
 
             let indexBuffer;
@@ -192,7 +277,7 @@ export class VertexArray implements IglElement
             }
             return new VertexArray({
                 context: options.context,
-                vertexbuffers: vertexbuffers,
+                vertexAttributes: vertexAtts,
                 indexBuffer: indexBuffer
             });
         }

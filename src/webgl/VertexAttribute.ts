@@ -2,13 +2,15 @@ import { VertexBuffer } from "./VertexBuffer";
 import { GraphicsDevice } from "./GraphicsDevice";
 import { ComponentDatatypeEnum } from "./ComponentDatatypeEnum";
 import { VertexAttEnum } from "./VertexAttEnum";
+import { BufferConfig } from "./Buffer";
 
-export interface IvertexAttribute {
+export interface IvertexAttribute
+{
     // index: number; // 0;
-    type:string|VertexAttEnum
+    type: string | VertexAttEnum
     enabled: boolean; // true;
-    // vertexBuffer: VertexBuffer; // positionBuffer;
-    // value:any;
+    vertexBuffer: VertexBuffer; // positionBuffer;
+    value: any;
     componentsPerAttribute: number; // 3;
     componentDatatype: number; // ComponentDatatype.FLOAT;
     normalize: boolean; // false;
@@ -16,12 +18,13 @@ export interface IvertexAttribute {
     strideInBytes: number; // 0; // tightly packed
     instanceDivisor: number; // 0; // not instanced
 }
-export interface IvertexAttributeOption {
+export interface IvertexAttributeOption
+{
     // index?: number; // 0;
-    type:string|VertexAttEnum
+    type: string | VertexAttEnum
     enabled?: boolean; // true;
-    // vertexBuffer: VertexBuffer; // positionBuffer;
-    // value:any;
+    vertexBuffer?: VertexBuffer; // positionBuffer;
+    value?: any;
     componentsPerAttribute: number; // 3;
     componentDatatype?: number; // ComponentDatatype.FLOAT;
     normalize?: boolean; // false;
@@ -29,48 +32,97 @@ export interface IvertexAttributeOption {
     strideInBytes?: number; // 0; // tightly packed
     instanceDivisor?: number; // 0; // not instanced
 }
-/**
- * 
- * @example useage
- * var attributes = new VertexAttribute(
- *     {
- *         type                  : VertexAttEnum.POSITION,
- *         componentsPerAttribute : 3,
- *         componentDatatype      : ComponentDatatype.FLOAT,
- *         offsetInBytes          : 0,
- *         strideInBytes          : 24
- *     })
- */
+
 export class VertexAttribute implements IvertexAttribute
 {
-    readonly index:number;
-    readonly type: string;
+    readonly type: string | VertexAttEnum;
+    readonly index: number;
     readonly enabled: boolean;
+    readonly vertexBuffer: VertexBuffer;
+    readonly value: any;
     readonly componentsPerAttribute: number;
     readonly componentDatatype: number;
     readonly normalize: boolean;
     readonly offsetInBytes: number;
     readonly strideInBytes: number;
     readonly instanceDivisor: number;
-    constructor(att: IvertexAttributeOption)
+
+    private _gl: WebGLRenderingContext;
+    constructor(options: { context: GraphicsDevice, att: IvertexAttributeOption })
     {
+
+        //todo  check 
+        if (options.att.vertexBuffer == null && options.att.value == null)
+        {
+            throw new Error('attribute must have a vertexBuffer or a value.');
+        }
+
+        this._gl = options.context.gl;
+        let att = options.att;
         this.type = att.type;
-        this.index=VertexLocation.fromAttributeType(this.type);
-        this.enabled = att.enabled ?? true; // true;
-        this.componentsPerAttribute = att.componentsPerAttribute; // 3;
-        this.componentDatatype = att.componentDatatype ?? ComponentDatatypeEnum.FLOAT; // FLOAT;
+        this.index = VertexLocation.fromAttributeType(this.type);
+        this.enabled = att.enabled ?? true;// true;
+        this.vertexBuffer = att.vertexBuffer;// positionBuffer;
+        this.value = att.value;
+        this.componentsPerAttribute = att.componentsPerAttribute;// 3;
+        this.componentsPerAttribute = att.componentsPerAttribute ?? ComponentDatatypeEnum.FLOAT; // ComponentDatatype.FLOAT;
         this.normalize = att.normalize ?? false; // false;
         this.offsetInBytes = att.offsetInBytes ?? 0; // 0;
         this.strideInBytes = att.strideInBytes ?? 0; // 0; // tightly packed
         this.instanceDivisor = att.instanceDivisor ?? 0; // 0; // not instanced
+
+
+        if (att.vertexBuffer)
+        {
+            this.bind = () =>
+            {
+                att.vertexBuffer.bind();
+                this._gl.enableVertexAttribArray(this.index);
+                this._gl.vertexAttribPointer(
+                    this.index,
+                    this.componentsPerAttribute,
+                    this.componentDatatype,
+                    this.normalize,
+                    this.strideInBytes,
+                    this.offsetInBytes,
+                );
+                if (this.instanceDivisor !== undefined)
+                {
+                    this._gl.vertexAttribDivisor(this.index, att.instanceDivisor);
+                }
+            }
+            this.unbind = () =>
+            {
+                this._gl.disableVertexAttribArray(this.index);
+                if (att.instanceDivisor !== undefined)
+                {
+                    this._gl.vertexAttribDivisor(this.index, 0);
+                }
+            }
+
+        } else
+        {
+            let bindFunc = BufferConfig.vertexAttributeSetter[att.componentsPerAttribute];
+            this.bind = () =>
+            {
+                bindFunc(this.index, this.value);
+            }
+        }
     }
+
+    bind() { }
+
+    unbind() { }
 }
 
-export class VertexLocation{
-    private static attLocationMap:{[type:string]:number}={};
-    static fromAttributeType(type:VertexAttEnum|string){
-        let location=this.attLocationMap[type];
-        if(location==null){
+export class VertexLocation
+{
+    private static attLocationMap: { [type: string]: number } = {};
+    static fromAttributeType(type: VertexAttEnum | string)
+    {
+        let location = this.attLocationMap[type];
+        if (location == null)
+        {
             console.warn(`regist new attribute Type: ${type}`);
             this.registAttributeType(type);
         }
@@ -80,9 +132,10 @@ export class VertexLocation{
      * 注册vertex attribute 类型
      * @param name 
      */
-    private static locationId=-1;
-    static registAttributeType(name:string){
-        this.attLocationMap[name]=this.locationId++;
+    private static locationId = -1;
+    static registAttributeType(name: string)
+    {
+        this.attLocationMap[name] = this.locationId++;
     }
 }
 

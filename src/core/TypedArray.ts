@@ -16,9 +16,9 @@ const UNSIGNED_INT_5_9_9_9_REV = 0x8c3e;
 const FLOAT_32_UNSIGNED_INT_24_8_REV = 0x8dad;
 const UNSIGNED_INT_24_8 = 0x84fa;
 
-const glTypeToTypedArray: { [gltype: number]: any } = {};
+const glTypeToTypedArrayCtor: { [gltype: number]: any } = {};
 {
-    const tt = glTypeToTypedArray;
+    const tt = glTypeToTypedArrayCtor;
     tt[BYTE] = Int8Array;
     tt[UNSIGNED_BYTE] = Uint8Array;
     tt[SHORT] = Int16Array;
@@ -40,62 +40,94 @@ const glTypeToTypedArray: { [gltype: number]: any } = {};
 /**
  * Get the GL type for a typedArray
  */
-export function getGLTypeFromTypedArray(typedArray: ArrayBufferView): number {
-    if (typedArray instanceof Int8Array) {
+export function getGLTypeFromTypedArray(typedArray: ArrayBufferView): number
+{
+    if (typedArray instanceof Int8Array)
+    {
         return BYTE;
     }
-    if (typedArray instanceof Uint8Array) {
+    if (typedArray instanceof Uint8Array)
+    {
         return UNSIGNED_BYTE;
     }
-    if (typedArray instanceof Uint8ClampedArray) {
+    if (typedArray instanceof Uint8ClampedArray)
+    {
         return UNSIGNED_BYTE;
     }
-    if (typedArray instanceof Int16Array) {
+    if (typedArray instanceof Int16Array)
+    {
         return SHORT;
     }
-    if (typedArray instanceof Uint16Array) {
+    if (typedArray instanceof Uint16Array)
+    {
         return UNSIGNED_SHORT;
     }
-    if (typedArray instanceof Int32Array) {
+    if (typedArray instanceof Int32Array)
+    {
         return INT;
     }
-    if (typedArray instanceof Uint32Array) {
+    if (typedArray instanceof Uint32Array)
+    {
         return UNSIGNED_INT;
     }
-    if (typedArray instanceof Float32Array) {
+    if (typedArray instanceof Float32Array)
+    {
         return FLOAT;
     }
     throw "unsupported typed array to gl type";
 }
 
-export function getArrayTypeForGLtype(glType: number) {
-    if (glTypeToTypedArray[glType] != null) {
-        return glTypeToTypedArray[glType];
+export function getTypeArrCtorFromGLtype(glType: number)
+{
+    if (glTypeToTypedArrayCtor[glType] != null)
+    {
+        return glTypeToTypedArrayCtor[glType];
     }
     throw "unsupported gltype to array type";
 }
 
-export function getbytesForGLtype(glType: number) {
-    if (glTypeToTypedArray[glType]) {
-        return glTypeToTypedArray[glType].BYTES_PER_ELEMENT;
+export function getPerElementBytesFromGLtype(glType: number)
+{
+    if (glTypeToTypedArrayCtor[glType])
+    {
+        return glTypeToTypedArrayCtor[glType].BYTES_PER_ELEMENT;
     }
     throw "unsupported gltype to bytesPerElement";
 }
 
-export function getTypedArray(data: number | number[], gltype: number): ArrayBufferView {
-    let type = typeof data;
-    if (type == "number") {
-        let type = getArrayTypeForGLtype(gltype);
-        return new type(data as number);
-    } else if (data instanceof Array) {
-        let type = getArrayTypeForGLtype(gltype);
-        return new type(data);
+export function getTypedArray(data: number | number[] | TypedArray, gltype: number, byteOffset: number = 0): TypedArray
+{
+    let typeArrayCtr = getTypeArrCtorFromGLtype(gltype);
+    if (typeof data == "number")
+    {
+        return new typeArrayCtr(data as number);
+    } else if (data instanceof Array)
+    {
+        return new typeArrayCtr(data);
+    } else
+    {
+        let typedArray = data as TypedArray;
+        return new typeArrayCtr(typedArray.buffer, typedArray.byteOffset + byteOffset, typedArray.byteLength);
     }
-    return null;
 }
 
-export function float4Equal(lhs: Float32Array, rhs: Float32Array): boolean {
+export function float4Equal(lhs: Float32Array, rhs: Float32Array): boolean
+{
     return lhs[0] == rhs[0] || lhs[1] == rhs[1] || lhs[2] == rhs[2];
 }
 
-export type TypedArray=Int8Array|Uint8Array|Int16Array|Uint16Array|Int32Array|Uint32Array|Float32Array;
+export type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array;
+
+export namespace TypedArray
+{
+    export function fromGlType(gltType: number, count: number)
+    {
+        let ctor = glTypeToTypedArrayCtor[gltType];
+        return new ctor(count);
+    }
+
+    export function bytesPerElement(type: TypedArray)
+    {
+        return type.BYTES_PER_ELEMENT;
+    }
+}

@@ -1,80 +1,99 @@
 import { DefTextrue } from './../defAssets/defTexture';
-import { Material } from "../assets/material";
 import { Vec4 } from "../../mathD/vec4";
 import { IgltfJson } from "./loadglTF";
 import { ParseTextureNode } from "./parseTextureNode";
 import { Vec3 } from "../../mathD/vec3";
 import { DefShader } from "../defAssets/defShader";
 import { Color } from "../../mathD/color";
+import { Material } from '../../scene/Material';
 
-export class ParseMaterialNode {
-    static parse(index: number, gltf: IgltfJson): Promise<Material> {
-        if (gltf.cache.materialNodeCache[index]) {
+export class ParseMaterialNode
+{
+    static parse(index: number, gltf: IgltfJson): Promise<Material>
+    {
+        if (gltf.cache.materialNodeCache[index])
+        {
             return gltf.cache.materialNodeCache[index];
-        } else {
-            if (gltf.materials == null) {
+        } else
+        {
+            if (gltf.materials == null)
+            {
                 return Promise.resolve(null);
             }
             let node = gltf.materials[index];
-            let mat = new Material({ name: node.name });
-            let shader = DefShader.fromType("alphaTex");
-            mat.shader = shader;
-            mat.setColor("MainColor", Color.create());
-            mat.setTexture("_MainTex", DefTextrue.GIRD);
+            let mat = new Material(node.name);
+            mat.setParameter("MainColor", Color.create());
+            mat.setParameter("_MainTex", DefTextrue.GIRD);
             //-------------loadshader
             // let pbrShader = assetMgr.load("resource/shader/pbr_glTF.shader.json") as Shader;
             // mat.setShader(pbrShader);
-            if (node.pbrMetallicRoughness) {
+            if (node.pbrMetallicRoughness)
+            {
                 let nodeMR = node.pbrMetallicRoughness;
-                if (nodeMR.baseColorFactor) {
+                if (nodeMR.baseColorFactor)
+                {
                     let baseColorFactor = Vec4.create();
                     Vec4.copy(nodeMR.baseColorFactor, baseColorFactor);
-                    mat.setVector4("u_BaseColorFactor", baseColorFactor);
+                    mat.setParameter("u_BaseColorFactor", baseColorFactor);
                 }
-                if (nodeMR.metallicFactor != null) {
-                    mat.setFloat("u_metalFactor", nodeMR.metallicFactor);
+                if (nodeMR.metallicFactor != null)
+                {
+                    mat.setParameter("u_metalFactor", nodeMR.metallicFactor);
                 }
-                if (nodeMR.roughnessFactor != null) {
-                    mat.setFloat("u_roughnessFactor", nodeMR.roughnessFactor);
+                if (nodeMR.roughnessFactor != null)
+                {
+                    mat.setParameter("u_roughnessFactor", nodeMR.roughnessFactor);
                 }
-                if (nodeMR.baseColorTexture != null) {
-                    let tex = ParseTextureNode.parse(nodeMR.baseColorTexture.index, gltf).then(tex => {
-                        mat.setTexture("u_BaseColorSampler", tex);
-                        mat.setTexture("_MainTex", tex);
-                        console.warn("@@@@@@@@@",mat);
+                if (nodeMR.baseColorTexture != null)
+                {
+                    let tex = ParseTextureNode.parse(nodeMR.baseColorTexture.index, gltf).then(tex =>
+                    {
+                        mat.setParameter("u_BaseColorSampler", tex);
+                        mat.setParameter("_MainTex", tex);
+                        console.warn("@@@@@@@@@", mat);
                     });
                 }
-                if (nodeMR.metallicRoughnessTexture) {
-                    let tex = ParseTextureNode.parse(nodeMR.metallicRoughnessTexture.index, gltf).then(tex => {
-                        mat.setTexture("u_MetallicRoughnessSampler", tex);
+                if (nodeMR.metallicRoughnessTexture)
+                {
+                    let tex = ParseTextureNode.parse(nodeMR.metallicRoughnessTexture.index, gltf).then(tex =>
+                    {
+                        mat.setParameter("u_MetallicRoughnessSampler", tex);
                     });
                 }
             }
-            if (node.normalTexture) {
+            if (node.normalTexture)
+            {
                 let nodet = node.normalTexture;
-                let tex = ParseTextureNode.parse(nodet.index, gltf).then(tex => {
-                    mat.setTexture("u_NormalSampler", tex);
+                let tex = ParseTextureNode.parse(nodet.index, gltf).then(tex =>
+                {
+                    mat.setParameter("u_NormalSampler", tex);
                 });
                 // mat.setTexture("u_NormalSampler",tex);
-                if (nodet.scale) {
-                    mat.setFloat("u_NormalScale", nodet.scale);
+                if (nodet.scale)
+                {
+                    mat.setParameter("u_NormalScale", nodet.scale);
                 }
             }
-            if (node.emissiveTexture) {
+            if (node.emissiveTexture)
+            {
                 let nodet = node.emissiveTexture;
-                let tex = ParseTextureNode.parse(nodet.index, gltf).then(tex => {
-                    mat.setTexture("u_EmissiveSampler", tex);
+                let tex = ParseTextureNode.parse(nodet.index, gltf).then(tex =>
+                {
+                    mat.setParameter("u_EmissiveSampler", tex);
                 });
             }
-            if (node.emissiveFactor) {
+            if (node.emissiveFactor)
+            {
                 let ve3 = Vec3.create();
                 Vec3.copy(node.emissiveFactor, ve3);
-                mat.setVector3("u_EmissiveFactor", ve3);
+                mat.setParameter("u_EmissiveFactor", ve3);
             }
-            if (node.occlusionTexture) {
+            if (node.occlusionTexture)
+            {
                 let nodet = node.occlusionTexture;
-                if (nodet.strength) {
-                    mat.setFloat("u_OcclusionStrength", nodet.strength);
+                if (nodet.strength)
+                {
+                    mat.setParameter("u_OcclusionStrength", nodet.strength);
                 }
             }
 
