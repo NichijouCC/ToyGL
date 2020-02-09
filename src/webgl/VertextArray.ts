@@ -1,10 +1,10 @@
 import { BufferUsageEnum, Buffer } from "./Buffer";
 import { IndexBuffer } from "./IndexBuffer";
 import { GraphicsDevice } from "./GraphicsDevice";
-import { Geometry } from "../core/Geometry";
-import { VertexBuffer, VertexValue } from "./VertexBuffer";
+import { VertexBuffer } from "./VertexBuffer";
 import { IvertexAttributeOption, VertexAttribute } from "./VertexAttribute";
 import { IglElement } from "../core/IglElement";
+import { Geometry } from "../core/Geometry";
 
 /**
  * Creates a vertex array, which defines the attributes making up a vertex, and contains an optional index buffer
@@ -111,7 +111,7 @@ export class VertexArray implements IglElement
     })
     {
 
-        this.vertexAttributes = options.vertexAttributes.map(item => new VertexAttribute({ context: options.context, att: item }));
+        this.vertexAttributes = options.vertexAttributes.map(item => new VertexAttribute(options.context, item));
         this.indexbuffer = options.indexBuffer;
         let gl = options.context.gl;
 
@@ -148,6 +148,11 @@ export class VertexArray implements IglElement
                 this.unbindAttributes(gl, this.vertexAttributes, this.indexbuffer);
             }
         }
+    }
+
+    setVertexAttribute()
+    {
+
     }
 
     private bindVertexAttributes(gl: WebGLRenderingContext, vertexAtts: VertexAttribute[], indexBuffer?: IndexBuffer): void
@@ -230,11 +235,8 @@ export class VertexArray implements IglElement
         interleave?: boolean
     })
     {
-
         let usage = options.bufferUsage ?? BufferUsageEnum.STATIC_DRAW;
         let geAtts = options.geometry.attributes;
-
-
         if (options.interleave)
         {
             //TODO 
@@ -242,21 +244,19 @@ export class VertexArray implements IglElement
         {
             let vertexAtts = Object.keys(geAtts).map(attName =>
             {
-
                 let geAtt = geAtts[attName];
                 let att: IvertexAttributeOption = {
                     type: geAtt.type,
                     componentDatatype: geAtt.componentDatatype,
                     componentsPerAttribute: geAtt.componentsPerAttribute,
                     normalize: geAtt.normalize,
-
                 };
 
                 if (geAtt.values)
                 {
                     att.vertexBuffer = new VertexBuffer({
                         context: options.context,
-                        usage: BufferUsageEnum.STATIC_DRAW,
+                        usage: usage,
                         typedArray: geAtt.values
                     });
                 } else

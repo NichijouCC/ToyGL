@@ -48,17 +48,17 @@ export class VertexAttribute implements IvertexAttribute
     readonly instanceDivisor: number;
 
     private _gl: WebGLRenderingContext;
-    constructor(options: { context: GraphicsDevice, att: IvertexAttributeOption })
+    constructor(context: GraphicsDevice, options: IvertexAttributeOption)
     {
 
         //todo  check 
-        if (options.att.vertexBuffer == null && options.att.value == null)
+        if (options.vertexBuffer == null && options.value == null)
         {
             throw new Error('attribute must have a vertexBuffer or a value.');
         }
 
-        this._gl = options.context.gl;
-        let att = options.att;
+        this._gl = context.gl;
+        let att = options;
         this.type = att.type;
         this.index = VertexLocation.fromAttributeType(this.type);
         this.enabled = att.enabled ?? true;// true;
@@ -70,7 +70,6 @@ export class VertexAttribute implements IvertexAttribute
         this.offsetInBytes = att.offsetInBytes ?? 0; // 0;
         this.strideInBytes = att.strideInBytes ?? 0; // 0; // tightly packed
         this.instanceDivisor = att.instanceDivisor ?? 0; // 0; // not instanced
-
 
         if (att.vertexBuffer)
         {

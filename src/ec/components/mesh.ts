@@ -2,17 +2,20 @@ import { Ientity, Irender, CullingMask, ToyActor } from "../ec";
 import { Material } from "../../resources/assets/material";
 import { Geometry } from "../../resources/assets/geometry";
 import { IframeState } from "../../scene/frameState";
-import { BoundingSphere } from "../../scene/bounds";
+import { BoundingSphere } from "../../scene/Bounds";
 import { Entity } from "../entity";
 
 @ToyActor.Reg
-export class Mesh implements Irender {
+export class Mesh implements Irender
+{
     entity: Entity;
     mask: CullingMask = CullingMask.default;
     geometry: Geometry;
     material: Material;
-    update(frameState: IframeState): void {
-        if (this.geometry && this.material) {
+    update(frameState: IframeState): void
+    {
+        if (this.geometry && this.material)
+        {
             frameState.renderList.push({
                 maskLayer: this.entity.maskLayer,
                 geometry: this.geometry,
@@ -26,14 +29,17 @@ export class Mesh implements Irender {
     }
 
     private _boundingSphere: BoundingSphere;
-    get boundingSphere() {
-        if (this._boundingSphere == null) {
-            if (this.geometry) {
+    get boundingSphere()
+    {
+        if (this._boundingSphere == null)
+        {
+            if (this.geometry)
+            {
                 this._boundingSphere = new BoundingSphere();
                 this._boundingSphere.setFromGeometry(this.geometry);
             }
         }
         return this._boundingSphere;
     }
-    dispose(): void {}
+    dispose(): void { }
 }

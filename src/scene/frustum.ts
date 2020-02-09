@@ -1,9 +1,10 @@
 import { Plane } from "./plane";
 import { Mat4 } from "../mathD/mat4";
 import { Irenderable } from "./frameState";
-import { BoundingSphere } from "./bounds";
+import { BoundingSphere } from "./Bounds";
 
-export class Frustum {
+export class Frustum
+{
     planes: Plane[] = [];
 
     constructor(
@@ -13,7 +14,8 @@ export class Frustum {
         p3: Plane = null,
         p4: Plane = null,
         p5: Plane = null,
-    ) {
+    )
+    {
         this.planes[0] = p0 != null ? p0 : new Plane();
         this.planes[1] = p1 != null ? p1 : new Plane();
         this.planes[2] = p2 != null ? p2 : new Plane();
@@ -21,7 +23,8 @@ export class Frustum {
         this.planes[4] = p4 != null ? p4 : new Plane();
         this.planes[5] = p5 != null ? p5 : new Plane();
     }
-    set(p0: Plane, p1: Plane, p2: Plane, p3: Plane, p4: Plane, p5: Plane) {
+    set(p0: Plane, p1: Plane, p2: Plane, p3: Plane, p4: Plane, p5: Plane)
+    {
         this.planes[0].copy(p0);
         this.planes[1].copy(p1);
         this.planes[2].copy(p2);
@@ -29,7 +32,8 @@ export class Frustum {
         this.planes[4].copy(p4);
         this.planes[5].copy(p5);
     }
-    setFromMatrix(me: Mat4): Frustum {
+    setFromMatrix(me: Mat4): Frustum
+    {
         let planes = this.planes;
         let me0 = me[0],
             me1 = me[1],
@@ -57,13 +61,16 @@ export class Frustum {
 
         return this;
     }
-    intersectRender(render: Irenderable): boolean {
-        if (render.bouningSphere != null) {
+    intersectRender(render: Irenderable): boolean
+    {
+        if (render.bouningSphere != null)
+        {
             let sphere = render.bouningSphere.clone();
             sphere.applyMatrix(render.modelMatrix);
             let result = this.intersectSphere(sphere);
             return result;
-        } else {
+        } else
+        {
             return true;
         }
     }
@@ -72,27 +79,34 @@ export class Frustum {
      * @param sphere 包围球
      * @param mat 用于变换包围球
      */
-    intersectSphere(sphere: BoundingSphere, mat: Mat4 = null): boolean {
+    intersectSphere(sphere: BoundingSphere, mat: Mat4 = null): boolean
+    {
         let planes = this.planes;
-        if (mat != null) {
+        if (mat != null)
+        {
             let clonesphere = sphere.clone();
             clonesphere.applyMatrix(mat);
 
             let center = clonesphere.center;
             let negRadius = -clonesphere.radius;
-            for (let i = 0; i < 6; i++) {
+            for (let i = 0; i < 6; i++)
+            {
                 let distance: number = planes[i].distanceToPoint(center);
-                if (distance < negRadius) {
+                if (distance < negRadius)
+                {
                     return false;
                 }
             }
             BoundingSphere.recycle(sphere);
-        } else {
+        } else
+        {
             let center = sphere.center;
             let negRadius = -sphere.radius;
-            for (let i = 0; i < 6; i++) {
+            for (let i = 0; i < 6; i++)
+            {
                 let distance: number = planes[i].distanceToPoint(center);
-                if (distance < negRadius) {
+                if (distance < negRadius)
+                {
                     return false;
                 }
             }

@@ -1,9 +1,10 @@
 import { Icomponent, Ecs, Ientity, UniteBitkey } from "./Ecs";
 import { Transform } from "../scene/Transform";
+import { Scene } from "../scene/Scene";
 export class Entity extends Transform implements Ientity
 {
     name: string;
-    constructor(name: string)
+    constructor(name?: string)
     {
         super();
         this.name = name;

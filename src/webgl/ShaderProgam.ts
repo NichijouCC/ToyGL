@@ -27,7 +27,7 @@ import { Texture } from "./Texture";
  *      `,
  * });
  */
-export class ShaderProgam implements IshaderProgam
+export class ShaderProgram implements IshaderProgram
 {
     program: WebGLProgram;
     uniforms: { [name: string]: IuniformInfo; };
@@ -67,17 +67,17 @@ export class ShaderProgam implements IshaderProgam
         let gl = options.context.gl;
         this.bind = () =>
         {
-            if (this.program != ShaderProgam._cachedProgram)
+            if (this.program != ShaderProgram._cachedProgram)
             {
                 gl.useProgram(this.program);
-                ShaderProgam._cachedProgram = this.program;
+                ShaderProgram._cachedProgram = this.program;
             }
 
         }
         this.unbind = () =>
         {
             gl.useProgram(null);
-            ShaderProgam._cachedProgram = null;
+            ShaderProgram._cachedProgram = null;
         }
 
         this.bindUniform = (name: string, value: VersionData) =>
@@ -139,7 +139,7 @@ export interface IattributeInfo
 /**
  * shaderprogram
  */
-export interface IshaderProgam
+export interface IshaderProgram
 {
     program: WebGLProgram;
     uniforms: { [name: string]: IuniformInfo };

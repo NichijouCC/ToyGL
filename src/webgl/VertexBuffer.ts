@@ -1,9 +1,6 @@
 import { GraphicsDevice } from "./GraphicsDevice";
 import { BufferUsageEnum, Buffer, BufferTargetEnum, bufferOption, BufferConfig } from "./Buffer";
-import { VertexAttribute, IvertexAttribute, IvertexAttributeOption } from "./VertexAttribute";
-import { VertexAttEnum } from "./VertexAttEnum";
 import { TypedArray } from "../core/TypedArray";
-import { IglElement } from "../core/IglElement";
 export type vertexBufferOption =
     | {
         context: GraphicsDevice;
@@ -13,7 +10,7 @@ export type vertexBufferOption =
     | {
         context: GraphicsDevice;
         usage: BufferUsageEnum;
-        typedArray: ArrayBufferView;
+        typedArray: TypedArray;
     };
 
 export class VertexBuffer extends Buffer
@@ -30,19 +27,4 @@ export class VertexBuffer extends Buffer
         super({ ...options, target: BufferTargetEnum.ARRAY_BUFFER });
     }
 }
-
-
-export class VertexValue
-{
-    value: [] | TypedArray;
-    constructor(options: {
-        context: GraphicsDevice;
-        value: [] | TypedArray;
-    })
-    {
-        this.value = options.value;
-    }
-}
-
-
 

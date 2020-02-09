@@ -2,7 +2,8 @@ import { Geometry } from "../core/Geometry";
 import { Material } from "./Material";
 import { Transform } from "./Transform";
 import { VertexArray } from "../webgl/VertextArray";
-import { ModeTypeEnum } from "../webgl/GraphicsDevice";
+import { PrimitiveTypeEnum, GraphicsDevice } from "../webgl/GraphicsDevice";
+import { BufferUsageEnum } from "../webgl/Buffer";
 
 export class MeshInstance
 {
@@ -14,14 +15,37 @@ export class MeshInstance
 export class Mesh implements IDrawData
 {
     vertexArray: VertexArray;
-    mode: ModeTypeEnum;
+    mode: PrimitiveTypeEnum;
     count: number;
     offset: number;
+
+    // static fromGeometry(options: {
+    //     context: GraphicsDevice,
+    //     geometry: Geometry,
+    //     bufferUsage?: BufferUsageEnum,
+    //     interleave?: boolean
+    //     count?: number;
+    //     offset?: number;
+    // })
+    // {
+    //     let newMesh = new Mesh();
+    //     let vertexArray = VertexArray.fromGeometry({
+    //         context: options.context,
+    //         geometry: options.geometry,
+    //         bufferUsage: options.bufferUsage,
+    //         interleave: options.interleave,
+    //     });
+    //     newMesh.count = options.count ?? vertexArray.indexbuffer.numberOfIndices;
+    //     newMesh.offset = options.offset ?? 0;
+    //     newMesh.mode = options.mode ?? PrimitiveTypeEnum.TRIANGLES;
+    //     newMesh.vertexArray = vertexArray;
+    //     return newMesh;
+    // }
 }
 
 export interface IDrawData
 {
-    mode: ModeTypeEnum;
+    mode: PrimitiveTypeEnum;
     count: number;
     offset: number;
 }

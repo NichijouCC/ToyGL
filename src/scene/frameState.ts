@@ -5,16 +5,18 @@ import { Geometry } from "../resources/assets/geometry";
 import { Material } from "../resources/assets/material";
 import { Mat4 } from "../mathD/mat4";
 import { CullingMask } from "../ec/ec";
-import { BoundingSphere } from "./bounds";
+import { BoundingSphere } from "./Bounds";
 
-export interface IframeState {
+export interface IframeState
+{
     renderList: Irenderable[];
     cameraList: Camera[];
     lightList: Light[];
     deltaTime: number;
 }
 
-export interface Irenderable {
+export interface Irenderable
+{
     maskLayer: CullingMask;
     geometry: Geometry;
     // program: IprogramInfo;
@@ -27,7 +29,8 @@ export interface Irenderable {
     receiveShadow?: boolean;
 }
 
-export class FrameState implements IframeState {
+export class FrameState implements IframeState
+{
     deltaTime: number;
     renderList: Irenderable[] = [];
     cameraList: Camera[] = [];

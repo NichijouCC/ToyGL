@@ -3,6 +3,7 @@ import { Quat } from "../mathD/quat";
 import { Mat4 } from "../mathD/mat4";
 import { IframeState } from "./frameState";
 import { Entity } from "../ec/entity";
+import { Scene } from "./Scene";
 
 enum DirtyFlagEnum
 {
@@ -16,10 +17,10 @@ enum DirtyFlagEnum
 export class Transform
 {
     entity: Entity;
+    refScene: Scene;
     parent: Transform;
     children: Transform[] = [];
     private dirtyFlag: number = 0;
-
     constructor() { }
 
     _localPosition: Vec3 = Vec3.create();
@@ -216,13 +217,24 @@ export class Transform
      */
     private static NotifyChildSelfDirty(node: Transform)
     {
-        for (let key in node.children)
+        for (let child of node.children)
         {
-            let child = node.children[key];
             if (!(child.dirtyFlag & DirtyFlagEnum.WORLDMAT))
             {
                 child.dirtyFlag = child.dirtyFlag | DirtyFlagEnum.WORLDMAT;
                 this.NotifyChildSelfDirty(child);
+            }
+        }
+    }
+
+    private static linkRefScene(node: Transform, scene: Scene)
+    {
+        if (node.refScene != scene)
+        {
+            node.refScene = scene;
+            for (let child of node.children)
+            {
+                this.linkRefScene(child, scene);
             }
         }
     }
@@ -249,6 +261,7 @@ export class Transform
         this.children.push(node);
         node.parent = this;
         node.markDirty();
+        Transform.linkRefScene(node, this.refScene);
     }
     /**
      * 移除所有子物体

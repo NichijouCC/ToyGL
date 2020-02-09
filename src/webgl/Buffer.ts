@@ -3,12 +3,13 @@ import { GlConstants } from "../render/GlConstant";
 import { IglElement } from "../core/IglElement";
 import { VertexBuffer } from "./VertexBuffer";
 import { IndexBuffer, IndexBufferOption } from "./IndexBuffer";
+import { TypedArray } from "../core/TypedArray";
 
 export type bufferOption =
     | {
         context: GraphicsDevice;
         target: BufferTargetEnum;
-        typedArray: ArrayBufferView;
+        typedArray: TypedArray;
         usage: BufferUsageEnum;
     }
     | {
@@ -21,7 +22,7 @@ export class Buffer implements IglElement
 {
     protected target: BufferTargetEnum;
     protected usage: BufferUsageEnum;
-    protected typedArray: ArrayBufferView;
+    protected typedArray: TypedArray;
     protected sizeInBytes: number;
     protected _buffer: WebGLBuffer;
     private device: GraphicsDevice;

@@ -1,5 +1,8 @@
 import { Shader } from "./Shader";
 import { RenderLayerEnum } from "./RenderLayer";
+import { GlConstants } from "../webgl/GLconstant";
+import { Rect } from "../mathD/rect";
+import { RenderState } from "./RenderState";
 
 export class Material
 {
@@ -8,6 +11,7 @@ export class Material
     private _layer: RenderLayerEnum;
     queue: number = 0;
     name: string;
+    renderState: RenderState;
     set layer(value: RenderLayerEnum)
     {
         this._layer = value;
@@ -16,7 +20,7 @@ export class Material
     {
         return this._layer || (this.shader && this.shader.layer) || RenderLayerEnum.Geometry;
     }
-    constructor(name: string)
+    constructor(name?: string)
     {
         this.name = name;
     }

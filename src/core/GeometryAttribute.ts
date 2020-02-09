@@ -1,4 +1,7 @@
 import { VertexAttEnum } from "../webgl/VertexAttEnum";
+import { TypedArray } from "./TypedArray";
+import { IvertexAttributeOption } from "../webgl/VertexAttribute";
+import { VertexBuffer } from "../webgl/VertexBuffer";
 
 /**
  * 
@@ -21,10 +24,11 @@ export class GeometryAttribute
     componentDatatype: number;
     componentsPerAttribute: number;
     normalize: boolean;
-    values?: ArrayBufferView;
+    values?: TypedArray;
     value?: any;
     constructor(option: IgeometryAttributeOptions)
     {
+        this.value = option.value;
         this.values = option.values;
         this.componentDatatype = option.componentDatatype;
         this.componentsPerAttribute = option.componentsPerAttribute;
@@ -36,7 +40,7 @@ export interface IgeometryAttributeOptions
     componentDatatype: number;
     componentsPerAttribute: number;
     normalize?: boolean;
-    values?: ArrayBufferView;
+    values?: TypedArray;
     value?: any;
     type?: VertexAttEnum | string;
 }
