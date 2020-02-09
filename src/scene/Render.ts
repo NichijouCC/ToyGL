@@ -3,6 +3,7 @@ import { DrawCommand } from "./DrawCommand";
 import { Material } from "./Material";
 import { GraphicsDevice } from "../webgl/GraphicsDevice";
 import { RenderState } from "./RenderState";
+import { Frustum } from "./Frustum";
 
 namespace Private
 {
@@ -21,13 +22,11 @@ export class Render
 
     render(camera: Camera, drawCalls: DrawCommand[], lights: any, )
     {
-        let cullingMask = camera.cullingMask;
-        let drawcall, shader, uniforms, renderState
-        for (let i = 0; i < drawCalls.length; i++)
+        let culledDrawcalls = this.cull(camera, drawCalls);
+        let drawcall, shader, uniforms, renderState, vertexArray
+        for (let i = 0; i < culledDrawcalls.length; i++)
         {
-            drawcall = drawCalls[i];
-            if (!(drawcall.cullingMask == null || (drawcall.cullingMask & cullingMask))) continue;
-
+            drawcall = culledDrawcalls[i];
             if (drawcall.material != Private.preMaterial)
             {
                 Private.preMaterial = drawcall.material;
@@ -43,6 +42,7 @@ export class Render
                 {
                     this.device.setCullFaceState(renderState.cull.enabled, renderState.cull.cullBack);
                     this.device.setDepthState(renderState.depthWrite, renderState.depthTest.enabled, renderState.depthTest.depthFunc);
+                    this.device.setColorMask(renderState.colorWrite.red, renderState.colorWrite.green, renderState.colorWrite.blue, renderState.colorWrite.alpha);
                     this.device.setBlendState(
                         renderState.blend.enabled,
                         renderState.blend.blendEquation,
@@ -70,7 +70,39 @@ export class Render
                         renderState.stencilTest.stencilPassZfailBack,
                     );
                 }
+
+            }
+            drawcall.vertexArray.bind();
+            this.device.draw(drawcall);
+        }
+    }
+    /**
+     * 使用camera cullingMask和frustum 剔除不可见物体
+     * @param camera 
+     * @param drawCalls 
+     */
+    cull(camera: Camera, drawCalls: DrawCommand[])
+    {
+        let visualArr = [];
+        let { cullingMask, frustum } = camera;
+        let drawcall
+        for (let i = 0; i < drawCalls.length; i++)
+        {
+            drawcall = drawCalls[i];
+            if (drawcall.cullingMask != null && ((drawcall.cullingMask & cullingMask) == 0)) continue;
+            if (drawcall.enableCull)
+            {
+                if (this.frustumCull(frustum, drawcall))
+                {
+                    visualArr.push(drawcall);
+                }
             }
         }
+        return visualArr;
+    }
+
+    private frustumCull(frustum: Frustum, drawcall: DrawCommand)
+    {
+        return frustum.containSphere(drawcall.boundingSphere, drawcall.worldMat);
     }
 }

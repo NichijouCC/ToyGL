@@ -2,7 +2,7 @@ import { Rect } from "../mathD/rect";
 import { Color } from "../mathD/color";
 import { Mat4 } from "../mathD/mat4";
 import { GameScreen } from "../gameScreen";
-import { Frustum } from "./frustum";
+import { Frustum } from "./Frustum";
 
 export enum ProjectionEnum
 {

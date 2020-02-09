@@ -2,8 +2,7 @@ import { Geometry } from "../core/Geometry";
 import { Material } from "./Material";
 import { Transform } from "./Transform";
 import { VertexArray } from "../webgl/VertextArray";
-import { PrimitiveTypeEnum, GraphicsDevice } from "../webgl/GraphicsDevice";
-import { BufferUsageEnum } from "../webgl/Buffer";
+import { PrimitiveTypeEnum } from "../core/PrimitiveTypeEnum";
 
 export class MeshInstance
 {

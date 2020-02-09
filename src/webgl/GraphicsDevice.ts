@@ -702,21 +702,17 @@ export class GraphicsDevice
     }
     draw(command: RenderCommand)
     {
-        command.shaderProgram.bind();
-        command.shaderProgram.bindUniforms(command.uniformMap);
-        command.vertexArray.bind();
-
         let instanceCount = command.instanceCount;
-        let indexbuffer = command.vertexArray.indexbuffer;
-        if (indexbuffer)
+        let indexBufferData = command.indexBufferData;
+        if (indexBufferData)
         {
-            let offset = indexbuffer.bytesPerIndex * command.offset;
+            let offset = indexBufferData.bytesPerIndex * command.offset;
             if (instanceCount != 0)
             {
-                this.gl.drawElementsInstanced(command.modeType, command.count, indexbuffer.indexDatatype, offset, instanceCount);
+                this.gl.drawElementsInstanced(command.modeType, command.count, indexBufferData.indexDatatype, offset, instanceCount);
             } else
             {
-                this.gl.drawElements(command.modeType, command.count, indexbuffer.indexDatatype, offset);
+                this.gl.drawElements(command.modeType, command.count, indexBufferData.indexDatatype, offset);
             }
         } else
         {

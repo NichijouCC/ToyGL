@@ -1,11 +1,11 @@
 import { GeometryAttribute, IgeometryAttributeOptions } from "./GeometryAttribute";
 import { IndicesArray } from "../webgl/IndexBuffer";
-import { PrimitiveTypeEnum } from "../webgl/GraphicsDevice";
 import { BoundingSphere } from "../scene/Bounds";
 import { GlConstants } from "../webgl/GLconstant";
 import { VertexArray } from "../webgl/VertextArray";
 import { VertexAttEnum } from "../webgl/VertexAttEnum";
 import { IvertexAttributeOption } from "../webgl/VertexAttribute";
+import { PrimitiveTypeEnum } from "./PrimitiveTypeEnum";
 
 /**
  * 
