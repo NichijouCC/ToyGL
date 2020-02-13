@@ -4,12 +4,14 @@ import { Material } from "./Material";
 import { GraphicsDevice } from "../webgl/GraphicsDevice";
 import { RenderState } from "./RenderState";
 import { Frustum } from "./Frustum";
+import { Vec3 } from "../mathD/vec3";
+import { BoundingSphere } from "./Bounds";
 
 namespace Private
 {
     export let preMaterial: Material;
     export let preRenderState: RenderState;
-
+    export let temptSphere: BoundingSphere = new BoundingSphere();
 }
 
 export class Render
@@ -103,6 +105,22 @@ export class Render
 
     private frustumCull(frustum: Frustum, drawcall: DrawCommand)
     {
-        return frustum.containSphere(drawcall.boundingSphere, drawcall.worldMat);
+        BoundingSphere.fromBoundingBox(drawcall.aabb, Private.temptSphere);
+        return frustum.containSphere(Private.temptSphere, drawcall.worldMat);
     }
+
+    private calculateDistancesTocamera(drawCalls: DrawCommand[], camPos: Vec3, camFwd: Vec3)
+    {
+        let i, drawCall, meshPos;
+        let tempx, tempy, tempz;
+        for (i = 0; i < drawCalls.length; i++)
+        {
+            drawCall = drawCalls[i];
+            meshPos = drawCall.aabb.center;
+            tempx = meshPos.x - camPos.x;
+            tempy = meshPos.y - camPos.y;
+            tempz = meshPos.z - camPos.z;
+            drawCall.zdist = tempx * camFwd.x + tempy * camFwd.y + tempz * camFwd.z;
+        }
+    };
 }

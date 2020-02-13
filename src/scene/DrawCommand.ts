@@ -2,8 +2,9 @@ import { CullingMask } from "./Camera";
 import { Material } from "./Material";
 import { VertexArray } from "../webgl/VertextArray";
 import { RenderCommand } from "../webgl/RenderCommand";
-import { BoundingSphere } from "./Bounds";
+import { BoundingSphere, BoundingBox } from "./Bounds";
 import { Mat4 } from "../mathD/mat4";
+import { Transform } from "./Transform";
 
 export class DrawCommand extends RenderCommand
 {
@@ -18,7 +19,9 @@ export class DrawCommand extends RenderCommand
             this.indexBufferData = {
                 bytesPerIndex: vertexArray?.indexbuffer?.bytesPerIndex,
                 indexDatatype: vertexArray?.indexbuffer?.indexDatatype,
+                count: vertexArray?.indexbuffer?.numberOfIndices,
             }
+            this.count = vertexArray?.indexbuffer?.numberOfIndices;
         }
     }
     get vertexArray()
@@ -26,6 +29,31 @@ export class DrawCommand extends RenderCommand
         return this._vertexArray;
     };
     enableCull: boolean = true;
-    boundingSphere: BoundingSphere;
+    // boundingSphere: BoundingSphere;
+    aabb: BoundingBox;
     worldMat: Mat4;
+    zdist: number;
+
+    static sortByZdist_FrontToBack(drawa: DrawCommand, drawb: DrawCommand)
+    {
+        return drawa.zdist - drawb.zdist;
+    }
+    static sortByZdist_BackToFront(drawa: DrawCommand, drawb: DrawCommand)
+    {
+        return drawb.zdist - drawa.zdist;
+    }
+
+    static sortByMatLayer(drawa: DrawCommand, drawb: DrawCommand)
+    {
+        return drawa.material.layer + drawa.material.queue - (drawb.material.layer + drawb.material.queue);
+    }
+
+
+    static from(vertexArray: VertexArray, material: Material, node: Transform)
+    {
+        let newcommnad = new DrawCommand();
+        newcommnad.material = material;
+        newcommnad.vertexArray = vertexArray;
+        newcommnad.worldMat = node.worldMatrix;
+    }
 }

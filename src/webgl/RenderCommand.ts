@@ -3,12 +3,13 @@ import { VertexArray } from "./VertextArray";
 import { PrimitiveTypeEnum } from "../core/PrimitiveTypeEnum";
 export class RenderCommand
 {
-    modeType: PrimitiveTypeEnum;
+    modeType: PrimitiveTypeEnum = PrimitiveTypeEnum.TRIANGLES;
     count: number;
-    offset: number;
-    instanceCount: number;
+    offset: number = 0;
+    instanceCount: number = 0;
     indexBufferData: {
         bytesPerIndex: number;
         indexDatatype: number;
+        count: number;
     }
 }

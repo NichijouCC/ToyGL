@@ -3,6 +3,7 @@ import { Color } from "../mathD/color";
 import { Mat4 } from "../mathD/mat4";
 import { GameScreen } from "../gameScreen";
 import { Frustum } from "./Frustum";
+import { Transform } from "./Transform";
 
 export enum ProjectionEnum
 {
@@ -19,6 +20,7 @@ export enum ClearEnum
 }
 export class Camera
 {
+    node: Transform;
     projectionType: ProjectionEnum = ProjectionEnum.PERSPECTIVE;
     //perspective 透视投影
     fov: number = Math.PI * 0.25; //透视投影的fov//verticle field of view
@@ -60,7 +62,6 @@ export class Camera
 
     priority: number = 0;
     cullingMask: CullingMask = CullingMask.default;
-    viewMatrix: Mat4 = Mat4.create();
 
     get aspect(): number
     {
@@ -108,7 +109,18 @@ export class Camera
         }
         return this._viewProjectMatrix;
     }
-
+    private _viewMatrix: Mat4 = Mat4.create();
+    get viewMatrix(): Mat4
+    {
+        if (this.needComputeViewMat)
+        {
+            let camworld = this.node.worldMatrix;
+            //视矩阵刚好是摄像机世界矩阵的逆
+            Mat4.invert(camworld, this._viewMatrix);
+            this.needComputeViewMat = false;
+        }
+        return this._viewMatrix;
+    }
     private restToDirty()
     {
         this.needComputeViewMat = true;

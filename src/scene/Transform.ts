@@ -21,15 +21,59 @@ export class Transform
     parent: Transform;
     children: Transform[] = [];
     private dirtyFlag: number = 0;
-    constructor() { }
+    constructor()
+    {
 
-    _localPosition: Vec3 = Vec3.create();
-    _localRotation: Quat = Quat.create();
-    _localScale: Vec3 = Vec3.create(1, 1, 1);
+        //--------attach to dirty-------
+        Object.defineProperty(this._localPosition, "x", {
+            get: () => { return this._localPosition[0] },
+            set: value => { this._localPosition[0] = value; this.markDirty() }
+        })
+        Object.defineProperty(this._localPosition, "y", {
+            get: () => { return this._localPosition[1] },
+            set: value => { this._localPosition[1] = value; this.markDirty() }
+        })
+        Object.defineProperty(this._localPosition, "z", {
+            get: () => { return this._localPosition[2] },
+            set: value => { this._localPosition[2] = value; this.markDirty() }
+        })
+        Object.defineProperty(this._localRotation, "x", {
+            get: () => { return this._localRotation[0] },
+            set: value => { this._localRotation[0] = value; this.markDirty() }
+        })
+        Object.defineProperty(this._localRotation, "y", {
+            get: () => { return this._localRotation[1] },
+            set: value => { this._localRotation[1] = value; this.markDirty() }
+        })
+        Object.defineProperty(this._localRotation, "z", {
+            get: () => { return this._localRotation[2] },
+            set: value => { this._localRotation[2] = value; this.markDirty() }
+        })
+        Object.defineProperty(this._localRotation, "w", {
+            get: () => { return this._localRotation[3] },
+            set: value => { this._localRotation[3] = value; this.markDirty() }
+        })
+        Object.defineProperty(this._localScale, "x", {
+            get: () => { return this._localScale[0] },
+            set: value => { this._localScale[0] = value; this.markDirty() }
+        })
+        Object.defineProperty(this._localScale, "y", {
+            get: () => { return this._localScale[1] },
+            set: value => { this._localScale[1] = value; this.markDirty() }
+        })
+        Object.defineProperty(this._localScale, "z", {
+            get: () => { return this._localScale[2] },
+            set: value => { this._localScale[2] = value; this.markDirty() }
+        })
+    }
+
+    private _localPosition: Vec3 = Vec3.create();
+    private _localRotation: Quat = Quat.create();
+    private _localScale: Vec3 = Vec3.create(1, 1, 1);
 
     set localPosition(value: Vec3)
     {
-        this._localPosition = value;
+        Vec3.copy(value, this._localPosition);
         this.markDirty();
     }
     get localPosition(): Vec3
@@ -39,7 +83,8 @@ export class Transform
 
     set localRotation(value: Quat)
     {
-        this._localRotation = value;
+        Vec3.copy(value, this._localRotation);
+        // this._localRotation = value;
         this.markDirty();
     }
     get localRotation(): Quat
@@ -49,7 +94,8 @@ export class Transform
 
     set localScale(value: Vec3)
     {
-        this._localScale = value;
+        Vec3.copy(value, this._localScale);
+        // this._localScale = value;
         this.markDirty();
     }
     get localScale(): Vec3

@@ -182,6 +182,13 @@ export class BoundingSphere
     {
         this.pool.push(item);
     }
+
+    static fromBoundingBox(box: BoundingBox, result: BoundingSphere = new BoundingSphere())
+    {
+        result.center = Vec3.clone(box.center);
+        result.radius = Vec3.magnitude(box.halfSize);
+        return result;
+    }
 }
 
 export class BoundingBox
