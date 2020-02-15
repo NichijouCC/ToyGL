@@ -4,7 +4,7 @@ import { GraphicsDevice } from "./GraphicsDevice";
 import { VertexBuffer } from "./VertexBuffer";
 import { IvertexAttributeOption, VertexAttribute } from "./VertexAttribute";
 import { IglElement } from "../core/IglElement";
-import { Geometry } from "../scene/geometry/Geometry";
+import { Geometry } from "../scene/primitive/Geometry";
 import { VertexAttEnum } from "./VertexAttEnum";
 import { TypedArray } from "../core/TypedArray";
 import { PrimitiveTypeEnum } from "../core/PrimitiveTypeEnum";
@@ -114,7 +114,7 @@ export class VertexArray implements IglElement
     {
         return this.vertexAttributes[VertexAttEnum.POSITION].count;
     }
-    private _primitiveType: PrimitiveTypeEnum = PrimitiveTypeEnum.TRIANGLES;
+    private _primitiveType: PrimitiveTypeEnum;
     get primitiveType() { return this._primitiveType }
     set primitiveType(type: PrimitiveTypeEnum) { this._primitiveType = type };
     get primitveCount() { return this._indexbuffer?.numberOfIndices ?? this.vertexcount; }
@@ -122,11 +122,7 @@ export class VertexArray implements IglElement
     get primitiveOffset() { return this._primitiveOffset; }
     set primitiveOffset(offset: number) { this._primitiveOffset = (this._indexbuffer?.bytesPerIndex ?? 1) * offset; }
 
-    constructor(options: {
-        context: GraphicsDevice;
-        vertexAttributes: IvertexAttributeOption[];
-        indexBuffer?: IndexBuffer;
-    })
+    constructor(options: IvaoOptions)
     {
         this._context = options.context;
         // this.vertexAttributes = options.vertexAttributes.map(item => new VertexAttribute(options.context, item));
@@ -135,6 +131,9 @@ export class VertexArray implements IglElement
             this.vertexAttributes[item.type] = new VertexAttribute(options.context, item)
         })
         this._indexbuffer = options.indexBuffer;
+        this._primitiveType = options.primitiveType ?? PrimitiveTypeEnum.TRIANGLES;
+        this._primitiveOffset = options.primitiveOffset;
+
         let gl = options.context.gl;
 
         if (options.context.caps.vertexArrayObject)
@@ -281,90 +280,14 @@ export class VertexArray implements IglElement
     }
 
     destroy() { }
+}
 
-    /**
-     * Creates a vertex array from a geometry.  A geometry contains vertex attributes and optional index data
-     * in system memory, whereas a vertex array contains vertex buffers and an optional index buffer in WebGL
-     * memory for use with rendering.
-     *
-     * @example
-     * // Example 1. Creates a vertex array for rendering a box.  The default dynamic draw
-     * // usage is used for the created vertex and index buffer.  The attributes are not
-     * // interleaved by default.
-     * var geometry = new BoxGeometry();
-     * var va = VertexArray.fromGeometry({
-     *     context            : context,
-     *     geometry           : geometry,
-     * });
-     *
-     * @example
-     * // Example 2. Creates a vertex array with interleaved attributes in a
-     * // single vertex buffer.  The vertex and index buffer have static draw usage.
-     * var va = VertexArray.fromGeometry({
-     *     context            : context,
-     *     geometry           : geometry,
-     *     bufferUsage        : BufferUsage.STATIC_DRAW,
-     *     interleave         : true
-     * });
-     *
-     * @example
-     * // Example 3.  When the caller destroys the vertex array, it also destroys the
-     * // attached vertex buffer(s) and index buffer.
-     * va = va.destroy();
-     *
-     */
-    static fromGeometry(options: {
-        context: GraphicsDevice,
-        geometry: Geometry,
-        bufferUsage?: BufferUsageEnum,
-        interleave?: boolean
-    })
-    {
-        let usage = options.bufferUsage ?? BufferUsageEnum.STATIC_DRAW;
-        let geAtts = options.geometry.attributes;
-        if (options.interleave)
-        {
-            //TODO 
-        } else
-        {
-            let vertexAtts = Object.keys(geAtts).map(attName =>
-            {
-                let geAtt = geAtts[attName];
-                let att: IvertexAttributeOption = {
-                    type: geAtt.type,
-                    componentDatatype: geAtt.componentDatatype,
-                    componentsPerAttribute: geAtt.componentsPerAttribute,
-                    normalize: geAtt.normalize,
-                };
-
-                if (geAtt.values)
-                {
-                    att.vertexBuffer = new VertexBuffer({
-                        context: options.context,
-                        usage: usage,
-                        typedArray: geAtt.values
-                    });
-                } else
-                {
-                    att.value = geAtt.value
-                }
-                return att;
-            })
-
-            let indexBuffer;
-            if (options.geometry.indices)
-            {
-                indexBuffer = new IndexBuffer({
-                    context: options.context,
-                    usage: usage,
-                    typedArray: options.geometry.indices,
-                })
-            }
-            return new VertexArray({
-                context: options.context,
-                vertexAttributes: vertexAtts,
-                indexBuffer: indexBuffer
-            });
-        }
-    }
+export interface IvaoOptions
+{
+    context: GraphicsDevice;
+    vertexAttributes: IvertexAttributeOption[];
+    indexBuffer?: IndexBuffer;
+    offset?: number
+    primitiveType?: PrimitiveTypeEnum;
+    primitiveOffset?: number;
 }

@@ -1,14 +1,11 @@
 import { Camera } from "./Camera";
-import { MeshInstance, Mesh } from "./MeshInstance";
+import { MeshInstance } from "./MeshInstance";
 import { GraphicsDevice } from "../webgl/GraphicsDevice";
 import { Transform } from "./Transform";
 
 export class Scene
 {
     private root: Transform = new Transform();
-
-    private mesh: Mesh[] = [];
-
     createChild()
     {
         let node = new Transform();

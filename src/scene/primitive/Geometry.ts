@@ -1,11 +1,14 @@
 import { GeometryAttribute, IgeometryAttributeOptions } from "./GeometryAttribute";
-import { IndicesArray } from "../../webgl/IndexBuffer";
+import { IndicesArray, IndexBuffer } from "../../webgl/IndexBuffer";
 import { BoundingSphere } from "../Bounds";
 import { GlConstants } from "../../webgl/GLconstant";
-import { VertexArray } from "../../webgl/VertextArray";
 import { VertexAttEnum } from "../../webgl/VertexAttEnum";
-import { IvertexAttributeOption } from "../../webgl/VertexAttribute";
 import { PrimitiveTypeEnum } from "../../core/PrimitiveTypeEnum";
+import { GraphicsDevice } from "../../webgl/GraphicsDevice";
+import { BufferUsageEnum } from "../../webgl/Buffer";
+import { IvertexAttributeOption } from "../../webgl/VertexAttribute";
+import { VertexBuffer } from "../../webgl/VertexBuffer";
+import { VertexArray } from "../../webgl/VertextArray";
 
 /**
  * 
@@ -34,7 +37,7 @@ export class Geometry
     // vao?: WebGLVertexArrayObject;
     primitiveType: PrimitiveTypeEnum;
     boundingSphere: BoundingSphere;
-    vertexArray: VertexArray;
+    // vertexArray: VertexArray;
     beDynamic: boolean;
     constructor(option: IgeometryOptions)
     {
@@ -56,6 +59,50 @@ export class Geometry
         {
             this.vertexCount = geAtt.values.length / geAtt.componentsPerAttribute;
         }
+    }
+
+    static createVertexArray(context: GraphicsDevice, geometry: Geometry)
+    {
+        let usage = geometry.beDynamic ? BufferUsageEnum.DYNAMIC_DRAW : BufferUsageEnum.STATIC_DRAW;
+        let geAtts = geometry.attributes;
+        let vertexAtts = Object.keys(geAtts).map(attName =>
+        {
+            let geAtt = geAtts[attName];
+            let att: IvertexAttributeOption = {
+                type: geAtt.type,
+                componentDatatype: geAtt.componentDatatype,
+                componentsPerAttribute: geAtt.componentsPerAttribute,
+                normalize: geAtt.normalize,
+            };
+
+            if (geAtt.values)
+            {
+                att.vertexBuffer = new VertexBuffer({
+                    context: context,
+                    usage: usage,
+                    typedArray: geAtt.values
+                });
+            } else
+            {
+                att.value = geAtt.value
+            }
+            return att;
+        })
+
+        let indexBuffer;
+        if (geometry.indices)
+        {
+            indexBuffer = new IndexBuffer({
+                context: context,
+                usage: usage,
+                typedArray: geometry.indices,
+            })
+        }
+        return new VertexArray({
+            context: context,
+            vertexAttributes: vertexAtts,
+            indexBuffer: indexBuffer
+        });
     }
 }
 

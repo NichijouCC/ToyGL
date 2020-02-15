@@ -1,11 +1,11 @@
-import { GeometryInstance } from "./geometry/GeometryInstance";
-import { Mat4 } from "../mathD/mat4";
-import { FrameState } from "../render_V2/FrameState";
-import { DrawCommand } from "../render_V2/DrawCommand";
-import { VertexArray } from "../webgl/VertextArray";
-import { GeometryPipeline } from "./geometry/GeometryPipeline";
-import { BufferUsageEnum } from "../webgl/Buffer";
-import { Geometry } from "./geometry/Geometry";
+import { GeometryInstance } from "./GeometryInstance";
+import { Mat4 } from "../../mathD/mat4";
+import { FrameState } from "../../render_V2/FrameState";
+import { DrawCommand } from "../../render_V2/DrawCommand";
+import { VertexArray } from "../../webgl/VertextArray";
+import { GeometryPipeline } from "./GeometryPipeline";
+import { BufferUsageEnum } from "../../webgl/Buffer";
+import { Geometry } from "./Geometry";
 
 
 /**
@@ -128,19 +128,19 @@ export class Primitive
         //----------------------------------------------------
 
 
-        if (this._batchedGeometrys == null)
-        {
-            this._batchedGeometrys = batchPrimitive(this);
-        } else
-        {
-            if (this.vas == null)
-            {
-                this.vas = createVertexArray(this._batchedGeometrys, frameState);
-            } else
-            {
+        // if (this._batchedGeometrys == null)
+        // {
+        //     this._batchedGeometrys = batchPrimitive(this);
+        // } else
+        // {
+        //     if (this.vas == null)
+        //     {
+        //         this.vas = createVertexArray(this._batchedGeometrys, frameState);
+        //     } else
+        //     {
 
-            }
-        }
+        //     }
+        // }
 
 
         //------------check show
@@ -167,12 +167,12 @@ function batchPrimitive(primitive: Primitive)
         //step1: clone ins  todo
         let cloneIns = ins;
         //step2: 变换顶点数据
-        return GeometryPipeline.transformToWorldCoordinates(cloneIns);
+        // return GeometryPipeline.transformToWorldCoordinates(cloneIns);
     });
     //step3: 合并ins todo
-    let batchGeometry = GeometryPipeline.combineGeometryInstances(insArr);
+    // let batchGeometry = GeometryPipeline.combineGeometryInstances(insArr);
 
-    return batchGeometry
+    // return batchGeometry
 }
 
 

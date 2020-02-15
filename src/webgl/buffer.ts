@@ -92,13 +92,13 @@ export class Buffer implements IglElement
     *     usage : BufferUsage.STATIC_DRAW
     * });
     */
-    static createVertexBuffer(options: { context: GraphicsDevice, sizeInBytes: number, usage: BufferUsageEnum } | { context: GraphicsDevice, typedArray: ArrayBufferView, usage: BufferUsageEnum })
+    static createVertexBuffer(options: { context: GraphicsDevice, sizeInBytes: number, usage?: BufferUsageEnum } | { context: GraphicsDevice, typedArray: ArrayBufferView, usage?: BufferUsageEnum })
     {
         return new VertexBuffer({
             context: options.context,
             typedArray: (options as any).typedArray,
             sizeInBytes: (options as any).sizeInBytes,
-            usage: options.usage
+            usage: options.usage ?? BufferUsageEnum.STATIC_DRAW
         });
     }
 

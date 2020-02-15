@@ -4,14 +4,13 @@ import { IgltfMeshPrimitive, AccessorComponentType } from "./gltfJsonStruct";
 import { ParseMaterialNode } from "./parseMaterialNode";
 // import { Geometry } from "../assets/geometry";
 import { ParseAccessorNode } from "./parseAccessorNode";
-import { Geometry, IgeometryOptions } from "../../scene/geometry/Geometry";
-import { GeometryAttribute } from "../../scene/geometry/GeometryAttribute";
 import { VertexAttEnum } from "../../webgl/VertexAttEnum";
 import { GraphicsDevice } from "../../webgl/GraphicsDevice";
-import { Mesh } from "../../scene/MeshInstance";
-import { VertexArray } from "../../webgl/VertextArray";
+import { VertexArray, IvaoOptions } from "../../webgl/VertextArray";
 import { TypedArray } from "../../core/TypedArray";
 import { Material } from "../../scene/Material";
+import { StaticMesh } from "../../scene/mesh/StaticMesh";
+import { IndexBuffer } from "../../webgl/IndexBuffer";
 
 const MapGltfAttributeToToyAtt: { [name: string]: VertexAttEnum } = {
     POSITION: VertexAttEnum.POSITION,
@@ -75,50 +74,49 @@ export class ParseMeshNode
         }
     }
 
-    static parseMesh(node: IgltfMeshPrimitive, gltf: IgltfJson, context: GraphicsDevice): Promise<Mesh>
+    static parseMesh(node: IgltfMeshPrimitive, gltf: IgltfJson, context: GraphicsDevice): Promise<StaticMesh>
     {
-        let mesh = new Mesh();
-        mesh.mode = node.mode as any;
         let taskAtts: Promise<void>[] = [];
-
-        let geometryOp: IgeometryOptions = {};
-        geometryOp.primitiveType = node.mode;
-
+        let vaoOptions: IvaoOptions = { vertexAttributes: [], context };
         let attributes = node.attributes;
         for (let attName in attributes)
         {
             let attIndex = attributes[attName];
             let attType = MapGltfAttributeToToyAtt[attName];
-            let attTask = ParseAccessorNode.parse(attIndex, gltf).then(arrayInfo =>
-            {
-                geometryOp.attributes[attName] = {
-                    componentDatatype: arrayInfo.componentDataType,
-                    componentsPerAttribute: arrayInfo.componentSize,
-                    normalize: arrayInfo.normalize,
-                    values: arrayInfo.typedArray,
-                    type: attType
-                };
-            });
+            let attTask = ParseAccessorNode.parse(attIndex, gltf, context)
+                .then(arrayInfo =>
+                {
+                    vaoOptions.vertexAttributes.push({
+                        type: attType,
+                        vertexBuffer: arrayInfo.buffer,
+                        componentsPerAttribute: arrayInfo.componentSize,
+                        componentDatatype: arrayInfo.componentDataType,
+                        normalize: arrayInfo.normalize,
+                        offsetInBytes: arrayInfo.bytesOffset,
+                        strideInBytes: arrayInfo.bytesStride,
+                    })
+                });
             taskAtts.push(attTask);
         }
         let index = node.indices;
         if (index != null)
         {
-            let indexTask = ParseAccessorNode.parse(index, gltf).then(arrayInfo =>
-            {
-                geometryOp.indices = arrayInfo.typedArray as any;
-                mesh.count = arrayInfo.count;
-                mesh.offset = arrayInfo.bytesOffset / TypedArray.bytesPerElement(arrayInfo.typedArray);
-            });
+            let indexTask = ParseAccessorNode.parse(index, gltf, context)
+                .then(arrayInfo =>
+                {
+                    vaoOptions.indexBuffer = arrayInfo.buffer as IndexBuffer;
+                    vaoOptions.primitiveOffset = arrayInfo.bytesOffset;
+
+                });
             taskAtts.push(indexTask);
         }
-        return Promise.all(taskAtts).then(() =>
-        {
-            mesh.vertexArray = VertexArray.fromGeometry({
-                geometry: new Geometry(geometryOp),
-                context
+        return Promise.all(taskAtts)
+            .then(() =>
+            {
+                let mesh = new StaticMesh();
+
+                mesh.vertexArray = new VertexArray(vaoOptions);
+                return mesh;
             });
-            return mesh;
-        });
     }
 }

@@ -5,12 +5,12 @@ import { BufferUsageEnum, Buffer, BufferTargetEnum } from "./Buffer";
 export type IndicesArray = Uint16Array | Uint32Array;
 export type IndexBufferOption = {
     context: GraphicsDevice;
-    usage: BufferUsageEnum;
+    usage?: BufferUsageEnum;
     sizeInBytes: number;
     indexDatatype: number;
 } | {
     context: GraphicsDevice;
-    usage: BufferUsageEnum;
+    usage?: BufferUsageEnum;
     typedArray: IndicesArray;
 };
 export class IndexBuffer extends Buffer

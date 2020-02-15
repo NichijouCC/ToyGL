@@ -1,13 +1,14 @@
 import { CameraType } from "./gltfJsonStruct";
-import { Camera, ProjectionEnum } from "../../ec/components/camera";
+// import { Camera, ProjectionEnum } from "../../ec/components/camera";
 import { IgltfJson } from "./loadglTF";
+import { Camera, ProjectionEnum } from "../../scene/Camera";
 
 export class ParseCameraNode
 {
-    static parse(index: number, gltf: IgltfJson, cam: Camera)
+    static parse(index: number, gltf: IgltfJson)
     {
         let node = gltf.cameras[index];
-        // let cam = new Camera();
+        let cam = new Camera();
 
         switch (node.type)
         {
@@ -34,6 +35,6 @@ export class ParseCameraNode
                 // cam.aspest = datao.xmag / datao.ymag;
                 break;
         }
-        // return cam;
+        return cam;
     }
 }

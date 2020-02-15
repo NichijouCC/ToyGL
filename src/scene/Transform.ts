@@ -21,9 +21,10 @@ export class Transform
     parent: Transform;
     children: Transform[] = [];
     private dirtyFlag: number = 0;
-    constructor()
+    name: string;
+    constructor(name?: string)
     {
-
+        this.name = name;
         //--------attach to dirty-------
         Object.defineProperty(this._localPosition, "x", {
             get: () => { return this._localPosition[0] },

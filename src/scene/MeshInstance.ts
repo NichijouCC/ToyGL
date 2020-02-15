@@ -1,50 +1,14 @@
-import { Geometry } from "./geometry/Geometry";
+import { Geometry } from "./primitive/Geometry";
 import { Material } from "./Material";
 import { Transform } from "./Transform";
 import { VertexArray } from "../webgl/VertextArray";
 import { PrimitiveTypeEnum } from "../core/PrimitiveTypeEnum";
+import { StaticMesh } from "./mesh/StaticMesh";
+import { Mat4 } from "../mathD/mat4";
 
 export class MeshInstance
 {
-    mesh: Mesh;
+    mesh: StaticMesh;
     node: Transform;
     material: Material;
-}
-
-export class Mesh implements IDrawData
-{
-    vertexArray: VertexArray;
-    mode: PrimitiveTypeEnum;
-    count: number;
-    offset: number;
-
-    // static fromGeometry(options: {
-    //     context: GraphicsDevice,
-    //     geometry: Geometry,
-    //     bufferUsage?: BufferUsageEnum,
-    //     interleave?: boolean
-    //     count?: number;
-    //     offset?: number;
-    // })
-    // {
-    //     let newMesh = new Mesh();
-    //     let vertexArray = VertexArray.fromGeometry({
-    //         context: options.context,
-    //         geometry: options.geometry,
-    //         bufferUsage: options.bufferUsage,
-    //         interleave: options.interleave,
-    //     });
-    //     newMesh.count = options.count ?? vertexArray.indexbuffer.numberOfIndices;
-    //     newMesh.offset = options.offset ?? 0;
-    //     newMesh.mode = options.mode ?? PrimitiveTypeEnum.TRIANGLES;
-    //     newMesh.vertexArray = vertexArray;
-    //     return newMesh;
-    // }
-}
-
-export interface IDrawData
-{
-    mode: PrimitiveTypeEnum;
-    count: number;
-    offset: number;
 }

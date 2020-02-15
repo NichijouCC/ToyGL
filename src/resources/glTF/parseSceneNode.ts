@@ -1,16 +1,16 @@
 import { IgltfJson } from "./loadglTF";
 import { ParseNode } from "./parseNode";
-import { Entity } from "../../framework/Entity";
 import { GraphicsDevice } from "../../webgl/GraphicsDevice";
 import { MeshInstance } from "../../scene/MeshInstance";
+import { Transform } from "../../scene/Transform";
 
 export class ParseSceneNode
 {
-    static parse(index: number, gltf: IgltfJson, context: GraphicsDevice): Promise<{ root: Entity, meshInstances: MeshInstance[] }>
+    static parse(index: number, gltf: IgltfJson, context: GraphicsDevice): Promise<{ root: Transform, meshInstances: MeshInstance[] }>
     {
         let node = gltf.scenes[index];
         let meshInstances: MeshInstance[] = [];
-        let entity = new Entity(node.name);
+        let root = new Transform(node.name);
         let rootNodes = node.nodes.map(item =>
         {
             return ParseNode.parse(item, gltf, context)
@@ -23,9 +23,9 @@ export class ParseSceneNode
                 {
                     meshInstances.push(ins);
                 })
-                entity.addChild(item.entity);
+                root.addChild(item.sceneNode);
             });
-            return { root: entity, meshInstances }
+            return { root, meshInstances }
         })
     }
 }

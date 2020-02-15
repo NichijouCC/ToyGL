@@ -14,11 +14,12 @@ export interface IaccessorData
     bytesOffset: number;
     bytesStride: number;
     typedArray: TypedArray;
+    buffer: Buffer;
 }
 
 export class ParseAccessorNode
 {
-    static parse(index: number, gltf: IgltfJson): Promise<IaccessorData>
+    static parse(index: number, gltf: IgltfJson, context: GraphicsDevice): Promise<IaccessorData>
     {
         let arrayInfo: IaccessorData = {} as any;
         // return new Promise<AccessorNode>((resolve,reject)=>{
@@ -66,6 +67,14 @@ export class ParseAccessorNode
                     });
                 }
                 arrayInfo.typedArray = typedArray;
+                arrayInfo.buffer = value.target == BufferTargetEnum.ARRAY_BUFFER ?
+                    Buffer.createVertexBuffer({
+                        context,
+                        typedArray,
+                    }) : Buffer.createIndexBuffer({
+                        context,
+                        typedArray,
+                    })
                 return arrayInfo;
             });
         } else
