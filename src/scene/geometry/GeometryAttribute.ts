@@ -1,7 +1,7 @@
-import { VertexAttEnum } from "../webgl/VertexAttEnum";
-import { TypedArray } from "./TypedArray";
-import { IvertexAttributeOption } from "../webgl/VertexAttribute";
-import { VertexBuffer } from "../webgl/VertexBuffer";
+import { VertexAttEnum } from "../../webgl/VertexAttEnum";
+import { TypedArray } from "../../core/TypedArray";
+import { IvertexAttributeOption } from "../../webgl/VertexAttribute";
+import { VertexBuffer } from "../../webgl/VertexBuffer";
 
 /**
  * 

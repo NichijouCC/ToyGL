@@ -1,4 +1,4 @@
-import { Geometry } from "../core/Geometry";
+import { Geometry } from "./geometry/Geometry";
 import { Material } from "./Material";
 import { Transform } from "./Transform";
 import { VertexArray } from "../webgl/VertextArray";

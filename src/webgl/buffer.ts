@@ -46,7 +46,6 @@ export class Buffer implements IglElement
         gl.bufferData(this.target, this.typedArray ?? this.sizeInBytes as any, this.usage);
         gl.bindBuffer(this.target, null);
 
-
         this.bind = () =>
         {
             gl.bindBuffer(this.target, buffer);
@@ -54,6 +53,13 @@ export class Buffer implements IglElement
         this.unbind = () =>
         {
             gl.bindBuffer(this.target, null);
+        }
+
+        this.update = (sizeInBytesOrTypedArray: TypedArray | number) =>
+        {
+            gl.bindBuffer(this.target, buffer);
+            gl.bufferData(this.target, sizeInBytesOrTypedArray as any, this.usage);
+            // gl.bindBuffer(this.target, null);
         }
 
         this.destroy = () =>
@@ -64,7 +70,7 @@ export class Buffer implements IglElement
 
     bind() { }
     unbind() { }
-
+    update(sizeInBytesOrTypedArray: TypedArray | number) { }
     destroy() { }
 
     /*

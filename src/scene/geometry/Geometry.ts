@@ -1,11 +1,11 @@
 import { GeometryAttribute, IgeometryAttributeOptions } from "./GeometryAttribute";
-import { IndicesArray } from "../webgl/IndexBuffer";
-import { BoundingSphere } from "../scene/Bounds";
-import { GlConstants } from "../webgl/GLconstant";
-import { VertexArray } from "../webgl/VertextArray";
-import { VertexAttEnum } from "../webgl/VertexAttEnum";
-import { IvertexAttributeOption } from "../webgl/VertexAttribute";
-import { PrimitiveTypeEnum } from "./PrimitiveTypeEnum";
+import { IndicesArray } from "../../webgl/IndexBuffer";
+import { BoundingSphere } from "../Bounds";
+import { GlConstants } from "../../webgl/GLconstant";
+import { VertexArray } from "../../webgl/VertextArray";
+import { VertexAttEnum } from "../../webgl/VertexAttEnum";
+import { IvertexAttributeOption } from "../../webgl/VertexAttribute";
+import { PrimitiveTypeEnum } from "../../core/PrimitiveTypeEnum";
 
 /**
  * 
@@ -59,10 +59,6 @@ export class Geometry
     }
 }
 
-function mapGeometryAttToVertexAtt()
-{
-
-}
 export interface IgeometryOptions
 {
     attributes?: { [keyName: string]: IgeometryAttributeOptions };

@@ -1,11 +1,11 @@
-import { GeometryInstance } from "../core/GeometryInstance";
+import { GeometryInstance } from "./geometry/GeometryInstance";
 import { Mat4 } from "../mathD/mat4";
 import { FrameState } from "../render_V2/FrameState";
 import { DrawCommand } from "../render_V2/DrawCommand";
 import { VertexArray } from "../webgl/VertextArray";
-import { GeometryPipeline } from "../core/GeometryPipeline";
+import { GeometryPipeline } from "./geometry/GeometryPipeline";
 import { BufferUsageEnum } from "../webgl/Buffer";
-import { Geometry } from "../core/Geometry";
+import { Geometry } from "./geometry/Geometry";
 
 
 /**

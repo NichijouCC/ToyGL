@@ -1,7 +1,7 @@
 import { Geometry } from "./Geometry";
-import { Mat4 } from "../mathD/mat4";
+import { Mat4 } from "../../mathD/mat4";
 import { GeometryAttribute } from "./GeometryAttribute";
-import { TypedArray } from "./TypedArray";
+import { TypedArray } from "../../core/TypedArray";
 
 /**
  * @example
