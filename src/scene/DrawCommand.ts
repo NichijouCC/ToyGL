@@ -14,14 +14,14 @@ export class DrawCommand extends RenderCommand
     set vertexArray(vertexArray: VertexArray)
     {
         this._vertexArray = vertexArray;
-        if (vertexArray?.indexbuffer != null)
+        if (vertexArray?.indexBuffer != null)
         {
             this.indexBufferData = {
-                bytesPerIndex: vertexArray?.indexbuffer?.bytesPerIndex,
-                indexDatatype: vertexArray?.indexbuffer?.indexDatatype,
-                count: vertexArray?.indexbuffer?.numberOfIndices,
+                bytesPerIndex: vertexArray?.indexBuffer?.bytesPerIndex,
+                indexDatatype: vertexArray?.indexBuffer?.indexDatatype,
+                count: vertexArray?.indexBuffer?.numberOfIndices,
             }
-            this.count = vertexArray?.indexbuffer?.numberOfIndices;
+            this.count = vertexArray?.indexBuffer?.numberOfIndices;
         }
     }
     get vertexArray()

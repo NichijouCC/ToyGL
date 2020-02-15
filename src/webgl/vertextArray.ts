@@ -203,6 +203,10 @@ export class VertexArray implements IglElement
         this.beDirty = true;
         this.dirtyIndexData = sizeInBytesOrTypedArray;
     }
+    get indexBuffer()
+    {
+        return this._indexbuffer;
+    }
 
     update(vertexAttOption: IvertexAttributeOption, forece: boolean = false)
     {
