@@ -75,7 +75,7 @@ export class Render
 
             }
             drawcall.vertexArray.bind();
-            this.device.draw(drawcall);
+            this.device.draw(drawcall.vertexArray, drawcall.instanceCount);
         }
     }
     /**
@@ -105,7 +105,7 @@ export class Render
 
     private frustumCull(frustum: Frustum, drawcall: DrawCommand)
     {
-        BoundingSphere.fromBoundingBox(drawcall.aabb, Private.temptSphere);
+        BoundingSphere.fromBoundingBox(drawcall.boundingBox, Private.temptSphere);
         return frustum.containSphere(Private.temptSphere, drawcall.worldMat);
     }
 
@@ -116,7 +116,7 @@ export class Render
         for (i = 0; i < drawCalls.length; i++)
         {
             drawCall = drawCalls[i];
-            meshPos = drawCall.aabb.center;
+            meshPos = drawCall.boundingBox.center;
             tempx = meshPos.x - camPos.x;
             tempy = meshPos.y - camPos.y;
             tempz = meshPos.z - camPos.z;

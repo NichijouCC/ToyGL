@@ -120,7 +120,7 @@ export class VertexArray implements IglElement
     get primitveCount() { return this._indexbuffer?.numberOfIndices ?? this.vertexcount; }
     private _primitiveOffset: number = 0;
     get primitiveOffset() { return this._primitiveOffset; }
-    set primitiveOffset(offset: number) { this._primitiveOffset = offset; }
+    set primitiveOffset(offset: number) { this._primitiveOffset = (this._indexbuffer?.bytesPerIndex ?? 1) * offset; }
 
     constructor(options: {
         context: GraphicsDevice;

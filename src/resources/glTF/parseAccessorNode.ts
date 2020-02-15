@@ -3,7 +3,7 @@ import { IgltfJson } from "./loadglTF";
 import { ParseBufferViewNode } from "./parseBufferViewNode";
 import { BufferTargetEnum, Buffer, BufferUsageEnum } from "../../webgl/Buffer";
 import { GraphicsDevice } from "../../webgl/GraphicsDevice";
-import { getTypedArray, getTypeArrCtorFromGLtype, getPerElementBytesFromGLtype, TypedArray } from "../../core/TypedArray";
+import { getTypedArray, getTypeArrCtorFromGLtype, getByteSizeFromGLtype, TypedArray } from "../../core/TypedArray";
 
 export interface IaccessorData
 {

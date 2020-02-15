@@ -7,8 +7,8 @@ import { VertexLocation } from "./VertexAttribute";
 import { VertexAttEnum } from "./VertexAttEnum";
 import { GlConstants } from "./GLconstant";
 import { DeviceLimit } from "./DeviceLimit";
-import { RenderCommand } from "./RenderCommand";
 import { DepthFuncEnum, BlendEquationEnum, BlendParamEnum } from "../scene/RenderState";
+import { VertexArray } from "./VertextArray";
 
 export interface IengineOption
 {
@@ -700,28 +700,26 @@ export class GraphicsDevice
             }
         }
     }
-    draw(command: RenderCommand)
+    draw(vertexArray: VertexArray, instanceCount: number = 0)
     {
-        let instanceCount = command.instanceCount;
-        let indexBufferData = command.indexBufferData;
-        if (indexBufferData)
+        let indexBuffer = vertexArray.indexBuffer;
+        if (indexBuffer)
         {
-            let offset = indexBufferData.bytesPerIndex * command.offset;
             if (instanceCount != 0)
             {
-                this.gl.drawElementsInstanced(command.modeType, command.count, indexBufferData.indexDatatype, offset, instanceCount);
+                this.gl.drawElementsInstanced(vertexArray.primitiveType, vertexArray.primitveCount, indexBuffer.indexDatatype, vertexArray.primitiveOffset, instanceCount);
             } else
             {
-                this.gl.drawElements(command.modeType, command.count, indexBufferData.indexDatatype, offset);
+                this.gl.drawElements(vertexArray.primitiveType, vertexArray.primitveCount, indexBuffer.indexDatatype, vertexArray.primitiveOffset);
             }
         } else
         {
             if (instanceCount != 0)
             {
-                this.gl.drawArraysInstanced(command.modeType, command.offset, command.count, command.instanceCount);
+                this.gl.drawArraysInstanced(vertexArray.primitiveType, vertexArray.primitiveOffset, vertexArray.primitveCount, instanceCount);
             } else
             {
-                this.gl.drawArrays(command.modeType, command.offset, command.count);
+                this.gl.drawArrays(vertexArray.primitiveType, vertexArray.primitiveOffset, vertexArray.primitveCount);
             }
         }
     }
