@@ -21,9 +21,9 @@ export type bufferOption =
 export class Buffer implements IglElement
 {
     protected target: BufferTargetEnum;
-    protected usage: BufferUsageEnum;
-    protected typedArray: TypedArray;
-    protected sizeInBytes: number;
+    readonly usage: BufferUsageEnum;
+    readonly typedArray: TypedArray;
+    readonly sizeInBytes: number;
     protected _buffer: WebGLBuffer;
     private device: GraphicsDevice;
     private _gl: WebGLRenderingContext;

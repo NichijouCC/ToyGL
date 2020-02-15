@@ -7,6 +7,7 @@ import { IglElement } from "../core/IglElement";
 import { Geometry } from "../scene/geometry/Geometry";
 import { VertexAttEnum } from "./VertexAttEnum";
 import { TypedArray } from "../core/TypedArray";
+import { PrimitiveTypeEnum } from "../core/PrimitiveTypeEnum";
 
 /**
  * Creates a vertex array, which defines the attributes making up a vertex, and contains an optional index buffer
@@ -109,6 +110,18 @@ export class VertexArray implements IglElement
     private _indexbuffer: IndexBuffer;
     private _vao: any;
     private _context: GraphicsDevice;
+    get vertexcount()
+    {
+        return this.vertexAttributes[VertexAttEnum.POSITION].count;
+    }
+    private _primitiveType: PrimitiveTypeEnum = PrimitiveTypeEnum.TRIANGLES;
+    get primitiveType() { return this._primitiveType }
+    set primitiveType(type: PrimitiveTypeEnum) { this._primitiveType = type };
+    get primitveCount() { return this._indexbuffer?.numberOfIndices ?? this.vertexcount; }
+    private _primitiveOffset: number = 0;
+    get primitiveOffset() { return this._primitiveOffset; }
+    set primitiveOffset(offset: number) { this._primitiveOffset = offset; }
+
     constructor(options: {
         context: GraphicsDevice;
         vertexAttributes: IvertexAttributeOption[];

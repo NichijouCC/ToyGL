@@ -86,7 +86,7 @@ export function getTypeArrCtorFromGLtype(glType: number)
     throw "unsupported gltype to array type";
 }
 
-export function getPerElementBytesFromGLtype(glType: number)
+export function getByteSizeFromGLtype(glType: number)
 {
     if (glTypeToTypedArrayCtor[glType])
     {

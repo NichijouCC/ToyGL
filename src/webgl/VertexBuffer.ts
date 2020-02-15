@@ -15,13 +15,13 @@ export type vertexBufferOption =
 
 export class VertexBuffer extends Buffer
 {
-    componentSize: number;
-    componentDataType: number;
-    // size?: number;
-    normalize: boolean;
-    bytesStride: number;
-    bytesOffset: number;
-    divisor?: number;
+    // componentSize: number;
+    // componentDataType: number;
+    // // size?: number;
+    // normalize: boolean;
+    // bytesStride: number;
+    // bytesOffset: number;
+    // divisor?: number;
     constructor(options: vertexBufferOption)
     {
         super({ ...options, target: BufferTargetEnum.ARRAY_BUFFER });

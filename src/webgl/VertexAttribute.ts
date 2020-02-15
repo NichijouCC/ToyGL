@@ -47,6 +47,8 @@ export class VertexAttribute implements IvertexAttribute
     readonly strideInBytes: number;
     readonly instanceDivisor: number;
 
+    readonly count: number;
+
     private _gl: WebGLRenderingContext;
     constructor(context: GraphicsDevice, options: IvertexAttributeOption)
     {
@@ -65,11 +67,23 @@ export class VertexAttribute implements IvertexAttribute
         this.vertexBuffer = att.vertexBuffer;// positionBuffer;
         this.value = att.value;
         this.componentsPerAttribute = att.componentsPerAttribute;// 3;
-        this.componentsPerAttribute = att.componentsPerAttribute ?? ComponentDatatypeEnum.FLOAT; // ComponentDatatype.FLOAT;
+        this.componentDatatype = att.componentsPerAttribute ?? ComponentDatatypeEnum.FLOAT; // ComponentDatatype.FLOAT;
         this.normalize = att.normalize ?? false; // false;
         this.offsetInBytes = att.offsetInBytes ?? 0; // 0;
         this.strideInBytes = att.strideInBytes ?? 0; // 0; // tightly packed
         this.instanceDivisor = att.instanceDivisor ?? 0; // 0; // not instanced
+
+        if (this.vertexBuffer)
+        {
+            let bytes = this.vertexBuffer.sizeInBytes - this.offsetInBytes;
+            if (this.strideInBytes == 0)
+            {
+                this.count = bytes / (this.componentsPerAttribute * ComponentDatatypeEnum.byteSize(this.componentDatatype))
+            } else
+            {
+                this.count = bytes / this.strideInBytes;
+            }
+        }
 
         if (att.vertexBuffer)
         {
