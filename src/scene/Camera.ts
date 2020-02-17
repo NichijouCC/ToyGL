@@ -4,6 +4,7 @@ import { Mat4 } from "../mathD/mat4";
 import { GameScreen } from "../gameScreen";
 import { Frustum } from "./Frustum";
 import { Transform } from "./Transform";
+import { Vec3 } from "../mathD/vec3";
 
 export enum ProjectionEnum
 {
@@ -142,6 +143,17 @@ export class Camera
         return this._frustum;
     }
 
+
+    get worldPos()
+    {
+        return this.node.worldPosition;
+    }
+
+    private _forward: Vec3 = Vec3.create();
+    get forwardInword()
+    {
+        return this.node.getForwardInWorld(this._forward);
+    }
 }
 
 /**

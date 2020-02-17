@@ -2,6 +2,8 @@ import { Camera } from "./Camera";
 import { MeshInstance } from "./MeshInstance";
 import { GraphicsDevice } from "../webgl/GraphicsDevice";
 import { Transform } from "./Transform";
+import { StaticMesh } from "./mesh/StaticMesh";
+import { Material } from "./Material";
 
 export class Scene
 {
@@ -10,14 +12,6 @@ export class Scene
     {
         let node = new Transform();
         return node;
-    }
-
-    createCamera()
-    {
-        let cam = new Camera();
-        let node = this.createChild();
-        cam.node = node;
-        return cam;
     }
 
     render(context: GraphicsDevice, camera: Camera)

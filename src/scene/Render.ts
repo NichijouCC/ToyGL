@@ -6,13 +6,55 @@ import { RenderState } from "./RenderState";
 import { Frustum } from "./Frustum";
 import { Vec3 } from "../mathD/vec3";
 import { BoundingSphere } from "./Bounds";
+import { StaticMesh } from "./mesh/StaticMesh";
+import { MeshInstance } from "./MeshInstance";
+import { RenderLayerEnum } from "./RenderLayer";
+import { LayerCollection } from "./LayerCollection";
+import { IlayerIndexEvent } from "./Shader";
+
+
+export enum SortTypeEnum
+{
+    MatLayerIndex = 0b10000,
+    ShaderId = 0b01000,
+    Zdist_FrontToBack = 0b00100
+}
 
 namespace Private
 {
     export let preMaterial: Material;
     export let preRenderState: RenderState;
     export let temptSphere: BoundingSphere = new BoundingSphere();
+
+
+    export const sortByMatLayerIndex = (drawa: DrawCommand, drawb: DrawCommand): boolean =>
+    {
+        return drawa.material.layerIndex - drawb.material.layerIndex as any;
+    }
+
+    export const sortByZdist_FrontToBack = (drawa: DrawCommand, drawb: DrawCommand): boolean =>
+    {
+        return drawa.zdist - drawb.zdist as any;
+    }
+    export const sortByZdist_BackToFront = (drawa: DrawCommand, drawb: DrawCommand): boolean =>
+    {
+        return drawb.zdist - drawa.zdist as any;
+    }
+
+
+    export const sortByShaderId = (drawa: DrawCommand, drawb: DrawCommand): boolean =>
+    {
+        return drawb.material.shader.id - drawb.material.shader.id as any;
+    }
+
+    export const sortTypeInfo: { [type: string]: { sortFunc: (drawa: DrawCommand, drawb: DrawCommand) => boolean } } = {};
+    {
+        sortTypeInfo[SortTypeEnum.MatLayerIndex] = { sortFunc: sortByMatLayerIndex };
+        sortTypeInfo[SortTypeEnum.ShaderId] = { sortFunc: sortByShaderId };
+        sortTypeInfo[SortTypeEnum.Zdist_FrontToBack] = { sortFunc: sortByZdist_FrontToBack };
+    }
 }
+
 
 export class Render
 {
@@ -20,9 +62,47 @@ export class Render
     constructor(device: GraphicsDevice)
     {
         this.device = device;
+        this.layers.set(RenderLayerEnum.Background, new LayerCollection());
+        this.layers.set(RenderLayerEnum.Geometry, new LayerCollection(SortTypeEnum.MatLayerIndex | SortTypeEnum.ShaderId));
+        this.layers.set(RenderLayerEnum.AlphaTest, new LayerCollection(SortTypeEnum.MatLayerIndex | SortTypeEnum.Zdist_FrontToBack));
+        this.layers.set(RenderLayerEnum.Transparent, new LayerCollection(SortTypeEnum.MatLayerIndex | SortTypeEnum.Zdist_FrontToBack));
     }
 
-    render(camera: Camera, drawCalls: DrawCommand[], lights: any, )
+    private layers: Map<number, LayerCollection> = new Map();
+    createMeshInstance(mesh: StaticMesh, mat: Material)
+    {
+        let newIns = new MeshInstance();
+        newIns.mesh = mesh;
+        newIns.material = mat;
+
+        this.layers.get(mat.layer).add(newIns);
+        newIns.onchangeLayer.addEventListener((oldLayer, newLayer) =>
+        {
+            if (oldLayer != null)
+            {
+                this.layers.get(oldLayer).remove(newIns);
+            }
+            if (newLayer != null)
+            {
+                this.layers.get(newLayer).add(newIns);
+            }
+        });
+
+        return newIns;
+    }
+    renderLayers(camera: Camera)
+    {
+        var commands = this.layers.get(RenderLayerEnum.Background).getSortedinsArr(camera);
+        this.render(camera, commands);
+        commands = this.layers.get(RenderLayerEnum.Geometry).getSortedinsArr(camera);
+        this.render(camera, commands);
+        commands = this.layers.get(RenderLayerEnum.AlphaTest).getSortedinsArr(camera);
+        this.render(camera, commands);
+        commands = this.layers.get(RenderLayerEnum.Transparent).getSortedinsArr(camera);
+        this.render(camera, commands);
+    }
+
+    render(camera: Camera, drawCalls: DrawCommand[], lights?: any, )
     {
         let culledDrawcalls = this.cull(camera, drawCalls);
         let drawcall, shader, uniforms, renderState, vertexArray

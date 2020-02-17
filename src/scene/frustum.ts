@@ -1,4 +1,4 @@
-import { Plane } from "./plane";
+import { Plane } from "./Plane";
 import { Mat4 } from "../mathD/mat4";
 import { Irenderable } from "./frameState";
 import { BoundingSphere } from "./Bounds";
