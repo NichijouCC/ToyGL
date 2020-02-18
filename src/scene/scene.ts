@@ -4,6 +4,9 @@ import { GraphicsDevice } from "../webgl/GraphicsDevice";
 import { Transform } from "./Transform";
 import { StaticMesh } from "./mesh/StaticMesh";
 import { Material } from "./Material";
+import { RenderLayerEnum } from "./RenderLayer";
+import { LayerCollection } from "./LayerCollection";
+import { SortTypeEnum } from "./Render";
 
 export class Scene
 {
@@ -19,3 +22,5 @@ export class Scene
 
     }
 }
+
+

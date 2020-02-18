@@ -1,4 +1,4 @@
-export class Event
+export class InterEvent
 {
     private listener: ((...args: any) => void)[] = [];
     addEventListener(func: (...args: any) => void)
@@ -23,14 +23,14 @@ export class Event
     }
 }
 
-export class ValueEvent<T>
+export class ValueEvent<A, B>
 {
     private listener: ((...args: any) => void)[] = [];
-    addEventListener(func: (oldValue: T, newValue: T) => void)
+    addEventListener(func: (target: A, oldValue: B, newValue: B) => void)
     {
         this.listener.push(func);
     }
-    removeEventListener(func: (oldValue: T, newValue: T) => void)
+    removeEventListener(func: (target: A, oldValue: B, newValue: B) => void)
     {
         let index = this.listener.indexOf(func);
         if (index >= 0)
@@ -39,11 +39,11 @@ export class ValueEvent<T>
         }
     }
     removeAll() { this.listener = []; }
-    raiseEvent(oldValue: T, newValue: T)
+    raiseEvent(target: A, oldValue: B, newValue: B)
     {
         this.listener.forEach(fuc =>
         {
-            fuc(oldValue, newValue);
+            fuc(target, oldValue, newValue);
         });
     }
 }

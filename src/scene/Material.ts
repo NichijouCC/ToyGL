@@ -22,7 +22,7 @@ export class Material
             this._shader = shader;
             shader?.onchangeLayerIndex.addEventListener(this._onshaderchangeLayerIndex);
 
-            this.onchangeShader.raiseEvent(oldShader, shader);
+            this.onchangeShader.raiseEvent(this, oldShader, shader);
         }
     };
 
@@ -35,24 +35,24 @@ export class Material
     {
         if (this._layer != layer)
         {
-            this.onchangeLayer.raiseEvent(this._layer, layer);
+            this.onchangeLayer.raiseEvent(this, this._layer, layer);
         }
         this._layer = layer;
         this._layerIndex = layer + queue;
     }
     get layerIndex() { return this._layerIndex ?? this._shader.layerIndex };
-    private _onshaderchangeLayerIndex = (oldValue: IlayerIndexEvent, newValue: IlayerIndexEvent) =>
+    private _onshaderchangeLayerIndex = (target: Shader, oldValue: IlayerIndexEvent, newValue: IlayerIndexEvent) =>
     {
         if (this._layerIndex == null)
         {
             if (oldValue.layer != newValue.layer)
             {
-                this.onchangeLayer.raiseEvent(oldValue.layer, newValue.layer);
+                this.onchangeLayer.raiseEvent(this, oldValue.layer, newValue.layer);
             }
         }
     }
-    onchangeLayer = new ValueEvent<RenderLayerEnum>();
-    onchangeShader = new ValueEvent<Shader>();
+    onchangeLayer = new ValueEvent<Material, RenderLayerEnum>();
+    onchangeShader = new ValueEvent<Material, Shader>();
 
     renderState: RenderState = new RenderState();
     readonly id: number;

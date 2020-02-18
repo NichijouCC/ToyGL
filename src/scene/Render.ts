@@ -25,34 +25,6 @@ namespace Private
     export let preMaterial: Material;
     export let preRenderState: RenderState;
     export let temptSphere: BoundingSphere = new BoundingSphere();
-
-
-    export const sortByMatLayerIndex = (drawa: DrawCommand, drawb: DrawCommand): boolean =>
-    {
-        return drawa.material.layerIndex - drawb.material.layerIndex as any;
-    }
-
-    export const sortByZdist_FrontToBack = (drawa: DrawCommand, drawb: DrawCommand): boolean =>
-    {
-        return drawa.zdist - drawb.zdist as any;
-    }
-    export const sortByZdist_BackToFront = (drawa: DrawCommand, drawb: DrawCommand): boolean =>
-    {
-        return drawb.zdist - drawa.zdist as any;
-    }
-
-
-    export const sortByShaderId = (drawa: DrawCommand, drawb: DrawCommand): boolean =>
-    {
-        return drawb.material.shader.id - drawb.material.shader.id as any;
-    }
-
-    export const sortTypeInfo: { [type: string]: { sortFunc: (drawa: DrawCommand, drawb: DrawCommand) => boolean } } = {};
-    {
-        sortTypeInfo[SortTypeEnum.MatLayerIndex] = { sortFunc: sortByMatLayerIndex };
-        sortTypeInfo[SortTypeEnum.ShaderId] = { sortFunc: sortByShaderId };
-        sortTypeInfo[SortTypeEnum.Zdist_FrontToBack] = { sortFunc: sortByZdist_FrontToBack };
-    }
 }
 
 
@@ -62,43 +34,11 @@ export class Render
     constructor(device: GraphicsDevice)
     {
         this.device = device;
-        this.layers.set(RenderLayerEnum.Background, new LayerCollection());
-        this.layers.set(RenderLayerEnum.Geometry, new LayerCollection(SortTypeEnum.MatLayerIndex | SortTypeEnum.ShaderId));
-        this.layers.set(RenderLayerEnum.AlphaTest, new LayerCollection(SortTypeEnum.MatLayerIndex | SortTypeEnum.Zdist_FrontToBack));
-        this.layers.set(RenderLayerEnum.Transparent, new LayerCollection(SortTypeEnum.MatLayerIndex | SortTypeEnum.Zdist_FrontToBack));
     }
 
-    private layers: Map<number, LayerCollection> = new Map();
-    createMeshInstance(mesh: StaticMesh, mat: Material)
+    renderLayers(camera: Camera, layer: LayerCollection)
     {
-        let newIns = new MeshInstance();
-        newIns.mesh = mesh;
-        newIns.material = mat;
-
-        this.layers.get(mat.layer).add(newIns);
-        newIns.onchangeLayer.addEventListener((oldLayer, newLayer) =>
-        {
-            if (oldLayer != null)
-            {
-                this.layers.get(oldLayer).remove(newIns);
-            }
-            if (newLayer != null)
-            {
-                this.layers.get(newLayer).add(newIns);
-            }
-        });
-
-        return newIns;
-    }
-    renderLayers(camera: Camera)
-    {
-        var commands = this.layers.get(RenderLayerEnum.Background).getSortedinsArr(camera);
-        this.render(camera, commands);
-        commands = this.layers.get(RenderLayerEnum.Geometry).getSortedinsArr(camera);
-        this.render(camera, commands);
-        commands = this.layers.get(RenderLayerEnum.AlphaTest).getSortedinsArr(camera);
-        this.render(camera, commands);
-        commands = this.layers.get(RenderLayerEnum.Transparent).getSortedinsArr(camera);
+        var commands = layer.getSortedinsArr(camera);
         this.render(camera, commands);
     }
 
@@ -188,19 +128,4 @@ export class Render
         BoundingSphere.fromBoundingBox(drawcall.boundingBox, Private.temptSphere);
         return frustum.containSphere(Private.temptSphere, drawcall.worldMat);
     }
-
-    private calculateDistancesTocamera(drawCalls: DrawCommand[], camPos: Vec3, camFwd: Vec3)
-    {
-        let i, drawCall, meshPos;
-        let tempx, tempy, tempz;
-        for (i = 0; i < drawCalls.length; i++)
-        {
-            drawCall = drawCalls[i];
-            meshPos = drawCall.boundingBox.center;
-            tempx = meshPos.x - camPos.x;
-            tempy = meshPos.y - camPos.y;
-            tempz = meshPos.z - camPos.z;
-            drawCall.zdist = tempx * camFwd.x + tempy * camFwd.y + tempz * camFwd.z;
-        }
-    };
 }

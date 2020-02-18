@@ -1,7 +1,7 @@
 import { MeshInstance } from "./MeshInstance";
 import { DrawCommand } from "./DrawCommand";
 import { SortTypeEnum } from "./Render";
-import { ValueEvent } from "../core/Event";
+import { ValueEvent, InterEvent } from "../core/Event";
 import { Camera } from "./Camera";
 namespace Private
 {
@@ -57,7 +57,7 @@ namespace Private
     export interface IsortInfo
     {
         sortFunc: (drawa: MeshInstance, drawb: MeshInstance) => number,
-        eventFunc?: (ins: MeshInstance) => ValueEvent<any>,
+        eventFunc?: (ins: MeshInstance) => ValueEvent<MeshInstance, any>,
         beforeSort?: (ins: MeshInstance[], cam: Camera) => void
     }
 }
@@ -119,6 +119,7 @@ export class LayerCollection
         if (index == -1)
         {
             this._insArr.splice(index, 1);
+            this.onAddMeshInstance.raiseEvent(newIns);
             this.onAdd.forEach(func => func(newIns));
         }
     }
@@ -128,7 +129,11 @@ export class LayerCollection
         if (index >= 0)
         {
             this._insArr.splice(index, 1);
+            this.onRemoveMeshInstance.raiseEvent(item);
             this.onRemove.forEach(func => func(item));
         }
     }
+
+    onAddMeshInstance: InterEvent = new InterEvent();
+    onRemoveMeshInstance: InterEvent = new InterEvent();
 }
