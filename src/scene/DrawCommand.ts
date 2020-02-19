@@ -1,5 +1,5 @@
 import { CullingMask } from "./Camera";
-import { Material } from "./Material";
+import { Material } from "./asset/Material";
 import { VertexArray } from "../webgl/VertextArray";
 import { BoundingSphere, BoundingBox } from "./Bounds";
 import { Mat4 } from "../mathD/mat4";

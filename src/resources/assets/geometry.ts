@@ -4,48 +4,60 @@ import { VertexAttEnum } from "../../webgl/VertexAttType";
 import { IvertexAttrib, IvertexIndex } from "twebgl/dist/types/type";
 import { GlConstants } from "../../render/GlConstant";
 
-export class Geometry extends ToyAsset implements IgeometryInfo {
+export class Geometry extends ToyAsset implements IgeometryInfo
+{
     atts: { [attName: string]: IvertexAttrib };
     indices?: IvertexIndex;
     vaoDic: { [programeId: number]: WebGLVertexArrayObject };
     count: number;
     offset: number;
     primitiveType: number;
-    constructor(param?: ItoyAsset) {
+    constructor(param?: ItoyAsset)
+    {
         super(param);
     }
-    dispose(): void { }
+    destroy(): void { }
 
-    static fromCustomData(data: IgeometryOptions) {
+    static fromCustomData(data: IgeometryOptions)
+    {
         let geometry = WebglRender.createGeometry(data);
         let newAsset = new Geometry({ name: "custom_Mesh" });
         Object.assign(newAsset, geometry);
         return newAsset;
     }
     private attDic: { [att: string]: any[] } = {};
-    getAttDataArr(type: VertexAttEnum) {
-        if (this.attDic[type] != null) {
+    getAttDataArr(type: VertexAttEnum)
+    {
+        if (this.attDic[type] != null)
+        {
             return this.attDic[type];
-        } else {
-            if (this.atts[type] != null) {
+        } else
+        {
+            if (this.atts[type] != null)
+            {
                 this.attDic[type] = getTypedValueArr(type, this.atts[VertexAttEnum.POSITION]);
-            } else {
+            } else
+            {
                 console.warn("geometry don't contain vertex type:", type);
             }
             return this.attDic[type];
         }
     }
 
-    updateAttData(type: VertexAttEnum, data: number[] | ArrayBufferView) {
-        if (data instanceof Array) {
+    updateAttData(type: VertexAttEnum, data: number[] | ArrayBufferView)
+    {
+        if (data instanceof Array)
+        {
             WebglRender.updateGeometry(this, type, new Float32Array(data));
-        } else {
+        } else
+        {
             WebglRender.updateGeometry(this, type, data);
         }
     }
 }
 
-export class VertexAtt implements IvertexAttrib {
+export class VertexAtt implements IvertexAttrib
+{
     name: string;
     viewBuffer?: ArrayBufferView;
     count?: number;
@@ -64,10 +76,12 @@ export class VertexAtt implements IvertexAttrib {
  * @param newGeometry
  * @param geometryOp
  */
-export function getTypedValueArr(key: string, element: IvertexAttrib) {
+export function getTypedValueArr(key: string, element: IvertexAttrib)
+{
     let strideInBytes = element.bytesStride || glTypeToByteSize(element.componentDataType) * element.componentSize;
     let dataArr = [];
-    for (let i = 0; i < element.count; i++) {
+    for (let i = 0; i < element.count; i++)
+    {
         let value = getTypedArry(
             element.componentDataType,
             element.viewBuffer as Uint8Array,
@@ -79,8 +93,10 @@ export function getTypedValueArr(key: string, element: IvertexAttrib) {
     return dataArr;
 }
 
-export function glTypeToByteSize(type: number) {
-    switch (type) {
+export function glTypeToByteSize(type: number)
+{
+    switch (type)
+    {
         case GlConstants.BYTE:
             return Int8Array.BYTES_PER_ELEMENT;
         case GlConstants.UNSIGNED_BYTE:
@@ -97,10 +113,12 @@ export function glTypeToByteSize(type: number) {
             throw new Error(`Invalid component type ${type}`);
     }
 }
-export function getTypedArry(componentType: number, bufferview: ArrayBufferView, byteOffset: number, Len?: number) {
+export function getTypedArry(componentType: number, bufferview: ArrayBufferView, byteOffset: number, Len?: number)
+{
     let buffer = bufferview.buffer;
     byteOffset = bufferview.byteOffset + (byteOffset || 0);
-    switch (componentType) {
+    switch (componentType)
+    {
         case GlConstants.BYTE:
             return new Int8Array(buffer, byteOffset, Len);
         case GlConstants.UNSIGNED_BYTE:
@@ -112,7 +130,8 @@ export function getTypedArry(componentType: number, bufferview: ArrayBufferView,
         case GlConstants.UNSIGNED_INT:
             return new Uint32Array(buffer, byteOffset, Len);
         case GlConstants.FLOAT: {
-            if ((byteOffset / 4) % 1 != 0) {
+            if ((byteOffset / 4) % 1 != 0)
+            {
                 console.error("??");
             }
             return new Float32Array(buffer, byteOffset, Len);

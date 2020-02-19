@@ -2,17 +2,20 @@ import { ToyAsset, ItoyAsset } from "../base/toyAsset";
 import { IprogramInfo, WebglRender, IprogramOptions } from "../../render/webglRender";
 import { RenderLayerEnum } from "../../ec/ec";
 
-export class Shader extends ToyAsset {
+export class Shader extends ToyAsset
+{
     layer: RenderLayerEnum = RenderLayerEnum.Geometry;
     queue: number = 0;
     mapUniformDef: { [key: string]: { type: UniformTypeEnum; value: any } };
     passes: { [feature: string]: IprogramInfo[] };
 
-    constructor(param?: ItoyAsset) {
+    constructor(param?: ItoyAsset)
+    {
         super(param);
     }
 
-    static fromCustomData(data: IshaderOptions) {
+    static fromCustomData(data: IshaderOptions)
+    {
         let newAsset = new Shader({ name: data.name || "custom_shader" });
         newAsset.layer = data.layer || RenderLayerEnum.Geometry;
         newAsset.queue = data.queue != null ? data.queue : 0;
@@ -21,12 +24,14 @@ export class Shader extends ToyAsset {
         let passes = data.passes;
 
         let featurePasses: { [feature: string]: IprogramInfo[] } = {};
-        for (let i = 0; i < features.length; i++) {
+        for (let i = 0; i < features.length; i++)
+        {
             let type = features[i];
             let featureStr = getFeaturShderStr(type);
 
             let programArr = [];
-            for (let i = 0; i < passes.length; i++) {
+            for (let i = 0; i < passes.length; i++)
+            {
                 let passitem = passes[i];
                 let program = WebglRender.createProgram({
                     program: {
@@ -44,9 +49,11 @@ export class Shader extends ToyAsset {
         }
 
         newAsset.passes = featurePasses;
-        if (data.mapUniformDef != null) {
+        if (data.mapUniformDef != null)
+        {
             newAsset.mapUniformDef = {};
-            for (const key in data.mapUniformDef) {
+            for (const key in data.mapUniformDef)
+            {
                 const _value = data.mapUniformDef[key];
                 newAsset.mapUniformDef[key] = { value: _value, type: UniformTypeEnum.UNKOWN };
             }
@@ -54,17 +61,19 @@ export class Shader extends ToyAsset {
         return newAsset;
     }
     // eslint-disable-next-line prettier/prettier
-    dispose(): void { }
+    destroy(): void { }
 }
 
-export interface IshaderInfo {
+export interface IshaderInfo
+{
     layer: RenderLayerEnum;
     queue: number;
     mapUniformDef: { [key: string]: { type: UniformTypeEnum; value: any } };
     passes: { [feature: string]: IprogramInfo[] };
 }
 
-export enum UniformTypeEnum {
+export enum UniformTypeEnum
+{
     FLOAT,
     FLOAT_VEC2,
     FLOAT_VEC3,
@@ -85,7 +94,8 @@ export enum UniformTypeEnum {
     SAMPLER_CUBE,
 }
 
-export interface IshaderOptions {
+export interface IshaderOptions
+{
     layer?: RenderLayerEnum;
     queue?: number;
     passes: IprogramOptions[];
@@ -94,8 +104,10 @@ export interface IshaderOptions {
     mapUniformDef?: { [key: string]: any };
 }
 
-export function getFeaturShderStr(type: string) {
-    switch (type) {
+export function getFeaturShderStr(type: string)
+{
+    switch (type)
+    {
         case "base":
             return "";
         case "fog":

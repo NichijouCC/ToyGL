@@ -113,6 +113,8 @@ export class ShaderProgram implements IshaderProgram
 
     bind() { }
     unbind() { }
+
+    destroy() { }
 }
 
 /**

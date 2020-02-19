@@ -9,9 +9,9 @@ import { Geometry } from "../assets/geometry";
 import { ParseSceneNode } from "./parseSceneNode";
 import { LoadEnum } from "../base/loadEnum";
 import { GlBuffer } from "../../render/webglRender";
-import { Material } from "../../scene/Material";
-import { Mesh } from "../../scene/MeshInstance";
+import { Material } from "../../scene/asset/Material";
 import { GraphicsDevice } from "../../webgl/GraphicsDevice";
+import { StaticMesh } from "../../scene/asset/StaticMesh";
 
 export interface IglTFExtension
 {
@@ -20,7 +20,7 @@ export interface IglTFExtension
 
 export interface IgltfPrimitive
 {
-    mesh: Mesh;
+    mesh: StaticMesh;
     material: Material;
 }
 

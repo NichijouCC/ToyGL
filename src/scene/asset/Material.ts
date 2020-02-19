@@ -1,14 +1,10 @@
 import { Shader, IlayerIndexEvent } from "./Shader";
-import { RenderLayerEnum } from "./RenderLayer";
-import { RenderState } from "./RenderState";
-import { ValueEvent } from "../core/Event";
+import { RenderLayerEnum } from "../RenderLayer";
+import { RenderState } from "../RenderState";
+import { ValueEvent } from "../../core/Event";
+import { Asset } from "./Asset";
 
-namespace Private
-{
-    export let id = 0;
-}
-
-export class Material
+export class Material extends Asset
 {
     name: string;
     uniformParameters: { [name: string]: any } = {};
@@ -55,11 +51,10 @@ export class Material
     onchangeShader = new ValueEvent<Material, Shader>();
 
     renderState: RenderState = new RenderState();
-    readonly id: number;
     constructor(name?: string)
     {
+        super();
         this.name = name;
-        this.id = Private.id++;
     }
     setParameter(uniformKey: string, value: any)
     {

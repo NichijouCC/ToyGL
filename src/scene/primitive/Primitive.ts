@@ -1,7 +1,5 @@
 import { GeometryInstance } from "./GeometryInstance";
 import { Mat4 } from "../../mathD/mat4";
-import { FrameState } from "../../render_V2/FrameState";
-import { DrawCommand } from "../../render_V2/DrawCommand";
 import { VertexArray } from "../../webgl/VertextArray";
 import { GeometryPipeline } from "./GeometryPipeline";
 import { BufferUsageEnum } from "../../webgl/Buffer";
@@ -107,7 +105,7 @@ export class Primitive
     interleave: boolean;
     vertexCacheOptimize: boolean;
     cull: boolean;
-    private drawCommand: DrawCommand[];
+    private drawCommand: any[];
     vas: VertexArray;
     constructor(option: Primitive)
     {
@@ -121,7 +119,7 @@ export class Primitive
         this.cull = option.cull ?? true;
     }
 
-    update(frameState: FrameState)
+    update(frameState: any)
     {
         //----------------------------------------------------
         //                  batch createvao

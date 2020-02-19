@@ -8,8 +8,8 @@ import { VertexAttEnum } from "../../webgl/VertexAttEnum";
 import { GraphicsDevice } from "../../webgl/GraphicsDevice";
 import { VertexArray, IvaoOptions } from "../../webgl/VertextArray";
 import { TypedArray } from "../../core/TypedArray";
-import { Material } from "../../scene/Material";
-import { StaticMesh } from "../../scene/mesh/StaticMesh";
+import { Material } from "../../scene/asset/Material";
+import { StaticMesh } from "../../scene/asset/StaticMesh";
 import { IndexBuffer } from "../../webgl/IndexBuffer";
 
 const MapGltfAttributeToToyAtt: { [name: string]: VertexAttEnum } = {

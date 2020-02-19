@@ -1,4 +1,6 @@
-
+//每个组件占据一个二级制位Bitkey, 每个system都有关联的component，组成一个UniteBitkey,每个entity的components同样会组成一个UniteBitkey;
+// 通过UniteBitkey 二进制比对来快速检验 entity是否含有system所关心的组件;
+//enity addcomponent时候将检查 相关system是否要管理此组件,关心的话就add到system中,这样就避免system的query过程.
 
 export interface Icomponent
 {

@@ -1,16 +1,16 @@
 import { Camera } from "./Camera";
 import { DrawCommand } from "./DrawCommand";
-import { Material } from "./Material";
+import { Material } from "./asset/Material";
 import { GraphicsDevice } from "../webgl/GraphicsDevice";
 import { RenderState } from "./RenderState";
 import { Frustum } from "./Frustum";
 import { Vec3 } from "../mathD/vec3";
 import { BoundingSphere } from "./Bounds";
-import { StaticMesh } from "./mesh/StaticMesh";
+import { StaticMesh } from "./asset/StaticMesh";
 import { MeshInstance } from "./MeshInstance";
 import { RenderLayerEnum } from "./RenderLayer";
 import { LayerCollection } from "./LayerCollection";
-import { IlayerIndexEvent } from "./Shader";
+import { IlayerIndexEvent } from "./asset/Shader";
 
 
 export enum SortTypeEnum
@@ -57,8 +57,8 @@ export class Render
                 uniforms = drawcall.material.uniformParameters;
                 renderState = drawcall.material.renderState;
 
-                shader.bind();
-                shader.bindUniforms(uniforms);
+                shader.glShader.bind();
+                shader.glShader.bindUniforms(uniforms);
 
                 if (Private.preRenderState != renderState)
                 {

@@ -5,7 +5,7 @@ import { ParseTextureNode } from "./parseTextureNode";
 import { Vec3 } from "../../mathD/vec3";
 import { DefShader } from "../defAssets/defShader";
 import { Color } from "../../mathD/color";
-import { Material } from '../../scene/Material';
+import { Material } from '../../scene/asset/Material';
 
 export class ParseMaterialNode
 {

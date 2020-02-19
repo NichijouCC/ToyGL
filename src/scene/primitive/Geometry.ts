@@ -50,14 +50,14 @@ export class Geometry
         this.primitiveType = option.primitiveType != null ? option.primitiveType : GlConstants.TRIANGLES;
         this.boundingSphere = option.boundingSphere;
     }
-    vertexCount: number;
+    private _vertexCount: number;
     setAttribute(attributeType: VertexAttEnum, options: IgeometryAttributeOptions, upload = false)
     {
         let geAtt = new GeometryAttribute({ ...options, type: attributeType });
         this.attributes[attributeType] = geAtt;
         if (attributeType === VertexAttEnum.POSITION)
         {
-            this.vertexCount = geAtt.values.length / geAtt.componentsPerAttribute;
+            this._vertexCount = geAtt.values.length / geAtt.componentsPerAttribute;
         }
     }
 

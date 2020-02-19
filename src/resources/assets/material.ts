@@ -9,8 +9,10 @@ import { RenderTexture } from "./renderTexture";
 import { ItextureInfo } from "../../render/webglRender";
 import { Vec2 } from "../../mathD/vec2";
 
-export class Material extends ToyAsset {
-    constructor(param?: ItoyAsset) {
+export class Material extends ToyAsset
+{
+    constructor(param?: ItoyAsset)
+    {
         super(param);
     }
     uniforms: { [name: string]: any } = {};
@@ -19,33 +21,42 @@ export class Material extends ToyAsset {
     private _layer: RenderLayerEnum;
     queue: number = 0;
 
-    set layer(value: RenderLayerEnum) {
+    set layer(value: RenderLayerEnum)
+    {
         this._layer = value;
     }
-    get layer(): RenderLayerEnum {
+    get layer(): RenderLayerEnum
+    {
         return this._layer || (this.shader && this.shader.layer) || RenderLayerEnum.Geometry;
     }
 
-    setColor(key: string, value: Color) {
+    setColor(key: string, value: Color)
+    {
         this.uniforms[key] = value;
     }
-    setTexture(key: string, value: Texture | ItextureInfo) {
+    setTexture(key: string, value: Texture | ItextureInfo)
+    {
         this.uniforms[key] = value;
     }
-    setVector4(key: string, value: Vec4) {
+    setVector4(key: string, value: Vec4)
+    {
         this.uniforms[key] = value;
     }
-    setVector3(key: string, value: Vec3) {
+    setVector3(key: string, value: Vec3)
+    {
         this.uniforms[key] = value;
     }
-    setVector3Array(key: string, value: Float32Array) {
+    setVector3Array(key: string, value: Float32Array)
+    {
         this.uniforms[key] = value;
     }
-    setVector2(key: string, value: Vec2) {
+    setVector2(key: string, value: Vec2)
+    {
         this.uniforms[key] = value;
     }
-    setFloat(key: string, value: number) {
+    setFloat(key: string, value: number)
+    {
         this.uniforms[key] = value;
     }
-    dispose(): void { }
+    destroy(): void { }
 }

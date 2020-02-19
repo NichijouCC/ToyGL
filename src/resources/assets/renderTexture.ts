@@ -4,7 +4,8 @@ import { IfboInfo, IfboOption } from "twebgl";
 import { Material } from "./material";
 import { GlConstants } from "../../render/GlConstant";
 
-export class RenderTexture extends ToyAsset implements IfboInfo {
+export class RenderTexture extends ToyAsset implements IfboInfo
+{
     colorTextureInfo: ItextureInfo;
     depthTextureInfo?: ItextureInfo;
     framebuffer: WebGLFramebuffer;
@@ -13,30 +14,35 @@ export class RenderTexture extends ToyAsset implements IfboInfo {
     depthStencil?: WebGLRenderbuffer;
     depth?: WebGLRenderbuffer;
 
-    get colorTexture(): ItextureInfo {
+    get colorTexture(): ItextureInfo
+    {
         return this.colorTextureInfo;
     }
-    get depthTexture(): ItextureInfo {
+    get depthTexture(): ItextureInfo
+    {
         return this.depthTextureInfo;
     }
 
-    constructor(op?: IfboOption, overrideMaterial?: Material) {
+    constructor(op?: IfboOption, overrideMaterial?: Material)
+    {
         super(null);
         let fboInfo = WebglRender.createFrameBuffer(op);
         Object.assign(this, fboInfo);
         this.overrideMaterial = overrideMaterial;
     }
     overrideMaterial: Material;
-    dispose(): void { }
+    destroy(): void { }
 }
 
-export class ShadowTexture implements IfboInfo {
+export class ShadowTexture implements IfboInfo
+{
     framebuffer: WebGLFramebuffer;
     width: number;
     height: number;
     colorTextureInfo: ItextureInfo;
     depthTextureInfo?: ItextureInfo;
-    constructor() {
+    constructor()
+    {
         let fboInfo = WebglRender.createFrameBuffer({
             activeDepthAttachment: true,
             depthFormat: GlConstants.DEPTH_COMPONENT,

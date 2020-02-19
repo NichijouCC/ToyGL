@@ -7,10 +7,10 @@ export class LayerComposition
     private layers: Map<number, LayerCollection> = new Map();
     constructor()
     {
-        this.layers.set(RenderLayerEnum.Background, new LayerCollection());
-        this.layers.set(RenderLayerEnum.Geometry, new LayerCollection(SortTypeEnum.MatLayerIndex | SortTypeEnum.ShaderId));
-        this.layers.set(RenderLayerEnum.AlphaTest, new LayerCollection(SortTypeEnum.MatLayerIndex | SortTypeEnum.Zdist_FrontToBack));
-        this.layers.set(RenderLayerEnum.Transparent, new LayerCollection(SortTypeEnum.MatLayerIndex | SortTypeEnum.Zdist_FrontToBack));
+        this._addLayer(RenderLayerEnum.Background, new LayerCollection());
+        this._addLayer(RenderLayerEnum.Geometry, new LayerCollection(SortTypeEnum.MatLayerIndex | SortTypeEnum.ShaderId));
+        this._addLayer(RenderLayerEnum.AlphaTest, new LayerCollection(SortTypeEnum.MatLayerIndex | SortTypeEnum.Zdist_FrontToBack));
+        this._addLayer(RenderLayerEnum.Transparent, new LayerCollection(SortTypeEnum.MatLayerIndex | SortTypeEnum.Zdist_FrontToBack));
     }
     _addLayer(layer: RenderLayerEnum, layerCollection: LayerCollection)
     {

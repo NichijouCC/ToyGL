@@ -1,6 +1,7 @@
 import { LoadEnum } from "./base/loadEnum";
 
-export interface IassetLoadInfo {
+export interface IassetLoadInfo
+{
     url: string;
     loadState: LoadEnum;
     err?: Error;
@@ -8,7 +9,8 @@ export interface IassetLoadInfo {
     // progress: DownloadInfo;
 }
 
-export interface Iasset {
+export interface Iasset
+{
     //
     readonly name: string;
     readonly beDefaultAsset: boolean; //是否为系统默认资源
@@ -16,17 +18,19 @@ export interface Iasset {
     readonly URL: string | null;
     // use():void;
     // unuse(disposeNow?: boolean):void;
-    dispose(): void;
+    destroy(): void;
 
     // onLoadEnd: () => void;
     // onLoadEnd:(asset:Iasset)=>void;
     //caclByteLength(): number;
 }
-export interface IassetConstructor {
-    new (name: string | null, url: string | null): Iasset;
+export interface IassetConstructor
+{
+    new(name: string | null, url: string | null): Iasset;
 }
 
-export interface IassetLoader {
+export interface IassetLoader
+{
     load(
         url: string,
         onFinish: (asset: Iasset, state: IassetLoadInfo) => void,

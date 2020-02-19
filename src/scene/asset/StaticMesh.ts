@@ -1,6 +1,7 @@
 import { VertexArray } from "../../webgl/VertextArray";
 import { BoundingBox } from "../Bounds";
-export class StaticMesh
+import { Asset } from "./Asset";
+export class StaticMesh extends Asset
 {
     private _vertexArray: VertexArray;
     get vertexArray() { return this._vertexArray }

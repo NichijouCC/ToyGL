@@ -9,5 +9,5 @@ export class GltfAsset extends ToyAsset
     }
 
     roots: Transform[];
-    dispose(): void { }
+    destroy(): void { }
 }
