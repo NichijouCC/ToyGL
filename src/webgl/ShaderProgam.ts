@@ -3,8 +3,6 @@ import { UniformTypeEnum } from "./UniformType";
 import { VertexAttEnum } from "./VertexAttEnum";
 import { Texture } from "./Texture";
 
-//uniform value 使用versionData,参考自playcanvas.通过version id来判断uniform是否更新。question:在多material使用同一ShaderProgam的时候不会增加效率
-
 /***
  * @example usage
  * let shader=new ShaderProgam({
@@ -32,7 +30,7 @@ export class ShaderProgram implements IshaderProgram
     program: WebGLProgram;
     uniforms: { [name: string]: IuniformInfo; };
     samples: { [name: string]: IuniformInfo };
-    attributes: { [name: string]: IattributeInfo; };
+    attributes: { [type: string]: IattributeInfo; };
     /**
      * uniform value guid 缓存，用于更新修改的uniform
      */
@@ -80,19 +78,20 @@ export class ShaderProgram implements IshaderProgram
             ShaderProgram._cachedProgram = null;
         }
 
-        this.bindUniform = (name: string, value: VersionData) =>
+        this.bindUniform = (name: string, value: any) =>
         {
-            let _cahched = this._cachedUniform[name];
-            if (_cahched == null || _cahched != value.guid)
-            {
-                this._cachedUniform[name] = value.guid;
-                options.context.setUniform(this.uniforms[name], value);
-            }
+            // let _cahched = this._cachedUniform[name];
+            // if (_cahched == null || _cahched != value.guid)
+            // {
+            //     this._cachedUniform[name] = value.guid;
+            //     options.context.setUniform(this.uniforms[name], value);
+            // }
+            options.context.setUniform(this.uniforms[name], value);
         }
     }
-    private bindUniform(key: string, value: VersionData) { }
+    private bindUniform(key: string, value: any) { }
 
-    bindUniforms(value: { [name: string]: VersionData })
+    bindUniforms(value: { [name: string]: any })
     {
         for (let key in this.uniforms)
         {
@@ -106,7 +105,7 @@ export class ShaderProgram implements IshaderProgram
         {
             if (value[key])
             {
-                (value[key].value as Texture).bind(unit++);
+                (value[key].texture as Texture).bind(unit++);
             }
         }
     }
@@ -137,6 +136,7 @@ export interface IattributeInfo
 {
     name: string;
     location: number;
+    type: VertexAttEnum;
 }
 /**
  * shaderprogram
@@ -154,31 +154,4 @@ export interface IshaderProgramOption
     attributes: { [attName: string]: VertexAttEnum };
     vsStr: string;
     fsStr: string;
-}
-
-let guid = 0;
-export class VersionData
-{
-    private _guid: number;
-    private _value: any;
-    constructor(value: any)
-    {
-        this._guid = guid++;
-        this.value = value;
-    }
-
-    set value(value: any)
-    {
-        this._value = value;
-        this._guid = guid++;
-    }
-    get value()
-    {
-        return this._value;
-    }
-
-    get guid()
-    {
-        return this._guid;
-    }
 }

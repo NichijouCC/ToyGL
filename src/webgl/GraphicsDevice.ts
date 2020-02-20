@@ -3,12 +3,10 @@ import { DeviceCapability } from "./DeviceCapability";
 import { IattributeInfo, IuniformInfo, IshaderProgramOption } from "./ShaderProgam";
 import { UniformTypeEnum } from "./UniformType";
 import { BufferTargetEnum, BufferUsageEnum, BufferConfig } from "./Buffer";
-import { VertexLocation } from "./VertexAttribute";
-import { VertexAttEnum } from "./VertexAttEnum";
-import { GlConstants } from "./GLconstant";
 import { DeviceLimit } from "./DeviceLimit";
 import { DepthFuncEnum, BlendEquationEnum, BlendParamEnum } from "../scene/RenderState";
 import { VertexArray } from "./VertextArray";
+import { VertexAttEnum } from "./VertexAttEnum";
 
 export interface IengineOption
 {
@@ -24,7 +22,6 @@ export class GraphicsDevice
     readonly limit: DeviceLimit;
 
     readonly uniformSetter: { [uniformType: string]: (uniform: any, value: any) => void } = {};
-    readonly gltypeToUniformType: { [glType: number]: UniformTypeEnum } = {};
     readonly bufferUsageToGLNumber: { [useage: string]: number } = {};
     readonly bufferTargetToGLNumber: { [useage: string]: number } = {};
     readonly vertexAttributeSetter: { [size: number]: (index: number, value: any) => any } = {};
@@ -193,24 +190,6 @@ export class GraphicsDevice
             gl.uniform1fv(uniform.locationId, value);
         };
 
-        this.gltypeToUniformType[gl.FLOAT] = UniformTypeEnum.FLOAT;
-        this.gltypeToUniformType[gl.FLOAT_VEC2] = UniformTypeEnum.FLOAT_VEC2;
-        this.gltypeToUniformType[gl.FLOAT_VEC3] = UniformTypeEnum.FLOAT_VEC3;
-        this.gltypeToUniformType[gl.FLOAT_VEC4] = UniformTypeEnum.FLOAT_VEC4;
-        this.gltypeToUniformType[gl.INT] = UniformTypeEnum.INT;
-        this.gltypeToUniformType[gl.INT_VEC2] = UniformTypeEnum.INT_VEC2;
-        this.gltypeToUniformType[gl.INT_VEC3] = UniformTypeEnum.INT_VEC3;
-        this.gltypeToUniformType[gl.INT_VEC4] = UniformTypeEnum.INT_VEC4;
-        this.gltypeToUniformType[gl.BOOL] = UniformTypeEnum.BOOL;
-        this.gltypeToUniformType[gl.BOOL_VEC2] = UniformTypeEnum.BOOL_VEC2;
-        this.gltypeToUniformType[gl.BOOL_VEC3] = UniformTypeEnum.BOOL_VEC3;
-        this.gltypeToUniformType[gl.BOOL_VEC4] = UniformTypeEnum.BOOL_VEC4;
-        this.gltypeToUniformType[gl.FLOAT_MAT2] = UniformTypeEnum.FLOAT_MAT2;
-        this.gltypeToUniformType[gl.FLOAT_MAT3] = UniformTypeEnum.FLOAT_MAT3;
-        this.gltypeToUniformType[gl.FLOAT_MAT4] = UniformTypeEnum.FLOAT_MAT4;
-        this.gltypeToUniformType[gl.SAMPLER_2D] = UniformTypeEnum.SAMPLER_2D;
-        this.gltypeToUniformType[gl.SAMPLER_CUBE] = UniformTypeEnum.SAMPLER_CUBE;
-
         //------------------buffer
         this.bufferTargetToGLNumber[BufferTargetEnum.ARRAY_BUFFER] = gl.ARRAY_BUFFER;
         this.bufferTargetToGLNumber[BufferTargetEnum.ELEMENT_ARRAY_BUFFER] = gl.ELEMENT_ARRAY_BUFFER;
@@ -235,17 +214,6 @@ export class GraphicsDevice
         {
             this.gl.vertexAttrib4fv(index, value)
         }
-
-        VertexLocation.registAttributeType(VertexAttEnum.POSITION);
-        VertexLocation.registAttributeType(VertexAttEnum.TEXCOORD_0);
-        VertexLocation.registAttributeType(VertexAttEnum.COLOR_0);
-        VertexLocation.registAttributeType(VertexAttEnum.NORMAL);
-        VertexLocation.registAttributeType(VertexAttEnum.TANGENT);
-        VertexLocation.registAttributeType(VertexAttEnum.JOINTS_0);
-        VertexLocation.registAttributeType(VertexAttEnum.WEIGHTS_0);
-        VertexLocation.registAttributeType(VertexAttEnum.TEXCOORD_1);
-        VertexLocation.registAttributeType(VertexAttEnum.TEXCOORD_2);
-
     }
 
     handleContextLost = () =>
@@ -270,7 +238,7 @@ export class GraphicsDevice
                 return UniformTypeEnum.INT
             }
         }
-        let type = this.gltypeToUniformType[gltype];
+        let type = UniformTypeEnum.fromGlType(gltype);
         if (type == null)
         {
             console.error("unhandle uniform GLtype:", gltype);
@@ -293,6 +261,7 @@ export class GraphicsDevice
             let shader = gl.createProgram();
             gl.attachShader(shader, vsshader);
             gl.attachShader(shader, fsshader);
+            let attributes = this.preSetAttributeLocation(gl, shader, definition.attributes);
             gl.linkProgram(shader);
             let check = gl.getProgramParameter(shader, gl.LINK_STATUS);
             if (check == false)
@@ -303,7 +272,6 @@ export class GraphicsDevice
                 return null;
             } else
             {
-                let attributes = this.getAttributesInfo(gl, shader);
                 let { uniformDic, sampleDic } = this.getUniformsInfo(gl, shader);
                 //TODO :SMAPLES
                 let samples = {};
@@ -336,9 +304,10 @@ export class GraphicsDevice
         }
     }
 
-    private getAttributesInfo(
+    private preSetAttributeLocation(
         gl: WebGLRenderingContext,
         program: WebGLProgram,
+        attInfo: { [attName: string]: VertexAttEnum }
     ): { [attName: string]: IattributeInfo }
     {
         let attdic: { [attName: string]: IattributeInfo } = {};
@@ -348,9 +317,18 @@ export class GraphicsDevice
             let attribInfo = gl.getActiveAttrib(program, i);
             if (!attribInfo) break;
             let attName = attribInfo.name;
-            let attlocation = gl.getAttribLocation(program, attName);
+            let type = attInfo[attName] ?? VertexAttEnum.fromShaderAttName(attName);
+            if (type == null)
+            {
+                console.error(`cannot get Vertex Attribute type from shader defination or deduced from shader attname! Info: attname In shader [${attName}]`);
+            } else
+            {
+                let location = VertexAttEnum.toShaderLocation(type);
+                gl.bindAttribLocation(program, location, attName);
+                // let attlocation = gl.getAttribLocation(program, attName);
+                attdic[type] = { name: attName, type, location: location };
+            }
 
-            attdic[attName] = { name: attName, location: attlocation };
         }
         return attdic;
     }

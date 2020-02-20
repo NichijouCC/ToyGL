@@ -62,7 +62,7 @@ export class VertexAttribute implements IvertexAttribute
         this._gl = context.gl;
         let att = options;
         this.type = att.type;
-        this.index = VertexLocation.fromAttributeType(this.type);
+        this.index = VertexAttEnum.toShaderLocation(this.type);
         this.enabled = att.enabled ?? true;// true;
         this.vertexBuffer = att.vertexBuffer;// positionBuffer;
         this.value = att.value;
@@ -128,27 +128,4 @@ export class VertexAttribute implements IvertexAttribute
     unbind() { }
 }
 
-export class VertexLocation
-{
-    private static attLocationMap: { [type: string]: number } = {};
-    static fromAttributeType(type: VertexAttEnum | string)
-    {
-        let location = this.attLocationMap[type];
-        if (location == null)
-        {
-            console.warn(`regist new attribute Type: ${type}`);
-            this.registAttributeType(type);
-        }
-        return this.attLocationMap[type];
-    }
-    /**
-     * 注册vertex attribute 类型
-     * @param name 
-     */
-    private static locationId = -1;
-    static registAttributeType(name: string)
-    {
-        this.attLocationMap[name] = this.locationId++;
-    }
-}
 
