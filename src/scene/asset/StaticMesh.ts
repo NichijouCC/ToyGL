@@ -1,20 +1,9 @@
 import { VertexArray } from "../../webgl/VertextArray";
 import { BoundingBox } from "../Bounds";
-import { Asset } from "./Asset";
-export class StaticMesh extends Asset
+import { Asset, IgraphicAsset } from "./Asset";
+import { GraphicsDevice } from "../../webgl/GraphicsDevice";
+import { BaseGeometryAsset } from "./BassGeoemtryAsset";
+export class StaticMesh extends BaseGeometryAsset
 {
-    private _vertexArray: VertexArray;
-    get vertexArray() { return this._vertexArray }
-    set vertexArray(vertexArray: VertexArray)
-    {
-        if (this._vertexArray)
-        {
-            this._vertexArray.destroy();
-        }
-        this._vertexArray = vertexArray;
-    }
 
-    private _aabb: BoundingBox;
-    get boundingBox() { return this._aabb }
-    set boundingBox(aabb: BoundingBox) { this._aabb = aabb }
 }

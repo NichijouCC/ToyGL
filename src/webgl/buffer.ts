@@ -10,13 +10,13 @@ export type bufferOption =
         context: GraphicsDevice;
         target: BufferTargetEnum;
         typedArray: TypedArray;
-        usage: BufferUsageEnum;
+        usage?: BufferUsageEnum;
     }
     | {
         context: GraphicsDevice;
         target: BufferTargetEnum;
         sizeInBytes: number;
-        usage: BufferUsageEnum;
+        usage?: BufferUsageEnum;
     };
 export class Buffer implements IglElement
 {
@@ -31,7 +31,7 @@ export class Buffer implements IglElement
     {
         this.device = options.context;
         this.target = options.target;
-        this.usage = options.usage;
+        this.usage = options.usage ?? BufferUsageEnum.STATIC_DRAW;
         this.typedArray = (options as any).typedArray;
         this.sizeInBytes = (options as any).sizeInBytes;
 

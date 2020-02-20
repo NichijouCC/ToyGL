@@ -141,15 +141,6 @@ export class VertexArray implements IglElement
             this._bind = () =>
             {
                 gl.bindVertexArray(this._vao);
-                if (this.beDirty)
-                {
-                    for (let key in this.dirtyAtt)
-                    {
-                        this.vertexAttributes[key].vertexBuffer.update(this.dirtyAtt[key]);
-                    }
-                    this.beDirty = false;
-                    this.dirtyAtt = {};
-                }
             }
             this._unbind = () =>
             {
@@ -171,24 +162,7 @@ export class VertexArray implements IglElement
         {
             this._bind = () =>
             {
-                if (this.beDirty)
-                {
-                    for (let key in this.vertexAttributes)
-                    {
-                        if (this.dirtyAtt[key])
-                        {
-                            this.vertexAttributes[key].vertexBuffer.update(this.dirtyAtt[key]);
-                        } else
-                        {
-                            this.vertexAttributes[key].bind();
-                        }
-                    }
-                    this.beDirty = false;
-                    this.dirtyAtt = {};
-                } else
-                {
-                    this.bindVertexAttributes(gl, this.vertexAttributes, this._indexbuffer);
-                }
+                this.bindVertexAttributes(gl, this.vertexAttributes, this._indexbuffer);
             }
             this._unbind = () =>
             {
@@ -202,22 +176,22 @@ export class VertexArray implements IglElement
         return this.vertexAttributes[att].vertexBuffer;
     }
 
-    private beDirty = false;
-    private dirtyAtt: { [name: string]: TypedArray | number } = {};
     updateVertexBuffer(att: VertexAttEnum | string, sizeInBytesOrTypedArray: TypedArray | number)
     {
-        this.beDirty = true;
-        this.dirtyAtt[att] = sizeInBytesOrTypedArray;
+        this.vertexAttributes[att].vertexBuffer.update(sizeInBytesOrTypedArray);
     }
-    private dirtyIndexData: IndicesArray | number;
     updateIndexBuffer(sizeInBytesOrTypedArray: IndicesArray | number)
     {
-        this.beDirty = true;
-        this.dirtyIndexData = sizeInBytesOrTypedArray;
+        this.indexBuffer.update(sizeInBytesOrTypedArray);
     }
     get indexBuffer()
     {
         return this._indexbuffer;
+    }
+
+    hasAttribute(att: VertexAttEnum | string)
+    {
+        return this.vertexAttributes[att] != null;
     }
 
     update(vertexAttOption: IvertexAttributeOption, forece: boolean = false)
@@ -235,6 +209,12 @@ export class VertexArray implements IglElement
                     (att as any)[key] = (vertexAttOption as any)[key]
                 }
             }
+        }
+        if (vertexAttOption.vertexBuffer != null && this._vao)
+        {
+            this._bind();
+            this.vertexAttributes[vertexAttOption.type].bind();
+            this._unbind();
         }
     }
 

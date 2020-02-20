@@ -26,13 +26,15 @@ export class GeometryAttribute
     normalize: boolean;
     values?: TypedArray;
     value?: any;
+    beDynamic: boolean;
     constructor(option: IgeometryAttributeOptions)
     {
         this.value = option.value;
         this.values = option.values;
         this.componentDatatype = option.componentDatatype;
         this.componentsPerAttribute = option.componentsPerAttribute;
-        this.normalize = option.normalize != null ? option.normalize : false;
+        this.normalize = option.normalize ?? false;
+        this.beDynamic = option.beDynamic ?? false;
     }
 }
 export interface IgeometryAttributeOptions
@@ -43,6 +45,7 @@ export interface IgeometryAttributeOptions
     values?: TypedArray;
     value?: any;
     type?: VertexAttEnum | string;
+    beDynamic?: boolean;
 }
 
 

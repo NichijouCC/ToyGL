@@ -1,4 +1,5 @@
 import { UniqueObject } from "../../core/UniqueObject";
+import { GraphicsDevice } from "../../webgl/GraphicsDevice";
 
 export class Asset extends UniqueObject
 {
@@ -9,4 +10,11 @@ export class Asset extends UniqueObject
     get becreating() { return this._becreating };
 
     destroy() { }
+}
+
+export interface IgraphicAsset
+{
+    bind(device: GraphicsDevice): void;
+    unbind(): void;
+    destroy(): void;
 }

@@ -4,12 +4,12 @@ import { TypedArray } from "../core/TypedArray";
 export type vertexBufferOption =
     | {
         context: GraphicsDevice;
-        usage: BufferUsageEnum;
+        usage?: BufferUsageEnum;
         sizeInBytes: number;
     }
     | {
         context: GraphicsDevice;
-        usage: BufferUsageEnum;
+        usage?: BufferUsageEnum;
         typedArray: TypedArray;
     };
 
