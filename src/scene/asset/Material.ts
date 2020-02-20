@@ -3,7 +3,10 @@ import { RenderLayerEnum } from "../RenderLayer";
 import { RenderState } from "../RenderState";
 import { ValueEvent } from "../../core/Event";
 import { Asset } from "./Asset";
-
+namespace Private
+{
+    export let id: number = 0;
+}
 export class Material extends Asset
 {
     name: string;
@@ -55,7 +58,10 @@ export class Material extends Asset
     {
         super();
         this.name = name;
+        this._sortId = Private.id++;
     }
+    private _sortId: number;
+    get sortId() { return this._sortId + 1000 * this._shader?.sortId }
     setParameter(uniformKey: string, value: any)
     {
         this.uniformParameters[uniformKey] = value;

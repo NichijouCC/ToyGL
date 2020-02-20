@@ -2,6 +2,7 @@ import { VertexAttEnum } from "../../webgl/VertexAttEnum";
 import { TypedArray } from "../../core/TypedArray";
 import { IvertexAttributeOption } from "../../webgl/VertexAttribute";
 import { VertexBuffer } from "../../webgl/VertexBuffer";
+import { ComponentDatatypeEnum } from "../../webgl/ComponentDatatypeEnum";
 
 /**
  * 
@@ -21,7 +22,7 @@ import { VertexBuffer } from "../../webgl/VertexBuffer";
 export class GeometryAttribute
 {
     type: VertexAttEnum | string
-    componentDatatype: number;
+    componentDatatype: ComponentDatatypeEnum;
     componentsPerAttribute: number;
     normalize: boolean;
     values?: TypedArray;
@@ -30,21 +31,39 @@ export class GeometryAttribute
     constructor(option: IgeometryAttributeOptions)
     {
         this.value = option.value;
-        this.values = option.values;
-        this.componentDatatype = option.componentDatatype;
+        if (option.values instanceof Array)
+        {
+            this.componentDatatype = option.componentDatatype || ComponentDatatypeEnum.FLOAT;
+            this.values = TypedArray.fromGlType(this.componentDatatype, option.values);
+        } else
+        {
+            this.values = option.values;
+            if (option.componentDatatype != null)
+            {
+                if (option.values != null && TypedArray.glType(this.values) != option.componentDatatype)
+                {
+                    throw new Error("the componentDatatype is conflict with geometryAttributeOption's value (Typedarray)")
+                }
+                this.componentDatatype = option.componentDatatype;
+            } else
+            {
+                this.componentDatatype = this.values ? TypedArray.glType(this.values) : ComponentDatatypeEnum.FLOAT;
+            }
+        }
         this.componentsPerAttribute = option.componentsPerAttribute;
         this.normalize = option.normalize ?? false;
         this.beDynamic = option.beDynamic ?? false;
     }
 }
+
 export interface IgeometryAttributeOptions
 {
-    componentDatatype: number;
+    componentDatatype?: ComponentDatatypeEnum;
     componentsPerAttribute: number;
     normalize?: boolean;
-    values?: TypedArray;
+    values?: TypedArray | Array<number>;
     value?: any;
-    type?: VertexAttEnum | string;
+    type: VertexAttEnum;
     beDynamic?: boolean;
 }
 

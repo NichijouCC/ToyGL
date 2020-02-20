@@ -1,14 +1,10 @@
-import { Geometry } from "./primitive/Geometry";
 import { Material } from "./asset/Material";
 import { Transform } from "./Transform";
-import { VertexArray } from "../webgl/VertextArray";
-import { PrimitiveTypeEnum } from "../core/PrimitiveTypeEnum";
-import { StaticMesh } from "./asset/StaticMesh";
-import { Mat4 } from "../mathD/mat4";
 import { InterEvent, ValueEvent } from "../core/Event";
 import { DrawCommand } from "./DrawCommand";
 import { RenderLayerEnum } from "./RenderLayer";
 import { Shader } from "./asset/Shader";
+import { IgeometryAsset } from "./asset/BassGeoemtryAsset";
 
 namespace Private
 {
@@ -23,9 +19,9 @@ export class MeshInstance extends DrawCommand
         this.id = Private.id++;
     }
     readonly id: number;
-    private _mesh: StaticMesh;
+    private _mesh: IgeometryAsset;
     get mesh() { return this._mesh }
-    set mesh(mesh: StaticMesh) { this._mesh = mesh }
+    set mesh(mesh: IgeometryAsset) { this._mesh = mesh }
 
     node: Transform;
     get worldMat() { return this.node?.worldMatrix }

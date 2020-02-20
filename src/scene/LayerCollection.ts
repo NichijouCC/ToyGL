@@ -20,9 +20,9 @@ namespace Private
         return drawb.zdist - drawa.zdist;
     }
 
-    export const sortByShaderId = (drawa: MeshInstance, drawb: MeshInstance): number =>
+    export const sortByMatSortId = (drawa: MeshInstance, drawb: MeshInstance): number =>
     {
-        return drawb.material.shader.id - drawb.material.shader.id;
+        return drawb.material.sortId - drawb.material.sortId;
     }
 
 
@@ -30,7 +30,7 @@ namespace Private
     {
         sortTypeInfo[SortTypeEnum.MatLayerIndex] = { sortFunc: sortByMatLayerIndex };
         sortTypeInfo[SortTypeEnum.ShaderId] = {
-            sortFunc: sortByShaderId,
+            sortFunc: sortByMatSortId,
             eventFunc: (ins: MeshInstance) => ins.onchangeShader
         };
         sortTypeInfo[SortTypeEnum.Zdist_FrontToBack] = {

@@ -120,7 +120,7 @@ export type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int
 
 export namespace TypedArray
 {
-    export function fromGlType(gltType: number, count: number)
+    export function fromGlType(gltType: number, count: number | Array<number>)
     {
         let ctor = glTypeToTypedArrayCtor[gltType];
         return new ctor(count);
@@ -129,5 +129,10 @@ export namespace TypedArray
     export function bytesPerElement(type: TypedArray)
     {
         return type.BYTES_PER_ELEMENT;
+    }
+
+    export function glType(data: TypedArray)
+    {
+        return getGLTypeFromTypedArray(data);
     }
 }

@@ -4,6 +4,11 @@ import { Material } from "./Material";
 import { ValueEvent } from "../../core/Event";
 import { Asset } from "./Asset";
 
+namespace Private
+{
+    export let sortId: number = 0;
+}
+
 export class Shader extends Asset
 {
     private _shader: ShaderProgram;
@@ -33,6 +38,12 @@ export class Shader extends Asset
     }
     get layerIndex() { return this._layerIndex }
     onchangeLayerIndex = new ValueEvent<Shader, IlayerIndexEvent>();
+    readonly sortId: number;
+    constructor()
+    {
+        super();
+        this.sortId = Private.sortId++;
+    }
 }
 
 export interface IlayerIndexEvent

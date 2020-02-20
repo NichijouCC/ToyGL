@@ -17,8 +17,9 @@ import { TypedArray } from "../../core/TypedArray";
  * @example useage
  * ```
  * var geometry = new Geometry({
- *   attributes : {
- *     position : new GeometryAttribute({
+ *   attributes : [
+ * ]{
+ *    {
  *       componentDatatype : ComponentDatatype.FLOAT,
  *       componentsPerAttribute : 3,
  *       values : new Float32Array([
@@ -46,7 +47,11 @@ export class Geometry extends BaseGeometryAsset
         {
             this.setAttribute(key as any, option.attributes[key]);
         }
-        this.indices = option.indices;
+        option.attributes.forEach(item =>
+        {
+            this.setAttribute(item.type, item);
+        })
+        this.indices = option.indices instanceof Array ? new Uint16Array(option.indices) : option.indices;
         this.primitiveType = option.primitiveType != null ? option.primitiveType : GlConstants.TRIANGLES;
         this.boundingSphere = option.boundingSphere;
     }
@@ -159,8 +164,8 @@ export class Geometry extends BaseGeometryAsset
 
 export interface IgeometryOptions
 {
-    attributes?: { [keyName: string]: IgeometryAttributeOptions };
-    indices?: IndicesArray;
+    attributes?: IgeometryAttributeOptions[];
+    indices?: IndicesArray | Array<number>;
     primitiveType?: number;
     boundingSphere?: BoundingSphere;
     count?: number;
