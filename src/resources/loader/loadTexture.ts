@@ -1,28 +1,34 @@
 import { IassetLoader, IassetLoadInfo, Iasset } from "../type";
-import { getFileName } from "../base/helper";
+import { getFileName } from "../Util";
 import { Texture } from "../assets/texture";
 import { loadImg, loadText } from "../../io/loadtool";
 import { LoadEnum } from "../base/loadEnum";
 
-export class LoadTextureSample implements IassetLoader {
+export class LoadTextureSample implements IassetLoader
+{
     load(
         url: string,
         onFinish: (asset: Iasset, state: IassetLoadInfo) => void,
         onProgress: (progress: number) => void,
-    ): Iasset {
+    ): Iasset
+    {
         let name = getFileName(url);
         let texture: Texture = new Texture({ name: name, URL: url });
         loadImg(url)
-            .then(img => {
+            .then(img =>
+            {
                 texture = Texture.fromImageSource(img, null, texture);
 
-                if (onFinish) {
+                if (onFinish)
+                {
                     onFinish(texture, { url: url, loadState: LoadEnum.Success });
                 }
             })
-            .catch(err => {
+            .catch(err =>
+            {
                 let errorMsg = "ERROR: Load Image Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
-                if (onFinish) {
+                if (onFinish)
+                {
                     onFinish(texture, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
                 }
             });
@@ -30,42 +36,51 @@ export class LoadTextureSample implements IassetLoader {
     }
 }
 
-export interface ItextureDesJson {
+export interface ItextureDesJson
+{
     texture: string;
 }
-export class LoadTextureDes implements IassetLoader {
+export class LoadTextureDes implements IassetLoader
+{
     load(
         url: string,
         onFinish: (asset: Iasset, state: IassetLoadInfo) => void,
         onProgress: (progress: number) => void,
-    ): Iasset {
+    ): Iasset
+    {
         let name = getFileName(url);
         let texture: Texture = new Texture({ name: name, URL: url });
         //-------------load image des
         loadText(url)
-            .then(txt => {
+            .then(txt =>
+            {
                 let desjson = JSON.parse(txt);
                 let imgName = desjson.texture;
                 let desname = getFileName(url);
 
                 let imgurl = url.replace(desname, imgName);
                 loadImg(imgurl)
-                    .then(img => {
+                    .then(img =>
+                    {
                         texture = Texture.fromImageSource(img, null, texture);
 
-                        if (onFinish) {
+                        if (onFinish)
+                        {
                             onFinish(texture, { url: url, loadState: LoadEnum.Success });
                         }
                     })
-                    .catch(err => {
+                    .catch(err =>
+                    {
                         let errorMsg =
                             "ERROR: Load Image Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
-                        if (onFinish) {
+                        if (onFinish)
+                        {
                             onFinish(texture, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
                         }
                     });
             })
-            .catch(err => {
+            .catch(err =>
+            {
                 let errorMsg = "ERROR: Load Image Des Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
             });
         return texture;

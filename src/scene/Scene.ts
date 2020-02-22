@@ -1,20 +1,7 @@
-import { Camera } from "./Camera";
-import { GraphicsDevice } from "../webgl/GraphicsDevice";
-import { Transform } from "./Transform";
+import { Asset } from "./asset/Asset";
+import { Entity } from "../core/Entity";
 
-export class Scene
+export class Scene extends Asset
 {
-    private root: Transform = new Transform();
-    createChild()
-    {
-        let node = new Transform();
-        return node;
-    }
-
-    render(context: GraphicsDevice, camera: Camera)
-    {
-
-    }
+    root: Entity;
 }
-
-

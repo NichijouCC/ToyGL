@@ -1,5 +1,5 @@
 import { Material } from "./asset/Material";
-import { Transform } from "./Transform";
+import { Transform } from "../core/Transform";
 import { InterEvent, ValueEvent } from "../core/Event";
 import { DrawCommand } from "./DrawCommand";
 import { RenderLayerEnum } from "./RenderLayer";

@@ -1,9 +1,6 @@
 import { Vec3 } from "../mathD/vec3";
 import { Quat } from "../mathD/quat";
 import { Mat4 } from "../mathD/mat4";
-import { IframeState } from "./frameState";
-import { Entity } from "../ec/entity";
-import { Scene } from "./Scene";
 
 enum DirtyFlagEnum
 {
@@ -16,8 +13,7 @@ enum DirtyFlagEnum
 
 export class Transform
 {
-    entity: Entity;
-    refScene: Scene;
+    // refScene: Scene;
     parent: Transform;
     children: Transform[] = [];
     private dirtyFlag: number = 0;
@@ -274,17 +270,17 @@ export class Transform
         }
     }
 
-    private static linkRefScene(node: Transform, scene: Scene)
-    {
-        if (node.refScene != scene)
-        {
-            node.refScene = scene;
-            for (let child of node.children)
-            {
-                this.linkRefScene(child, scene);
-            }
-        }
-    }
+    // private static linkRefScene(node: Transform, scene: Scene)
+    // {
+    //     if (node.refScene != scene)
+    //     {
+    //         node.refScene = scene;
+    //         for (let child of node.children)
+    //         {
+    //             this.linkRefScene(child, scene);
+    //         }
+    //     }
+    // }
 
     /**
      * 修改local属性后，标记dirty
@@ -308,7 +304,7 @@ export class Transform
         this.children.push(node);
         node.parent = this;
         node.markDirty();
-        Transform.linkRefScene(node, this.refScene);
+        // Transform.linkRefScene(node, this.refScene);
     }
     /**
      * 移除所有子物体
@@ -339,9 +335,6 @@ export class Transform
             node.parent = null;
         }
     }
-
-    update(frameState: IframeState): void { }
-
     //-------易用性拓展
     /**
      * 获取世界坐标系下当前z轴的朝向

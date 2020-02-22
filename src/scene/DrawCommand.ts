@@ -3,7 +3,7 @@ import { Material } from "./asset/Material";
 import { VertexArray } from "../webgl/VertextArray";
 import { BoundingSphere, BoundingBox } from "./Bounds";
 import { Mat4 } from "../mathD/mat4";
-import { Transform } from "./Transform";
+import { Transform } from "../core/Transform";
 
 export class DrawCommand
 {

@@ -1,6 +1,5 @@
 import { Icomponent, Ecs, Ientity, UniteBitkey } from "./Ecs";
-import { Transform } from "../scene/Transform";
-import { Scene } from "../scene/Scene";
+import { Transform } from "./Transform";
 export class Entity extends Transform implements Ientity
 {
     name: string;
@@ -9,7 +8,7 @@ export class Entity extends Transform implements Ientity
         super();
         this.name = name;
     }
-    _uniteBitkey: UniteBitkey;
+    _uniteBitkey: UniteBitkey = new UniteBitkey();
     addComponent(comp: string): Icomponent
     {
         let newComp = Ecs.addComp(this, comp);
@@ -18,5 +17,11 @@ export class Entity extends Transform implements Ientity
     removeComponent(comp: string): void
     {
         Ecs.removeComp(this, comp);
+    }
+
+    clone(): Entity
+    {
+        //TODO
+        return new Entity();
     }
 }

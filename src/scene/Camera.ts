@@ -3,7 +3,7 @@ import { Color } from "../mathD/color";
 import { Mat4 } from "../mathD/mat4";
 import { GameScreen } from "../gameScreen";
 import { Frustum } from "./Frustum";
-import { Transform } from "./Transform";
+import { Transform } from "../core/Transform";
 import { Vec3 } from "../mathD/vec3";
 
 export enum ProjectionEnum
