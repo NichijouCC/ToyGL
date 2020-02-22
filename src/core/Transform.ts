@@ -223,6 +223,11 @@ export class Transform
         return this._worldMatrix;
     }
 
+    get worldMatrixBedirty()
+    {
+        return this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.LOCALMAT);
+    }
+
     set worldMatrix(value: Mat4)
     {
         if (this.parent == null)
