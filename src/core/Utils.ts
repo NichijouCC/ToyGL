@@ -7,3 +7,9 @@ export function createGuid()
         return v.toString(16);
     });
 }
+let tempStr: string;
+export function packString(array: string[])
+{
+    tempStr = "";
+    array.forEach(item => { tempStr.concat })
+}
