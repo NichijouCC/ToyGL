@@ -1,5 +1,15 @@
 # ToyGL
 
-1.transform 的属性（pos等）通过赋值对象来修改，而不是修改某个分量；在 set 中做markdirty操作，外部也就不需要主动标记dirty；
+## architecture
+Layer 1: Core,Entity, Component,transform
+Layer 2: Graphics
+Layer 3: Scene
+Layer 4: Components
 
+## pain point
+- ecs的快速query
+- 多个sort条件时候快速sort
 
+## 参考引擎:
+cesium.js
+playcanvas

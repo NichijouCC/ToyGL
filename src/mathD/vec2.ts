@@ -50,7 +50,7 @@ export class Vec2 extends Float32Array {
     public static disposeRecycledItems() {
         Vec2.Recycle.length = 0;
     }
-    private constructor(x: number = 0, y: number = 0) {
+    constructor(x: number = 0, y: number = 0) {
         super(2);
         this[0] = x;
         this[1] = y;

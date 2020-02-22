@@ -56,26 +56,25 @@ export class Mat4 extends Float32Array {
     public static disposeRecycledItems() {
         Mat4.Recycle.length = 0;
     }
-    // private  constructor()
-    // {
-    //     super(16);
-    //     this[0] = 1;
-    //     // this[1] = 0;
-    //     // this[2] = 0;
-    //     // this[3] = 0;
-    //     // this[4] = 0;
-    //     this[5] = 1;
-    //     // this[6] = 0;
-    //     // this[7] = 0;
-    //     // this[8] = 0;
-    //     // this[9] = 0;
-    //     this[10] = 1;
-    //     // this[11] = 0;
-    //     // this[12] = 0;
-    //     // this[13] = 0;
-    //     // this[14] = 0;
-    //     this[15] = 1;
-    // }
+    constructor() {
+        super(16);
+        this[0] = 1;
+        // this[1] = 0;
+        // this[2] = 0;
+        // this[3] = 0;
+        // this[4] = 0;
+        this[5] = 1;
+        // this[6] = 0;
+        // this[7] = 0;
+        // this[8] = 0;
+        // this[9] = 0;
+        this[10] = 1;
+        // this[11] = 0;
+        // this[12] = 0;
+        // this[13] = 0;
+        // this[14] = 0;
+        this[15] = 1;
+    }
 
     /**
      * Copy the values from one mat4 to another
@@ -103,7 +102,7 @@ export class Mat4 extends Float32Array {
         out[15] = src[15];
         return out;
     }
-    static Identity = Mat4.create();
+    static IDENTITY = Mat4.create();
     /**
      * Set a mat4 to the identity matrix
      *

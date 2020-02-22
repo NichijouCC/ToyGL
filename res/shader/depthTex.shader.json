@@ -1,9 +1,0 @@
-{
-    "properties": [],
-    "passes": [
-        {
-            "vs": "quad",
-            "fs": "depthTex"
-        }
-    ]
-}

@@ -1,31 +1,39 @@
 import { IassetLoader, Iasset, IassetLoadInfo } from "../type";
-import { getFileName } from "../base/helper";
+import { getFileName } from "../Util";
 import { TextAsset } from "../assets/textAsset";
 import { loadText } from "../../io/loadtool";
 import { LoadEnum } from "../base/loadEnum";
 
-export class LoadTxt implements IassetLoader {
+export class LoadTxt implements IassetLoader
+{
     load(
         url: string,
         onFinish: (asset: Iasset, state: IassetLoadInfo) => void,
         onProgress: (progress: number) => void,
-    ): Iasset {
+    ): Iasset
+    {
         let name = getFileName(url);
         let text = new TextAsset(name, url);
-        loadText(url, info => {
-            if (onProgress) {
+        loadText(url, info =>
+        {
+            if (onProgress)
+            {
                 onProgress(info.loaded / info.total);
             }
         })
-            .then(value => {
+            .then(value =>
+            {
                 text.content = value;
-                if (onFinish) {
+                if (onFinish)
+                {
                     onFinish(text, { url: url, loadState: LoadEnum.Success });
                 }
             })
-            .catch(error => {
+            .catch(error =>
+            {
                 let errorMsg = "ERROR:Load Txt/json Error!\n  Info: LOAD URL: " + url + "  LOAD MSG:" + error.message;
-                if (onFinish) {
+                if (onFinish)
+                {
                     onFinish(text, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
                 }
             });

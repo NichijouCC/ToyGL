@@ -38,12 +38,11 @@ export class Mat2d extends Float32Array {
     public static disposeRecycledItems() {
         Mat2d.Recycle.length = 0;
     }
-    // private constructor()
-    // {
-    //     super(6);
-    //     this[0]=1;
-    //     this[3]=1;
-    // }
+    constructor() {
+        super(6);
+        this[0] = 1;
+        this[3] = 1;
+    }
 
     /**
      * Copy the values from one mat2d to another
