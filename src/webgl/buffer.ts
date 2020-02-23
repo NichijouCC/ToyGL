@@ -22,8 +22,10 @@ export class Buffer implements IglElement
 {
     protected target: BufferTargetEnum;
     readonly usage: BufferUsageEnum;
-    readonly typedArray: TypedArray;
-    readonly sizeInBytes: number;
+    protected _typedArray: TypedArray;
+    get typedArray() { return this._typedArray };
+    protected _sizeInBytes: number;
+    get sizeInbytes() { return this._sizeInBytes };
     protected _buffer: WebGLBuffer;
     private device: GraphicsDevice;
     private _gl: WebGLRenderingContext;
@@ -32,18 +34,18 @@ export class Buffer implements IglElement
         this.device = options.context;
         this.target = options.target;
         this.usage = options.usage ?? BufferUsageEnum.STATIC_DRAW;
-        this.typedArray = (options as any).typedArray;
-        this.sizeInBytes = (options as any).sizeInBytes;
+        this._typedArray = (options as any).typedArray;
+        this._sizeInBytes = (options as any).sizeInBytes;
 
-        if (this.typedArray != null)
+        if (this._typedArray != null)
         {
-            this.sizeInBytes = this.typedArray.byteLength;
+            this._sizeInBytes = this._typedArray.byteLength;
         }
 
         let gl = options.context.gl;
         let buffer = gl.createBuffer();
         gl.bindBuffer(this.target, buffer);
-        gl.bufferData(this.target, this.typedArray ?? this.sizeInBytes as any, this.usage);
+        gl.bufferData(this.target, this._typedArray ?? this._sizeInBytes as any, this.usage);
         gl.bindBuffer(this.target, null);
 
         this.bind = () =>
@@ -59,6 +61,13 @@ export class Buffer implements IglElement
         {
             gl.bindBuffer(this.target, buffer);
             gl.bufferData(this.target, sizeInBytesOrTypedArray as any, this.usage);
+            if (typeof sizeInBytesOrTypedArray == "number")
+            {
+                this._sizeInBytes = sizeInBytesOrTypedArray
+            } else
+            {
+                this._typedArray = sizeInBytesOrTypedArray;
+            }
             // gl.bindBuffer(this.target, null);
         }
 

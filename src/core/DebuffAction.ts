@@ -2,7 +2,7 @@
 export interface IdebuffeAction
 {
     excuteAction: (debuffAction: () => Function) => void;
-    dispose: () => void;
+    dispose: Function;
 }
 /**
  * 执行需要进行清理的方法
@@ -19,4 +19,23 @@ export function excuteDebuffAction(action: () => Function): IdebuffeAction
         },
         dispose: () => { dispose(); dispose = undefined; }
     };
+}
+
+export class DebuffAction implements IdebuffeAction
+{
+    excuteAction = (debuffAction: () => Function) =>
+    {
+        if (this.dispose) this.dispose();
+        this.dispose = debuffAction();
+    };
+    dispose: Function;
+    static create(action?: () => Function)
+    {
+        let newAct = new DebuffAction();
+        if (action)
+        {
+            newAct.dispose = action();
+        }
+        return newAct
+    }
 }

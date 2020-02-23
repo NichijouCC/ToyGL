@@ -106,13 +106,14 @@ import { PrimitiveTypeEnum } from "../core/PrimitiveTypeEnum";
  */
 export class VertexArray implements IglElement
 {
-    private vertexAttributes: { [type: string]: VertexAttribute } = {};
+    private _vertexAttributes: { [type: string]: VertexAttribute } = {};
+    get vertexAttributes() { return this._vertexAttributes }
     private _indexbuffer: IndexBuffer;
     private _vao: any;
     private _context: GraphicsDevice;
     get vertexcount()
     {
-        return this.vertexAttributes[VertexAttEnum.POSITION].count;
+        return this._vertexAttributes[VertexAttEnum.POSITION].count;
     }
     private _primitiveType: PrimitiveTypeEnum;
     get primitiveType() { return this._primitiveType }
@@ -128,7 +129,7 @@ export class VertexArray implements IglElement
         // this.vertexAttributes = options.vertexAttributes.map(item => new VertexAttribute(options.context, item));
         options.vertexAttributes.forEach(item =>
         {
-            this.vertexAttributes[item.type] = new VertexAttribute(options.context, item)
+            this._vertexAttributes[item.type] = new VertexAttribute(options.context, item)
         })
         this._indexbuffer = options.indexBuffer;
         this._primitiveType = options.primitiveType ?? PrimitiveTypeEnum.TRIANGLES;
@@ -149,7 +150,7 @@ export class VertexArray implements IglElement
 
             let vao = gl.createVertexArray();
             gl.bindVertexArray(vao)
-            this.bindVertexAttributes(gl, this.vertexAttributes, this._indexbuffer);
+            this.bindVertexAttributes(gl, this._vertexAttributes, this._indexbuffer);
             gl.bindVertexArray(null)
             this._vao = vao;
 
@@ -162,23 +163,23 @@ export class VertexArray implements IglElement
         {
             this._bind = () =>
             {
-                this.bindVertexAttributes(gl, this.vertexAttributes, this._indexbuffer);
+                this.bindVertexAttributes(gl, this._vertexAttributes, this._indexbuffer);
             }
             this._unbind = () =>
             {
-                this.unbindAttributes(gl, this.vertexAttributes, this._indexbuffer);
+                this.unbindAttributes(gl, this._vertexAttributes, this._indexbuffer);
             }
         }
     }
 
     getAttributeVertexBuffer(att: VertexAttEnum | string): VertexBuffer
     {
-        return this.vertexAttributes[att].vertexBuffer;
+        return this._vertexAttributes[att].vertexBuffer;
     }
 
     updateVertexBuffer(att: VertexAttEnum | string, sizeInBytesOrTypedArray: TypedArray | number)
     {
-        this.vertexAttributes[att].vertexBuffer.update(sizeInBytesOrTypedArray);
+        this._vertexAttributes[att].vertexBuffer.update(sizeInBytesOrTypedArray);
     }
     updateIndexBuffer(sizeInBytesOrTypedArray: IndicesArray | number)
     {
@@ -191,17 +192,17 @@ export class VertexArray implements IglElement
 
     hasAttribute(att: VertexAttEnum | string)
     {
-        return this.vertexAttributes[att] != null;
+        return this._vertexAttributes[att] != null;
     }
 
     update(vertexAttOption: IvertexAttributeOption, forece: boolean = false)
     {
-        if (forece || this.vertexAttributes[vertexAttOption.type] == null)
+        if (forece || this._vertexAttributes[vertexAttOption.type] == null)
         {
-            this.vertexAttributes[vertexAttOption.type] = new VertexAttribute(this._context, vertexAttOption);
+            this._vertexAttributes[vertexAttOption.type] = new VertexAttribute(this._context, vertexAttOption);
         } else
         {
-            let att = this.vertexAttributes[vertexAttOption.type];
+            let att = this._vertexAttributes[vertexAttOption.type];
             for (const key in vertexAttOption)
             {
                 if ((att as any)[key] != (vertexAttOption as any)[key])
@@ -213,7 +214,7 @@ export class VertexArray implements IglElement
         if (vertexAttOption.vertexBuffer != null && this._vao)
         {
             this._bind();
-            this.vertexAttributes[vertexAttOption.type].bind();
+            this._vertexAttributes[vertexAttOption.type].bind();
             this._unbind();
         }
     }

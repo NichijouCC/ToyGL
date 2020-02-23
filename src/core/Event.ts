@@ -1,11 +1,11 @@
-export class InterEvent
+export class EventHandler<T>
 {
-    private listener: ((...args: any) => void)[] = [];
-    addEventListener(func: (...args: any) => void)
+    private listener: ((event: T) => void)[] = [];
+    addEventListener(func: (event: T) => void)
     {
         this.listener.push(func);
     }
-    removeEventListener(func: (...args: any) => void)
+    removeEventListener(func: (event: T) => void)
     {
         let index = this.listener.indexOf(func);
         if (index >= 0)
@@ -14,36 +14,15 @@ export class InterEvent
         }
     }
     removeAll() { this.listener = []; }
-    raiseEvent(...args: any)
+    raiseEvent(event: T)
     {
         this.listener.forEach(fuc =>
         {
-            fuc(args);
+            fuc(event);
         });
     }
-}
-
-export class ValueEvent<A, B>
-{
-    private listener: ((...args: any) => void)[] = [];
-    addEventListener(func: (target: A, oldValue: B, newValue: B) => void)
+    destroy()
     {
-        this.listener.push(func);
-    }
-    removeEventListener(func: (target: A, oldValue: B, newValue: B) => void)
-    {
-        let index = this.listener.indexOf(func);
-        if (index >= 0)
-        {
-            this.listener.splice(index);
-        }
-    }
-    removeAll() { this.listener = []; }
-    raiseEvent(target: A, oldValue: B, newValue: B)
-    {
-        this.listener.forEach(fuc =>
-        {
-            fuc(target, oldValue, newValue);
-        });
+        this.listener = undefined;
     }
 }

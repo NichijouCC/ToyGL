@@ -1,5 +1,5 @@
 import { excuteDebuffAction, IdebuffeAction } from "./DebuffAction";
-import { InterEvent } from "./Event";
+import { EventHandler } from "./Event";
 
 export class Timer implements Itimer
 {
@@ -36,7 +36,7 @@ export class Timer implements Itimer
         }
     }
 
-    private _ontick = new InterEvent();
+    private _ontick = new EventHandler<number>();
     get onTick() { return this._ontick }
 
     FPS: number = 60;
@@ -72,5 +72,5 @@ export interface Itimer
 {
     active(): void;
     disActive(): void;
-    readonly onTick: InterEvent;
+    readonly onTick: EventHandler<number>;
 }

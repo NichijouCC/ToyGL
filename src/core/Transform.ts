@@ -1,6 +1,7 @@
 import { Vec3 } from "../mathD/vec3";
 import { Quat } from "../mathD/quat";
 import { Mat4 } from "../mathD/mat4";
+import { EventHandler } from "./Event";
 
 enum DirtyFlagEnum
 {

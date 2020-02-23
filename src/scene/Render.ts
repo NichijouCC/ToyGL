@@ -111,7 +111,7 @@ export class Render
         for (let i = 0; i < drawCalls.length; i++)
         {
             drawcall = drawCalls[i];
-            if (drawcall.cullingMask != null && ((drawcall.cullingMask & cullingMask) == 0)) continue;
+            if (!drawcall.bevisible || (drawcall.cullingMask != null && ((drawcall.cullingMask & cullingMask) == 0))) continue;
             if (drawcall.enableCull)
             {
                 if (this.frustumCull(frustum, drawcall))

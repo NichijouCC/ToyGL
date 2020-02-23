@@ -1,4 +1,4 @@
-import { InterEvent } from "./Event";
+import { EventHandler } from "./Event";
 
 /**
  *
@@ -40,5 +40,5 @@ export class Screen
         canvas.onresize = () => { console.warn("canvas resize!"); };
         this.onresize.raiseEvent();
     }
-    onresize: InterEvent = new InterEvent();
+    onresize = new EventHandler<void>();
 }
