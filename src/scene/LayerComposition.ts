@@ -7,48 +7,66 @@ export class LayerComposition
     private layers: Map<number, LayerCollection> = new Map();
     constructor()
     {
-        this._addLayer(RenderLayerEnum.Background, new LayerCollection());
-        this._addLayer(RenderLayerEnum.Geometry, new LayerCollection(SortTypeEnum.MatLayerIndex | SortTypeEnum.ShaderId));
-        this._addLayer(RenderLayerEnum.AlphaTest, new LayerCollection(SortTypeEnum.MatLayerIndex | SortTypeEnum.Zdist_FrontToBack));
-        this._addLayer(RenderLayerEnum.Transparent, new LayerCollection(SortTypeEnum.MatLayerIndex | SortTypeEnum.Zdist_FrontToBack));
+        this._addLayer(RenderLayerEnum.Background);
+        this._addLayer(RenderLayerEnum.Geometry, SortTypeEnum.MatLayerIndex | SortTypeEnum.ShaderId);
+        this._addLayer(RenderLayerEnum.AlphaTest, SortTypeEnum.MatLayerIndex | SortTypeEnum.Zdist_FrontToBack);
+        this._addLayer(RenderLayerEnum.Transparent, SortTypeEnum.MatLayerIndex | SortTypeEnum.Zdist_FrontToBack);
     }
-    _addLayer(layer: RenderLayerEnum, layerCollection: LayerCollection)
+    _addLayer(layer: RenderLayerEnum, sortType: number = 0)
     {
         if (!this.layers.has(layer))
         {
-            this.layers.set(RenderLayerEnum.Background, layerCollection);
-            layerCollection.onAddMeshInstance.addEventListener((ins: MeshInstance) =>
-            {
-                ins.onchangeLayer.addEventListener(this._onInsLayerChange);
-            });
-            layerCollection.onRemoveMeshInstance.addEventListener((ins: MeshInstance) =>
-            {
-                ins.onchangeLayer.removeEventListener(this._onInsLayerChange);
-            });
+            let collection = new LayerCollection(layer, sortType);
+            this.layers.set(layer, collection);
         }
     }
-    addMeshInstance(ins: MeshInstance)
+
+    getlayers()
     {
+        return Array.from(this.layers.values());
+    }
+
+    private insMap: { [insId: number]: LayerCollection } = {};
+    tryAddMeshInstance(ins: MeshInstance)
+    {
+        if (this.insMap[ins.id] != null) return;
+
         let layer = ins.material.layer;
-        let func = (oldLayer: RenderLayerEnum, newLayer: RenderLayerEnum) => { this._onInsLayerChange(ins, oldLayer, newLayer); };
-        (ins as any)._onlayerAdd;
-        this.layers.get(layer).add(ins);
+        let layerCollection = this.layers.get(layer);
+
+        layerCollection.add(ins);
+        this.insMap[ins.id] = layerCollection;
+        ins.onDirty.addEventListener(this.onInsDirty);
+        ins.ondispose.addEventListener(this.onInsDispose)
     }
     removeMeshInstance(ins: MeshInstance)
     {
-        let layer = ins.material.layer;
-        this.layers.get(layer).remove(ins);
-        ins.onchangeLayer;
+        if (this.insMap[ins.id] == null) return;
+
+        let layerCollection = this.insMap[ins.id];
+        layerCollection.remove(ins);
+        delete this.insMap[ins.id];
+        ins.onDirty.removeEventListener(this.onInsDirty);
+        ins.ondispose.removeEventListener(this.onInsDispose)
     }
-    private _onInsLayerChange(ins: MeshInstance, oldLayer: RenderLayerEnum, newLayer: RenderLayerEnum)
+
+    private onInsDirty = (ins: MeshInstance) =>
     {
-        if (oldLayer != null)
+        let layer = ins.material.layer;
+        let collection = this.insMap[ins.id];
+        if (collection.layer != layer)
         {
-            this.layers.get(oldLayer).remove(ins);
+            collection.remove(ins);
+            let layerCollection = this.layers.get(layer);
+            layerCollection.add(ins);
+            this.insMap[ins.id] = layerCollection;
         }
-        if (newLayer != null)
-        {
-            this.layers.get(newLayer).add(ins);
-        }
+
+        this.insMap[ins.id].markDirty();
+    }
+
+    private onInsDispose = (ins: MeshInstance) =>
+    {
+        this.removeMeshInstance(ins);
     }
 }

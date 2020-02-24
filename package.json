@@ -19,8 +19,8 @@
     "node": ">=6.0.0"
   },
   "scripts": {
-    "roll": "rollup -c rollup.config.ts",
-    "start": "rollup -c rollup.config.dev.ts -w"
+    "roll": "rollup -c rollup.config.js",
+    "start": "rollup -c rollup.config.dev.js -w"
   },
   "devDependencies": {
     "@types/node": "^10.11.0",

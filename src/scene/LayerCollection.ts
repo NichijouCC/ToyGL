@@ -1,8 +1,7 @@
 import { MeshInstance } from "./MeshInstance";
-import { DrawCommand } from "./DrawCommand";
 import { SortTypeEnum } from "./Render";
-import { ValueEvent, InterEvent } from "../core/Event";
 import { Camera } from "./Camera";
+import { RenderLayerEnum } from "./RenderLayer";
 namespace Private
 {
     export const sortByMatLayerIndex = (drawa: MeshInstance, drawb: MeshInstance): number =>
@@ -31,7 +30,7 @@ namespace Private
         sortTypeInfo[SortTypeEnum.MatLayerIndex] = { sortFunc: sortByMatLayerIndex };
         sortTypeInfo[SortTypeEnum.ShaderId] = {
             sortFunc: sortByMatSortId,
-            eventFunc: (ins: MeshInstance) => ins.onchangeShader
+            // eventFunc: (ins: MeshInstance) => ins.onchangeShader
         };
         sortTypeInfo[SortTypeEnum.Zdist_FrontToBack] = {
             sortFunc: sortByZdist_FrontToBack,
@@ -57,13 +56,14 @@ namespace Private
     export interface IsortInfo
     {
         sortFunc: (drawa: MeshInstance, drawb: MeshInstance) => number,
-        eventFunc?: (ins: MeshInstance) => ValueEvent<MeshInstance, any>,
+        // eventFunc?: (ins: MeshInstance) => ValueEvent<MeshInstance, any>,
         beforeSort?: (ins: MeshInstance[], cam: Camera) => void
     }
 }
 
 export class LayerCollection
 {
+    readonly layer: RenderLayerEnum;
     private _insArr: MeshInstance[] = [];
     getSortedinsArr(cam: Camera)
     {
@@ -76,21 +76,22 @@ export class LayerCollection
     }
 
     private sortFunction: (a: MeshInstance, b: MeshInstance) => number;
-    private onAdd: ((ins: MeshInstance) => void)[] = []
-    private onRemove: ((ins: MeshInstance) => void)[] = [];
+    // private onAdd: ((ins: MeshInstance) => void)[] = []
+    // private onRemove: ((ins: MeshInstance) => void)[] = [];
     private beforeSort: ((ins: MeshInstance[], cam: Camera) => void)[] = [];
 
-    constructor(sortType: number = 0)
+    constructor(layer: RenderLayerEnum, sortType: number = 0)
     {
-        let func = () => { this.markDirty(); };
+        this.layer = layer;
+        // let func = () => { this.markDirty(); };
         let attch = (sortInfo: Private.IsortInfo) =>
         {
             this.sortFunction = this.sortFunction != null ? this.sortFunction && sortInfo.sortFunc : sortInfo.sortFunc;
-            if (sortInfo?.eventFunc)
-            {
-                this.onAdd.push((ins => { sortInfo?.eventFunc(ins).addEventListener(func) }))
-                this.onRemove.push(ins => { sortInfo?.eventFunc(ins).removeEventListener(func) })
-            }
+            // if (sortInfo?.eventFunc)
+            // {
+            //     this.onAdd.push((ins => { sortInfo?.eventFunc(ins).addEventListener(func) }))
+            //     this.onRemove.push(ins => { sortInfo?.eventFunc(ins).removeEventListener(func) })
+            // }
             if (sortInfo?.beforeSort)
             {
                 this.beforeSort.push((ins: MeshInstance[], cam: Camera) => { sortInfo?.beforeSort(ins, cam); this.markDirty(); });
@@ -108,7 +109,7 @@ export class LayerCollection
         }
     }
     private beDirty: boolean = true;
-    markDirty()
+    markDirty = () =>
     {
         this.beDirty = true;
     }
@@ -118,9 +119,10 @@ export class LayerCollection
         let index = this._insArr.indexOf(newIns);
         if (index == -1)
         {
-            this._insArr.splice(index, 1);
-            this.onAddMeshInstance.raiseEvent(newIns);
-            this.onAdd.forEach(func => func(newIns));
+            this._insArr.push(newIns);
+            this.markDirty();
+            // this.onAddMeshInstance.raiseEvent(newIns)
+            // this.onAdd.forEach(func => func(newIns));
         }
     }
     remove(item: MeshInstance)
@@ -129,11 +131,11 @@ export class LayerCollection
         if (index >= 0)
         {
             this._insArr.splice(index, 1);
-            this.onRemoveMeshInstance.raiseEvent(item);
-            this.onRemove.forEach(func => func(item));
+            // this.onRemoveMeshInstance.raiseEvent(item);
+            // this.onRemove.forEach(func => func(item));
         }
     }
 
-    onAddMeshInstance: InterEvent = new InterEvent();
-    onRemoveMeshInstance: InterEvent = new InterEvent();
+    // onAddMeshInstance = new EventHandler<MeshInstance>();
+    // onRemoveMeshInstance = new EventHandler<MeshInstance>();
 }

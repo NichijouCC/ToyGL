@@ -1,13 +1,14 @@
 import { getGLTypeForTypedArray } from "../render/helper";
-import { glTypeToByteSize } from "../resources/assets/geometry";
 import { GraphicsDevice } from "./GraphicsDevice";
 import { BufferUsageEnum, Buffer, BufferTargetEnum } from "./Buffer";
+import { GlConstants } from "./GLconstant";
+import { TypedArray, getByteSizeFromGLtype } from "../core/TypedArray";
 export type IndicesArray = Uint16Array | Uint32Array;
 export type IndexBufferOption = {
     context: GraphicsDevice;
     usage?: BufferUsageEnum;
     sizeInBytes: number;
-    indexDatatype: number;
+    indexDatatype: IndexDatatypeEnum;
 } | {
     context: GraphicsDevice;
     usage?: BufferUsageEnum;
@@ -25,9 +26,15 @@ export class IndexBuffer extends Buffer
         let typedArray = (options as any).typedArray;
         if (typedArray)
         {
-            this.indexDatatype = getGLTypeForTypedArray(typedArray);
+            this.indexDatatype = TypedArray.glType(typedArray);
         }
-        this.bytesPerIndex = glTypeToByteSize(this.indexDatatype);
-        this.numberOfIndices = this.sizeInBytes / this.bytesPerIndex;
+        this.bytesPerIndex = getByteSizeFromGLtype(this.indexDatatype);
+        this.numberOfIndices = this._sizeInBytes / this.bytesPerIndex;
     }
+}
+
+export enum IndexDatatypeEnum
+{
+    Uint16Array = GlConstants.UNSIGNED_SHORT,
+    Uint32Array = GlConstants.UNSIGNED_INT,
 }

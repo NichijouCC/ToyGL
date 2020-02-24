@@ -75,7 +75,7 @@ export class VertexAttribute implements IvertexAttribute
 
         if (this.vertexBuffer)
         {
-            let bytes = this.vertexBuffer.sizeInBytes - this.offsetInBytes;
+            let bytes = this.vertexBuffer.sizeInbytes - this.offsetInBytes;
             if (this.strideInBytes == 0)
             {
                 this.count = bytes / (this.componentsPerAttribute * ComponentDatatypeEnum.byteSize(this.componentDatatype))

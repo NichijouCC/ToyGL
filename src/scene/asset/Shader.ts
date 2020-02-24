@@ -1,25 +1,27 @@
 import { ShaderProgram, IshaderProgramOption } from "../../webgl/ShaderProgam";
 import { RenderLayerEnum } from "../RenderLayer";
-import { Material } from "./Material";
-import { ValueEvent } from "../../core/Event";
-import { Asset } from "./Asset";
+import { Asset, IgraphicAsset } from "./Asset";
+import { VertexAttEnum } from "../../webgl/VertexAttEnum";
+import { GraphicsDevice } from "../../webgl/GraphicsDevice";
 
 namespace Private
 {
     export let sortId: number = 0;
 }
 
-export class Shader extends Asset
+export class Shader extends Asset implements IgraphicAsset
 {
+
     private _shader: ShaderProgram;
     get glShader() { return this._shader };
     set glShader(shader: ShaderProgram)
     {
-        if (this._shader)
+        if (this._shader != shader)
         {
-            this._shader.destroy();
+            if (this._shader) { this._shader.destroy(); }
+            this._shader = shader;
+            this.onDirty.raiseEvent();
         }
-        this._shader = shader;
     }
     private _layer: RenderLayerEnum;
     get layer() { return this._layer; }
@@ -30,20 +32,51 @@ export class Shader extends Asset
         let layerIndex = layer + queue;
         if (this._layerIndex != layerIndex)
         {
-            this.onchangeLayerIndex.raiseEvent(this, { layer: this._layer, layerIndex: this._layerIndex }, { layer, layerIndex });
-
             this._layer = layer;
             this._layerIndex = layerIndex;
+            this.onDirty.raiseEvent();
         }
     }
-    get layerIndex() { return this._layerIndex }
-    onchangeLayerIndex = new ValueEvent<Shader, IlayerIndexEvent>();
+    get layerIndex() { return this._layerIndex };
+
+    private vsStr: string;
+    private fsStr: string;
+    private attributes: { [attName: string]: VertexAttEnum };
     readonly sortId: number;
-    constructor()
+    constructor(options: IshaderOption)
     {
         super();
         this.sortId = Private.sortId++;
+
+        this.vsStr = options.vsStr;
+        this.fsStr = options.fsStr;
+        this.attributes = options.attributes;
     }
+
+    bind(device: GraphicsDevice): void
+    {
+        if (this._shader == null)
+        {
+            this._shader = new ShaderProgram({ context: device, attributes: this.attributes, vsStr: this.vsStr, fsStr: this.fsStr });
+        }
+        this._shader.bind();
+    }
+    unbind(): void
+    {
+        this._shader?.unbind();
+    }
+
+    destroy()
+    {
+        this._shader?.destroy();
+    }
+}
+
+export interface IshaderOption
+{
+    attributes: { [attName: string]: VertexAttEnum };
+    vsStr: string;
+    fsStr: string;
 }
 
 export interface IlayerIndexEvent
