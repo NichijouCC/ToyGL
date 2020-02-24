@@ -3,13 +3,14 @@ import { MeshInstance } from "../scene/MeshInstance";
 import { Entity } from "../core/Entity";
 import { AssetReferenceArray } from "../scene/AssetReferenceArray";
 import { PrimiveAsset } from "../scene/asset/PrimiveAsset";
+import { EventHandler } from "../core/Event";
 
 export class ModelComponent implements Icomponent
 {
     entity: Entity;
     primitives: AssetReferenceArray<PrimiveAsset> = new AssetReferenceArray();
     private meshinstances: MeshInstance[] = [];
-
+    get meshInstances() { return this.meshinstances }
     constructor()
     {
         this.primitives.onAssetChange.addEventListener((event) =>
@@ -19,9 +20,15 @@ export class ModelComponent implements Icomponent
             if (ins == null)
             {
                 ins = this.meshinstances[index] = new MeshInstance();
+                this.onDirty.raiseEvent(this);
             }
             ins.geometry = newAsset.geometry;
             ins.material = newAsset.material;
+        });
+        this.primitives.onItemDelect.addEventListener((index) =>
+        {
+            this.meshinstances[index].dispose();
         })
     }
+    onDirty = new EventHandler<ModelComponent>();
 }

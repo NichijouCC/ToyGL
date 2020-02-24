@@ -10,6 +10,7 @@ import { StaticMesh } from "../../scene/asset/StaticMesh";
 import { Asset } from "../../scene/asset/Asset";
 import { IassetLoader } from "../Resource";
 import { Prefab } from "../../scene/asset/Prefab";
+import { Texture2D } from "../../scene/asset/Texture2d";
 
 export interface IglTFExtension
 {
@@ -34,7 +35,7 @@ export class GltfNodeCache
     bufferviewNodeCache: { [index: number]: Promise<IgltfBufferview> } = {};
     bufferNodeCache: { [index: number]: Promise<ArrayBuffer> } = {};
     materialNodeCache: { [index: number]: Promise<Material> } = {};
-    textrueNodeCache: { [index: number]: Promise<Texture> } = {};
+    textrueNodeCache: { [index: number]: Promise<Texture2D> } = {};
     // beContainAnimation: boolean = false;
     // skinNodeCache: { [index: number]: SkinNode } = {};
     // animationNodeCache: { [index: number]: AnimationClip } = {};

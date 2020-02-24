@@ -37,8 +37,8 @@ export class MeshInstance extends DrawCommand
     get material(): Material { return this.materialRef.asset; }
     set material(mat: Material) { this.materialRef.asset = mat; }
 
-    dispose() { this.ondispose.raiseEvent(); };
+    dispose() { this.ondispose.raiseEvent(this); };
 
     onDirty = new EventHandler<MeshInstance>();
-    ondispose = new EventHandler<void>();
+    ondispose = new EventHandler<MeshInstance>();
 }

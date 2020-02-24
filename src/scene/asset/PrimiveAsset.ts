@@ -12,4 +12,11 @@ export class PrimiveAsset extends Asset
     private geometryRef = new AssetReference<BaseGeometryAsset>();
     get geometry() { return this.geometryRef.asset }
     set geometry(value: BaseGeometryAsset) { this.geometryRef.asset = value; }
+
+    constructor(material: Material, gemometry: BaseGeometryAsset)
+    {
+        super();
+        this.material = material;
+        this.geometry = gemometry;
+    }
 }

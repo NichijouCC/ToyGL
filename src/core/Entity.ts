@@ -1,6 +1,7 @@
 import { Icomponent, Ecs, Ientity, UniteBitkey } from "./Ecs";
 import { Transform } from "./Transform";
 import { EventHandler } from "./Event";
+import { RefData } from "./RefData";
 
 namespace Private
 {
@@ -10,18 +11,12 @@ namespace Private
 export class Entity extends Transform implements Ientity
 {
     name: string;
-    private _beActive: boolean = true;
-    get beActive() { return this._beActive };
+    ref_beActive = new RefData<boolean>(true);
+    get beActive() { return this.ref_beActive.data };
     set beActive(value: boolean)
     {
-        if (this._beActive != value)
-        {
-            this._beActive = value;
-            this.onChangeActiveState.raiseEvent(this._beActive);
-            this.traverseChild((node) => { node._beActive = value });
-        }
+        this.ref_beActive.data = value;
     }
-    onChangeActiveState = new EventHandler();
     readonly id: number;
     constructor(name?: string)
     {
@@ -35,6 +30,7 @@ export class Entity extends Transform implements Ientity
         let newComp = Ecs.addComp(this, comp);
         return newComp;
     }
+    getComponent(comp: string) { return (this as any).comp }
     removeComponent(comp: string): void
     {
         Ecs.removeComp(this, comp);

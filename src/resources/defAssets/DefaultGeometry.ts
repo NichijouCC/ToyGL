@@ -1,7 +1,4 @@
-import { Geometry } from "../primitive/Geometry";
-import { GeometryAttribute } from "../primitive/GeometryAttribute";
-import { ComponentDatatypeEnum } from "../../webgl/ComponentDatatypeEnum";
-import { PrimitiveTypeEnum } from "../../core/PrimitiveTypeEnum";
+import { Geometry } from "../../scene/primitive/Geometry";
 import { VertexAttEnum } from "../../webgl/VertexAttEnum";
 
 namespace Private
@@ -210,8 +207,9 @@ namespace Private
     });
 }
 
-export class DefaultAsset
+export class DefaultGeometry
 {
+    static get ins() { return new DefaultGeometry() }
     get quad() { return Private.quad }
     get cube() { return Private.cube }
     get plan() { return Private.plan }

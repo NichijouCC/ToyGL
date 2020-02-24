@@ -1,4 +1,4 @@
-import { Shader, IlayerIndexEvent } from "./Shader";
+import { Shader, IlayerIndexEvent, IshaderOption } from "./Shader";
 import { RenderLayerEnum } from "../RenderLayer";
 import { RenderState } from "../RenderState";
 import { Asset } from "./Asset";
@@ -11,12 +11,20 @@ export class Material extends Asset
 {
     name: string;
     uniformParameters: { [name: string]: any } = {};
-    constructor(name?: string)
+    constructor(options: ImatOption)
     {
         super();
-        this.name = name;
+        this.name = options.name;
         this._sortId = Private.id++;
 
+        if (options.shaderOption != null)
+        {
+            this.shader = new Shader(options.shaderOption)
+        }
+        if (options.uniformParameters)
+        {
+            this.uniformParameters = { ...options.uniformParameters }
+        }
         this.shaderRef.onDirty.addEventListener(() => { this.onDirty.raiseEvent() });
     }
 
@@ -45,4 +53,11 @@ export class Material extends Asset
         this.uniformParameters[uniformKey] = value;
     }
     dispose(): void { }
+}
+
+export interface ImatOption
+{
+    name?: string;
+    uniformParameters?: { [name: string]: any };
+    shaderOption?: IshaderOption;
 }

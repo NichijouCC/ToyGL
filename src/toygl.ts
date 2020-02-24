@@ -1,10 +1,13 @@
 import { Screen } from "./core/Screen";
 import { Input } from "./input/Input";
 import { Timer } from "./core/Timer";
-import { Scene } from "./scene/Scene";
+import { InterScene } from "./scene/Scene";
 import { GraphicsDevice } from "./webgl/GraphicsDevice";
 import { Resource } from "./resources/resource";
 import { LoadGlTF } from "./resources/loader/LoadglTF";
+import { Ecs } from "./core/Ecs";
+import { ModelSystem } from "./components/ModelSystem";
+import { Render } from "./scene/Render";
 export class ToyGL
 {
     static create(element: HTMLDivElement | HTMLCanvasElement): ToyGL
@@ -31,10 +34,13 @@ export class ToyGL
         let timer = new Timer();
         let input = new Input(canvas);
         let screen = new Screen(canvas);
-        let render = new GraphicsDevice(canvas);
+        let device = new GraphicsDevice(canvas);
+        let render = new Render(device);
         let resource = new Resource();
+        let scene = new InterScene(render);
+        resource.registerAssetLoader(".gltf", new LoadGlTF(device));
+        Ecs.addSystem(new ModelSystem(scene))
 
-        resource.registerAssetLoader(".gltf", new LoadGlTF(render));
         timer.onTick.addEventListener((deltaTime) =>
         {
 
@@ -43,6 +49,7 @@ export class ToyGL
         toy._timer = timer;
         toy._input = input;
         toy._screen = screen;
+        toy._scene = scene;
 
         return toy;
     }
@@ -54,4 +61,7 @@ export class ToyGL
 
     private _timer: Timer;
     get timer() { return this._timer }
+
+    private _scene: InterScene;
+    get scene() { return this._scene }
 }

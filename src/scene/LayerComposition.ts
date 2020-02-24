@@ -21,22 +21,33 @@ export class LayerComposition
         }
     }
 
-    private insMap: { [insId: number]: LayerCollection } = {};
-    addMeshInstance(ins: MeshInstance)
+    getlayers()
     {
+        return Array.from(this.layers.values());
+    }
+
+    private insMap: { [insId: number]: LayerCollection } = {};
+    tryAddMeshInstance(ins: MeshInstance)
+    {
+        if (this.insMap[ins.id] != null) return;
+
         let layer = ins.material.layer;
         let layerCollection = this.layers.get(layer);
 
         layerCollection.add(ins);
         this.insMap[ins.id] = layerCollection;
         ins.onDirty.addEventListener(this.onInsDirty);
+        ins.ondispose.addEventListener(this.onInsDispose)
     }
     removeMeshInstance(ins: MeshInstance)
     {
+        if (this.insMap[ins.id] == null) return;
+
         let layerCollection = this.insMap[ins.id];
         layerCollection.remove(ins);
         delete this.insMap[ins.id];
         ins.onDirty.removeEventListener(this.onInsDirty);
+        ins.ondispose.removeEventListener(this.onInsDispose)
     }
 
     private onInsDirty = (ins: MeshInstance) =>
@@ -54,15 +65,8 @@ export class LayerComposition
         this.insMap[ins.id].markDirty();
     }
 
-    private _onInsLayerChange(ins: MeshInstance, oldLayer: RenderLayerEnum, newLayer: RenderLayerEnum)
+    private onInsDispose = (ins: MeshInstance) =>
     {
-        if (oldLayer != null)
-        {
-            this.layers.get(oldLayer).remove(ins);
-        }
-        if (newLayer != null)
-        {
-            this.layers.get(newLayer).add(ins);
-        }
+        this.removeMeshInstance(ins);
     }
 }

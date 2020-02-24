@@ -17,9 +17,9 @@ export interface Isystem
 {
     readonly caredComps: string[];
     readonly uniteBitkey: UniteBitkey;
-    entities: Ientity[];
-    addEntity(entity: Ientity): void;
-    removeEntity(entity: Ientity): void;
+    // entities: Ientity[];
+    tryAddEntity(entity: Ientity): void;
+    tryRemoveEntity(entity: Ientity): void;
 }
 
 export class Ecs
@@ -47,7 +47,7 @@ export class Ecs
         {
             if (entity._uniteBitkey.containe(item.uniteBitkey))
             {
-                item.addEntity(entity);
+                item.tryAddEntity(entity);
             }
         });
         entity._uniteBitkey.addBitKey(compInfo.bitKey);
@@ -65,10 +65,8 @@ export class Ecs
             let relatedSystem = this.registedcomps[comp].relatedSystem;
             relatedSystem.forEach(item =>
             {
-                if (item.entities.indexOf(entity) >= 0)
-                {
-                    item.removeEntity(entity);
-                }
+                item.tryRemoveEntity(entity);
+
             })
         }
     }

@@ -1,27 +1,59 @@
 import { Isystem, UniteBitkey, Ientity } from "../core/Ecs";
 import { Entity } from "../core/Entity";
-import { MeshInstance } from "../scene/MeshInstance";
+import { ModelComponent } from "./ModelComponent";
+import { InterScene } from "../scene/Scene";
+import { DebuffAction } from "../core/DebuffAction";
 
 export class ModelSystem implements Isystem
 {
-    constructor()
-    {
-
-    }
-    caredComps: string[] = ["ModelComponent"];
+    caredComps: string[] = [ModelComponent.name];
     uniteBitkey: UniteBitkey = new UniteBitkey();
-    entities: Entity[] = [];
+    private comps: Map<number, { comp: ModelComponent, debuffAction: DebuffAction }> = new Map();
 
-    addEntity(entity: Entity): void
+    private scene: InterScene;
+    constructor(scene: InterScene)
     {
-        this.entities.push(entity);
-        entity.onChangeActiveState.addEventListener(() =>
-        {
-
-        })
+        this.scene = scene;
     }
-    removeEntity(entity: Entity): void
+    tryAddEntity(entity: Entity): void
     {
-        throw new Error("Method not implemented.");
+        if (!this.comps.has(entity.id))
+        {
+            let comp = entity.getComponent(ModelComponent.name) as ModelComponent;
+            this.comps.set(entity.id, {
+                comp,
+                debuffAction: DebuffAction.create(() =>
+                {
+                    comp.meshInstances.forEach(ins =>
+                    {
+                        this.scene.tryAddMeshInstance(ins);
+                    });
+                    comp.onDirty.addEventListener(this.onCompDirty);
+                    return () =>
+                    {
+                        comp.onDirty.removeEventListener(this.onCompDirty);
+                        comp.meshInstances.forEach(ins =>
+                        {
+                            this.scene.tryAddMeshInstance(ins);
+                        });
+                    }
+                })
+            });
+        }
+    }
+    tryRemoveEntity(entity: Entity): void
+    {
+        if (this.comps.has(entity.id))
+        {
+            this.comps.delete(entity.id);
+        }
+    }
+
+    private onCompDirty = (comp: ModelComponent) =>
+    {
+        comp.meshInstances.forEach(ins =>
+        {
+            this.scene.tryAddMeshInstance(ins);
+        })
     }
 }

@@ -1,19 +1,50 @@
-import { Asset } from "./asset/Asset";
-import { Entity } from "../core/Entity";
 import { LayerComposition } from "./LayerComposition";
 import { MeshInstance } from "./MeshInstance";
+import { Render } from "./Render";
+import { Camera } from "./Camera";
+import { Entity } from "../ec/entity";
 
-export class Scene extends Asset
+export class InterScene
 {
-    root: Entity;
     layers: LayerComposition = new LayerComposition();
 
-    addMeshInstance(ins: MeshInstance)
+    tryAddMeshInstance(ins: MeshInstance)
     {
-        this.layers.addMeshInstance(ins);
+        this.layers.tryAddMeshInstance(ins);
     }
     removeMeshInstance(ins: MeshInstance)
     {
         this.layers.removeMeshInstance(ins);
+    }
+    private cameras: Map<string, Camera> = new Map();
+    tryAddCamera(cam: Camera)
+    {
+        if (!this.cameras.has(cam.id))
+        {
+            this.cameras.set(cam.id, cam)
+        }
+    }
+
+    frameUpdate()
+    {
+        this.cameras.forEach(cam =>
+        {
+            this.layers.getlayers().forEach(layer =>
+            {
+                this.render.renderLayers(cam, layer)
+            })
+        })
+    }
+    private render: Render;
+    constructor(render: Render)
+    {
+        this.render = render;
+    }
+    private root: Entity = new Entity();
+    createChild(): Entity
+    {
+        let trans = new Entity();
+        this.root.addChild(trans);
+        return trans;
     }
 }

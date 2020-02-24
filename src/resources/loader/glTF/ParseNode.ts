@@ -10,6 +10,7 @@ import { GraphicsDevice } from "../../../webgl/GraphicsDevice";
 import { MeshInstance } from "../../../scene/MeshInstance";
 import { Entity } from "../../../core/Entity";
 import { ModelComponent } from "../../../components/ModelComponent";
+import { PrimiveAsset } from "../../../scene/asset/PrimiveAsset";
 
 export class ParseNode
 {
@@ -51,8 +52,7 @@ export class ParseNode
                     let modelcomp = sceneNode.addComponent("ModelComponent") as ModelComponent;
                     for (let i = 0; i < primitives.length; i++)
                     {
-                        modelcomp.geometry[i] = primitives[i].mesh;
-                        modelcomp.material[i] = primitives[i].material;
+                        modelcomp.primitives.setValue(new PrimiveAsset(primitives[i].material, primitives[i].mesh), i);
                     }
                 });
             allTask.push(task);

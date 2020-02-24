@@ -36,9 +36,11 @@ export class AssetReferenceArray<T extends Asset>
     {
         this.assets.splice(index, 1);
         this.attachToItemAssetChangeAction[index]?.dispose();
+        this.onItemDelect.raiseEvent(index);
     }
     private attachToItemAssetChangeAction: DebuffAction[] = [];
     onAssetChange: EventHandler<ArrayAssetChangeEvent<T>> = new EventHandler();
+    onItemDelect: EventHandler<number> = new EventHandler();
 }
 
 export class ArrayAssetChangeEvent<T extends Asset> extends AssetChangedEvent<T>

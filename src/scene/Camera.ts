@@ -5,6 +5,7 @@ import { Screen } from "../core/Screen";
 import { Frustum } from "./Frustum";
 import { Transform } from "../core/Transform";
 import { Vec3 } from "../mathD/vec3";
+import { UniqueObject } from "../core/UniqueObject";
 
 export enum ProjectionEnum
 {
@@ -19,7 +20,7 @@ export enum ClearEnum
     STENCIL = 0b100,
     NONE = 0b00,
 }
-export class Camera
+export class Camera extends UniqueObject
 {
     node: Transform;
     private _projectionType: ProjectionEnum = ProjectionEnum.PERSPECTIVE;
@@ -144,6 +145,7 @@ export class Camera
 
     constructor()
     {
+        super();
         Object.defineProperty(this._viewport, "x", {
             get: () => { return this._viewport[0] },
             set: (value: number) => { this._viewport[0] = value; this.projectMatBedirty = true; }
