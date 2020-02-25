@@ -31,6 +31,11 @@ export class GeometryAttribute
     constructor(option: IgeometryAttributeOptions)
     {
         this.value = option.value;
+        this.type = option.type;
+        this.componentsPerAttribute = option.componentsPerAttribute;
+        this.normalize = option.normalize ?? false;
+        this.beDynamic = option.beDynamic ?? false;
+
         if (option.values instanceof Array)
         {
             this.componentDatatype = option.componentDatatype || ComponentDatatypeEnum.FLOAT;
@@ -50,9 +55,7 @@ export class GeometryAttribute
                 this.componentDatatype = this.values ? TypedArray.glType(this.values) : ComponentDatatypeEnum.FLOAT;
             }
         }
-        this.componentsPerAttribute = option.componentsPerAttribute;
-        this.normalize = option.normalize ?? false;
-        this.beDynamic = option.beDynamic ?? false;
+
     }
 }
 

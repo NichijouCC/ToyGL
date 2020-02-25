@@ -12,11 +12,11 @@ export abstract class DrawCommand
     // material: Material;
     // vertexArray: VertexArray;
     enableCull: boolean = true;
-    // boundingSphere: BoundingSphere;
-    boundingBox: BoundingBox;
-    // worldMat: Mat4;
     zdist?: number;
     instanceCount?: number;
+    // boundingSphere: BoundingSphere;
+    abstract get bounding(): BoundingSphere;
+    // worldMat: Mat4;
 
     abstract get material(): Material;
     abstract get vertexArray(): VertexArray;

@@ -33,7 +33,7 @@ export class Material extends Asset
     set shader(value: Shader) { this.shaderRef.asset = value };
 
     private _layer: RenderLayerEnum;
-    get layer() { return this._layer; }
+    get layer() { return this._layer || this.shader.layer || RenderLayerEnum.Geometry; }
 
     private _layerIndex: number;
     setLayerIndex(layer: RenderLayerEnum, queue: number = 0)

@@ -19,7 +19,7 @@ export namespace VertexAttEnum
         //TODO
         return name as any;
     }
-    let locationId = -1;
+    let locationId = 0;
     export function regist(name: string)
     {
         attLocationMap[name] = locationId++;

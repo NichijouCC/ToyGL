@@ -1,4 +1,3 @@
-import { glTypeToByteSize } from "../resources/assets/geometry";
 import { getByteSizeFromGLtype } from "../core/TypedArray";
 
 

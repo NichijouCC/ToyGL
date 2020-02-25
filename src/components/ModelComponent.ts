@@ -1,10 +1,11 @@
-import { Icomponent, Ientity } from "../core/Ecs";
+import { Icomponent, Ientity, Ecs } from "../core/Ecs";
 import { MeshInstance } from "../scene/MeshInstance";
 import { Entity } from "../core/Entity";
 import { AssetReferenceArray } from "../scene/AssetReferenceArray";
 import { PrimiveAsset } from "../scene/asset/PrimiveAsset";
 import { EventHandler } from "../core/Event";
 
+@Ecs.registeComp
 export class ModelComponent implements Icomponent
 {
     entity: Entity;

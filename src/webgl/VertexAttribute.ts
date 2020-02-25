@@ -67,7 +67,7 @@ export class VertexAttribute implements IvertexAttribute
         this.vertexBuffer = att.vertexBuffer;// positionBuffer;
         this.value = att.value;
         this.componentsPerAttribute = att.componentsPerAttribute;// 3;
-        this.componentDatatype = att.componentsPerAttribute ?? ComponentDatatypeEnum.FLOAT; // ComponentDatatype.FLOAT;
+        this.componentDatatype = att.componentDatatype ?? ComponentDatatypeEnum.FLOAT; // ComponentDatatype.FLOAT;
         this.normalize = att.normalize ?? false; // false;
         this.offsetInBytes = att.offsetInBytes ?? 0; // 0;
         this.strideInBytes = att.strideInBytes ?? 0; // 0; // tightly packed

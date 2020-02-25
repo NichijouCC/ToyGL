@@ -25,13 +25,13 @@ export interface Isystem
 export class Ecs
 {
     private static registedcomps: { [name: string]: { ctr: any, bitKey: Bitkey, relatedSystem: Isystem[] } } = {};
-    static registeComp(comp: Function)
+    static registeComp = (comp: Function) =>
     {
         let target = comp.prototype;
         let compName = target.constructor.name as string;
-        if (this.registedcomps[compName] == null)
+        if (Ecs.registedcomps[compName] == null)
         {
-            this.registedcomps[compName] = { ctr: target.constructor, bitKey: Bitkey.create(), relatedSystem: [] }
+            Ecs.registedcomps[compName] = { ctr: target.constructor, bitKey: Bitkey.create(), relatedSystem: [] }
         } else
         {
             throw new Error("重复注册组件: " + compName);

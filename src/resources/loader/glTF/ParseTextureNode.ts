@@ -1,10 +1,9 @@
 import { loadImg } from "../../../io/loadtool";
 import { LoadTextureSample } from "../loadTexture";
-import { WebglRender, ItexImageDataOption, ItexViewDataOption, ItextureDesInfo } from "../../../render/webglRender";
 import { ParseBufferViewNode } from "./ParseBufferViewNode";
 import { IgltfJson } from "../LoadglTF";
-import { TextureWrapMode } from "./GltfJsonStruct";
 import { Texture2D } from "../../../scene/asset/Texture2d";
+import { Primitive } from "../../../scene/primitive/Primitive";
 
 export class ParseTextureNode
 {
@@ -23,10 +22,10 @@ export class ParseTextureNode
             if (imageNode.uri != null)
             {
                 let imagUrl = gltf.rootURL + "/" + imageNode.uri;
-                let texture: Texture2D = new Texture2D();
+
                 let task = loadImg(imagUrl).then(img =>
                 {
-                    let texOp: ItextureDesInfo = {};
+                    let texOp = {} as any;
                     if (node.sampler != null)
                     {
                         let samplerinfo = gltf.samplers[node.sampler];
@@ -47,50 +46,60 @@ export class ParseTextureNode
                             texOp.filterMin = samplerinfo.minFilter;
                         }
                     }
-
-                    let imaginfo = WebglRender.createTextureFromImg(img, texOp);
-                    texture.texture = imaginfo.texture;
-                    texture.texDes = imaginfo.texDes;
-
+                    let texture: Texture2D = new Texture2D({ image: img });
                     return texture;
                 });
                 gltf.cache.textrueNodeCache[index] = task;
                 return task;
             } else
             {
-                let texture: Texture = new Texture({ name: name });
-                let task = ParseBufferViewNode.parse(imageNode.bufferView, gltf).then(viewnode =>
-                {
-                    //    let bob=new Blob([viewnode.view], { type: imageNode.mimeType })
-                    //    let url = URL.createObjectURL(bob);
-                    //    asset= loader.loadDependAsset(url) as Texture;
-                    let texOp: ItextureDesInfo = {}; //todo
-                    if (node.sampler != null)
-                    {
-                        let samplerinfo = gltf.samplers[node.sampler];
-                        if (samplerinfo.wrapS != null)
-                        {
-                            texOp.wrapS = samplerinfo.wrapS;
-                        }
-                        if (samplerinfo.wrapT)
-                        {
-                            texOp.wrapT = samplerinfo.wrapT;
-                        }
-                        if (samplerinfo.magFilter)
-                        {
-                            texOp.filterMax = samplerinfo.magFilter;
-                        }
-                        if (samplerinfo.minFilter)
-                        {
-                            texOp.filterMin = samplerinfo.minFilter;
-                        }
-                    }
-                    let imaginfo = WebglRender.createTextureFromViewData(viewnode.viewBuffer, 100, 100, texOp);
-                    texture.texture = imaginfo.texture;
-                    texture.texDes = imaginfo.texDes;
 
-                    return texture;
-                });
+                let task = ParseBufferViewNode.parse(imageNode.bufferView, gltf)
+                    .then(viewnode =>
+                    {
+                        let texOp = {} as any; //todo
+                        if (node.sampler != null)
+                        {
+                            let samplerinfo = gltf.samplers[node.sampler];
+                            if (samplerinfo.wrapS != null)
+                            {
+                                texOp.wrapS = samplerinfo.wrapS;
+                            }
+                            if (samplerinfo.wrapT)
+                            {
+                                texOp.wrapT = samplerinfo.wrapT;
+                            }
+                            if (samplerinfo.magFilter)
+                            {
+                                texOp.filterMax = samplerinfo.magFilter;
+                            }
+                            if (samplerinfo.minFilter)
+                            {
+                                texOp.filterMin = samplerinfo.minFilter;
+                            }
+                        }
+
+                        return new Promise<HTMLImageElement>((resolve, reject) =>
+                        {
+                            var blob = new Blob([viewnode.viewBuffer], { type: imageNode.mimeType });
+                            var imageUrl = window.URL.createObjectURL(blob);
+                            let img: HTMLImageElement = new Image();
+                            img.src = imageUrl;
+                            img.onerror = error =>
+                            {
+                                reject(error);
+                            };
+                            img.onload = () =>
+                            {
+                                URL.revokeObjectURL(img.src);
+                                resolve(img);
+                            };
+                        }).then((img) =>
+                        {
+                            let texture = new Texture2D({ image: img });
+                            return texture;
+                        })
+                    });
                 gltf.cache.textrueNodeCache[index] = task;
                 return task;
             }

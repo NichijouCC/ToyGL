@@ -22,7 +22,15 @@ export class Texture
     flipY: boolean;
     private initialized: boolean;
     private _textureFilterAnisotropic: any;
-    private _sampler: Sampler;
+
+    filterMax: TextureFilterEnum;
+    filterMin: TextureFilterEnum;
+    wrapS: TextureWrapEnum;
+    wrapT: TextureWrapEnum;
+    maximumAnisotropy: number;
+    enableMimap: boolean;
+    mipmapFilter: TextureFilterEnum;
+
     private _context: GraphicsDevice;
     private _gl: WebGLRenderingContext;
     private constructor(options: ItextureOptions)
@@ -36,7 +44,7 @@ export class Texture
             }
             if (height == null)
             {
-                height = source.videoHeight ?? height;
+                height = source.videoHeight ?? source.height;
             }
         }
 
@@ -157,12 +165,12 @@ export class Texture
         let preMultiplyAlpha = options.preMultiplyAlpha || pixelFormat === PixelFormatEnum.RGB || pixelFormat === PixelFormatEnum.LUMINANCE;
 
 
-        let sampler = new Sampler(options.sampler);
+
         let gl = context.gl;
-        let textureTarget = gl.TEXTURE_2D;
+        let target = gl.TEXTURE_2D;
         let texture = gl.createTexture();
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(textureTarget, texture);
+        gl.bindTexture(target, texture);
 
         let unpackAlignment = 4;
         if (source && source.arrayBufferView && !isCompressed)
@@ -183,14 +191,14 @@ export class Texture
                 var arrayBufferView = source.arrayBufferView;
                 if (isCompressed)
                 {
-                    gl.compressedTexImage2D(textureTarget, 0, internalFormat, width, height, 0, arrayBufferView);
+                    gl.compressedTexImage2D(target, 0, internalFormat, width, height, 0, arrayBufferView);
                 } else
                 {
                     if (flipY)
                     {
                         arrayBufferView = PixelFormatEnum.flipY(arrayBufferView, pixelFormat, pixelDatatype, width, height);
                     }
-                    gl.texImage2D(textureTarget, 0, internalFormat, width, height, 0, pixelFormat, pixelDatatype, arrayBufferView);
+                    gl.texImage2D(target, 0, internalFormat, width, height, 0, pixelFormat, pixelDatatype, arrayBufferView);
                 }
             } else if (source.framebuffer != null)                // Source: framebuffer
             {
@@ -199,31 +207,77 @@ export class Texture
 
 
                 source.framebuffer.bind();
-                gl.copyTexImage2D(textureTarget, 0, internalFormat, source.xOffset, source.yOffset, width, height, 0);
+                gl.copyTexImage2D(target, 0, internalFormat, source.xOffset, source.yOffset, width, height, 0);
                 source.framebuffer.unbind();
             } else                // Source: ImageData, HTMLImageElement, HTMLCanvasElement, or HTMLVideoElement
             {
                 // Only valid for DOM-Element uploads
                 gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, preMultiplyAlpha);
                 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flipY);
-                gl.texImage2D(textureTarget, 0, internalFormat, pixelFormat, pixelDatatype, source);
+                gl.texImage2D(target, 0, internalFormat, pixelFormat, pixelDatatype, source);
             }
             initialized = true;
         } else
         {
-            gl.texImage2D(textureTarget, 0, internalFormat, width, height, 0, pixelFormat, pixelDatatype, null);
+            gl.texImage2D(target, 0, internalFormat, width, height, 0, pixelFormat, pixelDatatype, null);
             initialized = false;
         }
-        gl.bindTexture(textureTarget, null);
 
-        let sizeInBytes;
-        if (isCompressed)
+        // let sampler = new Sampler(options.sampler);
+        this.filterMax = options.sampler?.filterMax || TextureFilterEnum.LINEAR;
+        this.filterMin = options.sampler?.filterMin || TextureFilterEnum.LINEAR;
+        this.wrapS = options.sampler?.wrapS || TextureWrapEnum.REPEAT;
+        this.wrapT = options.sampler?.wrapT || TextureWrapEnum.REPEAT;
+        this.maximumAnisotropy = options.sampler?.maximumAnisotropy || 1.0;
+        this.enableMimap = options.sampler?.enableMimap ?? true;
+        this.mipmapFilter = options.sampler?.mipmapFilter ?? TextureFilterEnum.LINEAR;
+
+        if (context.webGLVersion != 1)
         {
-            sizeInBytes = PixelFormatEnum.compressedTextureSizeInBytes(pixelFormat, width, height);
-        } else
-        {
-            sizeInBytes = PixelFormatEnum.textureSizeInBytes(pixelFormat, pixelDatatype, width, height);
+            if (PixelFormatEnum.isDepthFormat(this.pixelFormat)
+                || PixelFormatEnum.isCompressedFormat(this.pixelFormat)
+                || !isPowerOf2(this.width)
+                || !isPowerOf2(this.height)
+            )
+            {
+                // throw new Error('Cannot call generateMipmap when the texture pixel format is DEPTH_COMPONENT or DEPTH_STENCIL.');
+                // throw new Error('Cannot call generateMipmap with a compressed pixel format.');
+                // throw new Error('width must be a power of two to call generateMipmap().');
+                // throw new Error('height must be a power of two to call generateMipmap().');
+                this.enableMimap = false;
+            }
+
+            if (!isPowerOf2(this.width)
+                || !isPowerOf2(this.height)
+            )
+            {
+                //throw new Error("texture repeat need Img size be power of 2!");
+                this.wrapS = TextureWrapEnum.CLAMP_TO_EDGE;
+                this.wrapT = TextureWrapEnum.CLAMP_TO_EDGE;
+            }
+            // float textures only support nearest filtering unless the linear extensions are supported, so override the sampler's settings
+            if ((pixelDatatype === PixelDatatypeEnum.FLOAT && !context.caps.textureFloat)
+                || (pixelDatatype === PixelDatatypeEnum.HALF_FLOAT && !context.caps.textureHalfFloat))
+            {
+                this.filterMax = TextureFilterEnum.NEAREST;
+                this.filterMin = TextureFilterEnum.NEAREST;
+                this.mipmapFilter = TextureFilterEnum.NEAREST;
+            }
         }
+
+        gl.texParameteri(target, gl.TEXTURE_WRAP_S, this.wrapS);
+        gl.texParameteri(target, gl.TEXTURE_WRAP_T, this.wrapT);
+        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, TextureFilterEnum.realfilter(this.filterMin, this.enableMimap, this.mipmapFilter));
+        gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, this.filterMax);
+        if (this._textureFilterAnisotropic)
+        {
+            gl.texParameteri(target, this._textureFilterAnisotropic.TEXTURE_MAX_ANISOTROPY_EXT, this.maximumAnisotropy);
+        }
+        gl.bindTexture(target, null);
+
+        let sizeInBytes = isCompressed ?
+            PixelFormatEnum.compressedTextureSizeInBytes(pixelFormat, width, height)
+            : PixelFormatEnum.textureSizeInBytes(pixelFormat, pixelDatatype, width, height)
 
         this.texture = texture;
         this.pixelFormat = pixelFormat;
@@ -235,77 +289,10 @@ export class Texture
         this.preMultiplyAlpha = preMultiplyAlpha;
         this.flipY = flipY;
         this.initialized = initialized;
-        this._sampler = sampler;
         this._context = context;
         this._textureFilterAnisotropic = context.caps.textureAnisotropicFilterExtension;
         this._gl = gl;
     }
-    applySampler()
-    {
-        let { filterMax, filterMin, wrapS, wrapT, maximumAnisotropy } = this._sampler;
-
-        var mipmap = TextureFilterEnum.beMipmap(filterMin);
-        var context = this._context;
-        var pixelDatatype = this.pixelDatatype;
-
-        // float textures only support nearest filtering unless the linear extensions are supported, so override the sampler's settings
-        if ((pixelDatatype === PixelDatatypeEnum.FLOAT && !context.caps.textureFloat) || (pixelDatatype === PixelDatatypeEnum.HALF_FLOAT && !context.caps.textureHalfFloat))
-        {
-            filterMin = mipmap ? TextureFilterEnum.NEAREST_MIPMAP_NEAREST : TextureFilterEnum.NEAREST;
-            filterMax = TextureFilterEnum.NEAREST;
-        }
-
-        var gl = context.gl;
-        var target = gl.TEXTURE_2D;
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(target, this.texture);
-        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, filterMin);
-        gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, filterMax);
-        gl.texParameteri(target, gl.TEXTURE_WRAP_S, wrapS);
-        gl.texParameteri(target, gl.TEXTURE_WRAP_T, wrapT);
-        if (this._textureFilterAnisotropic)
-        {
-            gl.texParameteri(target, this._textureFilterAnisotropic.TEXTURE_MAX_ANISOTROPY_EXT, maximumAnisotropy);
-        }
-        gl.bindTexture(target, null);
-
-    }
-
-    generateMipmap(hint?: MipmapHintEnum)
-    {
-        hint = hint ?? MipmapHintEnum.DONT_CARE;
-
-        //>>includeStart('debug', pragmas.debug);
-        if (PixelFormatEnum.isDepthFormat(this.pixelFormat))
-        {
-            throw new Error('Cannot call generateMipmap when the texture pixel format is DEPTH_COMPONENT or DEPTH_STENCIL.');
-        }
-        if (PixelFormatEnum.isCompressedFormat(this.pixelFormat))
-        {
-            throw new Error('Cannot call generateMipmap with a compressed pixel format.');
-        }
-        if (this.width > 1 && !isPowerOf2(this.width))
-        {
-            throw new Error('width must be a power of two to call generateMipmap().');
-        }
-        if (this.height > 1 && !isPowerOf2(this.height))
-        {
-            throw new Error('height must be a power of two to call generateMipmap().');
-        }
-        //>>includeEnd('debug');
-
-        this.hasMipmap = true;
-
-        var gl = this._context.gl;
-        var target = gl.TEXTURE_2D;
-
-        gl.hint(gl.GENERATE_MIPMAP_HINT, hint);
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(target, this.texture);
-        gl.generateMipmap(target);
-        gl.bindTexture(target, null);
-    };
 
     bind(unit: number = 0)
     {
@@ -346,9 +333,7 @@ export class Texture
      */
     static fromImageSource(options: {
         context: GraphicsDevice;
-        width: number;
-        height: number;
-        image: TypedArray;
+        image: TexImageSource;
         pixelFormat?: PixelFormatEnum;
         pixelDatatype?: PixelDatatypeEnum;
         sampler?: IsamplerOptions;
@@ -376,8 +361,8 @@ export class Texture
 export interface ItextureOptions
 {
     context: GraphicsDevice;
-    width: number;
-    height: number;
+    width?: number;
+    height?: number;
     source: {
         framebuffer?: FrameBuffer;
         xOffset?: number;
@@ -388,36 +373,49 @@ export interface ItextureOptions
     pixelDatatype?: PixelDatatypeEnum;
     preMultiplyAlpha?: boolean;
     flipY?: boolean;
-    sampler?: IsamplerOptions
+    // sampler?: IsamplerOptions
+
+    // ----------------texParameteri-------------
+    // filterMax?: TextureFilterEnum;
+    // filterMin?: TextureFilterEnum;
+    // wrapS?: TextureWrapEnum;
+    // wrapT?: TextureWrapEnum;
+    // maximumAnisotropy?: number;
+    // enableMimap?: boolean;
+    // mipmapFilter?: TextureFilterEnum;
+    sampler?: IsamplerOptions;
 }
 
 export interface IsamplerOptions
 {
     // ----------------texParameteri-------------
-    filterMax?: number;
-    filterMin?: number;
-    wrapS?: number;
-    wrapT?: number;
+    filterMax?: TextureFilterEnum;
+    filterMin?: TextureFilterEnum;
+    wrapS?: TextureWrapEnum;
+    wrapT?: TextureWrapEnum;
     maximumAnisotropy?: number;
-    generateMimap?: boolean;
+    enableMimap?: boolean;
+    mipmapFilter?: TextureFilterEnum;
 }
 
 export class Sampler
 {
-    filterMax: number;
-    filterMin: number;
-    wrapS: number;
-    wrapT: number;
+    filterMax: TextureFilterEnum;
+    filterMin: TextureFilterEnum;
+    wrapS: TextureWrapEnum;
+    wrapT: TextureWrapEnum;
     maximumAnisotropy: number;
-    generateMimap: boolean;
+    enableMimap: boolean;
+    mipmapFilter: TextureFilterEnum;
     constructor(options: IsamplerOptions)
     {
-        this.filterMax = options.filterMax || GlConstants.LINEAR;
-        this.filterMin = options.filterMin || GlConstants.LINEAR;
-        this.wrapS = options.wrapS || GlConstants.REPEAT;
-        this.wrapT = options.wrapT || GlConstants.REPEAT;
+        this.filterMax = options.filterMax || TextureFilterEnum.LINEAR;
+        this.filterMin = options.filterMin || TextureFilterEnum.LINEAR;
+        this.wrapS = options.wrapS || TextureWrapEnum.REPEAT;
+        this.wrapT = options.wrapT || TextureWrapEnum.REPEAT;
         this.maximumAnisotropy = options.maximumAnisotropy || 1.0;
-        this.generateMimap = options.generateMimap ?? false;
+        this.enableMimap = options.enableMimap ?? false;
+        this.mipmapFilter = options.mipmapFilter ?? TextureFilterEnum.LINEAR;
     }
 }
 

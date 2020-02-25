@@ -81,48 +81,7 @@ export class Buffer implements IglElement
     unbind() { }
     update(sizeInBytesOrTypedArray: TypedArray | number) { }
     destroy() { }
-
-    /*
-    * @example
-    * // Example 1. Create a dynamic vertex buffer 16 bytes in size.
-    * var buffer = Buffer.createVertexBuffer({
-    *     context : context,
-    *     sizeInBytes : 16,
-    *     usage : BufferUsage.DYNAMIC_DRAW
-    * });
-    *
-    * @example
-    * // Example 2. Create a dynamic vertex buffer from three floating-point values.
-    * // The data copied to the vertex buffer is considered raw bytes until it is
-    * // interpreted as vertices using a vertex array.
-    * var positionBuffer = buffer.createVertexBuffer({
-    *     context : context,
-    *     typedArray : new Float32Array([0, 0, 0]),
-    *     usage : BufferUsage.STATIC_DRAW
-    * });
-    */
-    static createVertexBuffer(options: { context: GraphicsDevice, sizeInBytes: number, usage?: BufferUsageEnum } | { context: GraphicsDevice, typedArray: ArrayBufferView, usage?: BufferUsageEnum })
-    {
-        return new VertexBuffer({
-            context: options.context,
-            typedArray: (options as any).typedArray,
-            sizeInBytes: (options as any).sizeInBytes,
-            usage: options.usage ?? BufferUsageEnum.STATIC_DRAW
-        });
-    }
-
-    static createIndexBuffer(options: IndexBufferOption)
-    {
-        return new IndexBuffer({
-            context: options.context,
-            usage: options.usage,
-            typedArray: (options as any).typedArray,
-            sizeInBytes: (options as any).sizeInBytes,
-            indexDatatype: (options as any).indexDatatype
-        });
-    }
 }
-
 
 export enum BufferTargetEnum
 {

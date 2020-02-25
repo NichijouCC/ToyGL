@@ -4,6 +4,8 @@ import { ParseBufferViewNode } from "./ParseBufferViewNode";
 import { BufferTargetEnum, Buffer, BufferUsageEnum } from "../../../webgl/Buffer";
 import { GraphicsDevice } from "../../../webgl/GraphicsDevice";
 import { getTypedArray, getTypeArrCtorFromGLtype, getByteSizeFromGLtype, TypedArray } from "../../../core/TypedArray";
+import { VertexBuffer } from "../../../webgl/VertexBuffer";
+import { IndexBuffer } from "../../../webgl/IndexBuffer";
 
 export interface IaccessorData
 {
@@ -68,10 +70,10 @@ export class ParseAccessorNode
                 }
                 arrayInfo.typedArray = typedArray;
                 arrayInfo.buffer = value.target == BufferTargetEnum.ARRAY_BUFFER ?
-                    Buffer.createVertexBuffer({
+                    new VertexBuffer({
                         context,
                         typedArray,
-                    }) : Buffer.createIndexBuffer({
+                    }) : new IndexBuffer({
                         context,
                         typedArray,
                     })

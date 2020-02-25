@@ -2,7 +2,7 @@ import { LayerComposition } from "./LayerComposition";
 import { MeshInstance } from "./MeshInstance";
 import { Render } from "./Render";
 import { Camera } from "./Camera";
-import { Entity } from "../ec/entity";
+import { Entity } from "../core/Entity";
 
 export class InterScene
 {
@@ -29,6 +29,7 @@ export class InterScene
     {
         this.cameras.forEach(cam =>
         {
+            this.render.setCamera(cam);
             this.layers.getlayers().forEach(layer =>
             {
                 this.render.renderLayers(cam, layer)

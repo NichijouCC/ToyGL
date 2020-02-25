@@ -43,7 +43,7 @@ namespace Private
                 for (i = 0; i < ins.length; i++)
                 {
                     drawCall = ins[i];
-                    meshPos = drawCall.boundingBox.center;
+                    meshPos = drawCall.bounding.center;
                     tempx = meshPos.x - camPos.x;
                     tempy = meshPos.y - camPos.y;
                     tempz = meshPos.z - camPos.z;
@@ -74,6 +74,8 @@ export class LayerCollection
         }
         return this._insArr
     }
+
+    get insCount() { return this._insArr.length };
 
     private sortFunction: (a: MeshInstance, b: MeshInstance) => number;
     // private onAdd: ((ins: MeshInstance) => void)[] = []

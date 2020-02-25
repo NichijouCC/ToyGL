@@ -61,6 +61,12 @@ export class Shader extends Asset implements IgraphicAsset
         }
         this._shader.bind();
     }
+
+    bindUniforms(uniforms: { [name: string]: any })
+    {
+        this._shader.bindUniforms(uniforms);
+    }
+
     unbind(): void
     {
         this._shader?.unbind();

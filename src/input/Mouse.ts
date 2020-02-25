@@ -47,7 +47,7 @@ namespace Private
 
 export class Mouse extends EventHandler
 {
-    private _position: Vec2;
+    private _position: Vec2 = Vec2.create();
     get position() { return this._position };
     constructor(canvas: HTMLCanvasElement)
     {

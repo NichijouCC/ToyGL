@@ -31,7 +31,7 @@ export class ParseCameraNode
                 let datao = node.orthographic;
                 cam.near = datao.znear;
                 cam.far = datao.zfar;
-                cam._size = datao.ymag;
+                cam.size = datao.ymag;
                 // cam.aspest = datao.xmag / datao.ymag;
                 break;
         }

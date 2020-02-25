@@ -51,8 +51,8 @@ export class Bounds
     static fromTypedArray(positions: TypedArray)
     {
         const bb = new Bounds();
-        bb.setMinPoint(Private.min);
-        bb.setMaxPoint(Private.max);
+        bb.setMinPoint(Private.max);
+        bb.setMaxPoint(Private.min);
 
         for (let i = 0; i < positions.length; i += 3)
         {
@@ -209,7 +209,7 @@ export class BoundingSphere
             Vec3.copy(center, bb.center);
         } else
         {
-            let center = Bounds.fromTypedArray(positions).centerPoint;
+            center = Bounds.fromTypedArray(positions).centerPoint;
             Vec3.copy(center, bb.center);
         }
         let x, y, z, xx, yy, zz, dis
@@ -227,6 +227,7 @@ export class BoundingSphere
                 bb.radius = dis;
             }
         }
+        return bb;
     }
 
     copyTo(to: BoundingSphere)

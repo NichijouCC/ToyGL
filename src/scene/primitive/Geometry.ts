@@ -35,7 +35,7 @@ import { TypedArray } from "../../core/TypedArray";
  */
 export class Geometry extends BaseGeometryAsset
 {
-    attributes: { [keyName: string]: GeometryAttribute };
+    attributes: { [keyName: string]: GeometryAttribute } = {};
     indices?: IndicesArray;
     primitiveType: PrimitiveTypeEnum;
     boundingSphere: BoundingSphere;
@@ -43,10 +43,6 @@ export class Geometry extends BaseGeometryAsset
     {
         super();
         // this.attributes = option.attributes;
-        for (let key in option.attributes)
-        {
-            this.setAttribute(key as any, option.attributes[key]);
-        }
         option.attributes.forEach(item =>
         {
             this.setAttribute(item.type, item);
@@ -117,6 +113,15 @@ export class Geometry extends BaseGeometryAsset
             }
         }
         super.bind(device);
+    }
+
+    get bounding()
+    {
+        if (this._aabb == null)
+        {
+            this._aabb = BoundingSphere.fromTypedArray(this.attributes[VertexAttEnum.POSITION]?.values);
+        }
+        return this._aabb;
     }
 
     static createVertexArray(context: GraphicsDevice, geometry: Geometry)

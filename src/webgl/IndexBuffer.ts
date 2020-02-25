@@ -21,7 +21,7 @@ export class IndexBuffer extends Buffer
     readonly numberOfIndices: number;
     constructor(options: IndexBufferOption)
     {
-        super({ ...options, bufferTarget: BufferTargetEnum.ELEMENT_ARRAY_BUFFER } as any);
+        super({ ...options, target: BufferTargetEnum.ELEMENT_ARRAY_BUFFER });
         this.indexDatatype = (options as any).indexDatatype;
         let typedArray = (options as any).typedArray;
         if (typedArray)

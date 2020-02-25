@@ -59,7 +59,7 @@ export class GraphicsDevice
         {
             this.webGLVersion = 2.0;
         }
-
+        this.gl = gl;
         this.caps = new DeviceCapability(this);
         this.limit = new DeviceLimit(this);
 
@@ -607,76 +607,83 @@ export class GraphicsDevice
         if (this._cachedEnableStencilTest != enableStencilTest)
         {
             this._cachedEnableStencilTest = enableStencilTest;
-            this.gl.enable(this.gl.STENCIL_TEST);
-            if (enableSeparateStencil)
+            if (enableStencilTest)
             {
-                this.enableSeparateStencil = true;
-
-                if (this._cachedStencilFunc != stencilFunction ||
-                    this._cachedStencilRefValue != stencilRefValue ||
-                    this._cachedStencilMask != stencilMask
-                )
+                this.gl.enable(this.gl.STENCIL_TEST);
+                if (enableSeparateStencil)
                 {
-                    this._cachedStencilFunc = stencilFunction;
-                    this._cachedStencilRefValue = stencilRefValue;
-                    this._cachedStencilMask = stencilMask;
-                    this.gl.stencilFuncSeparate(this.gl.FRONT, stencilFunction, stencilRefValue, stencilMask);
-                }
+                    this.enableSeparateStencil = true;
 
-                if (this._cachedStencilFuncBack != stencilFunctionBack ||
-                    this._cachedstencilRefValueBack != stencilRefValueBack ||
-                    this._cachedStencilMaskBack != stencilMaskBack)
-                {
-                    this._cachedStencilFuncBack = stencilFunctionBack;
-                    this._cachedstencilRefValueBack = stencilRefValueBack;
-                    this._cachedStencilMaskBack = stencilMaskBack;
-                    this.gl.stencilFuncSeparate(this.gl.BACK, stencilFunctionBack, stencilRefValueBack, stencilMaskBack);
-                }
+                    if (this._cachedStencilFunc != stencilFunction ||
+                        this._cachedStencilRefValue != stencilRefValue ||
+                        this._cachedStencilMask != stencilMask
+                    )
+                    {
+                        this._cachedStencilFunc = stencilFunction;
+                        this._cachedStencilRefValue = stencilRefValue;
+                        this._cachedStencilMask = stencilMask;
+                        this.gl.stencilFuncSeparate(this.gl.FRONT, stencilFunction, stencilRefValue, stencilMask);
+                    }
 
-                if (this._cachedStencilFail != stencilFail ||
-                    this._cachedStencilPassZfail != stencilPassZfail ||
-                    this._cachedStencilFaileZpass != stencilFaileZpass)
-                {
-                    this._cachedStencilFail = stencilFail;
-                    this._cachedStencilPassZfail = stencilPassZfail;
-                    this._cachedStencilFaileZpass = stencilFaileZpass;
-                    this.gl.stencilOpSeparate(this.gl.FRONT, stencilFail, stencilPassZfail, stencilFaileZpass);
-                }
+                    if (this._cachedStencilFuncBack != stencilFunctionBack ||
+                        this._cachedstencilRefValueBack != stencilRefValueBack ||
+                        this._cachedStencilMaskBack != stencilMaskBack)
+                    {
+                        this._cachedStencilFuncBack = stencilFunctionBack;
+                        this._cachedstencilRefValueBack = stencilRefValueBack;
+                        this._cachedStencilMaskBack = stencilMaskBack;
+                        this.gl.stencilFuncSeparate(this.gl.BACK, stencilFunctionBack, stencilRefValueBack, stencilMaskBack);
+                    }
 
-                if (this._cachedStencilFailBack != stencilFailBack ||
-                    this._cachedStencilPassZfailBack != stencilPassZfailBack ||
-                    this._cachedStencilFaileZpassBack != stencilFaileZpassBack)
+                    if (this._cachedStencilFail != stencilFail ||
+                        this._cachedStencilPassZfail != stencilPassZfail ||
+                        this._cachedStencilFaileZpass != stencilFaileZpass)
+                    {
+                        this._cachedStencilFail = stencilFail;
+                        this._cachedStencilPassZfail = stencilPassZfail;
+                        this._cachedStencilFaileZpass = stencilFaileZpass;
+                        this.gl.stencilOpSeparate(this.gl.FRONT, stencilFail, stencilPassZfail, stencilFaileZpass);
+                    }
+
+                    if (this._cachedStencilFailBack != stencilFailBack ||
+                        this._cachedStencilPassZfailBack != stencilPassZfailBack ||
+                        this._cachedStencilFaileZpassBack != stencilFaileZpassBack)
+                    {
+                        this._cachedStencilFailBack = stencilFailBack;
+                        this._cachedStencilPassZfailBack = stencilPassZfailBack;
+                        this._cachedStencilFaileZpassBack = stencilFaileZpassBack;
+                        this.gl.stencilOpSeparate(this.gl.BACK, stencilFailBack, stencilPassZfailBack, stencilFaileZpassBack);
+                    }
+                } else
                 {
-                    this._cachedStencilFailBack = stencilFailBack;
-                    this._cachedStencilPassZfailBack = stencilPassZfailBack;
-                    this._cachedStencilFaileZpassBack = stencilFaileZpassBack;
-                    this.gl.stencilOpSeparate(this.gl.BACK, stencilFailBack, stencilPassZfailBack, stencilFaileZpassBack);
+                    if (this.enableSeparateStencil || this._cachedStencilFunc != stencilFunction ||
+                        this._cachedStencilRefValue != stencilRefValue ||
+                        this._cachedStencilMask != stencilMask
+                    )
+                    {
+                        this._cachedStencilFunc = stencilFunction;
+                        this._cachedStencilRefValue = stencilRefValue;
+                        this._cachedStencilMask = stencilMask;
+                        this.gl.stencilFunc(stencilFunction, stencilRefValue, stencilMask);
+                    }
+
+                    if (this.enableSeparateStencil || this._cachedStencilFail != stencilFail ||
+                        this._cachedStencilPassZfail != stencilPassZfail ||
+                        this._cachedStencilFaileZpass != stencilFaileZpass)
+                    {
+                        this._cachedStencilFail = stencilFail;
+                        this._cachedStencilPassZfail = stencilPassZfail;
+                        this._cachedStencilFaileZpass = stencilFaileZpass;
+                        this.gl.stencilOp(stencilFail, stencilPassZfail, stencilFaileZpass);
+                    }
+                    this.enableSeparateStencil = false;
                 }
             } else
             {
-                if (this.enableSeparateStencil || this._cachedStencilFunc != stencilFunction ||
-                    this._cachedStencilRefValue != stencilRefValue ||
-                    this._cachedStencilMask != stencilMask
-                )
-                {
-                    this._cachedStencilFunc = stencilFunction;
-                    this._cachedStencilRefValue = stencilRefValue;
-                    this._cachedStencilMask = stencilMask;
-                    this.gl.stencilFunc(stencilFunction, stencilRefValue, stencilMask);
-                }
-
-                if (this.enableSeparateStencil || this._cachedStencilFail != stencilFail ||
-                    this._cachedStencilPassZfail != stencilPassZfail ||
-                    this._cachedStencilFaileZpass != stencilFaileZpass)
-                {
-                    this._cachedStencilFail = stencilFail;
-                    this._cachedStencilPassZfail = stencilPassZfail;
-                    this._cachedStencilFaileZpass = stencilFaileZpass;
-                    this.gl.stencilOp(stencilFail, stencilPassZfail, stencilFaileZpass);
-                }
-                this.enableSeparateStencil = false;
+                this.gl.disable(this.gl.STENCIL_TEST);
             }
         }
+
     }
     draw(vertexArray: VertexArray, instanceCount: number = 0)
     {

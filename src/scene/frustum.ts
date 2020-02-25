@@ -1,6 +1,5 @@
 import { Plane } from "./Plane";
 import { Mat4 } from "../mathD/mat4";
-import { Irenderable } from "./frameState";
 import { BoundingSphere } from "./Bounds";
 
 export class Frustum
@@ -60,19 +59,6 @@ export class Frustum
         planes[5].setComponents(me3 + me2, me7 + me6, me11 + me10, me15 + me14);
 
         return this;
-    }
-    intersectRender(render: Irenderable): boolean
-    {
-        if (render.bouningSphere != null)
-        {
-            let sphere = render.bouningSphere.clone();
-            sphere.applyMatrix(render.modelMatrix);
-            let result = this.containSphere(sphere);
-            return result;
-        } else
-        {
-            return true;
-        }
     }
     /**
      * 和包围球检测相交

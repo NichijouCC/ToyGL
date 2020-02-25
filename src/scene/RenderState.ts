@@ -6,18 +6,18 @@ export class RenderState
     cull: {
         enabled: boolean,
         cullBack: boolean,
-    };
+    } = { enabled: true, cullBack: true };
     colorWrite: {
         red: boolean,
         green: boolean,
         blue: boolean,
         alpha: boolean,
-    };
-    depthWrite: boolean;
+    } = { red: true, green: true, blue: true, alpha: true };
+    depthWrite: boolean = true;
     depthTest: {
         enabled: boolean;
         depthFunc: DepthFuncEnum
-    };
+    } = { enabled: true, depthFunc: DepthFuncEnum.LEQUAL };
     blend: {
         enabled: boolean
         blendSrc: BlendParamEnum,
@@ -28,7 +28,16 @@ export class RenderState
         blendSrcAlpha: BlendParamEnum,
         blendDstAlpha: BlendParamEnum,
         blendAlphaEquation: BlendEquationEnum,
-    };
+    } = {
+            enabled: false,
+            blendSrc: BlendParamEnum.SRC_ALPHA,
+            blendDst: BlendParamEnum.ONE,
+            blendEquation: BlendEquationEnum.FUNC_ADD,
+            enableSeparateBlend: false,
+            blendSrcAlpha: BlendParamEnum.SRC_ALPHA,
+            blendDstAlpha: BlendParamEnum.ONE,
+            blendAlphaEquation: BlendEquationEnum.FUNC_ADD
+        };
     stencilTest: {
         enabled: boolean,
         stencilFunction: number,
@@ -45,11 +54,30 @@ export class RenderState
         stencilFailBack: number,
         stencilPassZfailBack: number,
         stencilFaileZpassBack: number,
-    };
+    } = {
+            enabled: false,
+            stencilFunction: StencilFuncEnum.ALWAYS,
+            stencilRefValue: 1,
+            stencilMask: 0xff,
+            stencilFail: GlConstants.KEEP,
+            stencilPassZfail: GlConstants.REPLACE,
+            stencilFaileZpass: GlConstants.KEEP,
+
+            enableSeparateStencil: false,
+            stencilFunctionBack: StencilFuncEnum.ALWAYS,
+            stencilRefValueBack: 1,
+            stencilMaskBack: 0xff,
+            stencilFailBack: GlConstants.KEEP,
+            stencilPassZfailBack: GlConstants.REPLACE,
+            stencilFaileZpassBack: GlConstants.KEEP,
+        };
     scissorTest: {
         enabled: boolean,
         rectangle: Rect,
-    };
+    } = {
+            enabled: false,
+            rectangle: Rect.create(),
+        }
 }
 
 export enum DepthFuncEnum

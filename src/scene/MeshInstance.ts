@@ -7,19 +7,24 @@ import { Shader } from "./asset/Shader";
 import { IgeometryAsset, BaseGeometryAsset } from "./asset/BassGeoemtryAsset";
 import { AssetReference } from "./AssetReference";
 import { VertexArray } from "../webgl/VertextArray";
+import { BoundingBox, BoundingSphere } from "./Bounds";
+import { CullingMask } from "./Camera";
 
 namespace Private
 {
     export let id: number = 0;
 }
 
-export class MeshInstance extends DrawCommand
+export class MeshInstance
 {
-
     readonly id: number;
+    bevisible: boolean = true;
+    enableCull: boolean = false;
+    cullingMask?: CullingMask;
+    zdist?: number;
+    instanceCount?: number;
     constructor()
     {
-        super();
         this.id = Private.id++;
 
         this.geometryRef.onDirty.addEventListener(() => { this.onDirty.raiseEvent(this) });
@@ -31,7 +36,7 @@ export class MeshInstance extends DrawCommand
     private geometryRef = new AssetReference<BaseGeometryAsset>();
     get geometry() { return this.geometryRef.asset }
     set geometry(value: BaseGeometryAsset) { this.geometryRef.asset = value; }
-    get vertexArray(): VertexArray { return this.geometryRef.asset.vertexArray }
+    get bounding() { return this.geometryRef.asset.bounding; }
 
     private materialRef = new AssetReference<Material>();
     get material(): Material { return this.materialRef.asset; }

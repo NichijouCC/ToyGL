@@ -1,4 +1,4 @@
-import { Camera } from "./Camera";
+import { Camera, ClearEnum } from "./Camera";
 import { DrawCommand } from "./DrawCommand";
 import { Material } from "./asset/Material";
 import { GraphicsDevice } from "../webgl/GraphicsDevice";
@@ -35,14 +35,25 @@ export class Render
     {
         this.device = device;
     }
+    private camera: Camera;
+    setCamera(camera: Camera)
+    {
+        this.camera = camera;
+        this.device.setClear(
+            camera.enableClearDepth ? camera.dePthValue : null,
+            camera.enableClearColor ? camera.backgroundColor : null,
+            camera.enableClearStencil ? camera.stencilValue : null
+        );
+    }
 
     renderLayers(camera: Camera, layer: LayerCollection)
     {
+        if (layer.insCount == 0) return;
         var commands = layer.getSortedinsArr(camera);
         this.render(camera, commands);
     }
 
-    render(camera: Camera, drawCalls: DrawCommand[], lights?: any, )
+    render(camera: Camera, drawCalls: MeshInstance[], lights?: any, )
     {
         let culledDrawcalls = this.cull(camera, drawCalls);
         let drawcall, shader, uniforms, renderState, vertexArray
@@ -57,8 +68,8 @@ export class Render
                 uniforms = drawcall.material.uniformParameters;
                 renderState = drawcall.material.renderState;
 
-                shader.glShader.bind();
-                shader.glShader.bindUniforms(uniforms);
+                shader.bind(this.device);
+                shader.bindUniforms(uniforms);
 
                 if (Private.preRenderState != renderState)
                 {
@@ -94,8 +105,8 @@ export class Render
                 }
 
             }
-            drawcall.vertexArray.bind();
-            this.device.draw(drawcall.vertexArray, drawcall.instanceCount);
+            drawcall.geometry.bind(this.device);
+            this.device.draw(drawcall.geometry.vertexArray, drawcall.instanceCount);
         }
     }
     /**
@@ -103,7 +114,7 @@ export class Render
      * @param camera 
      * @param drawCalls 
      */
-    cull(camera: Camera, drawCalls: DrawCommand[])
+    cull(camera: Camera, drawCalls: MeshInstance[])
     {
         let visualArr = [];
         let { cullingMask, frustum } = camera;
@@ -118,14 +129,17 @@ export class Render
                 {
                     visualArr.push(drawcall);
                 }
+            } else
+            {
+                visualArr.push(drawcall);
             }
         }
         return visualArr;
     }
 
-    private frustumCull(frustum: Frustum, drawcall: DrawCommand)
+    private frustumCull(frustum: Frustum, drawcall: MeshInstance)
     {
-        BoundingSphere.fromBoundingBox(drawcall.boundingBox, Private.temptSphere);
-        return frustum.containSphere(Private.temptSphere, drawcall.worldMat);
+        // BoundingSphere.fromBoundingBox(drawcall.boundingBox, Private.temptSphere);
+        return frustum.containSphere(drawcall.bounding, drawcall.worldMat);
     }
 }

@@ -4,6 +4,7 @@ import { Material } from "../src/scene/asset/Material";
 import { DefaultGeometry } from '../src/resources/defAssets/DefaultGeometry'
 import { VertexAttEnum } from "../src/webgl/VertexAttEnum";
 import { Color } from "../src/mathD/color";
+import { Camera } from "../src/scene/Camera";
 export class Base
 {
     static start(toy: ToyGL)
@@ -17,7 +18,7 @@ export class Base
                 vsStr: `attribute vec3 POSITION;
                 void main()
                 {
-                    highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);
+                    highp vec4 tmplet_1=vec4(POSITION.xy*0.5,1.0,1.0);
                     gl_Position = tmplet_1;
                 }`,
                 fsStr: `uniform highp vec4 MainColor;
@@ -39,6 +40,11 @@ export class Base
         let node = toy.scene.createChild();
         ins.node = node;
         toy.scene.tryAddMeshInstance(ins);
+
+
+        let cam = new Camera();
+        cam.node = node;
+        toy.scene.tryAddCamera(cam);
 
         // let geometry = DefGeometry.fromType("quad");
 

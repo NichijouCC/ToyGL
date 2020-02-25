@@ -1,6 +1,6 @@
 import { Asset, IgraphicAsset } from "./Asset";
 import { VertexArray } from "../../webgl/VertextArray";
-import { BoundingBox } from "../Bounds";
+import { BoundingBox, BoundingSphere } from "../Bounds";
 import { GraphicsDevice } from "../../webgl/GraphicsDevice";
 
 export class BaseGeometryAsset extends Asset implements IgeometryAsset
@@ -19,9 +19,9 @@ export class BaseGeometryAsset extends Asset implements IgeometryAsset
         this._vertexArray = vertexArray;
     }
 
-    protected _aabb: BoundingBox;
-    get boundingBox() { return this._aabb }
-    set boundingBox(aabb: BoundingBox) { this._aabb = aabb }
+    protected _aabb: BoundingSphere;
+    get bounding() { return this._aabb }
+    set bounding(aabb: BoundingSphere) { this._aabb = aabb }
 
     bind(device: GraphicsDevice): void
     {
@@ -41,5 +41,5 @@ export class BaseGeometryAsset extends Asset implements IgeometryAsset
 export interface IgeometryAsset extends IgraphicAsset
 {
     readonly vertexArray: VertexArray;
-    readonly boundingBox: BoundingBox;
+    readonly bounding: BoundingSphere;
 }

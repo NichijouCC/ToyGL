@@ -65,10 +65,13 @@ export class Camera extends UniqueObject
     get viewport() { return this._viewport }
     set viewport(value: Rect) { Rect.copy(value, this._viewport); this.projectMatBedirty = true }
 
-    clearFlag: ClearEnum = ClearEnum.COLOR | ClearEnum.DEPTH;
+
     backgroundColor: Color = Color.create(0.3, 0.3, 0.3, 1);
+    enableClearColor = true;
     dePthValue: number = 1.0;
+    enableClearDepth: boolean = true;
     stencilValue: number = 0;
+    enableClearStencil = false;
     priority: number = 0;
     cullingMask: CullingMask = CullingMask.default;
 

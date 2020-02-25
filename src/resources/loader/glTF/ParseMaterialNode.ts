@@ -1,9 +1,7 @@
-import { DefTextrue } from '../../defAssets/defTexture';
 import { Vec4 } from "../../../mathD/vec4";
 import { IgltfJson } from "../LoadglTF";
 import { ParseTextureNode } from "./ParseTextureNode";
 import { Vec3 } from "../../../mathD/vec3";
-import { DefShader } from "../../defAssets/defShader";
 import { Color } from "../../../mathD/color";
 import { Material } from '../../../scene/asset/Material';
 
@@ -21,9 +19,9 @@ export class ParseMaterialNode
                 return Promise.resolve(null);
             }
             let node = gltf.materials[index];
-            let mat = new Material(node.name);
+            let mat = new Material({ name: node.name });
             mat.setUniformParameter("MainColor", Color.create());
-            mat.setUniformParameter("_MainTex", DefTextrue.GIRD);
+            // mat.setUniformParameter("_MainTex", DefTextrue.GIRD);
             //-------------loadshader
             // let pbrShader = assetMgr.load("resource/shader/pbr_glTF.shader.json") as Shader;
             // mat.setShader(pbrShader);
