@@ -1,7 +1,8 @@
 import { AssetReference } from "../AssetReference";
-import { BaseGeometryAsset } from "./BassGeoemtryAsset";
+// import { BaseGeometryAsset } from "./BassGeoemtryAsset";
 import { Material } from "./Material";
 import { Asset } from "./Asset";
+import { GeometryAsset } from "../primitive/GeoemtryAsset";
 
 export class PrimiveAsset extends Asset
 {
@@ -9,11 +10,11 @@ export class PrimiveAsset extends Asset
     get material(): Material { return this.materialRef.asset; }
     set material(mat: Material) { this.materialRef.asset = mat; }
 
-    private geometryRef = new AssetReference<BaseGeometryAsset>();
+    private geometryRef = new AssetReference<GeometryAsset>();
     get geometry() { return this.geometryRef.asset }
-    set geometry(value: BaseGeometryAsset) { this.geometryRef.asset = value; }
+    set geometry(value: GeometryAsset) { this.geometryRef.asset = value; }
 
-    constructor(material: Material, gemometry: BaseGeometryAsset)
+    constructor(material: Material, gemometry: GeometryAsset)
     {
         super();
         this.material = material;

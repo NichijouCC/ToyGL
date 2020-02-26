@@ -409,13 +409,13 @@ export class Sampler
     mipmapFilter: TextureFilterEnum;
     constructor(options: IsamplerOptions)
     {
-        this.filterMax = options.filterMax || TextureFilterEnum.LINEAR;
-        this.filterMin = options.filterMin || TextureFilterEnum.LINEAR;
-        this.wrapS = options.wrapS || TextureWrapEnum.REPEAT;
-        this.wrapT = options.wrapT || TextureWrapEnum.REPEAT;
-        this.maximumAnisotropy = options.maximumAnisotropy || 1.0;
-        this.enableMimap = options.enableMimap ?? false;
-        this.mipmapFilter = options.mipmapFilter ?? TextureFilterEnum.LINEAR;
+        this.filterMax = options?.filterMax || TextureFilterEnum.LINEAR;
+        this.filterMin = options?.filterMin || TextureFilterEnum.LINEAR;
+        this.wrapS = options?.wrapS || TextureWrapEnum.REPEAT;
+        this.wrapT = options?.wrapT || TextureWrapEnum.REPEAT;
+        this.maximumAnisotropy = options?.maximumAnisotropy || 1.0;
+        this.enableMimap = options?.enableMimap ?? false;
+        this.mipmapFilter = options?.mipmapFilter ?? TextureFilterEnum.LINEAR;
     }
 }
 

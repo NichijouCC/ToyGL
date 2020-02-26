@@ -69,7 +69,7 @@ export class Render
                 renderState = drawcall.material.renderState;
 
                 shader.bind(this.device);
-                shader.bindUniforms(uniforms);
+                shader.bindUniforms(this.device, uniforms);
 
                 if (Private.preRenderState != renderState)
                 {
@@ -106,7 +106,7 @@ export class Render
 
             }
             drawcall.geometry.bind(this.device);
-            this.device.draw(drawcall.geometry.vertexArray, drawcall.instanceCount);
+            drawcall.geometry.draw(this.device, drawcall.instanceCount);
         }
     }
     /**

@@ -4,17 +4,15 @@ import { TypedArray } from "../../core/TypedArray";
 import { PixelFormatEnum } from "../../webgl/PixelFormatEnum";
 import { PixelDatatypeEnum } from "../../webgl/PixelDatatype";
 import { IsamplerOptions, Sampler, Texture } from "../../webgl/Texture";
-import { ItextureAsset } from "./Texture2d";
+import { TextureAsset } from "../primitive/TextureAsset";
 
-export class MemoryTexture extends Asset implements ItextureAsset
+export class MemoryTexture extends TextureAsset
 {
-    private _tex: Texture;
-    get texture() { return this._tex }
-    bind(device: GraphicsDevice): void
+    protected create(device: GraphicsDevice): Texture
     {
-        if (this._tex == null && this.arrayBufferView)
+        if (this.arrayBufferView)
         {
-            this._tex = Texture.fromTypedArray({
+            return Texture.fromTypedArray({
                 context: device,
                 width: this.width,
                 height: this.height,
@@ -24,11 +22,11 @@ export class MemoryTexture extends Asset implements ItextureAsset
                 sampler: this.sampler
             })
         }
-        this._tex?.bind();
+        return null;
     }
-    unbind(): void
+    protected refresh(device: GraphicsDevice): void
     {
-        this._tex?.unbind();
+        throw new Error("Method not implemented.");
     }
 
     width: number;
@@ -49,6 +47,8 @@ export class MemoryTexture extends Asset implements ItextureAsset
     {
         super();
         this.arrayBufferView = options.arrayBufferView;
+        this.width = options.width;
+        this.height = options.height;
         this._pixelFormat = options.pixelFormat || PixelFormatEnum.RGBA;
         this._pixelDatatype = options.pixelDatatype || PixelDatatypeEnum.UNSIGNED_BYTE
         this._preMultiplyAlpha = options.preMultiplyAlpha || this.pixelFormat === PixelFormatEnum.RGB || this.pixelFormat === PixelFormatEnum.LUMINANCE;

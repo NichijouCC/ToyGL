@@ -91,7 +91,7 @@ export class ShaderProgram implements IshaderProgram
     }
     private bindUniform(key: string, value: any) { }
 
-    bindUniforms(value: { [name: string]: any })
+    bindUniforms(device: GraphicsDevice, value: { [name: string]: any })
     {
         for (let key in this.uniforms)
         {
@@ -105,7 +105,7 @@ export class ShaderProgram implements IshaderProgram
         {
             if (value[key])
             {
-                (value[key].texture as Texture).bind(unit++);
+                value[key].bind(device, unit++);
             }
         }
     }

@@ -69,36 +69,36 @@ export class GraphicsDevice
         //------------------------uniform 
         var scopeX, scopeY, scopeZ, scopeW;
         var uniformValue;
-        this.uniformSetter[UniformTypeEnum.BOOL] = function (uniform, value)
+        this.uniformSetter[UniformTypeEnum.BOOL] = function (uniform: IuniformInfo, value)
         {
             if (uniform.value !== value)
             {
-                gl.uniform1i(uniform.locationId, value);
+                gl.uniform1i(uniform.location, value);
                 uniform.value = value;
             }
         };
         this.uniformSetter[UniformTypeEnum.INT] = this.uniformSetter[UniformTypeEnum.BOOL];
-        this.uniformSetter[UniformTypeEnum.FLOAT] = function (uniform, value)
+        this.uniformSetter[UniformTypeEnum.FLOAT] = function (uniform: IuniformInfo, value)
         {
             if (uniform.value !== value)
             {
-                gl.uniform1f(uniform.locationId, value);
+                gl.uniform1f(uniform.location, value);
                 uniform.value = value;
             }
         };
-        this.uniformSetter[UniformTypeEnum.FLOAT_VEC2] = function (uniform, value)
+        this.uniformSetter[UniformTypeEnum.FLOAT_VEC2] = function (uniform: IuniformInfo, value)
         {
             uniformValue = uniform.value;
             scopeX = value[0];
             scopeY = value[1];
             if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY)
             {
-                gl.uniform2fv(uniform.locationId, value);
+                gl.uniform2fv(uniform.location, value);
                 uniformValue[0] = scopeX;
                 uniformValue[1] = scopeY;
             }
         };
-        this.uniformSetter[UniformTypeEnum.FLOAT_VEC3] = function (uniform, value)
+        this.uniformSetter[UniformTypeEnum.FLOAT_VEC3] = function (uniform: IuniformInfo, value)
         {
             uniformValue = uniform.value;
             scopeX = value[0];
@@ -106,13 +106,13 @@ export class GraphicsDevice
             scopeZ = value[2];
             if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ)
             {
-                gl.uniform3fv(uniform.locationId, value);
+                gl.uniform3fv(uniform.location, value);
                 uniformValue[0] = scopeX;
                 uniformValue[1] = scopeY;
                 uniformValue[2] = scopeZ;
             }
         };
-        this.uniformSetter[UniformTypeEnum.FLOAT_VEC4] = function (uniform, value)
+        this.uniformSetter[UniformTypeEnum.FLOAT_VEC4] = function (uniform: IuniformInfo, value)
         {
             uniformValue = uniform.value;
             scopeX = value[0];
@@ -121,27 +121,27 @@ export class GraphicsDevice
             scopeW = value[3];
             if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ || uniformValue[3] !== scopeW)
             {
-                gl.uniform4fv(uniform.locationId, value);
+                gl.uniform4fv(uniform.location, value);
                 uniformValue[0] = scopeX;
                 uniformValue[1] = scopeY;
                 uniformValue[2] = scopeZ;
                 uniformValue[3] = scopeW;
             }
         };
-        this.uniformSetter[UniformTypeEnum.INT_VEC2] = function (uniform, value)
+        this.uniformSetter[UniformTypeEnum.INT_VEC2] = function (uniform: IuniformInfo, value)
         {
             uniformValue = uniform.value;
             scopeX = value[0];
             scopeY = value[1];
             if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY)
             {
-                gl.uniform2iv(uniform.locationId, value);
+                gl.uniform2iv(uniform.location, value);
                 uniformValue[0] = scopeX;
                 uniformValue[1] = scopeY;
             }
         };
         this.uniformSetter[UniformTypeEnum.BOOL_VEC2] = this.uniformSetter[UniformTypeEnum.INT_VEC2];
-        this.uniformSetter[UniformTypeEnum.INT_VEC3] = function (uniform, value)
+        this.uniformSetter[UniformTypeEnum.INT_VEC3] = function (uniform: IuniformInfo, value)
         {
             uniformValue = uniform.value;
             scopeX = value[0];
@@ -149,14 +149,14 @@ export class GraphicsDevice
             scopeZ = value[2];
             if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ)
             {
-                gl.uniform3iv(uniform.locationId, value);
+                gl.uniform3iv(uniform.location, value);
                 uniformValue[0] = scopeX;
                 uniformValue[1] = scopeY;
                 uniformValue[2] = scopeZ;
             }
         };
         this.uniformSetter[UniformTypeEnum.BOOL_VEC3] = this.uniformSetter[UniformTypeEnum.INT_VEC3];
-        this.uniformSetter[UniformTypeEnum.INT_VEC4] = function (uniform, value)
+        this.uniformSetter[UniformTypeEnum.INT_VEC4] = function (uniform: IuniformInfo, value)
         {
             uniformValue = uniform.value;
             scopeX = value[0];
@@ -165,7 +165,7 @@ export class GraphicsDevice
             scopeW = value[3];
             if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ || uniformValue[3] !== scopeW)
             {
-                gl.uniform4iv(uniform.locationId, value);
+                gl.uniform4iv(uniform.location, value);
                 uniformValue[0] = scopeX;
                 uniformValue[1] = scopeY;
                 uniformValue[2] = scopeZ;
@@ -173,21 +173,21 @@ export class GraphicsDevice
             }
         };
         this.uniformSetter[UniformTypeEnum.BOOL_VEC4] = this.uniformSetter[UniformTypeEnum.INT_VEC4];
-        this.uniformSetter[UniformTypeEnum.FLOAT_MAT2] = function (uniform, value)
+        this.uniformSetter[UniformTypeEnum.FLOAT_MAT2] = function (uniform: IuniformInfo, value)
         {
-            gl.uniformMatrix2fv(uniform.locationId, false, value);
+            gl.uniformMatrix2fv(uniform.location, false, value);
         };
-        this.uniformSetter[UniformTypeEnum.FLOAT_MAT3] = function (uniform, value)
+        this.uniformSetter[UniformTypeEnum.FLOAT_MAT3] = function (uniform: IuniformInfo, value)
         {
-            gl.uniformMatrix3fv(uniform.locationId, false, value);
+            gl.uniformMatrix3fv(uniform.location, false, value);
         };
-        this.uniformSetter[UniformTypeEnum.FLOAT_MAT4] = function (uniform, value)
+        this.uniformSetter[UniformTypeEnum.FLOAT_MAT4] = function (uniform: IuniformInfo, value)
         {
-            gl.uniformMatrix4fv(uniform.locationId, false, value);
+            gl.uniformMatrix4fv(uniform.location, false, value);
         };
-        this.uniformSetter[UniformTypeEnum.FLOAT_ARRAY] = function (uniform, value)
+        this.uniformSetter[UniformTypeEnum.FLOAT_ARRAY] = function (uniform: IuniformInfo, value)
         {
-            gl.uniform1fv(uniform.locationId, value);
+            gl.uniform1fv(uniform.location, value);
         };
 
         //------------------buffer

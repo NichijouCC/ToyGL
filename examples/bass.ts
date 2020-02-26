@@ -1,7 +1,9 @@
 import { ToyGL } from "../src/toygl";
 import { MeshInstance } from "../src/scene/MeshInstance";
 import { Material } from "../src/scene/asset/Material";
-import { DefaultGeometry } from '../src/resources/defAssets/DefaultGeometry'
+import { DefaultGeometry } from '../src/resources/defAssets/DefaultGeometry';
+import { DefaultTexture } from '../src/resources/defAssets/DefaultTexture';
+
 import { VertexAttEnum } from "../src/webgl/VertexAttEnum";
 import { Color } from "../src/mathD/color";
 import { Camera } from "../src/scene/Camera";
@@ -16,23 +18,31 @@ export class Base
             },
             shaderOption: {
                 vsStr: `attribute vec3 POSITION;
+                attribute vec3 TEXCOORD_0;
+                varying mediump vec2 xlv_TEXCOORD0;
                 void main()
                 {
                     highp vec4 tmplet_1=vec4(POSITION.xy*0.5,1.0,1.0);
+                    xlv_TEXCOORD0 = TEXCOORD_0.xy;
                     gl_Position = tmplet_1;
                 }`,
                 fsStr: `uniform highp vec4 MainColor;
+                uniform lowp sampler2D _MainTex;
+                varying mediump vec2 xlv_TEXCOORD0;
                 void main()
                 {
-                    gl_FragData[0] = MainColor;
+                    gl_FragData[0] = texture2D(_MainTex, xlv_TEXCOORD0)*MainColor;
                 }`,
                 attributes: {
                     POSITION: VertexAttEnum.POSITION,
                     MainColor: VertexAttEnum.COLOR_0,
+                    TEXCOORD_0: VertexAttEnum.TEXCOORD_0,
                 }
-
             }
         });
+        mat.setUniformParameter("_MainTex", DefaultTexture.grid);
+        mat.setUniformParameter("MainColor", Color.create(1, 0, 0, 1));
+
         let ins = new MeshInstance();
         ins.geometry = geometry;
         ins.material = mat;
@@ -42,8 +52,9 @@ export class Base
         toy.scene.tryAddMeshInstance(ins);
 
 
+        let camNode = toy.scene.createChild();
         let cam = new Camera();
-        cam.node = node;
+        cam.node = camNode;
         toy.scene.tryAddCamera(cam);
 
         // let geometry = DefGeometry.fromType("quad");

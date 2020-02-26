@@ -9,8 +9,8 @@ import { BufferUsageEnum } from "../../webgl/Buffer";
 import { IvertexAttributeOption } from "../../webgl/VertexAttribute";
 import { VertexBuffer } from "../../webgl/VertexBuffer";
 import { VertexArray } from "../../webgl/VertextArray";
-import { BaseGeometryAsset } from "../asset/BassGeoemtryAsset";
 import { TypedArray } from "../../core/TypedArray";
+import { GeometryAsset } from "./GeoemtryAsset";
 
 /**
  * 
@@ -33,7 +33,7 @@ import { TypedArray } from "../../core/TypedArray";
  * });
  * ```
  */
-export class Geometry extends BaseGeometryAsset
+export class Geometry extends GeometryAsset
 {
     attributes: { [keyName: string]: GeometryAttribute } = {};
     indices?: IndicesArray;
@@ -51,11 +51,9 @@ export class Geometry extends BaseGeometryAsset
         this.primitiveType = option.primitiveType != null ? option.primitiveType : GlConstants.TRIANGLES;
         this.boundingSphere = option.boundingSphere;
     }
-
     private _vertexCount: number;
     get vertexCount() { return this._vertexCount };
 
-    private beDirty = false;
     private dirtyAtt: { [name: string]: GeometryAttribute } = {};
     setAttribute(attributeType: VertexAttEnum, options: IgeometryAttributeOptions)
     {
@@ -65,63 +63,56 @@ export class Geometry extends BaseGeometryAsset
         {
             this._vertexCount = geAtt.values.length / geAtt.componentsPerAttribute;
         }
-        if (this._vertexArray != null)
+        if (this.graphicAsset != null)
         {
-            this.beDirty = true;
+            this.beNeedRefresh = true;
             this.dirtyAtt[attributeType] = geAtt;
         }
     }
 
     updateAttributeData(attributeType: VertexAttEnum, data: TypedArray)
     {
-        this.beDirty = true;
+        this.beNeedRefresh = true;
         this.attributes[attributeType].values = data;
         this.dirtyAtt[attributeType] = this.attributes[attributeType];
     }
 
-    bind(device: GraphicsDevice)
+    protected create(device: GraphicsDevice): VertexArray
     {
-        if (this._vertexArray == null)
+        return Geometry.createVertexArray(device, this);
+    }
+    protected refresh(device: GraphicsDevice): void
+    {
+        for (let key in this.dirtyAtt)
         {
-            this._vertexArray = Geometry.createVertexArray(device, this);
-            this.beDirty = false;
-            this.dirtyAtt = {};
-        }
-        if (this.beDirty)
-        {
-            for (let key in this.dirtyAtt)
+            if (this.graphicAsset.hasAttribute(key))
             {
-                if (this._vertexArray.hasAttribute(key))
-                {
-                    this._vertexArray.updateVertexBuffer(key, this.dirtyAtt[key].values);
-                } else
-                {
-                    let geAtt = this.dirtyAtt[key];
-                    let att: IvertexAttributeOption = {
-                        type: geAtt.type,
-                        componentDatatype: geAtt.componentDatatype,
-                        componentsPerAttribute: geAtt.componentsPerAttribute,
-                        normalize: geAtt.normalize,
-                    };
-                    att.vertexBuffer = new VertexBuffer({
-                        context: device,
-                        usage: geAtt.beDynamic ? BufferUsageEnum.DYNAMIC_DRAW : BufferUsageEnum.STATIC_DRAW,
-                        typedArray: geAtt.values
-                    });
-                    this._vertexArray.update(att);
-                }
+                this.graphicAsset.updateVertexBuffer(key, this.dirtyAtt[key].values);
+            } else
+            {
+                let geAtt = this.dirtyAtt[key];
+                let att: IvertexAttributeOption = {
+                    type: geAtt.type,
+                    componentDatatype: geAtt.componentDatatype,
+                    componentsPerAttribute: geAtt.componentsPerAttribute,
+                    normalize: geAtt.normalize,
+                };
+                att.vertexBuffer = new VertexBuffer({
+                    context: device,
+                    usage: geAtt.beDynamic ? BufferUsageEnum.DYNAMIC_DRAW : BufferUsageEnum.STATIC_DRAW,
+                    typedArray: geAtt.values
+                });
+                this.graphicAsset.update(att);
             }
         }
-        super.bind(device);
     }
-
     get bounding()
     {
-        if (this._aabb == null)
+        if (this.boundingSphere == null)
         {
-            this._aabb = BoundingSphere.fromTypedArray(this.attributes[VertexAttEnum.POSITION]?.values);
+            this.boundingSphere = BoundingSphere.fromTypedArray(this.attributes[VertexAttEnum.POSITION]?.values);
         }
-        return this._aabb;
+        return this.boundingSphere;
     }
 
     static createVertexArray(context: GraphicsDevice, geometry: Geometry)

@@ -3,26 +3,15 @@ import { Texture, IsamplerOptions, Sampler } from "../../webgl/Texture";
 import { GraphicsDevice } from "../../webgl/GraphicsDevice";
 import { PixelFormatEnum } from "../../webgl/PixelFormatEnum";
 import { PixelDatatypeEnum } from "../../webgl/PixelDatatype";
-import { TextureFilterEnum } from "../../webgl/TextureFilterEnum";
-import { TextureWrapEnum } from "../../webgl/TextureWrapEnum";
+import { TextureAsset } from "../primitive/TextureAsset";
 
-export class Texture2D extends Asset implements ItextureAsset
+export class Texture2D extends TextureAsset
 {
-    private _tex: Texture;
-    // set glTexture(tex: Texture)
-    // {
-    //     if (this._tex != null)
-    //     {
-    //         this._tex.destroy();
-    //     }
-    //     this._tex = tex;
-    // }
-    get texture() { return this._tex }
-    bind(device: GraphicsDevice): void
+    protected create(device: GraphicsDevice): Texture
     {
-        if (this._tex == null && this._source)
+        if (this._source)
         {
-            this._tex = Texture.fromImageSource({
+            return Texture.fromImageSource({
                 context: device,
                 image: this._source,
                 pixelFormat: this._pixelFormat,
@@ -30,18 +19,12 @@ export class Texture2D extends Asset implements ItextureAsset
                 sampler: this.sampler
             })
         }
-        this._tex?.bind();
+        return null;
     }
-    unbind(): void
+    protected refresh(device: GraphicsDevice): void
     {
-        this._tex?.unbind();
+        throw new Error("Method not implemented.");
     }
-    destroy(): void
-    {
-        this._tex?.destroy();
-    }
-
-
     private _source: TexImageSource;
     set textureSource(source: TexImageSource) { this._source = source; }
     private _pixelFormat: PixelFormatEnum;
@@ -77,9 +60,4 @@ export interface Texture2dOption
 
     // ----------------texParameteri-------------
     sampler?: IsamplerOptions;
-}
-
-export interface ItextureAsset extends IgraphicAsset
-{
-    readonly texture: Texture;
 }

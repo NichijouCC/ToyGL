@@ -4,7 +4,7 @@ import { EventHandler } from "../core/Event";
 import { DrawCommand } from "./DrawCommand";
 import { RenderLayerEnum } from "./RenderLayer";
 import { Shader } from "./asset/Shader";
-import { IgeometryAsset, BaseGeometryAsset } from "./asset/BassGeoemtryAsset";
+import { IgeometryAsset, GeometryAsset } from "./primitive/GeoemtryAsset";
 import { AssetReference } from "./AssetReference";
 import { VertexArray } from "../webgl/VertextArray";
 import { BoundingBox, BoundingSphere } from "./Bounds";
@@ -33,9 +33,9 @@ export class MeshInstance
     node: Transform;
     get worldMat() { return this.node?.worldMatrix }
 
-    private geometryRef = new AssetReference<BaseGeometryAsset>();
+    private geometryRef = new AssetReference<GeometryAsset>();
     get geometry() { return this.geometryRef.asset }
-    set geometry(value: BaseGeometryAsset) { this.geometryRef.asset = value; }
+    set geometry(value: GeometryAsset) { this.geometryRef.asset = value; }
     get bounding() { return this.geometryRef.asset.bounding; }
 
     private materialRef = new AssetReference<Material>();

@@ -1,6 +1,7 @@
 import { UniqueObject } from "../../core/UniqueObject";
 import { GraphicsDevice } from "../../webgl/GraphicsDevice";
 import { EventHandler } from "../../core/Event";
+import { Texture } from "../../webgl/Texture";
 
 export class Asset extends UniqueObject
 {
@@ -11,6 +12,7 @@ export class Asset extends UniqueObject
     get becreating() { return this._becreating };
 
     onDirty = new EventHandler<void>();
+    onCreated = new EventHandler<void>();
 
     destroy() { }
 }

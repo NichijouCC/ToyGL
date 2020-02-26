@@ -49,9 +49,9 @@ namespace Private
 
 export class DefaultTexture
 {
-    get white() { return Private.white };
-    get black() { return Private.black };
-    get grid() { return Private.grid };
+    static get white() { return Private.white };
+    static get black() { return Private.black };
+    static get grid() { return Private.grid };
 }
 
 export function arraybufferToimage(arrayBufferView: Uint8Array, mimeType: string = "image/jpeg"): Promise<HTMLImageElement>
