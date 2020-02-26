@@ -3,6 +3,8 @@ import { RenderLayerEnum } from "../RenderLayer";
 import { Asset, IgraphicAsset } from "./Asset";
 import { VertexAttEnum } from "../../webgl/VertexAttEnum";
 import { GraphicsDevice } from "../../webgl/GraphicsDevice";
+import { AutoUniforms } from "../AutoUniform";
+import { UniformState } from "../UniformState";
 
 namespace Private
 {
@@ -13,6 +15,8 @@ export class Shader extends Asset implements IgraphicAsset
 {
 
     private _shader: ShaderProgram;
+    private _autoUniforms: string[] = [];
+    get autoUniforms() { return this._autoUniforms }
     get glShader() { return this._shader };
     set glShader(shader: ShaderProgram)
     {
@@ -57,13 +61,33 @@ export class Shader extends Asset implements IgraphicAsset
     {
         if (this._shader == null)
         {
-            this._shader = new ShaderProgram({ context: device, attributes: this.attributes, vsStr: this.vsStr, fsStr: this.fsStr });
+            let newShader = new ShaderProgram({ context: device, attributes: this.attributes, vsStr: this.vsStr, fsStr: this.fsStr });
+            this._shader = newShader;
+
+            this._autoUniforms = [];
+            Object.keys(newShader.uniforms).forEach(uniform =>
+            {
+                if (AutoUniforms.containAuto(uniform))
+                {
+                    this._autoUniforms.push(uniform);
+                }
+            })
         }
         this._shader.bind();
     }
 
-    bindUniforms(device: GraphicsDevice, uniforms: { [name: string]: any })
+    bindManulUniforms(device: GraphicsDevice, uniforms: { [name: string]: any })
     {
+        this._shader.bindUniforms(device, uniforms);
+    }
+
+    bindAutoUniforms(device: GraphicsDevice, uniformState: UniformState)
+    {
+        let uniforms: { [name: string]: any } = {};
+        this._autoUniforms.forEach(item =>
+        {
+            uniforms[item] = AutoUniforms.getAutoUniformValue(item, uniformState);
+        })
         this._shader.bindUniforms(device, uniforms);
     }
 

@@ -4,11 +4,11 @@ import { Render } from "./Render";
 import { Camera } from "./Camera";
 import { Entity } from "../core/Entity";
 import { EventHandler } from "../core/Event";
+import { UniformState } from "./UniformState";
 
 export class InterScene
 {
     layers: LayerComposition = new LayerComposition();
-
     tryAddMeshInstance(ins: MeshInstance)
     {
         this.layers.tryAddMeshInstance(ins);
@@ -25,12 +25,13 @@ export class InterScene
             this.cameras.set(cam.id, cam)
         }
     }
-    preUpdate = new EventHandler<void>();
-    frameUpdate()
+    preUpdate = new EventHandler<number>();
+    frameUpdate(delta: number)
     {
-        this.preUpdate.raiseEvent();
+        this.preUpdate.raiseEvent(delta);
         this.cameras.forEach(cam =>
         {
+            this.render.setCamera(cam);
             this.layers.getlayers().forEach(layer =>
             {
                 this.render.renderLayers(cam, layer)

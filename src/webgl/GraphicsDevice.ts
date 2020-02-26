@@ -22,6 +22,7 @@ export class GraphicsDevice
     readonly limit: DeviceLimit;
 
     readonly uniformSetter: { [uniformType: string]: (uniform: any, value: any) => void } = {};
+    readonly uniformSamplerSetter: { [uniformType: string]: (uniform: any, value: any, unit: number) => void } = {};
     readonly bufferUsageToGLNumber: { [useage: string]: number } = {};
     readonly bufferTargetToGLNumber: { [useage: string]: number } = {};
     readonly vertexAttributeSetter: { [size: number]: (index: number, value: any) => any } = {};
@@ -69,7 +70,7 @@ export class GraphicsDevice
         //------------------------uniform 
         var scopeX, scopeY, scopeZ, scopeW;
         var uniformValue;
-        this.uniformSetter[UniformTypeEnum.BOOL] = function (uniform: IuniformInfo, value)
+        this.uniformSetter[UniformTypeEnum.BOOL] = (uniform: IuniformInfo, value) =>
         {
             if (uniform.value !== value)
             {
@@ -78,7 +79,7 @@ export class GraphicsDevice
             }
         };
         this.uniformSetter[UniformTypeEnum.INT] = this.uniformSetter[UniformTypeEnum.BOOL];
-        this.uniformSetter[UniformTypeEnum.FLOAT] = function (uniform: IuniformInfo, value)
+        this.uniformSetter[UniformTypeEnum.FLOAT] = (uniform: IuniformInfo, value) =>
         {
             if (uniform.value !== value)
             {
@@ -86,7 +87,7 @@ export class GraphicsDevice
                 uniform.value = value;
             }
         };
-        this.uniformSetter[UniformTypeEnum.FLOAT_VEC2] = function (uniform: IuniformInfo, value)
+        this.uniformSetter[UniformTypeEnum.FLOAT_VEC2] = (uniform: IuniformInfo, value) =>
         {
             uniformValue = uniform.value;
             scopeX = value[0];
@@ -98,7 +99,7 @@ export class GraphicsDevice
                 uniformValue[1] = scopeY;
             }
         };
-        this.uniformSetter[UniformTypeEnum.FLOAT_VEC3] = function (uniform: IuniformInfo, value)
+        this.uniformSetter[UniformTypeEnum.FLOAT_VEC3] = (uniform: IuniformInfo, value) =>
         {
             uniformValue = uniform.value;
             scopeX = value[0];
@@ -112,7 +113,7 @@ export class GraphicsDevice
                 uniformValue[2] = scopeZ;
             }
         };
-        this.uniformSetter[UniformTypeEnum.FLOAT_VEC4] = function (uniform: IuniformInfo, value)
+        this.uniformSetter[UniformTypeEnum.FLOAT_VEC4] = (uniform: IuniformInfo, value) =>
         {
             uniformValue = uniform.value;
             scopeX = value[0];
@@ -128,7 +129,7 @@ export class GraphicsDevice
                 uniformValue[3] = scopeW;
             }
         };
-        this.uniformSetter[UniformTypeEnum.INT_VEC2] = function (uniform: IuniformInfo, value)
+        this.uniformSetter[UniformTypeEnum.INT_VEC2] = (uniform: IuniformInfo, value) =>
         {
             uniformValue = uniform.value;
             scopeX = value[0];
@@ -141,7 +142,7 @@ export class GraphicsDevice
             }
         };
         this.uniformSetter[UniformTypeEnum.BOOL_VEC2] = this.uniformSetter[UniformTypeEnum.INT_VEC2];
-        this.uniformSetter[UniformTypeEnum.INT_VEC3] = function (uniform: IuniformInfo, value)
+        this.uniformSetter[UniformTypeEnum.INT_VEC3] = (uniform: IuniformInfo, value) =>
         {
             uniformValue = uniform.value;
             scopeX = value[0];
@@ -156,7 +157,7 @@ export class GraphicsDevice
             }
         };
         this.uniformSetter[UniformTypeEnum.BOOL_VEC3] = this.uniformSetter[UniformTypeEnum.INT_VEC3];
-        this.uniformSetter[UniformTypeEnum.INT_VEC4] = function (uniform: IuniformInfo, value)
+        this.uniformSetter[UniformTypeEnum.INT_VEC4] = (uniform: IuniformInfo, value) =>
         {
             uniformValue = uniform.value;
             scopeX = value[0];
@@ -173,22 +174,27 @@ export class GraphicsDevice
             }
         };
         this.uniformSetter[UniformTypeEnum.BOOL_VEC4] = this.uniformSetter[UniformTypeEnum.INT_VEC4];
-        this.uniformSetter[UniformTypeEnum.FLOAT_MAT2] = function (uniform: IuniformInfo, value)
+        this.uniformSetter[UniformTypeEnum.FLOAT_MAT2] = (uniform: IuniformInfo, value) =>
         {
             gl.uniformMatrix2fv(uniform.location, false, value);
         };
-        this.uniformSetter[UniformTypeEnum.FLOAT_MAT3] = function (uniform: IuniformInfo, value)
+        this.uniformSetter[UniformTypeEnum.FLOAT_MAT3] = (uniform: IuniformInfo, value) =>
         {
             gl.uniformMatrix3fv(uniform.location, false, value);
         };
-        this.uniformSetter[UniformTypeEnum.FLOAT_MAT4] = function (uniform: IuniformInfo, value)
+        this.uniformSetter[UniformTypeEnum.FLOAT_MAT4] = (uniform: IuniformInfo, value) =>
         {
             gl.uniformMatrix4fv(uniform.location, false, value);
         };
-        this.uniformSetter[UniformTypeEnum.FLOAT_ARRAY] = function (uniform: IuniformInfo, value)
+        this.uniformSetter[UniformTypeEnum.FLOAT_ARRAY] = (uniform: IuniformInfo, value) =>
         {
             gl.uniform1fv(uniform.location, value);
         };
+        this.uniformSamplerSetter[UniformTypeEnum.SAMPLER_2D] = (uniform: IuniformInfo, value, unit: number) =>
+        {
+            value.bind(this, unit);
+            gl.uniform1i(uniform.location, unit);
+        }
 
         //------------------buffer
         this.bufferTargetToGLNumber[BufferTargetEnum.ARRAY_BUFFER] = gl.ARRAY_BUFFER;
@@ -272,10 +278,10 @@ export class GraphicsDevice
                 return null;
             } else
             {
-                let { uniformDic, sampleDic } = this.getUniformsInfo(gl, shader);
+                let uniformDic = this.getUniformsInfo(gl, shader);
                 //TODO :SMAPLES
                 let samples = {};
-                return { shader, attributes, uniforms: uniformDic, samples: sampleDic }
+                return { shader, attributes, uniforms: uniformDic }
             }
         }
     }
@@ -336,10 +342,10 @@ export class GraphicsDevice
     private getUniformsInfo(gl: WebGLRenderingContext, program: WebGLProgram)
     {
         let uniformDic: { [name: string]: IuniformInfo } = {};
-        let sampleDic: { [name: string]: IuniformInfo } = {};
+        // let sampleDic: { [name: string]: IuniformInfo } = {};
 
         let numUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
-
+        let sampleArr: IuniformInfo[] = [];
         for (let i = 0; i < numUniforms; i++)
         {
             let uniformInfo = gl.getActiveUniform(program, i);
@@ -359,21 +365,30 @@ export class GraphicsDevice
             if (location == null) continue;
 
             let uniformtype = this.getUniformTypeFromGLtype(type, beArray);
-            let newUniformElemt = {
+            let newUniformElemt: IuniformInfo = {
                 name: name,
                 location: location,
                 type: uniformtype,
-            };
+            } as any;
+            uniformDic[name] = newUniformElemt;
 
             if (uniformtype == UniformTypeEnum.SAMPLER_2D || uniformtype == UniformTypeEnum.SAMPLER_CUBE)
             {
-                sampleDic[name] = newUniformElemt;
+                newUniformElemt.beTexture = true;
+                sampleArr.push(newUniformElemt);
             } else
             {
                 uniformDic[name] = newUniformElemt;
+                newUniformElemt.beTexture = false;
+                newUniformElemt.setter = this.uniformSetter[uniformtype];
             }
         }
-        return { uniformDic, sampleDic };
+
+        sampleArr.forEach((item, index) =>
+        {
+            item.setter = (info: IuniformInfo, value: any) => { this.uniformSamplerSetter[item.type](info, value, index) }
+        })
+        return uniformDic;
     }
 
     //-----------------------------gl state

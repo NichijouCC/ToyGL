@@ -7,6 +7,7 @@ import { DefaultTexture } from '../src/resources/defAssets/DefaultTexture';
 import { VertexAttEnum } from "../src/webgl/VertexAttEnum";
 import { Color } from "../src/mathD/color";
 import { Camera } from "../src/scene/Camera";
+import { Quat } from "../src/mathD/quat";
 export class Base
 {
     static start(toy: ToyGL)
@@ -19,12 +20,13 @@ export class Base
             shaderOption: {
                 vsStr: `attribute vec3 POSITION;
                 attribute vec3 TEXCOORD_0;
+                uniform highp mat4 czm_modelViewp;
                 varying mediump vec2 xlv_TEXCOORD0;
                 void main()
                 {
-                    highp vec4 tmplet_1=vec4(POSITION.xy*0.5,1.0,1.0);
                     xlv_TEXCOORD0 = TEXCOORD_0.xy;
-                    gl_Position = tmplet_1;
+                    highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);
+                    gl_Position = czm_modelViewp * tmplet_1;;
                 }`,
                 fsStr: `uniform highp vec4 MainColor;
                 uniform lowp sampler2D _MainTex;
@@ -53,9 +55,17 @@ export class Base
 
 
         let camNode = toy.scene.createChild();
+        camNode.localPosition.z = 5;
         let cam = new Camera();
         cam.node = camNode;
         toy.scene.tryAddCamera(cam);
+
+        let roty = 0;
+        toy.scene.preUpdate.addEventListener((delta) =>
+        {
+            roty += delta * 15;
+            node.localRotation = Quat.FromEuler(0, roty, 0, node.localRotation);
+        })
 
         // let geometry = DefGeometry.fromType("quad");
 

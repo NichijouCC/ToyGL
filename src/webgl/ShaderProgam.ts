@@ -29,7 +29,7 @@ export class ShaderProgram implements IshaderProgram
 {
     program: WebGLProgram;
     uniforms: { [name: string]: IuniformInfo; };
-    samples: { [name: string]: IuniformInfo };
+    // samples: { [name: string]: IuniformInfo };
     attributes: { [type: string]: IattributeInfo; };
     /**
      * uniform value guid 缓存，用于更新修改的uniform
@@ -44,7 +44,7 @@ export class ShaderProgram implements IshaderProgram
         {
             this.program = res.shader;
             this.uniforms = res.uniforms;
-            this.samples = res.samples;
+            // this.samples = res.samples;
             this.attributes = res.attributes;
 
             //---------------------初始化 uniforms缓存值 为null
@@ -91,23 +91,30 @@ export class ShaderProgram implements IshaderProgram
     }
     private bindUniform(key: string, value: any) { }
 
-    bindUniforms(device: GraphicsDevice, value: { [name: string]: any })
+    bindUniforms(device: GraphicsDevice, values: { [name: string]: any })
     {
-        for (let key in this.uniforms)
+        // for (let key in this.uniforms)
+        // {
+        //     if (value[key])
+        //     {
+        //         this.bindUniform(key, value[key]);
+        //     }
+        // }
+        // let unit = 0;
+        // for (let key in this.samples)
+        // {
+        //     if (value[key])
+        //     {
+        //         value[key].bind(device, unit++);
+        //     }
+        // }
+        let uniformInfo: IuniformInfo;
+        for (let key in values)
         {
-            if (value[key])
-            {
-                this.bindUniform(key, value[key]);
-            }
+            uniformInfo = this.uniforms[key];
+            uniformInfo?.setter(uniformInfo, values[key]);
         }
-        let unit = 0;
-        for (let key in this.samples)
-        {
-            if (value[key])
-            {
-                value[key].bind(device, unit++);
-            }
-        }
+
     }
 
     bind() { }
@@ -124,10 +131,12 @@ export interface IuniformInfo
     name: string;
     type: UniformTypeEnum;
     location: WebGLUniformLocation;
+    beTexture: boolean;
     /**
      * uniform value 缓存，用于减少shader uniform state changes
      */
     value?: any;
+    setter: (uniform: IuniformInfo, value: any) => void
 }
 /**
  * shderprogram的 attribute info

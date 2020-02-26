@@ -11,6 +11,7 @@ import { MeshInstance } from "./MeshInstance";
 import { RenderLayerEnum } from "./RenderLayer";
 import { LayerCollection } from "./LayerCollection";
 import { IlayerIndexEvent } from "./asset/Shader";
+import { UniformState } from "./UniformState";
 
 
 export enum SortTypeEnum
@@ -31,14 +32,15 @@ namespace Private
 export class Render
 {
     private device: GraphicsDevice;
+    uniformState = new UniformState();
     constructor(device: GraphicsDevice)
     {
         this.device = device;
     }
-    private camera: Camera;
+
     setCamera(camera: Camera)
     {
-        this.camera = camera;
+        this.uniformState.curCamera = camera;
         this.device.setClear(
             camera.enableClearDepth ? camera.dePthValue : null,
             camera.enableClearColor ? camera.backgroundColor : null,
@@ -60,6 +62,7 @@ export class Render
         for (let i = 0; i < culledDrawcalls.length; i++)
         {
             drawcall = culledDrawcalls[i];
+            this.uniformState.matrixModel = drawcall.worldMat;
             if (drawcall.material != Private.preMaterial)
             {
                 Private.preMaterial = drawcall.material;
@@ -69,7 +72,8 @@ export class Render
                 renderState = drawcall.material.renderState;
 
                 shader.bind(this.device);
-                shader.bindUniforms(this.device, uniforms);
+                shader.bindAutoUniforms(this.device, this.uniformState);//auto unfiorm
+                shader.bindManulUniforms(this.device, uniforms);
 
                 if (Private.preRenderState != renderState)
                 {
@@ -103,7 +107,10 @@ export class Render
                         renderState.stencilTest.stencilPassZfailBack,
                     );
                 }
-
+            } else
+            {
+                shader = drawcall.material.shader;
+                shader.bindAutoUniforms(this.device, this.uniformState);//auto unfiorm
             }
             drawcall.geometry.bind(this.device);
             drawcall.geometry.draw(this.device, drawcall.instanceCount);

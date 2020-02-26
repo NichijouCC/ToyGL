@@ -43,7 +43,7 @@ export class ToyGL
 
         timer.onTick.addEventListener((deltaTime) =>
         {
-            scene.frameUpdate();
+            scene.frameUpdate(deltaTime);
         })
 
         toy._timer = timer;

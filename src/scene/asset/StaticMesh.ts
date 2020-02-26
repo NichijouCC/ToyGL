@@ -14,5 +14,6 @@ export class StaticMesh extends GeometryAsset
         throw new Error("Method not implemented.");
     }
 
+    set vertexArray(value: VertexArray) { this.graphicAsset = value }
 
 }
