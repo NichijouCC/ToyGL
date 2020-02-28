@@ -141,17 +141,24 @@ export class VertexArray implements IglElement
         {
             this._bind = () =>
             {
+                this._context.bindingVao = this._vao;
                 gl.bindVertexArray(this._vao);
             }
             this._unbind = () =>
             {
+                this._context.bindingVao = null;
                 gl.bindVertexArray(null);
             }
 
             let vao = gl.createVertexArray();
-            gl.bindVertexArray(vao)
+            this._context.beCreatingVao = true;
+            gl.bindVertexArray(vao);
+            this._context.bindingVao = vao;
             this.bindVertexAttributes(gl, this._vertexAttributes, this._indexbuffer);
-            gl.bindVertexArray(null)
+            gl.bindVertexArray(null);
+            this._context.bindingVao = null;
+            this._context.beCreatingVao = false;
+
             this._vao = vao;
 
             this.destroy = () =>
@@ -244,20 +251,19 @@ export class VertexArray implements IglElement
     }
     private _bind() { }
     private _unbind() { }
-
-    private static _cachedvertexArray: VertexArray;
+    static _cachedVertexArray: VertexArray;
     bind()
     {
-        if (VertexArray._cachedvertexArray != this)
+        if (VertexArray._cachedVertexArray != this || this._vao != this._context.bindingVao)
         {
             this._bind();
-            VertexArray._cachedvertexArray = this;
+            VertexArray._cachedVertexArray = this;
         }
     }
     unbind()
     {
         this._unbind();
-        VertexArray._cachedvertexArray = null;
+        VertexArray._cachedVertexArray = null;
     }
 
     destroy() { }

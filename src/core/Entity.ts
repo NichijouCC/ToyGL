@@ -30,7 +30,7 @@ export class Entity extends Transform implements Ientity
         let newComp = Ecs.addComp(this, comp);
         return newComp;
     }
-    getComponent(comp: string) { return (this as any).comp }
+    getComponent(comp: string) { return (this as any)[comp] }
     removeComponent(comp: string): void
     {
         Ecs.removeComp(this, comp);

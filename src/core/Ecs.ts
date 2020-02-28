@@ -4,7 +4,7 @@
 
 export interface Icomponent
 {
-    readonly entity: Ientity;
+    entity: Ientity;
 }
 
 export interface Ientity
@@ -42,6 +42,11 @@ export class Ecs
     {
         let compInfo = this.registedcomps[comp];
         if (compInfo == null) return;
+
+        let newcomp = new compInfo.ctr() as Icomponent;
+        newcomp.entity = entity;
+        (entity as any)[comp] = newcomp;
+
         let relatedSystem = compInfo.relatedSystem;
         relatedSystem.forEach(item =>
         {
@@ -52,8 +57,6 @@ export class Ecs
         });
         entity._uniteBitkey.addBitKey(compInfo.bitKey);
 
-        let newcomp = new compInfo.ctr() as Icomponent;
-        (entity as any)[comp] = newcomp;
         return newcomp;
     }
 

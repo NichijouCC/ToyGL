@@ -161,7 +161,7 @@ export class Texture
             }
         }
 
-        let flipY = options.flipY ?? true;
+        let flipY = options.flipY ?? false;
         let preMultiplyAlpha = options.preMultiplyAlpha || pixelFormat === PixelFormatEnum.RGB || pixelFormat === PixelFormatEnum.LUMINANCE;
 
 
@@ -407,7 +407,7 @@ export class Sampler
     maximumAnisotropy: number;
     enableMimap: boolean;
     mipmapFilter: TextureFilterEnum;
-    constructor(options: IsamplerOptions)
+    constructor(options?: IsamplerOptions)
     {
         this.filterMax = options?.filterMax || TextureFilterEnum.LINEAR;
         this.filterMin = options?.filterMin || TextureFilterEnum.LINEAR;

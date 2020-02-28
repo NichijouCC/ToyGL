@@ -1,8 +1,5 @@
 import { ParseBufferNode } from "./ParseBufferNode";
 import { IgltfJson, IgltfBufferview } from "../LoadglTF";
-import { GlBuffer } from "../../../render/webglRender";
-import { Buffer, BufferTargetEnum, BufferUsageEnum } from "../../../webgl/Buffer";
-import { GraphicsDevice } from "../../../webgl/GraphicsDevice";
 
 export class ParseBufferViewNode
 {

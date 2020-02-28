@@ -3,7 +3,7 @@ import { GraphicsDevice } from "./GraphicsDevice";
 import { BufferUsageEnum, Buffer, BufferTargetEnum } from "./Buffer";
 import { GlConstants } from "./GLconstant";
 import { TypedArray, getByteSizeFromGLtype } from "../core/TypedArray";
-export type IndicesArray = Uint16Array | Uint32Array;
+export type IndicesArray = Uint8Array | Uint16Array | Uint32Array;
 export type IndexBufferOption = {
     context: GraphicsDevice;
     usage?: BufferUsageEnum;

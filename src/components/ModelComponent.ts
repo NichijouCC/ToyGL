@@ -21,6 +21,7 @@ export class ModelComponent implements Icomponent
             if (ins == null)
             {
                 ins = this.meshinstances[index] = new MeshInstance();
+                ins.node = this.entity;
                 this.onDirty.raiseEvent(this);
             }
             ins.geometry = newAsset.geometry;

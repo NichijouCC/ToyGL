@@ -65,14 +65,14 @@ export class Geometry extends GeometryAsset
         }
         if (this.graphicAsset != null)
         {
-            this.beNeedRefresh = true;
+            this.beNeedRefreshGraphicAsset = true;
             this.dirtyAtt[attributeType] = geAtt;
         }
     }
 
     updateAttributeData(attributeType: VertexAttEnum, data: TypedArray)
     {
-        this.beNeedRefresh = true;
+        this.beNeedRefreshGraphicAsset = true;
         this.attributes[attributeType].values = data;
         this.dirtyAtt[attributeType] = this.attributes[attributeType];
     }

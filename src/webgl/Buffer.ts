@@ -50,6 +50,12 @@ export class Buffer implements IglElement
 
         this.bind = () =>
         {
+            if (this.device.bindingVao && !this.device.beCreatingVao)
+            {
+                gl.bindVertexArray(null);
+                this.device.bindingVao = false;
+                this.device.beCreatingVao = false;
+            }
             gl.bindBuffer(this.target, buffer);
         }
         this.unbind = () =>

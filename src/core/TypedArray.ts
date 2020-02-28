@@ -107,7 +107,7 @@ export function getTypedArray(data: number | number[] | TypedArray, gltype: numb
     } else
     {
         let typedArray = data as TypedArray;
-        return new typeArrayCtr(typedArray.buffer, typedArray.byteOffset + byteOffset, typedArray.byteLength);
+        return new typeArrayCtr(typedArray.buffer, typedArray.byteOffset + byteOffset, typedArray.byteLength / typeArrayCtr.BYTES_PER_ELEMENT);
     }
 }
 
@@ -134,5 +134,13 @@ export namespace TypedArray
     export function glType(data: TypedArray)
     {
         return getGLTypeFromTypedArray(data);
+    }
+}
+
+export namespace GlType
+{
+    export function bytesPerElement()
+    {
+
     }
 }

@@ -5,6 +5,7 @@ import { SortTypeEnum } from "./Render";
 export class LayerComposition
 {
     private layers: Map<number, LayerCollection> = new Map();
+    private nolayers: LayerCollection = new LayerCollection("nolayer" as any);
     constructor()
     {
         this._addLayer(RenderLayerEnum.Background);
@@ -31,11 +32,17 @@ export class LayerComposition
     {
         if (this.insMap[ins.id] != null) return;
 
-        let layer = ins.material.layer;
-        let layerCollection = this.layers.get(layer);
-
-        layerCollection.add(ins);
-        this.insMap[ins.id] = layerCollection;
+        let layer = ins.material?.layer;
+        if (layer == null)
+        {
+            this.nolayers.add(ins);
+            this.insMap[ins.id] = this.nolayers;
+        } else
+        {
+            let layerCollection = this.layers.get(layer);
+            layerCollection.add(ins);
+            this.insMap[ins.id] = layerCollection;
+        }
         ins.onDirty.addEventListener(this.onInsDirty);
         ins.ondispose.addEventListener(this.onInsDispose)
     }
@@ -52,16 +59,23 @@ export class LayerComposition
 
     private onInsDirty = (ins: MeshInstance) =>
     {
-        let layer = ins.material.layer;
+        let layer = ins.material?.layer;
         let collection = this.insMap[ins.id];
         if (collection.layer != layer)
         {
             collection.remove(ins);
-            let layerCollection = this.layers.get(layer);
-            layerCollection.add(ins);
-            this.insMap[ins.id] = layerCollection;
-        }
 
+            if (layer != null)
+            {
+                let layerCollection = this.layers.get(layer);
+                layerCollection.add(ins);
+                this.insMap[ins.id] = layerCollection;
+            } else
+            {
+                this.nolayers.add(ins);
+                this.insMap[ins.id] = this.nolayers;
+            }
+        }
         this.insMap[ins.id].markDirty();
     }
 

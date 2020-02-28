@@ -6,7 +6,7 @@ import { GraphicsDevice } from "../../webgl/GraphicsDevice";
 export abstract class GeometryAsset extends Asset
 {
     protected graphicAsset: VertexArray;
-    protected beNeedRefresh: boolean = false;
+    protected beNeedRefreshGraphicAsset: boolean = false;
     protected abstract create(device: GraphicsDevice): VertexArray
     protected abstract refresh(device: GraphicsDevice): void
 
@@ -20,12 +20,12 @@ export abstract class GeometryAsset extends Asset
         {
             this.graphicAsset = this.create(device);
             this.onCreated.raiseEvent();
-            this.beNeedRefresh = false;
+            this.beNeedRefreshGraphicAsset = false;
         }
-        if (this.beNeedRefresh)
+        if (this.beNeedRefreshGraphicAsset)
         {
             this.refresh(device);
-            this.beNeedRefresh = false;
+            this.beNeedRefreshGraphicAsset = false;
         }
         this.graphicAsset?.bind();
     }

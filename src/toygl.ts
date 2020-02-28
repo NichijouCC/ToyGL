@@ -50,6 +50,7 @@ export class ToyGL
         toy._input = input;
         toy._screen = screen;
         toy._scene = scene;
+        toy._resource = resource;
 
         return toy;
     }
@@ -64,4 +65,7 @@ export class ToyGL
 
     private _scene: InterScene;
     get scene() { return this._scene }
+
+    private _resource: Resource;
+    get resource() { return this._resource }
 }

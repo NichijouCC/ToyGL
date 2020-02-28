@@ -8,6 +8,7 @@ import { VertexAttEnum } from "../src/webgl/VertexAttEnum";
 import { Color } from "../src/mathD/color";
 import { Camera } from "../src/scene/Camera";
 import { Quat } from "../src/mathD/quat";
+import { Texture2D } from "../src/scene/asset/Texture2d";
 export class Base
 {
     static start(toy: ToyGL)
@@ -15,7 +16,7 @@ export class Base
         let geometry = DefaultGeometry.ins.cube;
         let mat = new Material({
             uniformParameters: {
-                MainColor: Color.create(1, 0.5, 0.5, 1.0)
+                MainColor: Color.create(0, 1.0, 0.0, 1.0)
             },
             shaderOption: {
                 vsStr: `attribute vec3 POSITION;
@@ -43,7 +44,16 @@ export class Base
             }
         });
         mat.setUniformParameter("_MainTex", DefaultTexture.grid);
-        mat.setUniformParameter("MainColor", Color.create(1, 0, 0, 1));
+        // mat.setUniformParameter("_MainTex", DefaultTexture.grid);
+        let tex = new Texture2D();
+        let image = new Image();
+        image.src = "../resources/glTF/duck/DuckCM.png";
+        image.onload = () =>
+        {
+            tex.textureSource = image;
+            mat.setUniformParameter("_MainTex", tex);
+            console.log("tex loded!")
+        }
 
         let ins = new MeshInstance();
         ins.geometry = geometry;

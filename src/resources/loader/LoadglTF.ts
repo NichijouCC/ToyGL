@@ -11,6 +11,8 @@ import { Asset } from "../../scene/asset/Asset";
 import { IassetLoader } from "../Resource";
 import { Prefab } from "../../scene/asset/Prefab";
 import { Texture2D } from "../../scene/asset/Texture2d";
+import { VertexBuffer } from "../../webgl/VertexBuffer";
+import { IndexBuffer } from "../../webgl/IndexBuffer";
 
 export interface IglTFExtension
 {
@@ -26,8 +28,8 @@ export interface IgltfPrimitive
 export interface IgltfBufferview
 {
     viewBuffer: Uint8Array;
-    byteStride: number,
-    target: number
+    byteStride?: number,
+    target?: number
 }
 export class GltfNodeCache
 {
@@ -36,6 +38,9 @@ export class GltfNodeCache
     bufferNodeCache: { [index: number]: Promise<ArrayBuffer> } = {};
     materialNodeCache: { [index: number]: Promise<Material> } = {};
     textrueNodeCache: { [index: number]: Promise<Texture2D> } = {};
+    vertexBufferCache: { [index: number]: VertexBuffer } = {};
+    indexBufferCache: { [index: number]: IndexBuffer } = {};
+
     // beContainAnimation: boolean = false;
     // skinNodeCache: { [index: number]: SkinNode } = {};
     // animationNodeCache: { [index: number]: AnimationClip } = {};

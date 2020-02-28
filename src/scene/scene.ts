@@ -51,4 +51,17 @@ export class InterScene
         this.root.addChild(trans);
         return trans;
     }
+
+    addChild(item: Entity)
+    {
+        this.root.addChild(item);
+    }
+
+    createCamera()
+    {
+        let cam = new Camera();
+        cam.node = this.createChild();
+        this.tryAddCamera(cam);
+        return cam;
+    }
 }

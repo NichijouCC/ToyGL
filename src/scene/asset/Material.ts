@@ -11,23 +11,24 @@ export class Material extends Asset
 {
     name: string;
     uniformParameters: { [name: string]: any } = {};
-    constructor(options: ImatOption)
+    constructor(options?: ImatOption)
     {
         super();
-        this.name = options.name;
+        this.name = options?.name;
         this._sortId = Private.id++;
 
-        if (options.shaderOption != null)
+        if (options?.shaderOption != null)
         {
             this.shader = new Shader(options.shaderOption)
         }
-        if (options.uniformParameters)
+        if (options?.uniformParameters)
         {
             this.uniformParameters = { ...options.uniformParameters }
         }
+        this.onDirty.addEventListener(() => { this.beDirty = true; })
         this.shaderRef.onDirty.addEventListener(() => { this.onDirty.raiseEvent() });
     }
-
+    beDirty: boolean = false;
     private shaderRef = new AssetReference<Shader>();
     get shader() { return this.shaderRef.asset };
     set shader(value: Shader) { this.shaderRef.asset = value };
@@ -51,6 +52,7 @@ export class Material extends Asset
     setUniformParameter(uniformKey: string, value: any)
     {
         this.uniformParameters[uniformKey] = value;
+        this.beDirty = true;
     }
     dispose(): void { }
 }

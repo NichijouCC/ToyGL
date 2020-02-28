@@ -5,7 +5,7 @@ import { GraphicsDevice } from "../../webgl/GraphicsDevice";
 export abstract class TextureAsset extends Asset
 {
     protected graphicAsset: Texture;
-    protected beNeedRefresh: boolean = false;
+    protected beNeedRefreshGraphicAsset: boolean = false;
     protected abstract create(device: GraphicsDevice): Texture
     protected abstract refresh(device: GraphicsDevice): void
 
@@ -15,12 +15,12 @@ export abstract class TextureAsset extends Asset
         {
             this.graphicAsset = this.create(device);
             this.onCreated.raiseEvent();
-            this.beNeedRefresh = false;
+            this.beNeedRefreshGraphicAsset = false;
         }
-        if (this.beNeedRefresh)
+        if (this.beNeedRefreshGraphicAsset)
         {
             this.refresh(device);
-            this.beNeedRefresh = false;
+            this.beNeedRefreshGraphicAsset = false;
         }
         this.graphicAsset?.bind(unit);
     }

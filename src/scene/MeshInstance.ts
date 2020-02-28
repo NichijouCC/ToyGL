@@ -35,12 +35,12 @@ export class MeshInstance
 
     private geometryRef = new AssetReference<GeometryAsset>();
     get geometry() { return this.geometryRef.asset }
-    set geometry(value: GeometryAsset) { this.geometryRef.asset = value; }
+    set geometry(value: GeometryAsset) { this.geometryRef.asset = value; this.onDirty.raiseEvent(this); }
     get bounding() { return this.geometryRef.asset.bounding; }
 
     private materialRef = new AssetReference<Material>();
     get material(): Material { return this.materialRef.asset; }
-    set material(mat: Material) { this.materialRef.asset = mat; }
+    set material(mat: Material) { this.materialRef.asset = mat; this.onDirty.raiseEvent(this); }
 
     dispose() { this.ondispose.raiseEvent(this); };
 

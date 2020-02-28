@@ -63,9 +63,10 @@ export class Render
         {
             drawcall = culledDrawcalls[i];
             this.uniformState.matrixModel = drawcall.worldMat;
-            if (drawcall.material != Private.preMaterial)
+            if (drawcall.material != Private.preMaterial || drawcall.material.beDirty)
             {
                 Private.preMaterial = drawcall.material;
+                drawcall.material.beDirty = false;
 
                 shader = drawcall.material.shader;
                 uniforms = drawcall.material.uniformParameters;

@@ -10,7 +10,9 @@ import { VertexArray, IvaoOptions } from "../../../webgl/VertextArray";
 import { TypedArray } from "../../../core/TypedArray";
 import { Material } from "../../../scene/asset/Material";
 import { StaticMesh } from "../../../scene/asset/StaticMesh";
-import { IndexBuffer } from "../../../webgl/IndexBuffer";
+import { IndexBuffer, IndicesArray } from "../../../webgl/IndexBuffer";
+import { VertexBuffer } from "../../../webgl/VertexBuffer";
+import { BufferTargetEnum } from "../../../webgl/Buffer";
 
 const MapGltfAttributeToToyAtt: { [name: string]: VertexAttEnum } = {
     POSITION: VertexAttEnum.POSITION,
@@ -83,12 +85,15 @@ export class ParseMeshNode
         {
             let attIndex = attributes[attName];
             let attType = MapGltfAttributeToToyAtt[attName];
-            let attTask = ParseAccessorNode.parse(attIndex, gltf, context)
+            let attTask = ParseAccessorNode.parse(attIndex, gltf, { target: BufferTargetEnum.ARRAY_BUFFER, context })
                 .then(arrayInfo =>
                 {
                     vaoOptions.vertexAttributes.push({
                         type: attType,
-                        vertexBuffer: arrayInfo.buffer,
+                        vertexBuffer: arrayInfo.buffer as VertexBuffer ?? new VertexBuffer({
+                            context,
+                            typedArray: arrayInfo.typedArray
+                        }),
                         componentsPerAttribute: arrayInfo.componentSize,
                         componentDatatype: arrayInfo.componentDataType,
                         normalize: arrayInfo.normalize,
@@ -101,12 +106,15 @@ export class ParseMeshNode
         let index = node.indices;
         if (index != null)
         {
-            let indexTask = ParseAccessorNode.parse(index, gltf, context)
+            let indexTask = ParseAccessorNode.parse(index, gltf, { target: BufferTargetEnum.ELEMENT_ARRAY_BUFFER, context })
                 .then(arrayInfo =>
                 {
-                    vaoOptions.indexBuffer = arrayInfo.buffer as IndexBuffer;
+                    if (!(arrayInfo.typedArray instanceof Uint8Array || arrayInfo.typedArray instanceof Uint16Array || arrayInfo.typedArray instanceof Uint32Array))
+                    {
+                        console.error("index data type not Uint16Array or Uint32Array!");
+                    }
+                    vaoOptions.indexBuffer = arrayInfo.buffer as IndexBuffer ?? new IndexBuffer({ context, typedArray: arrayInfo.typedArray as IndicesArray });
                     vaoOptions.primitiveOffset = arrayInfo.bytesOffset;
-
                 });
             taskAtts.push(indexTask);
         }

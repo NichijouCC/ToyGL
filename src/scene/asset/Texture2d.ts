@@ -37,15 +37,15 @@ export class Texture2D extends TextureAsset
     set flipY(value: boolean) { this._flipY = value; }
     private sampler: Sampler;
 
-    constructor(options: Texture2dOption)
+    constructor(options?: Texture2dOption)
     {
         super();
-        this._source = options.image;
-        this._pixelFormat = options.pixelFormat || PixelFormatEnum.RGBA;
-        this._pixelDatatype = options.pixelDatatype || PixelDatatypeEnum.UNSIGNED_BYTE
-        this._preMultiplyAlpha = options.preMultiplyAlpha || this.pixelFormat === PixelFormatEnum.RGB || this.pixelFormat === PixelFormatEnum.LUMINANCE;
-        this._flipY = options.flipY ?? true;
-        this.sampler = new Sampler(options.sampler);
+        this._source = options?.image;
+        this._pixelFormat = options?.pixelFormat || PixelFormatEnum.RGBA;
+        this._pixelDatatype = options?.pixelDatatype || PixelDatatypeEnum.UNSIGNED_BYTE
+        this._preMultiplyAlpha = options?.preMultiplyAlpha || this.pixelFormat === PixelFormatEnum.RGB || this.pixelFormat === PixelFormatEnum.LUMINANCE;
+        this._flipY = options?.flipY ?? true;
+        this.sampler = new Sampler(options?.sampler);
     }
 }
 

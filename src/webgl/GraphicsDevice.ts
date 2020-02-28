@@ -26,6 +26,10 @@ export class GraphicsDevice
     readonly bufferUsageToGLNumber: { [useage: string]: number } = {};
     readonly bufferTargetToGLNumber: { [useage: string]: number } = {};
     readonly vertexAttributeSetter: { [size: number]: (index: number, value: any) => any } = {};
+
+    bindingVao: WebGLVertexArrayObject = null;
+    beCreatingVao = false;
+
     constructor(canvasOrContext: HTMLCanvasElement | WebGLRenderingContext, option?: IengineOption)
     {
         if (canvasOrContext == null) return;

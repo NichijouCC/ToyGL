@@ -2,10 +2,11 @@ import { AccessorComponentType } from "./GltfJsonStruct";
 import { IgltfJson } from "../LoadglTF";
 import { ParseBufferViewNode } from "./ParseBufferViewNode";
 import { BufferTargetEnum, Buffer, BufferUsageEnum } from "../../../webgl/Buffer";
-import { GraphicsDevice } from "../../../webgl/GraphicsDevice";
 import { getTypedArray, getTypeArrCtorFromGLtype, getByteSizeFromGLtype, TypedArray } from "../../../core/TypedArray";
-import { VertexBuffer } from "../../../webgl/VertexBuffer";
+import { GraphicsDevice } from "../../../webgl/GraphicsDevice";
 import { IndexBuffer } from "../../../webgl/IndexBuffer";
+import { VertexBuffer } from "../../../webgl/VertexBuffer";
+
 
 export interface IaccessorData
 {
@@ -14,14 +15,16 @@ export interface IaccessorData
     count: number;
     normalize: boolean;
     bytesOffset: number;
-    bytesStride: number;
+    bytesStride?: number;
+    target?: BufferTargetEnum;
     typedArray: TypedArray;
-    buffer: Buffer;
+
+    buffer?: Buffer;
 }
 
 export class ParseAccessorNode
 {
-    static parse(index: number, gltf: IgltfJson, context: GraphicsDevice): Promise<IaccessorData>
+    static parse(index: number, gltf: IgltfJson, dataInfo?: { target?: BufferTargetEnum, context: GraphicsDevice }): Promise<IaccessorData>
     {
         let arrayInfo: IaccessorData = {} as any;
         // return new Promise<AccessorNode>((resolve,reject)=>{
@@ -35,50 +38,95 @@ export class ParseAccessorNode
         if (accessor.bufferView != null)
         {
             let viewindex = accessor.bufferView;
-            return ParseBufferViewNode.parse(viewindex, gltf).then(value =>
-            {
-                let typedArray = getTypedArray(value.viewBuffer, accessor.componentType) as any;
-                arrayInfo.bytesOffset = accessor.byteOffset;
-                arrayInfo.bytesStride = value.byteStride;
-
-                if (accessor.sparse != null)
+            return ParseBufferViewNode.parse(viewindex, gltf)
+                .then(value =>
                 {
-                    typedArray = typedArray.slice(0);
-                    let indicesInfo = accessor.sparse.indices;
-                    let valuesInfo = accessor.sparse.values;
+                    let canUseCache = true;
+                    let typedArray = getTypedArray(value.viewBuffer, accessor.componentType) as any;
+                    arrayInfo.bytesOffset = accessor.byteOffset ?? 0;
+                    arrayInfo.bytesStride = value.byteStride;
+                    arrayInfo.target = value.target;
 
-                    let count = accessor.sparse.count;
-
-                    Promise.all([
-                        ParseBufferViewNode.parse(indicesInfo.bufferView, gltf),
-                        ParseBufferViewNode.parse(valuesInfo.bufferView, gltf),
-                    ]).then(arr =>
+                    if (accessor.sparse != null)
                     {
-                        let indicesArr = getTypedArray(arr[0].viewBuffer, indicesInfo.componentType, indicesInfo.byteOffset)
-                        let sparseValueArr = getTypedArray(arr[1].viewBuffer, accessor.componentType, valuesInfo.byteOffset);
+                        canUseCache = false;
+                        typedArray = typedArray.slice(0);
+                        let indicesInfo = accessor.sparse.indices;
+                        let valuesInfo = accessor.sparse.values;
 
-                        let componentNumber = this.getComponentSize(accessor.type);
-                        for (let i = 0; i < count; i++)
+                        let count = accessor.sparse.count;
+
+                        Promise.all([
+                            ParseBufferViewNode.parse(indicesInfo.bufferView, gltf),
+                            ParseBufferViewNode.parse(valuesInfo.bufferView, gltf),
+                        ]).then(arr =>
                         {
-                            let index = indicesArr[i];
-                            for (let k = 0; k < componentNumber; k++)
+                            let indicesArr = getTypedArray(arr[0].viewBuffer, indicesInfo.componentType, indicesInfo.byteOffset)
+                            let sparseValueArr = getTypedArray(arr[1].viewBuffer, accessor.componentType, valuesInfo.byteOffset);
+
+                            let componentNumber = this.getComponentSize(accessor.type);
+                            for (let i = 0; i < count; i++)
                             {
-                                typedArray[index + k] = sparseValueArr[index + k];
+                                let index = indicesArr[i];
+                                for (let k = 0; k < componentNumber; k++)
+                                {
+                                    typedArray[index + k] = sparseValueArr[index + k];
+                                }
                             }
+                        });
+                    }
+                    arrayInfo.typedArray = typedArray;
+                    if (dataInfo != null || value.target != null)
+                    {
+                        let context = dataInfo.context;
+                        let target = dataInfo.target || value.target;
+                        switch (target)
+                        {
+                            case BufferTargetEnum.ARRAY_BUFFER:
+                                if (canUseCache)
+                                {
+                                    var newVertexBuffer = gltf.cache.vertexBufferCache[viewindex];
+                                    if (newVertexBuffer == null)
+                                    {
+                                        newVertexBuffer = new VertexBuffer({ context, typedArray });
+                                        gltf.cache.vertexBufferCache[viewindex] = newVertexBuffer;
+                                    } else
+                                    {
+                                        console.warn("命中！！")
+
+                                    }
+                                    arrayInfo.buffer = newVertexBuffer;
+                                } else
+                                {
+                                    arrayInfo.buffer = new VertexBuffer({ context, typedArray });
+                                }
+                                break;
+                            case BufferTargetEnum.ELEMENT_ARRAY_BUFFER:
+                                if (canUseCache)
+                                {
+                                    let newIndexBuffer = gltf.cache.indexBufferCache[viewindex];
+                                    if (newIndexBuffer == null)
+                                    {
+                                        newIndexBuffer = new IndexBuffer({ context, typedArray });
+                                        gltf.cache.indexBufferCache[viewindex] = newIndexBuffer;
+                                    } else
+                                    {
+                                        console.warn("命中！！")
+                                    }
+                                    arrayInfo.buffer = newIndexBuffer;
+                                } else
+                                {
+                                    arrayInfo.buffer = new IndexBuffer({ context, typedArray });
+                                }
+
+                                break;
+                            default:
+                                console.error("why ！！")
+                                break;
                         }
-                    });
-                }
-                arrayInfo.typedArray = typedArray;
-                arrayInfo.buffer = value.target == BufferTargetEnum.ARRAY_BUFFER ?
-                    new VertexBuffer({
-                        context,
-                        typedArray,
-                    }) : new IndexBuffer({
-                        context,
-                        typedArray,
-                    })
-                return arrayInfo;
-            });
+                    }
+                    return arrayInfo;
+                });
         } else
         {
             throw new Error("accessor.bufferView is null");
