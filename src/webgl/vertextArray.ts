@@ -151,13 +151,11 @@ export class VertexArray implements IglElement
             }
 
             let vao = gl.createVertexArray();
-            this._context.beCreatingVao = true;
             gl.bindVertexArray(vao);
             this._context.bindingVao = vao;
             this.bindVertexAttributes(gl, this._vertexAttributes, this._indexbuffer);
             gl.bindVertexArray(null);
             this._context.bindingVao = null;
-            this._context.beCreatingVao = false;
 
             this._vao = vao;
 

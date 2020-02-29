@@ -1,7 +1,7 @@
 # ToyGL
 
 ## architecture
-- Layer 1: Core,Ecs,Transform
+- Layer 1: Core,Ecs,Transform,
 - Layer 2: Graphics
 - Layer 3: Scene
 - Layer 4: Components,Systems

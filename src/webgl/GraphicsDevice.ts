@@ -28,7 +28,7 @@ export class GraphicsDevice
     readonly vertexAttributeSetter: { [size: number]: (index: number, value: any) => any } = {};
 
     bindingVao: WebGLVertexArrayObject = null;
-    beCreatingVao = false;
+    // beCreatingVao = false;
 
     constructor(canvasOrContext: HTMLCanvasElement | WebGLRenderingContext, option?: IengineOption)
     {

@@ -19,7 +19,13 @@ export class Material extends Asset
 
         if (options?.shaderOption != null)
         {
-            this.shader = new Shader(options.shaderOption)
+            if (options?.shaderOption instanceof Shader)
+            {
+                this.shader = options.shaderOption;
+            } else
+            {
+                this.shader = new Shader(options.shaderOption)
+            }
         }
         if (options?.uniformParameters)
         {
@@ -61,5 +67,5 @@ export interface ImatOption
 {
     name?: string;
     uniformParameters?: { [name: string]: any };
-    shaderOption?: IshaderOption;
+    shaderOption?: IshaderOption | Shader;
 }
