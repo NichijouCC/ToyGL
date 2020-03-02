@@ -1,10 +1,7 @@
 import { GeometryInstance } from "./GeometryInstance";
+import { Geometry } from "../asset/geometry/Geometry";
 import { Mat4 } from "../../mathD/mat4";
 import { VertexArray } from "../../webgl/VertextArray";
-import { GeometryPipeline } from "./GeometryPipeline";
-import { BufferUsageEnum } from "../../webgl/Buffer";
-import { Geometry } from "./Geometry";
-
 
 /**
  * @example

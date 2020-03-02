@@ -1,5 +1,5 @@
 import { LayerComposition } from "./LayerComposition";
-import { MeshInstance } from "./MeshInstance";
+import { MeshInstance } from "./primitive/MeshInstance";
 import { Render } from "./Render";
 import { Camera } from "./Camera";
 import { Entity } from "../core/Entity";

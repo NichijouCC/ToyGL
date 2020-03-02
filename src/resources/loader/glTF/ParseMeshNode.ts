@@ -9,7 +9,7 @@ import { GraphicsDevice } from "../../../webgl/GraphicsDevice";
 import { VertexArray, IvaoOptions } from "../../../webgl/VertextArray";
 import { TypedArray } from "../../../core/TypedArray";
 import { Material } from "../../../scene/asset/Material";
-import { StaticMesh } from "../../../scene/asset/StaticMesh";
+import { StaticMesh } from "../../../scene/asset/geometry/StaticMesh";
 import { IndexBuffer, IndicesArray } from "../../../webgl/IndexBuffer";
 import { VertexBuffer } from "../../../webgl/VertexBuffer";
 import { BufferTargetEnum } from "../../../webgl/Buffer";

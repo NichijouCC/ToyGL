@@ -1,9 +1,9 @@
 import { GraphicsDevice } from "./GraphicsDevice";
-import { GlConstants } from "../render/GlConstant";
 import { IglElement } from "../core/IglElement";
 import { VertexBuffer } from "./VertexBuffer";
 import { IndexBuffer, IndexBufferOption } from "./IndexBuffer";
 import { TypedArray } from "../core/TypedArray";
+import { GlConstants } from "./GLconstant";
 
 export type bufferOption =
     | {

@@ -2,7 +2,7 @@ import { loadImg } from "../../../io/loadtool";
 import { LoadTextureSample } from "../loadTexture";
 import { ParseBufferViewNode } from "./ParseBufferViewNode";
 import { IgltfJson } from "../LoadglTF";
-import { Texture2D } from "../../../scene/asset/Texture2d";
+import { Texture2D } from "../../../scene/asset/texture/Texture2d";
 import { Primitive } from "../../../scene/primitive/Primitive";
 
 export class ParseTextureNode

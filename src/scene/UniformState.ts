@@ -1,6 +1,6 @@
 import { Rect } from "../mathD/rect";
 import { Mat4 } from "../mathD/mat4";
-import { Texture2D } from "./asset/Texture2d";
+import { Texture2D } from "./asset/texture/Texture2d";
 import { Camera } from "./Camera";
 
 

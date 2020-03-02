@@ -1,5 +1,5 @@
-import { GlConstants } from "../render/GlConstant";
 import { GraphicsDevice } from "./GraphicsDevice";
+import { GlConstants } from "./GLconstant";
 
 /* eslint-disable @typescript-eslint/class-name-casing */
 /* eslint-disable @typescript-eslint/camelcase */

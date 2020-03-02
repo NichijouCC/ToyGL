@@ -3,14 +3,12 @@ import { loadText, loadJson, loadArrayBuffer } from "../../io/loadtool";
 import { BinReader } from "../../io/stream";
 import { Igltf, Iproperty } from "./glTF/GltfJsonStruct";
 import { ParseSceneNode } from "./glTF/ParseSceneNode";
-import { GlBuffer } from "../../render/webglRender";
 import { Material } from "../../scene/asset/Material";
 import { GraphicsDevice } from "../../webgl/GraphicsDevice";
-import { StaticMesh } from "../../scene/asset/StaticMesh";
-import { Asset } from "../../scene/asset/Asset";
+import { StaticMesh } from "../../scene/asset/geometry/StaticMesh";
 import { IassetLoader } from "../Resource";
 import { Prefab } from "../../scene/asset/Prefab";
-import { Texture2D } from "../../scene/asset/Texture2d";
+import { Texture2D } from "../../scene/asset/texture/Texture2d";
 import { VertexBuffer } from "../../webgl/VertexBuffer";
 import { IndexBuffer } from "../../webgl/IndexBuffer";
 

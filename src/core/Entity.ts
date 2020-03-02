@@ -36,14 +36,21 @@ export class Entity extends Transform implements Ientity
         Ecs.removeComp(this, comp);
     }
 
-    traverseChild(func: (node: Entity) => any)
+    traverse(handler: (e: Entity) => boolean, includeSelf: boolean = true)
     {
-        let child;
-        for (let i = 0; i < this.children.length; i++)
+        let _continue = true;
+        if (includeSelf)
         {
-            child = this.children[i] as Entity;
-            func(child);
-            child.traverseChild(func);
+            _continue = handler(this);
+        }
+        if (_continue !== false)
+        {
+            let child;
+            for (let i = 0; i < this.children.length; i++)
+            {
+                child = this.children[i] as Entity;
+                child.traverse(handler, true);
+            }
         }
     }
 

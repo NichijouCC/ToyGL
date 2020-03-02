@@ -7,7 +7,7 @@ import { Transform } from "../../../core/Transform";
 import { ParseMeshNode } from "./ParseMeshNode";
 import { IgltfJson } from "../LoadglTF";
 import { GraphicsDevice } from "../../../webgl/GraphicsDevice";
-import { MeshInstance } from "../../../scene/MeshInstance";
+import { MeshInstance } from "../../../scene/primitive/MeshInstance";
 import { Entity } from "../../../core/Entity";
 import { ModelComponent } from "../../../components/ModelComponent";
 import { PrimiveAsset } from "../../../scene/asset/PrimiveAsset";

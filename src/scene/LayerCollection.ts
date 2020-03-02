@@ -1,4 +1,4 @@
-import { MeshInstance } from "./MeshInstance";
+import { MeshInstance } from "./primitive/MeshInstance";
 import { SortTypeEnum } from "./Render";
 import { Camera } from "./Camera";
 import { RenderLayerEnum } from "./RenderLayer";

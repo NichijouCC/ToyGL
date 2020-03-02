@@ -1,5 +1,5 @@
 import { Icomponent, Ientity, Ecs } from "../core/Ecs";
-import { MeshInstance } from "../scene/MeshInstance";
+import { MeshInstance } from "../scene/primitive/MeshInstance";
 import { Entity } from "../core/Entity";
 import { AssetReferenceArray } from "../scene/AssetReferenceArray";
 import { PrimiveAsset } from "../scene/asset/PrimiveAsset";

@@ -1,9 +1,9 @@
 import { GeometryInstance } from "./GeometryInstance";
 import { Mat4 } from "../../mathD/mat4";
-import { TypedArray } from "../../core/TypedArray";
-import { Vec3 } from "../../mathD/vec3";
-import { Geometry } from "./Geometry";
 import { VertexAttEnum } from "../../webgl/VertexAttEnum";
+import { Geometry } from "../asset/geometry/Geometry";
+import { TypedArray } from "../../core/TypedArray";
+
 
 export class GeometryPipeline
 {

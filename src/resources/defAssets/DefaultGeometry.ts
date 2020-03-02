@@ -1,5 +1,5 @@
-import { Geometry } from "../../scene/primitive/Geometry";
 import { VertexAttEnum } from "../../webgl/VertexAttEnum";
+import { Geometry } from "../../scene/asset/geometry/Geometry";
 
 namespace Private
 {

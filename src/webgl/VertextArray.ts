@@ -4,7 +4,6 @@ import { GraphicsDevice } from "./GraphicsDevice";
 import { VertexBuffer } from "./VertexBuffer";
 import { IvertexAttributeOption, VertexAttribute } from "./VertexAttribute";
 import { IglElement } from "../core/IglElement";
-import { Geometry } from "../scene/primitive/Geometry";
 import { VertexAttEnum } from "./VertexAttEnum";
 import { TypedArray } from "../core/TypedArray";
 import { PrimitiveTypeEnum } from "../core/PrimitiveTypeEnum";

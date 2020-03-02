@@ -1,7 +1,7 @@
-import { Asset, IgraphicAsset } from "../asset/Asset";
-import { VertexArray } from "../../webgl/VertextArray";
-import { BoundingBox, BoundingSphere } from "../Bounds";
-import { GraphicsDevice } from "../../webgl/GraphicsDevice";
+import { Asset, IgraphicAsset } from "../Asset";
+import { VertexArray } from "../../../webgl/VertextArray";
+import { GraphicsDevice } from "../../../webgl/GraphicsDevice";
+import { BoundingSphere } from "../../Bounds";
 
 export abstract class GeometryAsset extends Asset
 {

@@ -1,4 +1,3 @@
-import { getGLTypeForTypedArray } from "../render/helper";
 import { GraphicsDevice } from "./GraphicsDevice";
 import { BufferUsageEnum, Buffer, BufferTargetEnum } from "./Buffer";
 import { GlConstants } from "./GLconstant";

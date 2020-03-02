@@ -1,4 +1,4 @@
-import { MemoryTexture } from "../../scene/asset/MemoryTexture";
+import { MemoryTexture } from "../../scene/asset/texture/MemoryTexture";
 
 namespace Private
 {

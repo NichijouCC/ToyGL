@@ -1,5 +1,5 @@
 import { ToyGL } from "../src/toygl";
-import { MeshInstance } from "../src/scene/MeshInstance";
+import { MeshInstance } from "../src/scene/primitive/MeshInstance";
 import { Material } from "../src/scene/asset/Material";
 import { DefaultGeometry } from '../src/resources/defAssets/DefaultGeometry';
 import { DefaultTexture } from '../src/resources/defAssets/DefaultTexture';
@@ -8,7 +8,7 @@ import { VertexAttEnum } from "../src/webgl/VertexAttEnum";
 import { Color } from "../src/mathD/color";
 import { Camera } from "../src/scene/Camera";
 import { Quat } from "../src/mathD/quat";
-import { Texture2D } from "../src/scene/asset/Texture2d";
+import { Texture2D } from "../src/scene/asset/texture/Texture2d";
 export class Base
 {
     static start(toy: ToyGL)
