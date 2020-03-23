@@ -7,26 +7,21 @@ import { Resource } from "./resources/resource";
 import { LoadGlTF } from "./resources/loader/LoadglTF";
 import { Ecs } from "./core/Ecs";
 import { ModelSystem } from "./components/ModelSystem";
-import { Render } from "./scene/Render";
-export class ToyGL
-{
-    static create(element: HTMLDivElement | HTMLCanvasElement): ToyGL
-    {
+import { ForwardRender } from "./scene/render/ForwardRender";
+export class ToyGL {
+    static create(element: HTMLDivElement | HTMLCanvasElement): ToyGL {
         let canvas: HTMLCanvasElement;
-        if (element instanceof HTMLDivElement)
-        {
+        if (element instanceof HTMLDivElement) {
             canvas = document.createElement("canvas");
             canvas.width = element.clientWidth;
             canvas.width = element.clientHeight;
 
             element.appendChild(canvas);
-            element.onresize = () =>
-            {
+            element.onresize = () => {
                 canvas.width = element.clientWidth;
                 canvas.width = element.clientHeight;
             }
-        } else
-        {
+        } else {
             canvas = element;
         }
 
@@ -35,14 +30,13 @@ export class ToyGL
         let input = new Input(canvas);
         let screen = new Screen(canvas);
         let device = new GraphicsDevice(canvas);
-        let render = new Render(device);
+        let render = new ForwardRender(device);
         let resource = new Resource();
         let scene = new InterScene(render);
         resource.registerAssetLoader(".gltf", new LoadGlTF(device));
         Ecs.addSystem(new ModelSystem(scene))
 
-        timer.onTick.addEventListener((deltaTime) =>
-        {
+        timer.onTick.addEventListener((deltaTime) => {
             scene.frameUpdate(deltaTime);
         })
 

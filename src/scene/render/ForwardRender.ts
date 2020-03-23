@@ -1,46 +1,36 @@
-import { Camera, ClearEnum } from "./Camera";
-import { DrawCommand } from "./DrawCommand";
-import { Material } from "./asset/Material";
-import { GraphicsDevice } from "../webgl/GraphicsDevice";
-import { RenderState } from "./RenderState";
-import { Frustum } from "./Frustum";
-import { Vec3 } from "../mathD/vec3";
-import { BoundingSphere } from "./Bounds";
-import { StaticMesh } from "./asset/geometry/StaticMesh";
-import { MeshInstance } from "./primitive/MeshInstance";
-import { RenderLayerEnum } from "./RenderLayer";
-import { LayerCollection } from "./LayerCollection";
-import { IlayerIndexEvent } from "./asset/Shader";
-import { UniformState } from "./UniformState";
+import { Camera } from "../Camera";
+import { Material } from "../asset/Material";
+import { GraphicsDevice } from "../../webgl/GraphicsDevice";
+import { RenderState } from "../RenderState";
+import { Frustum } from "../Frustum";
+import { BoundingSphere } from "../Bounds";
+import { MeshInstance } from "../primitive/MeshInstance";
+import { UniformState } from "../UniformState";
 
 
-export enum SortTypeEnum
-{
+export enum SortTypeEnum {
     MatLayerIndex = 0b10000,
     ShaderId = 0b01000,
     Zdist_FrontToBack = 0b00100
 }
 
-namespace Private
-{
+namespace Private {
     export let preMaterial: Material;
     export let preRenderState: RenderState;
     export let temptSphere: BoundingSphere = new BoundingSphere();
 }
 
 
-export class Render
-{
+export class ForwardRender {
     private device: GraphicsDevice;
     uniformState = new UniformState();
-    constructor(device: GraphicsDevice)
-    {
+    constructor(device: GraphicsDevice) {
         this.device = device;
     }
 
-    setCamera(camera: Camera)
-    {
+    setCamera(camera: Camera) {
         this.uniformState.curCamera = camera;
+        this.device.setViewPort(camera.viewport.x, camera.viewport.y, camera.viewport.width, camera.viewport.height);
         this.device.setClear(
             camera.enableClearDepth ? camera.dePthValue : null,
             camera.enableClearColor ? camera.backgroundColor : null,
@@ -48,23 +38,13 @@ export class Render
         );
     }
 
-    renderLayers(camera: Camera, layer: LayerCollection)
-    {
-        if (layer.insCount == 0) return;
-        var commands = layer.getSortedinsArr(camera);
-        this.render(camera, commands);
-    }
-
-    render(camera: Camera, drawCalls: MeshInstance[], lights?: any, )
-    {
+    render(camera: Camera, drawCalls: MeshInstance[], lights?: any, ) {
         let culledDrawcalls = this.cull(camera, drawCalls);
         let drawcall, shader, uniforms, renderState, vertexArray
-        for (let i = 0; i < culledDrawcalls.length; i++)
-        {
+        for (let i = 0; i < culledDrawcalls.length; i++) {
             drawcall = culledDrawcalls[i];
             this.uniformState.matrixModel = drawcall.worldMat;
-            if (drawcall.material != Private.preMaterial || drawcall.material.beDirty)
-            {
+            if (drawcall.material != Private.preMaterial || drawcall.material.beDirty) {
                 Private.preMaterial = drawcall.material;
                 drawcall.material.beDirty = false;
 
@@ -76,8 +56,7 @@ export class Render
                 shader.bindAutoUniforms(this.device, this.uniformState);//auto unfiorm
                 shader.bindManulUniforms(this.device, uniforms);
 
-                if (Private.preRenderState != renderState)
-                {
+                if (Private.preRenderState != renderState) {
                     this.device.setCullFaceState(renderState.cull.enabled, renderState.cull.cullBack);
                     this.device.setDepthState(renderState.depthWrite, renderState.depthTest.enabled, renderState.depthTest.depthFunc);
                     this.device.setColorMask(renderState.colorWrite.red, renderState.colorWrite.green, renderState.colorWrite.blue, renderState.colorWrite.alpha);
@@ -108,8 +87,7 @@ export class Render
                         renderState.stencilTest.stencilPassZfailBack,
                     );
                 }
-            } else
-            {
+            } else {
                 shader = drawcall.material.shader;
                 shader.bindAutoUniforms(this.device, this.uniformState);//auto unfiorm
             }
@@ -122,31 +100,25 @@ export class Render
      * @param camera 
      * @param drawCalls 
      */
-    cull(camera: Camera, drawCalls: MeshInstance[])
-    {
+    cull(camera: Camera, drawCalls: MeshInstance[]) {
         let visualArr = [];
         let { cullingMask, frustum } = camera;
         let drawcall
-        for (let i = 0; i < drawCalls.length; i++)
-        {
+        for (let i = 0; i < drawCalls.length; i++) {
             drawcall = drawCalls[i];
             if (!drawcall.bevisible || (drawcall.cullingMask != null && ((drawcall.cullingMask & cullingMask) == 0))) continue;
-            if (drawcall.enableCull)
-            {
-                if (this.frustumCull(frustum, drawcall))
-                {
+            if (drawcall.enableCull) {
+                if (this.frustumCull(frustum, drawcall)) {
                     visualArr.push(drawcall);
                 }
-            } else
-            {
+            } else {
                 visualArr.push(drawcall);
             }
         }
         return visualArr;
     }
 
-    private frustumCull(frustum: Frustum, drawcall: MeshInstance)
-    {
+    private frustumCull(frustum: Frustum, drawcall: MeshInstance) {
         // BoundingSphere.fromBoundingBox(drawcall.boundingBox, Private.temptSphere);
         return frustum.containSphere(drawcall.bounding, drawcall.worldMat);
     }

@@ -6,12 +6,9 @@ import { PixelDatatypeEnum } from "../../../webgl/PixelDatatype";
 import { IsamplerOptions, Sampler, Texture } from "../../../webgl/Texture";
 import { TextureAsset } from "./TextureAsset";
 
-export class MemoryTexture extends TextureAsset
-{
-    protected create(device: GraphicsDevice): Texture
-    {
-        if (this.arrayBufferView)
-        {
+export class MemoryTexture extends TextureAsset {
+    protected create(device: GraphicsDevice): Texture {
+        if (this.arrayBufferView) {
             return Texture.fromTypedArray({
                 context: device,
                 width: this.width,
@@ -24,14 +21,14 @@ export class MemoryTexture extends TextureAsset
         }
         return null;
     }
-    protected refresh(device: GraphicsDevice): void
-    {
-        throw new Error("Method not implemented.");
+    protected refresh(device: GraphicsDevice): void {
+        this.graphicAsset.update();
     }
 
     width: number;
     height: number;
-    arrayBufferView: TypedArray;
+    private arrayBufferView: TypedArray;
+
     // ----------------texParameteri-------------
     private _pixelFormat: PixelFormatEnum;
     set pixelFormat(format: PixelFormatEnum) { this._pixelFormat = format };
@@ -43,8 +40,7 @@ export class MemoryTexture extends TextureAsset
     set flipY(value: boolean) { this._flipY = value; }
     private sampler: Sampler;
 
-    constructor(options: ImemoryTextureOption)
-    {
+    constructor(options: ImemoryTextureOption) {
         super();
         this.arrayBufferView = options.arrayBufferView;
         this.width = options.width;
@@ -58,8 +54,7 @@ export class MemoryTexture extends TextureAsset
 
 }
 
-export interface ImemoryTextureOption
-{
+export interface ImemoryTextureOption {
     width: number;
     height: number;
     arrayBufferView: TypedArray;

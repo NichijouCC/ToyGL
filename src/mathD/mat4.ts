@@ -20,7 +20,7 @@ export class Mat4 extends Float32Array {
         }
     }
 
-    public static fromArray(array: number[]) {
+    public static fromNumberArray(array: number[]) {
         if (array.length != 16) return null;
         return new Float32Array(array);
     }
@@ -1422,21 +1422,21 @@ export class Mat4 extends Float32Array {
     public static frob(a: Mat4): number {
         return Math.sqrt(
             Math.pow(a[0], 2) +
-                Math.pow(a[1], 2) +
-                Math.pow(a[2], 2) +
-                Math.pow(a[3], 2) +
-                Math.pow(a[4], 2) +
-                Math.pow(a[5], 2) +
-                Math.pow(a[6], 2) +
-                Math.pow(a[7], 2) +
-                Math.pow(a[8], 2) +
-                Math.pow(a[9], 2) +
-                Math.pow(a[10], 2) +
-                Math.pow(a[11], 2) +
-                Math.pow(a[12], 2) +
-                Math.pow(a[13], 2) +
-                Math.pow(a[14], 2) +
-                Math.pow(a[15], 2),
+            Math.pow(a[1], 2) +
+            Math.pow(a[2], 2) +
+            Math.pow(a[3], 2) +
+            Math.pow(a[4], 2) +
+            Math.pow(a[5], 2) +
+            Math.pow(a[6], 2) +
+            Math.pow(a[7], 2) +
+            Math.pow(a[8], 2) +
+            Math.pow(a[9], 2) +
+            Math.pow(a[10], 2) +
+            Math.pow(a[11], 2) +
+            Math.pow(a[12], 2) +
+            Math.pow(a[13], 2) +
+            Math.pow(a[14], 2) +
+            Math.pow(a[15], 2),
         );
     }
 
@@ -2028,6 +2028,38 @@ export class Mat4 extends Float32Array {
             result[0] = (m13 + m31) / s;
             result[1] = (m23 + m32) / s;
             result[2] = 0.25 * s;
+        }
+    }
+
+    static toArray(mat: Mat4, array: Float32Array, offset: number) {
+        let te = mat;
+        array[offset] = te[0];
+        array[offset + 1] = te[1];
+        array[offset + 2] = te[2];
+        array[offset + 3] = te[3];
+
+        array[offset + 4] = te[4];
+        array[offset + 5] = te[5];
+        array[offset + 6] = te[6];
+        array[offset + 7] = te[7];
+
+        array[offset + 8] = te[8];
+        array[offset + 9] = te[9];
+        array[offset + 10] = te[10];
+        array[offset + 11] = te[11];
+
+        array[offset + 12] = te[12];
+        array[offset + 13] = te[13];
+        array[offset + 14] = te[14];
+        array[offset + 15] = te[15];
+        return array;
+    }
+
+    static fromArray(array: Float32Array, index: number) {
+        if ((index + 1) * 64 < array.byteLength) {
+            return new Float32Array(array.buffer, array.byteOffset + index * 64, 16);
+        } else {
+            return null;
         }
     }
 }

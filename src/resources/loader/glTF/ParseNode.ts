@@ -12,67 +12,53 @@ import { Entity } from "../../../core/Entity";
 import { ModelComponent } from "../../../components/ModelComponent";
 import { PrimiveAsset } from "../../../scene/asset/PrimiveAsset";
 
-export class ParseNode
-{
-    static parse(index: number, gltf: IgltfJson, context: GraphicsDevice): Promise<Entity>
-    {
+export class ParseNode {
+    static parse(index: number, gltf: IgltfJson, context: GraphicsDevice): Promise<Entity> {
         let node = gltf.nodes[index];
 
         let name = node.name || "node" + index;
         let sceneNode = new Entity(name);
-        if (node.matrix)
-        {
+        if (node.matrix) {
             sceneNode.localMatrix = Mat4.fromArray(node.matrix);
         }
-        if (node.translation)
-        {
+        if (node.translation) {
             Vec3.copy(node.translation, sceneNode.localPosition);
         }
-        if (node.rotation)
-        {
+        if (node.rotation) {
             Quat.copy(node.rotation, sceneNode.localRotation);
         }
-        if (node.scale)
-        {
+        if (node.scale) {
             Vec3.copy(node.scale, sceneNode.localScale);
         }
 
-        if (node.camera != null)
-        {
+        if (node.camera != null) {
             let cam = ParseCameraNode.parse(node.camera, gltf);
             cam.node = sceneNode;
         }
 
         let allTask: Promise<void>[] = [];
-        if (node.mesh != null)
-        {
+        if (node.mesh != null) {
             let task = ParseMeshNode.parse(node.mesh, gltf, context)
-                .then(primitives =>
-                {
+                .then(primitives => {
                     let modelcomp = sceneNode.addComponent("ModelComponent") as ModelComponent;
-                    for (let i = 0; i < primitives.length; i++)
-                    {
-                        modelcomp.primitives.setValue(new PrimiveAsset(primitives[i].material, primitives[i].mesh), i);
+                    for (let i = 0; i < primitives.length; i++) {
+                        modelcomp.setAsset(new PrimiveAsset(primitives[i].material, primitives[i].mesh), i);
                     }
                 });
             allTask.push(task);
         }
 
-        if (node.children)
-        {
-            for (let i = 0; i < node.children.length; i++)
-            {
+        if (node.children) {
+            for (let i = 0; i < node.children.length; i++) {
                 let nodeindex = node.children[i];
                 let childTask = this.parse(nodeindex, gltf, context)
-                    .then(child =>
-                    {
+                    .then(child => {
                         sceneNode.addChild(child);
                     });
                 allTask.push(childTask);
             }
         }
-        return Promise.all(allTask).then(() =>
-        {
+        return Promise.all(allTask).then(() => {
             return sceneNode;
         });
 

@@ -22,10 +22,11 @@ export class Base
                 vsStr: `attribute vec3 POSITION;
                 attribute vec3 TEXCOORD_0;
                 uniform highp mat4 czm_modelViewp;
+                uniform highp float timer;
                 varying mediump vec2 xlv_TEXCOORD0;
                 void main()
                 {
-                    xlv_TEXCOORD0 = TEXCOORD_0.xy;
+                    xlv_TEXCOORD0 = vec2(TEXCOORD_0.x+timer,TEXCOORD_0.y);
                     highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);
                     gl_Position = czm_modelViewp * tmplet_1;;
                 }`,
@@ -71,10 +72,13 @@ export class Base
         toy.scene.tryAddCamera(cam);
 
         let roty = 0;
+        let totalTime = 0;
         toy.scene.preUpdate.addEventListener((delta) =>
         {
             roty += delta * 15;
-            node.localRotation = Quat.FromEuler(0, roty, 0, node.localRotation);
+            totalTime += delta;
+            // node.localRotation = Quat.FromEuler(0, roty, 0, node.localRotation);
+            mat.setUniformParameter("timer", totalTime);
         })
 
         // let geometry = DefGeometry.fromType("quad");

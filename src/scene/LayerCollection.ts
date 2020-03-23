@@ -1,26 +1,21 @@
 import { MeshInstance } from "./primitive/MeshInstance";
-import { SortTypeEnum } from "./Render";
+import { SortTypeEnum } from "./render/ForwardRender";
 import { Camera } from "./Camera";
 import { RenderLayerEnum } from "./RenderLayer";
-namespace Private
-{
-    export const sortByMatLayerIndex = (drawa: MeshInstance, drawb: MeshInstance): number =>
-    {
+namespace Private {
+    export const sortByMatLayerIndex = (drawa: MeshInstance, drawb: MeshInstance): number => {
         return drawa.material.layerIndex - drawb.material.layerIndex;
     }
 
-    export const sortByZdist_FrontToBack = (drawa: MeshInstance, drawb: MeshInstance): number =>
-    {
+    export const sortByZdist_FrontToBack = (drawa: MeshInstance, drawb: MeshInstance): number => {
         return drawa.zdist - drawb.zdist;
     }
 
-    export const sortByZdist_BackToFront = (drawa: MeshInstance, drawb: MeshInstance): number =>
-    {
+    export const sortByZdist_BackToFront = (drawa: MeshInstance, drawb: MeshInstance): number => {
         return drawb.zdist - drawa.zdist;
     }
 
-    export const sortByMatSortId = (drawa: MeshInstance, drawb: MeshInstance): number =>
-    {
+    export const sortByMatSortId = (drawa: MeshInstance, drawb: MeshInstance): number => {
         return drawb.material.sortId - drawb.material.sortId;
     }
 
@@ -34,14 +29,12 @@ namespace Private
         };
         sortTypeInfo[SortTypeEnum.Zdist_FrontToBack] = {
             sortFunc: sortByZdist_FrontToBack,
-            beforeSort: (ins: MeshInstance[], cam: Camera) =>
-            {
+            beforeSort: (ins: MeshInstance[], cam: Camera) => {
                 let camPos = cam.worldPos;
                 let camFwd = cam.forwardInword;
                 let i, drawCall, meshPos;
                 let tempx, tempy, tempz;
-                for (i = 0; i < ins.length; i++)
-                {
+                for (i = 0; i < ins.length; i++) {
                     drawCall = ins[i];
                     meshPos = drawCall.bounding.center;
                     tempx = meshPos.x - camPos.x;
@@ -53,23 +46,19 @@ namespace Private
         };
     }
 
-    export interface IsortInfo
-    {
+    export interface IsortInfo {
         sortFunc: (drawa: MeshInstance, drawb: MeshInstance) => number,
         // eventFunc?: (ins: MeshInstance) => ValueEvent<MeshInstance, any>,
         beforeSort?: (ins: MeshInstance[], cam: Camera) => void
     }
 }
 
-export class LayerCollection
-{
+export class LayerCollection {
     readonly layer: RenderLayerEnum;
     private _insArr: MeshInstance[] = [];
-    getSortedinsArr(cam: Camera)
-    {
+    getSortedinsArr(cam: Camera) {
         this.beforeSort.forEach(func => func(this._insArr, cam))
-        if (this.beDirty && this.sortFunction)
-        {
+        if (this.beDirty && this.sortFunction) {
             this._insArr.sort(this.sortFunction);
         }
         return this._insArr
@@ -82,56 +71,46 @@ export class LayerCollection
     // private onRemove: ((ins: MeshInstance) => void)[] = [];
     private beforeSort: ((ins: MeshInstance[], cam: Camera) => void)[] = [];
 
-    constructor(layer: RenderLayerEnum, sortType: number = 0)
-    {
+    constructor(layer: RenderLayerEnum, sortType: number = 0) {
         this.layer = layer;
         // let func = () => { this.markDirty(); };
-        let attch = (sortInfo: Private.IsortInfo) =>
-        {
+        let attch = (sortInfo: Private.IsortInfo) => {
             this.sortFunction = this.sortFunction != null ? this.sortFunction && sortInfo.sortFunc : sortInfo.sortFunc;
             // if (sortInfo?.eventFunc)
             // {
             //     this.onAdd.push((ins => { sortInfo?.eventFunc(ins).addEventListener(func) }))
             //     this.onRemove.push(ins => { sortInfo?.eventFunc(ins).removeEventListener(func) })
             // }
-            if (sortInfo?.beforeSort)
-            {
+            if (sortInfo?.beforeSort) {
                 this.beforeSort.push((ins: MeshInstance[], cam: Camera) => { sortInfo?.beforeSort(ins, cam); this.markDirty(); });
             }
         }
-        if (sortType & SortTypeEnum.MatLayerIndex)
-        {
+        if (sortType & SortTypeEnum.MatLayerIndex) {
             let sortInfo = Private.sortTypeInfo[SortTypeEnum.MatLayerIndex];
             attch(sortInfo);
         }
-        if (sortType & SortTypeEnum.ShaderId)
-        {
+        if (sortType & SortTypeEnum.ShaderId) {
             let sortInfo = Private.sortTypeInfo[SortTypeEnum.ShaderId];
             attch(sortInfo);
         }
     }
     private beDirty: boolean = true;
-    markDirty = () =>
-    {
+    markDirty = () => {
         this.beDirty = true;
     }
 
-    add(newIns: MeshInstance)
-    {
+    add(newIns: MeshInstance) {
         let index = this._insArr.indexOf(newIns);
-        if (index == -1)
-        {
+        if (index == -1) {
             this._insArr.push(newIns);
             this.markDirty();
             // this.onAddMeshInstance.raiseEvent(newIns)
             // this.onAdd.forEach(func => func(newIns));
         }
     }
-    remove(item: MeshInstance)
-    {
+    remove(item: MeshInstance) {
         let index = this._insArr.indexOf(item);
-        if (index >= 0)
-        {
+        if (index >= 0) {
             this._insArr.splice(index, 1);
             // this.onRemoveMeshInstance.raiseEvent(item);
             // this.onRemove.forEach(func => func(item));
