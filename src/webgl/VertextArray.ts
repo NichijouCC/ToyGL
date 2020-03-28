@@ -6,7 +6,7 @@ import { IvertexAttributeOption, VertexAttribute } from "./VertexAttribute";
 import { IglElement } from "../core/IglElement";
 import { VertexAttEnum } from "./VertexAttEnum";
 import { TypedArray } from "../core/TypedArray";
-import { PrimitiveTypeEnum } from "../core/PrimitiveTypeEnum";
+import { PrimitiveTypeEnum } from "./PrimitiveTypeEnum";
 
 /**
  * Creates a vertex array, which defines the attributes making up a vertex, and contains an optional index buffer

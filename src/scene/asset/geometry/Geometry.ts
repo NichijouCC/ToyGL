@@ -1,7 +1,7 @@
 import { IndicesArray, IndexBuffer } from "../../../webgl/IndexBuffer";
 import { GeometryAsset } from "./GeoemtryAsset";
 import { GeometryAttribute, IgeometryAttributeOptions } from "./GeometryAttribute";
-import { PrimitiveTypeEnum } from "../../../core/PrimitiveTypeEnum";
+import { PrimitiveTypeEnum } from "../../../webgl/PrimitiveTypeEnum";
 import { BoundingSphere } from "../../Bounds";
 import { GlConstants } from "../../../webgl/GLconstant";
 import { VertexAttEnum } from "../../../webgl/VertexAttEnum";
@@ -11,7 +11,6 @@ import { VertexArray } from "../../../webgl/VertextArray";
 import { IvertexAttributeOption } from "../../../webgl/VertexAttribute";
 import { VertexBuffer } from "../../../webgl/VertexBuffer";
 import { BufferUsageEnum } from "../../../webgl/Buffer";
-
 
 /**
  * 
@@ -51,6 +50,12 @@ export class Geometry extends GeometryAsset {
     }
     private _vertexCount: number;
     get vertexCount() { return this._vertexCount };
+    get bounding() {
+        if (this.boundingSphere == null) {
+            this.boundingSphere = BoundingSphere.fromTypedArray(this.attributes[VertexAttEnum.POSITION]?.values);
+        }
+        return this.boundingSphere;
+    }
 
     private dirtyAtt: { [name: string]: GeometryAttribute } = {};
     addAttribute(attributeType: VertexAttEnum, options: IgeometryAttributeOptions) {
@@ -72,8 +77,42 @@ export class Geometry extends GeometryAsset {
     }
 
     protected create(device: GraphicsDevice): VertexArray {
-        return Geometry.createVertexArray(device, this);
+        let geAtts = this.attributes;
+        let vertexAtts = Object.keys(geAtts).map(attName => {
+            let geAtt = geAtts[attName] as GeometryAttribute;
+            let att: IvertexAttributeOption = {
+                type: geAtt.type,
+                componentDatatype: geAtt.componentDatatype,
+                componentsPerAttribute: geAtt.componentsPerAttribute,
+                normalize: geAtt.normalize,
+            };
+
+            if (geAtt.values) {
+                att.vertexBuffer = new VertexBuffer({
+                    context: device,
+                    usage: geAtt.beDynamic ? BufferUsageEnum.DYNAMIC_DRAW : BufferUsageEnum.STATIC_DRAW,
+                    typedArray: geAtt.values
+                });
+            } else {
+                att.value = geAtt.value
+            }
+            return att;
+        })
+
+        let indexBuffer;
+        if (this.indices) {
+            indexBuffer = new IndexBuffer({
+                context: device,
+                typedArray: this.indices,
+            })
+        }
+        return new VertexArray({
+            context: device,
+            vertexAttributes: vertexAtts,
+            indexBuffer: indexBuffer
+        });
     }
+
     protected refresh(device: GraphicsDevice): void {
         for (let key in this.dirtyAtt) {
             if (this.graphicAsset.hasAttribute(key)) {
@@ -95,49 +134,7 @@ export class Geometry extends GeometryAsset {
             }
         }
     }
-    get bounding() {
-        if (this.boundingSphere == null) {
-            this.boundingSphere = BoundingSphere.fromTypedArray(this.attributes[VertexAttEnum.POSITION]?.values);
-        }
-        return this.boundingSphere;
-    }
 
-    static createVertexArray(context: GraphicsDevice, geometry: Geometry) {
-        let geAtts = geometry.attributes;
-        let vertexAtts = Object.keys(geAtts).map(attName => {
-            let geAtt = geAtts[attName] as GeometryAttribute;
-            let att: IvertexAttributeOption = {
-                type: geAtt.type,
-                componentDatatype: geAtt.componentDatatype,
-                componentsPerAttribute: geAtt.componentsPerAttribute,
-                normalize: geAtt.normalize,
-            };
-
-            if (geAtt.values) {
-                att.vertexBuffer = new VertexBuffer({
-                    context: context,
-                    usage: geAtt.beDynamic ? BufferUsageEnum.DYNAMIC_DRAW : BufferUsageEnum.STATIC_DRAW,
-                    typedArray: geAtt.values
-                });
-            } else {
-                att.value = geAtt.value
-            }
-            return att;
-        })
-
-        let indexBuffer;
-        if (geometry.indices) {
-            indexBuffer = new IndexBuffer({
-                context: context,
-                typedArray: geometry.indices,
-            })
-        }
-        return new VertexArray({
-            context: context,
-            vertexAttributes: vertexAtts,
-            indexBuffer: indexBuffer
-        });
-    }
 }
 
 export interface IgeometryOptions {

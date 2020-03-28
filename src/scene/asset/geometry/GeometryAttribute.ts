@@ -16,8 +16,7 @@ import { TypedArray } from "../../../core/TypedArray";
  *     })
  * 
  */
-export class GeometryAttribute
-{
+export class GeometryAttribute {
     type: VertexAttEnum | string
     componentDatatype: ComponentDatatypeEnum;
     componentsPerAttribute: number;
@@ -25,30 +24,24 @@ export class GeometryAttribute
     values?: TypedArray;
     value?: any;
     beDynamic: boolean;
-    constructor(option: IgeometryAttributeOptions)
-    {
+    constructor(option: IgeometryAttributeOptions) {
         this.value = option.value;
         this.type = option.type;
         this.componentsPerAttribute = option.componentsPerAttribute;
         this.normalize = option.normalize ?? false;
         this.beDynamic = option.beDynamic ?? false;
 
-        if (option.values instanceof Array)
-        {
+        if (option.values instanceof Array) {
             this.componentDatatype = option.componentDatatype || ComponentDatatypeEnum.FLOAT;
             this.values = TypedArray.fromGlType(this.componentDatatype, option.values);
-        } else
-        {
+        } else {
             this.values = option.values;
-            if (option.componentDatatype != null)
-            {
-                if (option.values != null && TypedArray.glType(this.values) != option.componentDatatype)
-                {
+            if (option.componentDatatype != null) {
+                if (option.values != null && TypedArray.glType(this.values) != option.componentDatatype) {
                     throw new Error("the componentDatatype is conflict with geometryAttributeOption's value (Typedarray)")
                 }
                 this.componentDatatype = option.componentDatatype;
-            } else
-            {
+            } else {
                 this.componentDatatype = this.values ? TypedArray.glType(this.values) : ComponentDatatypeEnum.FLOAT;
             }
         }
@@ -56,8 +49,7 @@ export class GeometryAttribute
     }
 }
 
-export interface IgeometryAttributeOptions
-{
+export interface IgeometryAttributeOptions {
     componentDatatype?: ComponentDatatypeEnum;
     componentsPerAttribute: number;
     normalize?: boolean;

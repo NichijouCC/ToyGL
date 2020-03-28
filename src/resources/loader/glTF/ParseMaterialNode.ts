@@ -7,8 +7,7 @@ import { Material } from '../../../scene/asset/Material';
 import { VertexAttEnum } from "../../../webgl/VertexAttEnum";
 
 
-namespace Private
-{
+namespace Private {
     export const defmat = new Material({
         uniformParameters: {
             MainColor: Color.create(1.0, 1.0, 1.0, 1.0)
@@ -33,21 +32,17 @@ namespace Private
             uniform lowp sampler2D MainTex;
             void main()
             {
-                gl_FragData[0] = texture2D(MainTex, xlv_TEXCOORD0)*MainColor;
+                gl_FragData[0] = MainColor;
             }`
-        }
+        }//texture2D(MainTex, xlv_TEXCOORD0)*
     });
 }
 
-export class ParseMaterialNode
-{
-    static parse(index: number, gltf: IgltfJson): Promise<Material>
-    {
-        if (gltf.cache.materialNodeCache[index])
-        {
+export class ParseMaterialNode {
+    static parse(index: number, gltf: IgltfJson): Promise<Material> {
+        if (gltf.cache.materialNodeCache[index]) {
             return gltf.cache.materialNodeCache[index];
-        } else
-        {
+        } else {
             // if (gltf.materials == null)
             // {
             //     return Promise.resolve(null);
@@ -56,16 +51,13 @@ export class ParseMaterialNode
             let mat = new Material();
             mat.setUniformParameter("MainColor", Color.create(1.0, 1.0, 1.0, 1));
             mat.shader = Private.defmat.shader;
-            if (node.pbrMetallicRoughness?.baseColorTexture != null)
-            {
+            if (node.pbrMetallicRoughness?.baseColorTexture != null) {
                 return ParseTextureNode.parse(node.pbrMetallicRoughness?.baseColorTexture.index, gltf)
-                    .then(tex =>
-                    {
+                    .then(tex => {
                         mat.setUniformParameter("MainTex", tex);
                         return mat;
                     });
-            } else
-            {
+            } else {
                 return Promise.resolve(mat);
             }
 

@@ -1,7 +1,6 @@
-import { EventHandler } from "../core/Eventhandler";
+import { EventCompositedHandler } from "../core/EventCompositedHandler";
 
-export enum KeyCodeEnum
-{
+export enum KeyCodeEnum {
     A = "A",
     B = "B",
     C = "C",
@@ -31,25 +30,20 @@ export enum KeyCodeEnum
     SPACE = " ",
     ESC = "ESC",
 }
-export enum KeyCodeEventEnum
-{
+export enum KeyCodeEventEnum {
     Up = "KeyUp",
     Down = "KeyDown",
 }
 
-export class Keyboard extends EventHandler
-{
-    constructor()
-    {
+export class Keyboard extends EventCompositedHandler {
+    constructor() {
         super();
-        document.onkeydown = (ev: KeyboardEvent) =>
-        {
+        document.onkeydown = (ev: KeyboardEvent) => {
             let keystr = ev.key.toUpperCase(); //safari浏览器不支持keypress事件中的key属性
             this.fire(KeyCodeEventEnum.Down, ev);
             this.fire([keystr, KeyCodeEventEnum.Down], ev);
         };
-        document.onkeyup = (ev: KeyboardEvent) =>
-        {
+        document.onkeyup = (ev: KeyboardEvent) => {
             let keystr = ev.key.toUpperCase(); //safari浏览器不支持keypress事件中的key属性
             this.fire(KeyCodeEventEnum.Up, ev);
             this.fire([keystr, KeyCodeEventEnum.Up], ev);

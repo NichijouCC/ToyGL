@@ -29,7 +29,6 @@
             this.listener = undefined;
         }
     }
-    //# sourceMappingURL=Event.js.map
 
     /**
      *
@@ -65,9 +64,8 @@
             return this.width / this.height;
         }
     }
-    //# sourceMappingURL=Screen.js.map
 
-    class EventHandler$1 {
+    class EventCompositedHandler {
         constructor() {
             this._listener = {};
         }
@@ -95,7 +93,6 @@
             }
         }
     }
-    //# sourceMappingURL=Eventhandler.js.map
 
     const EPSILON = 0.000001;
     function clamp(v, min = 0, max = 1) {
@@ -109,7 +106,6 @@
     function isPowerOf2(value) {
         return (value & (value - 1)) === 0;
     }
-    //# sourceMappingURL=common.js.map
 
     class Vec2 extends Float32Array {
         constructor(x = 0, y = 0) {
@@ -627,7 +623,6 @@
         }
     }
     Vec2.Recycle = [];
-    //# sourceMappingURL=vec2.js.map
 
     var MouseKeyEnum;
     (function (MouseKeyEnum) {
@@ -653,7 +648,7 @@
             2: MouseKeyEnum.Right
         };
     })(Private || (Private = {}));
-    class Mouse extends EventHandler$1 {
+    class Mouse extends EventCompositedHandler {
         constructor(canvas) {
             super();
             this._position = Vec2.create();
@@ -700,7 +695,6 @@
             return event;
         }
     }
-    //# sourceMappingURL=Mouse.js.map
 
     var KeyCodeEnum;
     (function (KeyCodeEnum) {
@@ -738,7 +732,7 @@
         KeyCodeEventEnum["Up"] = "KeyUp";
         KeyCodeEventEnum["Down"] = "KeyDown";
     })(KeyCodeEventEnum || (KeyCodeEventEnum = {}));
-    class Keyboard extends EventHandler$1 {
+    class Keyboard extends EventCompositedHandler {
         constructor() {
             super();
             document.onkeydown = (ev) => {
@@ -753,7 +747,6 @@
             };
         }
     }
-    //# sourceMappingURL=keyboard.js.map
 
     class Input {
         constructor(canvas) {
@@ -765,7 +758,6 @@
         get keyBoard() { return this._keyBoard; }
         get position() { return this._mouse.position; }
     }
-    //# sourceMappingURL=Input.js.map
 
     /**
      * 执行需要进行清理的方法
@@ -798,7 +790,6 @@
             return newAct;
         }
     }
-    //# sourceMappingURL=DebuffAction.js.map
 
     class Timer {
         constructor() {
@@ -848,7 +839,6 @@
             }
         }
     }
-    //# sourceMappingURL=Timer.js.map
 
     /**
      * 渲染的层级(从小到大绘制)
@@ -861,7 +851,6 @@
         RenderLayerEnum[RenderLayerEnum["Transparent"] = 3000] = "Transparent";
         RenderLayerEnum[RenderLayerEnum["Overlay"] = 4000] = "Overlay";
     })(RenderLayerEnum || (RenderLayerEnum = {}));
-    //# sourceMappingURL=RenderLayer.js.map
 
     class Vec3 extends Float32Array {
         constructor(x = 0, y = 0, z = 0) {
@@ -1528,7 +1517,6 @@
     Vec3.ONE = Vec3.create(1, 1, 1);
     Vec3.ZERO = Vec3.create(0, 0, 0);
     Vec3.Recycle = [];
-    //# sourceMappingURL=vec3.js.map
 
     class Mat4 extends Float32Array {
         constructor() {
@@ -1565,7 +1553,7 @@
                 return item;
             }
         }
-        static fromArray(array) {
+        static fromNumberArray(array) {
             if (array.length != 16)
                 return null;
             return new Float32Array(array);
@@ -3253,10 +3241,37 @@
                 result[2] = 0.25 * s;
             }
         }
+        static toArray(mat, array, offset) {
+            let te = mat;
+            array[offset] = te[0];
+            array[offset + 1] = te[1];
+            array[offset + 2] = te[2];
+            array[offset + 3] = te[3];
+            array[offset + 4] = te[4];
+            array[offset + 5] = te[5];
+            array[offset + 6] = te[6];
+            array[offset + 7] = te[7];
+            array[offset + 8] = te[8];
+            array[offset + 9] = te[9];
+            array[offset + 10] = te[10];
+            array[offset + 11] = te[11];
+            array[offset + 12] = te[12];
+            array[offset + 13] = te[13];
+            array[offset + 14] = te[14];
+            array[offset + 15] = te[15];
+            return array;
+        }
+        static fromArray(array, index) {
+            if ((index + 1) * 64 < array.byteLength) {
+                return new Float32Array(array.buffer, array.byteOffset + index * 64, 16);
+            }
+            else {
+                return null;
+            }
+        }
     }
     Mat4.Recycle = [];
     Mat4.IDENTITY = Mat4.create();
-    //# sourceMappingURL=mat4.js.map
 
     var VertexAttEnum;
     (function (VertexAttEnum) {
@@ -3303,7 +3318,6 @@
         }
         VertexAttEnum.toShaderLocation = toShaderLocation;
     })(VertexAttEnum || (VertexAttEnum = {}));
-    //# sourceMappingURL=VertexAttEnum.js.map
 
     var Private$1;
     (function (Private) {
@@ -3514,7 +3528,6 @@
         }
     }
     BoundingSphere.pool = [];
-    //# sourceMappingURL=Bounds.js.map
 
     class Rect extends Float32Array {
         constructor(x = 0, y = 0, w = 0, h = 0) {
@@ -3606,7 +3619,6 @@
     }
     Rect.Recycle = [];
     Rect.Identity = new Rect(0, 0, 1, 1);
-    //# sourceMappingURL=rect.js.map
 
     class UniformState {
         constructor() {
@@ -3616,11 +3628,7 @@
             this._matrixMV = Mat4.create();
             this._matMVP = Mat4.create();
             //matrixNormal: matrix = new matrix();
-            //最多8灯，再多不管
-            this.intLightCount = 0;
-            this.vec4LightPos = new Float32Array(32);
-            this.vec4LightDir = new Float32Array(32);
-            this.floatLightSpotAngleCos = new Float32Array(8);
+            this._lights = [];
             this.lightmap = null;
             // lightShadowTex: RenderTexture[] = [];
         }
@@ -3655,8 +3663,12 @@
         get aspect() {
             return this.curCamera.aspect;
         }
+        set lights(value) {
+            this._lights = value;
+        }
+        get lightCount() { return this._lights.length; }
+        ;
     }
-    //# sourceMappingURL=UniformState.js.map
 
     var SortTypeEnum;
     (function (SortTypeEnum) {
@@ -3668,20 +3680,15 @@
     (function (Private) {
         Private.temptSphere = new BoundingSphere();
     })(Private$2 || (Private$2 = {}));
-    class Render {
+    class ForwardRender {
         constructor(device) {
             this.uniformState = new UniformState();
             this.device = device;
         }
         setCamera(camera) {
             this.uniformState.curCamera = camera;
+            this.device.setViewPort(camera.viewport.x, camera.viewport.y, camera.viewport.width, camera.viewport.height);
             this.device.setClear(camera.enableClearDepth ? camera.dePthValue : null, camera.enableClearColor ? camera.backgroundColor : null, camera.enableClearStencil ? camera.stencilValue : null);
-        }
-        renderLayers(camera, layer) {
-            if (layer.insCount == 0)
-                return;
-            var commands = layer.getSortedinsArr(camera);
-            this.render(camera, commands);
         }
         render(camera, drawCalls, lights) {
             let culledDrawcalls = this.cull(camera, drawCalls);
@@ -3743,7 +3750,6 @@
             return frustum.containSphere(drawcall.bounding, drawcall.worldMat);
         }
     }
-    //# sourceMappingURL=Render.js.map
 
     var Private$3;
     (function (Private) {
@@ -3843,7 +3849,6 @@
             }
         }
     }
-    //# sourceMappingURL=LayerCollection.js.map
 
     class LayerComposition {
         constructor() {
@@ -3912,7 +3917,6 @@
             ins.ondispose.removeEventListener(this.onInsDispose);
         }
     }
-    //# sourceMappingURL=LayerComposition.js.map
 
     class Color extends Float32Array {
         constructor(r = 1, g, b = 1, a = 1) {
@@ -4051,7 +4055,6 @@
     }
     Color.WHITE = new Color(1, 1, 1, 1);
     Color.Recycle = [];
-    //# sourceMappingURL=color.js.map
 
     class Plane {
         constructor() {
@@ -4075,7 +4078,6 @@
             this.constant = ds * inverseNormalLength;
         }
     }
-    //# sourceMappingURL=Plane.js.map
 
     class Frustum {
         constructor(p0 = null, p1 = null, p2 = null, p3 = null, p4 = null, p5 = null) {
@@ -4142,7 +4144,6 @@
             return true;
         }
     }
-    //# sourceMappingURL=Frustum.js.map
 
     function createGuid() {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -4150,7 +4151,6 @@
             return v.toString(16);
         });
     }
-    //# sourceMappingURL=Utils.js.map
 
     class UniqueObject {
         constructor() {
@@ -4158,7 +4158,6 @@
             this.ctorName = this.constructor.name;
         }
     }
-    //# sourceMappingURL=UniqueObject.js.map
 
     var ProjectionEnum;
     (function (ProjectionEnum) {
@@ -4298,7 +4297,6 @@
         CullingMask[CullingMask["model"] = 8] = "model";
         CullingMask[CullingMask["everything"] = 4294967295] = "everything";
     })(CullingMask || (CullingMask = {}));
-    //# sourceMappingURL=Camera.js.map
 
     //每个组件占据一个二级制位Bitkey, 每个system都有关联的component，组成一个UniteBitkey,每个entity的components同样会组成一个UniteBitkey;
     // 通过UniteBitkey 二进制比对来快速检验 entity是否含有system所关心的组件;
@@ -4311,13 +4309,13 @@
             let newcomp = new compInfo.ctr();
             newcomp.entity = entity;
             entity[comp] = newcomp;
+            entity._uniteBitkey.addBitKey(compInfo.bitKey);
             let relatedSystem = compInfo.relatedSystem;
             relatedSystem.forEach(item => {
                 if (entity._uniteBitkey.containe(item.uniteBitkey)) {
                     item.tryAddEntity(entity);
                 }
             });
-            entity._uniteBitkey.addBitKey(compInfo.bitKey);
             return newcomp;
         }
         static removeComp(entity, comp) {
@@ -4332,8 +4330,13 @@
         static addSystem(system) {
             this.systems.push(system);
             system.caredComps.forEach(item => {
-                this.registedcomps[item].relatedSystem.push(system);
+                let info = this.registedcomps[item];
+                system.uniteBitkey.addBitKey(info.bitKey);
+                info.relatedSystem.push(system);
             });
+        }
+        static update(deltaTime) {
+            this.systems.forEach(item => item.update(deltaTime));
         }
     }
     Ecs.registedcomps = {};
@@ -4398,7 +4401,6 @@
             return true;
         }
     }
-    //# sourceMappingURL=Ecs.js.map
 
     class Mat3 extends Float32Array {
         constructor() {
@@ -5037,7 +5039,6 @@
         }
     }
     Mat3.Recycle = [];
-    //# sourceMappingURL=Mat3.js.map
 
     class Quat extends Float32Array {
         constructor() {
@@ -5876,7 +5877,6 @@
     }
     Quat.Recycle = [];
     Quat.norot = Quat.create();
-    //# sourceMappingURL=quat.js.map
 
     var DirtyFlagEnum;
     (function (DirtyFlagEnum) {
@@ -6210,7 +6210,6 @@
             this.children = null;
         }
     }
-    //# sourceMappingURL=Transform.js.map
 
     class RefData {
         constructor(data) {
@@ -6233,7 +6232,6 @@
             this.onDataChange = undefined;
         }
     }
-    //# sourceMappingURL=RefData.js.map
 
     var Private$4;
     (function (Private) {
@@ -6273,12 +6271,21 @@
                 }
             }
         }
+        find(check) {
+            if (check(this))
+                return this;
+            let child;
+            for (let i = 0; i < this.children.length; i++) {
+                child = this.children[i];
+                child.find(check);
+            }
+            return null;
+        }
         clone() {
             //TODO
             return new Entity();
         }
     }
-    //# sourceMappingURL=Entity.js.map
 
     class InterScene {
         constructor(render) {
@@ -6304,9 +6311,15 @@
             this.cameras.forEach(cam => {
                 this.render.setCamera(cam);
                 this.layers.getlayers().forEach(layer => {
-                    this.render.renderLayers(cam, layer);
+                    if (layer.insCount == 0)
+                        return;
+                    let commands = layer.getSortedinsArr(cam);
+                    this.render.render(cam, commands);
+                    // this.render.renderLayers(cam, layer)
                 });
             });
+        }
+        traverseMeshinStance(handler) {
         }
         createChild() {
             let trans = new Entity();
@@ -6323,7 +6336,6 @@
             return cam;
         }
     }
-    //# sourceMappingURL=Scene.js.map
 
     /**
      * Enum containing WebGL Constant values by name.
@@ -6923,7 +6935,6 @@
         // Extensions
         GlConstants[GlConstants["MAX_TEXTURE_MAX_ANISOTROPY_EXT"] = 34047] = "MAX_TEXTURE_MAX_ANISOTROPY_EXT";
     })(GlConstants || (GlConstants = {}));
-    //# sourceMappingURL=GLconstant.js.map
 
     /* eslint-disable @typescript-eslint/class-name-casing */
     /* eslint-disable @typescript-eslint/camelcase */
@@ -7083,7 +7094,6 @@
         while (!successful && gl.getError() !== gl.NO_ERROR) { }
         return successful;
     }
-    //# sourceMappingURL=DeviceCapability.js.map
 
     var UniformTypeEnum;
     (function (UniformTypeEnum) {
@@ -7134,7 +7144,6 @@
         }
         UniformTypeEnum.fromGlType = fromGlType;
     })(UniformTypeEnum || (UniformTypeEnum = {}));
-    //# sourceMappingURL=UniformType.js.map
 
     class Buffer {
         constructor(options) {
@@ -7211,7 +7220,6 @@
     BufferConfig.bufferUsageToGLNumber = {};
     BufferConfig.bufferTargetToGLNumber = {};
     BufferConfig.vertexAttributeSetter = {};
-    //# sourceMappingURL=Buffer.js.map
 
     class DeviceLimit {
         constructor(context) {
@@ -7241,7 +7249,6 @@
             this.highpIntSupported = highpInt.rangeMax !== 0;
         }
     }
-    //# sourceMappingURL=DeviceLimit.js.map
 
     class GraphicsDevice {
         // beCreatingVao = false;
@@ -7754,7 +7761,6 @@
             }
         }
     }
-    //# sourceMappingURL=GraphicsDevice.js.map
 
     //通过url获取资源的名称(包含尾缀)
     // static getAssetExtralType(url: string): AssetExtralEnum {
@@ -7780,7 +7786,6 @@
         let file = url.substr(0, filei);
         return file;
     }
-    //# sourceMappingURL=Util.js.map
 
     class Resource {
         constructor() {
@@ -7821,7 +7826,6 @@
             }
         }
     }
-    //# sourceMappingURL=resource.js.map
 
     /*! *****************************************************************************
     Copyright (c) Microsoft Corporation. All rights reserved.
@@ -7913,7 +7917,6 @@
             };
         });
     }
-    //# sourceMappingURL=loadtool.js.map
 
     class BinReader {
         constructor(buf, seek = 0) {
@@ -8110,7 +8113,6 @@
             return this.readInt32();
         }
     }
-    //# sourceMappingURL=stream.js.map
 
     var AccessorComponentType;
     (function (AccessorComponentType) {
@@ -8355,7 +8357,6 @@
          */
         TextureWrapMode[TextureWrapMode["REPEAT"] = 10497] = "REPEAT";
     })(TextureWrapMode || (TextureWrapMode = {}));
-    //# sourceMappingURL=GltfJsonStruct.js.map
 
     class ParseCameraNode {
         static parse(index, gltf) {
@@ -8386,7 +8387,6 @@
             return cam;
         }
     }
-    //# sourceMappingURL=ParseCameraNode.js.map
 
     class ParseBufferNode {
         static parse(index, gltf) {
@@ -8404,7 +8404,6 @@
             }
         }
     }
-    //# sourceMappingURL=ParseBufferNode.js.map
 
     class ParseBufferViewNode {
         static parse(index, gltf) {
@@ -8426,7 +8425,6 @@
             }
         }
     }
-    //# sourceMappingURL=ParseBufferViewNode.js.map
 
     var PixelDatatypeEnum;
     (function (PixelDatatypeEnum) {
@@ -8478,7 +8476,6 @@
         }
         PixelDatatypeEnum.validate = validate;
     })(PixelDatatypeEnum || (PixelDatatypeEnum = {}));
-    //# sourceMappingURL=PixelDatatype.js.map
 
     var PixelFormatEnum;
     (function (PixelFormatEnum) {
@@ -8752,7 +8749,6 @@
         }
         PixelFormatEnum.flipY = flipY;
     })(PixelFormatEnum || (PixelFormatEnum = {}));
-    //# sourceMappingURL=PixelFormatEnum.js.map
 
     // export enum TextureFilterEnum
     // {
@@ -8860,7 +8856,6 @@
         }
         TextureFilterEnum.realfilter = realfilter;
     })(TextureFilterEnum || (TextureFilterEnum = {}));
-    //# sourceMappingURL=TextureFilterEnum.js.map
 
     var TextureWrapEnum;
     (function (TextureWrapEnum) {
@@ -8868,7 +8863,6 @@
         TextureWrapEnum[TextureWrapEnum["CLAMP_TO_EDGE"] = 33071] = "CLAMP_TO_EDGE";
         TextureWrapEnum[TextureWrapEnum["MIRRORED_REPEAT"] = 33648] = "MIRRORED_REPEAT";
     })(TextureWrapEnum || (TextureWrapEnum = {}));
-    //# sourceMappingURL=TextureWrapEnum.js.map
 
     //tip:TEXTURE_MAG_FILTER 固定为LINEAR https://community.khronos.org/t/bilinear-and-trilinear-cant-see-a-difference/39405
     class Texture {
@@ -8980,10 +8974,12 @@
                 unpackAlignment = PixelFormatEnum.alignmentInBytes(pixelFormat, pixelDatatype, width);
             }
             gl.pixelStorei(gl.UNPACK_ALIGNMENT, unpackAlignment);
+            this.unpackAlignment = unpackAlignment;
             let initialized = true;
             if (source) {
                 if (source.arrayBufferView) // Source: typed array
                  {
+                    this.sourceType = TextureDataFromEnum.TYPEDARRAY;
                     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
                     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
                     var arrayBufferView = source.arrayBufferView;
@@ -8996,9 +8992,25 @@
                         }
                         gl.texImage2D(target, 0, internalFormat, width, height, 0, pixelFormat, pixelDatatype, arrayBufferView);
                     }
+                    this.update = () => {
+                        gl.pixelStorei(gl.UNPACK_ALIGNMENT, unpackAlignment);
+                        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+                        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+                        var arrayBufferView = source.arrayBufferView;
+                        if (isCompressed) {
+                            gl.compressedTexImage2D(target, 0, internalFormat, width, height, 0, arrayBufferView);
+                        }
+                        else {
+                            if (flipY) {
+                                arrayBufferView = PixelFormatEnum.flipY(arrayBufferView, pixelFormat, pixelDatatype, width, height);
+                            }
+                            gl.texImage2D(target, 0, internalFormat, width, height, 0, pixelFormat, pixelDatatype, arrayBufferView);
+                        }
+                    };
                 }
                 else if (source.framebuffer != null) // Source: framebuffer
                  {
+                    this.sourceType = TextureDataFromEnum.FRAMEBUFFER;
                     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
                     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
                     source.framebuffer.bind();
@@ -9007,6 +9019,7 @@
                 }
                 else // Source: ImageData, HTMLImageElement, HTMLCanvasElement, or HTMLVideoElement
                  {
+                    this.sourceType = TextureDataFromEnum.IMAGESOURCE;
                     // Only valid for DOM-Element uploads
                     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, preMultiplyAlpha);
                     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flipY);
@@ -9084,6 +9097,7 @@
         unbind() {
             this._gl.bindTexture(this._gl.TEXTURE_2D, null);
         }
+        update() { }
         destroy() {
             this._context.gl.deleteTexture(this.texture);
         }
@@ -9105,6 +9119,12 @@
             return new Texture(Object.assign(Object.assign({}, options), { source: { framebuffer: options.framebuffer, xOffset: options.xOffset, yOffset: options.yOffset } }));
         }
     }
+    var TextureDataFromEnum;
+    (function (TextureDataFromEnum) {
+        TextureDataFromEnum[TextureDataFromEnum["TYPEDARRAY"] = 0] = "TYPEDARRAY";
+        TextureDataFromEnum[TextureDataFromEnum["FRAMEBUFFER"] = 1] = "FRAMEBUFFER";
+        TextureDataFromEnum[TextureDataFromEnum["IMAGESOURCE"] = 2] = "IMAGESOURCE";
+    })(TextureDataFromEnum || (TextureDataFromEnum = {}));
     class Sampler {
         constructor(options) {
             var _a, _b;
@@ -9123,7 +9143,6 @@
         MipmapHintEnum[MipmapHintEnum["FASTEST"] = 4353] = "FASTEST";
         MipmapHintEnum[MipmapHintEnum["NICEST"] = 4354] = "NICEST";
     })(MipmapHintEnum || (MipmapHintEnum = {}));
-    //# sourceMappingURL=Texture.js.map
 
     class Asset extends UniqueObject {
         constructor() {
@@ -9139,7 +9158,6 @@
         ;
         destroy() { }
     }
-    //# sourceMappingURL=Asset.js.map
 
     class TextureAsset extends Asset {
         constructor() {
@@ -9162,13 +9180,15 @@
         unbind() {
             this.graphicAsset.unbind();
         }
+        markDirty() {
+            this.beNeedRefreshGraphicAsset = true;
+        }
         destroy() {
             var _a;
             (_a = this.graphicAsset) === null || _a === void 0 ? void 0 : _a.destroy();
             super.destroy();
         }
     }
-    //# sourceMappingURL=TextureAsset.js.map
 
     class Texture2D extends TextureAsset {
         constructor(options) {
@@ -9204,7 +9224,6 @@
         set preMultiplyAlpha(value) { this._preMultiplyAlpha = value; }
         set flipY(value) { this._flipY = value; }
     }
-    //# sourceMappingURL=Texture2d.js.map
 
     class ParseTextureNode {
         static parse(index, gltf) {
@@ -9286,7 +9305,6 @@
             }
         }
     }
-    //# sourceMappingURL=ParseTextureNode.js.map
 
     /***
      * @example usage
@@ -9382,7 +9400,6 @@
         unbind() { }
         destroy() { }
     }
-    //# sourceMappingURL=ShaderProgam.js.map
 
     /* eslint-disable @typescript-eslint/camelcase */
     var Private$5;
@@ -9513,7 +9530,6 @@
             },
         },
     };
-    //# sourceMappingURL=AutoUniform.js.map
 
     var Private$6;
     (function (Private) {
@@ -9583,7 +9599,6 @@
             (_a = this._shader) === null || _a === void 0 ? void 0 : _a.destroy();
         }
     }
-    //# sourceMappingURL=Shader.js.map
 
     class RenderState {
         constructor() {
@@ -9695,7 +9710,6 @@
         StencilOperationEnum[StencilOperationEnum["KEEP"] = 7680] = "KEEP";
         StencilOperationEnum[StencilOperationEnum["REPLACE"] = 7681] = "REPLACE";
     })(StencilOperationEnum || (StencilOperationEnum = {}));
-    //# sourceMappingURL=RenderState.js.map
 
     class AssetReference {
         constructor() {
@@ -9728,7 +9742,6 @@
             this.onAssetChange = undefined;
         }
     }
-    //# sourceMappingURL=AssetReference.js.map
 
     var Private$7;
     (function (Private) {
@@ -9776,7 +9789,6 @@
         }
         dispose() { }
     }
-    //# sourceMappingURL=Material.js.map
 
     var Private$8;
     (function (Private) {
@@ -9804,9 +9816,9 @@
             uniform lowp sampler2D MainTex;
             void main()
             {
-                gl_FragData[0] = texture2D(MainTex, xlv_TEXCOORD0)*MainColor;
+                gl_FragData[0] = MainColor;
             }`
-            }
+            } //texture2D(MainTex, xlv_TEXCOORD0)*
         });
     })(Private$8 || (Private$8 = {}));
     class ParseMaterialNode {
@@ -9952,7 +9964,6 @@
             }
         }
     }
-    //# sourceMappingURL=ParseMaterialNode.js.map
 
     /* DataType */
     const BYTE = 0x1400;
@@ -10068,7 +10079,6 @@
         }
         GlType.bytesPerElement = bytesPerElement;
     })(GlType || (GlType = {}));
-    //# sourceMappingURL=TypedArray.js.map
 
     class IndexBuffer extends Buffer {
         constructor(options) {
@@ -10087,7 +10097,6 @@
         IndexDatatypeEnum[IndexDatatypeEnum["Uint16Array"] = 5123] = "Uint16Array";
         IndexDatatypeEnum[IndexDatatypeEnum["Uint32Array"] = 5125] = "Uint32Array";
     })(IndexDatatypeEnum || (IndexDatatypeEnum = {}));
-    //# sourceMappingURL=IndexBuffer.js.map
 
     class VertexBuffer extends Buffer {
         // componentSize: number;
@@ -10101,7 +10110,6 @@
             super(Object.assign(Object.assign({}, options), { target: BufferTargetEnum.ARRAY_BUFFER }));
         }
     }
-    //# sourceMappingURL=VertexBuffer.js.map
 
     class ParseAccessorNode {
         static parse(index, gltf, dataInfo) {
@@ -10210,7 +10218,6 @@
             }
         }
     }
-    //# sourceMappingURL=ParseAccessorNode.js.map
 
     var ComponentDatatypeEnum;
     (function (ComponentDatatypeEnum) {
@@ -10289,7 +10296,6 @@
         }
         ComponentDatatypeEnum.byteSize = byteSize;
     })(ComponentDatatypeEnum || (ComponentDatatypeEnum = {}));
-    //# sourceMappingURL=ComponentDatatypeEnum.js.map
 
     class VertexAttribute {
         constructor(context, options) {
@@ -10346,7 +10352,6 @@
         bind() { }
         unbind() { }
     }
-    //# sourceMappingURL=VertexAttribute.js.map
 
     var PrimitiveTypeEnum;
     (function (PrimitiveTypeEnum) {
@@ -10357,7 +10362,6 @@
         PrimitiveTypeEnum[PrimitiveTypeEnum["TRIANGLES"] = 4] = "TRIANGLES";
         PrimitiveTypeEnum[PrimitiveTypeEnum["TRIANGLE_FAN"] = 6] = "TRIANGLE_FAN";
     })(PrimitiveTypeEnum || (PrimitiveTypeEnum = {}));
-    //# sourceMappingURL=PrimitiveTypeEnum.js.map
 
     /**
      * Creates a vertex array, which defines the attributes making up a vertex, and contains an optional index buffer
@@ -10507,20 +10511,26 @@
         get primitveCount() { var _a, _b; return (_b = (_a = this._indexbuffer) === null || _a === void 0 ? void 0 : _a.numberOfIndices) !== null && _b !== void 0 ? _b : this.vertexcount; }
         get primitiveOffset() { return this._primitiveOffset; }
         set primitiveOffset(offset) { var _a, _b; this._primitiveOffset = ((_b = (_a = this._indexbuffer) === null || _a === void 0 ? void 0 : _a.bytesPerIndex) !== null && _b !== void 0 ? _b : 1) * offset; }
+        hasAttribute(att) {
+            return this._vertexAttributes[att] != null;
+        }
         getAttributeVertexBuffer(att) {
             return this._vertexAttributes[att].vertexBuffer;
-        }
-        updateVertexBuffer(att, sizeInBytesOrTypedArray) {
-            this._vertexAttributes[att].vertexBuffer.update(sizeInBytesOrTypedArray);
-        }
-        updateIndexBuffer(sizeInBytesOrTypedArray) {
-            this.indexBuffer.update(sizeInBytesOrTypedArray);
         }
         get indexBuffer() {
             return this._indexbuffer;
         }
-        hasAttribute(att) {
-            return this._vertexAttributes[att] != null;
+        updateAttributeBufferData(att, sizeInBytesOrTypedArray) {
+            if (this._vao) {
+                this._bind();
+            }
+            this._vertexAttributes[att].vertexBuffer.update(sizeInBytesOrTypedArray);
+        }
+        updateIndexBufferData(sizeInBytesOrTypedArray) {
+            if (this._vao) {
+                this._bind();
+            }
+            this.indexBuffer.update(sizeInBytesOrTypedArray);
         }
         update(vertexAttOption, forece = false) {
             if (forece || this._vertexAttributes[vertexAttOption.type] == null) {
@@ -10537,7 +10547,6 @@
             if (vertexAttOption.vertexBuffer != null && this._vao) {
                 this._bind();
                 this._vertexAttributes[vertexAttOption.type].bind();
-                this._unbind();
             }
         }
         bindVertexAttributes(gl, vertexAtts, indexBuffer) {
@@ -10559,9 +10568,8 @@
         _bind() { }
         _unbind() { }
         bind() {
-            if (VertexArray._cachedVertexArray != this || this._vao != this._context.bindingVao) {
+            if (this._vao != this._context.bindingVao) {
                 this._bind();
-                VertexArray._cachedVertexArray = this;
             }
         }
         unbind() {
@@ -10570,7 +10578,6 @@
         }
         destroy() { }
     }
-    //# sourceMappingURL=VertextArray.js.map
 
     class GeometryAsset extends Asset {
         constructor() {
@@ -10604,7 +10611,6 @@
             super.destroy();
         }
     }
-    //# sourceMappingURL=GeoemtryAsset.js.map
 
     class StaticMesh extends GeometryAsset {
         create(device) {
@@ -10615,7 +10621,6 @@
         }
         set vertexArray(value) { this.graphicAsset = value; }
     }
-    //# sourceMappingURL=StaticMesh.js.map
 
     // import { Material } from "../assets/material";
     const MapGltfAttributeToToyAtt = {
@@ -10711,7 +10716,6 @@
             });
         }
     }
-    //# sourceMappingURL=ParseMeshNode.js.map
 
     class PrimiveAsset extends Asset {
         constructor(material, gemometry) {
@@ -10726,7 +10730,6 @@
         get geometry() { return this.geometryRef.asset; }
         set geometry(value) { this.geometryRef.asset = value; }
     }
-    //# sourceMappingURL=PrimiveAsset.js.map
 
     class ParseNode {
         static parse(index, gltf, context) {
@@ -10734,7 +10737,7 @@
             let name = node.name || "node" + index;
             let sceneNode = new Entity(name);
             if (node.matrix) {
-                sceneNode.localMatrix = Mat4.fromArray(node.matrix);
+                sceneNode.localMatrix = Mat4.fromNumberArray(node.matrix);
             }
             if (node.translation) {
                 Vec3.copy(node.translation, sceneNode.localPosition);
@@ -10755,7 +10758,7 @@
                     .then(primitives => {
                     let modelcomp = sceneNode.addComponent("ModelComponent");
                     for (let i = 0; i < primitives.length; i++) {
-                        modelcomp.primitives.setValue(new PrimiveAsset(primitives[i].material, primitives[i].mesh), i);
+                        modelcomp.setAsset(new PrimiveAsset(primitives[i].material, primitives[i].mesh), i);
                     }
                 });
                 allTask.push(task);
@@ -10800,7 +10803,6 @@
             // } else
         }
     }
-    //# sourceMappingURL=ParseNode.js.map
 
     class ParseSceneNode {
         static parse(index, gltf, context) {
@@ -10817,7 +10819,6 @@
             });
         }
     }
-    //# sourceMappingURL=ParseSceneNode.js.map
 
     class Prefab extends Asset {
         set root(root) { this._root = root; }
@@ -10828,7 +10829,6 @@
             // return prefab._root.clone();
         }
     }
-    //# sourceMappingURL=Prefab.js.map
 
     class GltfNodeCache {
         constructor() {
@@ -10949,7 +10949,6 @@
     }
     //------------------extensions
     LoadGlTF.ExtensionDic = {};
-    //# sourceMappingURL=LoadglTF.js.map
 
     // instance ondirty 触发 layercomposition 对instance 重新分层，重新sort
     var Private$9;
@@ -10977,7 +10976,6 @@
         dispose() { this.ondispose.raiseEvent(this); }
         ;
     }
-    //# sourceMappingURL=MeshInstance.js.map
 
     class AssetReferenceArray {
         constructor() {
@@ -11012,7 +11010,6 @@
             this.onItemDelect.raiseEvent(index);
         }
     }
-    //# sourceMappingURL=AssetReferenceArray.js.map
 
     let ModelComponent = class ModelComponent {
         constructor() {
@@ -11034,53 +11031,78 @@
                 this.meshinstances[index].dispose();
             });
         }
+        setAsset(asset, index) {
+            this.primitives.setValue(asset, index);
+        }
+        delectAsset(index) {
+            this.primitives.delectItem(index);
+        }
         get meshInstances() { return this.meshinstances; }
     };
     ModelComponent = __decorate([
         Ecs.registeComp,
         __metadata("design:paramtypes", [])
     ], ModelComponent);
-    //# sourceMappingURL=ModelComponent.js.map
 
-    class ModelSystem {
-        constructor(scene) {
-            this.caredComps = [ModelComponent.name];
+    class BassCompSystem extends EventCompositedHandler {
+        constructor() {
+            super(...arguments);
             this.uniteBitkey = new UniteBitkey();
             this.comps = new Map();
-            this.onCompDirty = (comp) => {
-                comp.meshInstances.forEach(ins => {
-                    this.scene.tryAddMeshInstance(ins);
-                });
-            };
-            this.scene = scene;
         }
         tryAddEntity(entity) {
             if (!this.comps.has(entity.id)) {
-                let comp = entity.getComponent(ModelComponent.name);
-                this.comps.set(entity.id, {
-                    comp,
-                    debuffAction: DebuffAction.create(() => {
-                        comp.meshInstances.forEach(ins => {
-                            this.scene.tryAddMeshInstance(ins);
-                        });
-                        comp.onDirty.addEventListener(this.onCompDirty);
-                        return () => {
-                            comp.onDirty.removeEventListener(this.onCompDirty);
-                            comp.meshInstances.forEach(ins => {
-                                this.scene.tryAddMeshInstance(ins);
-                            });
-                        };
-                    })
-                });
+                let comps = this.caredComps.map(comp => entity.getComponent(comp));
+                this.comps.set(entity.id, comps);
+                this.fire(CompSymEventEnum.afterAddE, comps);
             }
         }
         tryRemoveEntity(entity) {
             if (this.comps.has(entity.id)) {
+                this.fire(CompSymEventEnum.beforeRemoveE, this.comps.get(entity.id));
                 this.comps.delete(entity.id);
             }
         }
+        update(deltaTime) { }
     }
-    //# sourceMappingURL=ModelSystem.js.map
+    var CompSymEventEnum;
+    (function (CompSymEventEnum) {
+        CompSymEventEnum["afterAddE"] = "afterAddE";
+        CompSymEventEnum["beforeRemoveE"] = "beforeRemoveE";
+    })(CompSymEventEnum || (CompSymEventEnum = {}));
+
+    class ModelSystem extends BassCompSystem {
+        constructor(scene) {
+            super();
+            this.caredComps = [ModelComponent.name];
+            this.dirtyComp = new Map();
+            this.beDirty = true;
+            this.onCompDirty = (comp) => {
+                this.beDirty = true;
+                this.dirtyComp.set(comp.entity.id, comp);
+            };
+            this.scene = scene;
+            this.on(CompSymEventEnum.afterAddE, (comps) => {
+                this.dirtyComp.set(comps[0].entity.id, comps[0]);
+                this.beDirty = true;
+                comps[0].onDirty.addEventListener(this.onCompDirty);
+            });
+            this.on(CompSymEventEnum.beforeRemoveE, (comps) => {
+                comps[0].onDirty.removeEventListener(this.onCompDirty);
+            });
+        }
+        update(deltaTime) {
+            if (this.beDirty) {
+                this.beDirty = false;
+                this.dirtyComp.forEach(comp => {
+                    comp.meshInstances.forEach(ins => {
+                        this.scene.tryAddMeshInstance(ins);
+                    });
+                });
+                this.dirtyComp.clear();
+            }
+        }
+    }
 
     class ToyGL {
         static create(element) {
@@ -11103,12 +11125,13 @@
             let input = new Input(canvas);
             let screen = new Screen(canvas);
             let device = new GraphicsDevice(canvas);
-            let render = new Render(device);
+            let render = new ForwardRender(device);
             let resource = new Resource();
             let scene = new InterScene(render);
             resource.registerAssetLoader(".gltf", new LoadGlTF(device));
             Ecs.addSystem(new ModelSystem(scene));
             timer.onTick.addEventListener((deltaTime) => {
+                Ecs.update(deltaTime);
                 scene.frameUpdate(deltaTime);
             });
             toy._timer = timer;
@@ -11124,559 +11147,23 @@
         get scene() { return this._scene; }
         get resource() { return this._resource; }
     }
-    //# sourceMappingURL=toygl.js.map
 
-    /**
-     *
-     * @example useage
-     * ```
-     * let pos= new GeometryAttribute({
-     *       componentDatatype : ComponentDatatype.FLOAT,
-     *       componentsPerAttribute : 3,
-     *       values : new Float32Array([
-     *         0.0, 0.0, 0.0,
-     *         7500000.0, 0.0, 0.0,
-     *         0.0, 7500000.0, 0.0
-     *       ])
-     *     })
-     *
-     */
-    class GeometryAttribute {
-        constructor(option) {
-            var _a, _b;
-            this.value = option.value;
-            this.type = option.type;
-            this.componentsPerAttribute = option.componentsPerAttribute;
-            this.normalize = (_a = option.normalize) !== null && _a !== void 0 ? _a : false;
-            this.beDynamic = (_b = option.beDynamic) !== null && _b !== void 0 ? _b : false;
-            if (option.values instanceof Array) {
-                this.componentDatatype = option.componentDatatype || ComponentDatatypeEnum.FLOAT;
-                this.values = TypedArray.fromGlType(this.componentDatatype, option.values);
-            }
-            else {
-                this.values = option.values;
-                if (option.componentDatatype != null) {
-                    if (option.values != null && TypedArray.glType(this.values) != option.componentDatatype) {
-                        throw new Error("the componentDatatype is conflict with geometryAttributeOption's value (Typedarray)");
-                    }
-                    this.componentDatatype = option.componentDatatype;
-                }
-                else {
-                    this.componentDatatype = this.values ? TypedArray.glType(this.values) : ComponentDatatypeEnum.FLOAT;
-                }
-            }
-        }
-    }
-    //# sourceMappingURL=GeometryAttribute.js.map
-
-    /**
-     *
-     * @example useage
-     * ```
-     * var geometry = new Geometry({
-     *   attributes : [
-     * ]{
-     *    {
-     *       componentDatatype : ComponentDatatype.FLOAT,
-     *       componentsPerAttribute : 3,
-     *       values : new Float32Array([
-     *         0.0, 0.0, 0.0,
-     *         7500000.0, 0.0, 0.0,
-     *         0.0, 7500000.0, 0.0
-     *       ])
-     *     })
-     *   },
-     *   primitiveType : PrimitiveType.LINE_LOOP
-     * });
-     * ```
-     */
-    class Geometry extends GeometryAsset {
-        constructor(option) {
-            super();
-            this.attributes = {};
-            this.dirtyAtt = {};
-            // this.attributes = option.attributes;
-            option.attributes.forEach(item => {
-                this.setAttribute(item.type, item);
-            });
-            this.indices = option.indices instanceof Array ? new Uint16Array(option.indices) : option.indices;
-            this.primitiveType = option.primitiveType != null ? option.primitiveType : GlConstants.TRIANGLES;
-            this.boundingSphere = option.boundingSphere;
-        }
-        get vertexCount() { return this._vertexCount; }
-        ;
-        setAttribute(attributeType, options) {
-            let geAtt = new GeometryAttribute(Object.assign(Object.assign({}, options), { type: attributeType }));
-            this.attributes[attributeType] = geAtt;
-            if (attributeType === VertexAttEnum.POSITION) {
-                this._vertexCount = geAtt.values.length / geAtt.componentsPerAttribute;
-            }
-            if (this.graphicAsset != null) {
-                this.beNeedRefreshGraphicAsset = true;
-                this.dirtyAtt[attributeType] = geAtt;
-            }
-        }
-        updateAttributeData(attributeType, data) {
-            this.beNeedRefreshGraphicAsset = true;
-            this.attributes[attributeType].values = data;
-            this.dirtyAtt[attributeType] = this.attributes[attributeType];
-        }
-        create(device) {
-            return Geometry.createVertexArray(device, this);
-        }
-        refresh(device) {
-            for (let key in this.dirtyAtt) {
-                if (this.graphicAsset.hasAttribute(key)) {
-                    this.graphicAsset.updateVertexBuffer(key, this.dirtyAtt[key].values);
-                }
-                else {
-                    let geAtt = this.dirtyAtt[key];
-                    let att = {
-                        type: geAtt.type,
-                        componentDatatype: geAtt.componentDatatype,
-                        componentsPerAttribute: geAtt.componentsPerAttribute,
-                        normalize: geAtt.normalize,
-                    };
-                    att.vertexBuffer = new VertexBuffer({
-                        context: device,
-                        usage: geAtt.beDynamic ? BufferUsageEnum.DYNAMIC_DRAW : BufferUsageEnum.STATIC_DRAW,
-                        typedArray: geAtt.values
-                    });
-                    this.graphicAsset.update(att);
-                }
-            }
-        }
-        get bounding() {
-            var _a;
-            if (this.boundingSphere == null) {
-                this.boundingSphere = BoundingSphere.fromTypedArray((_a = this.attributes[VertexAttEnum.POSITION]) === null || _a === void 0 ? void 0 : _a.values);
-            }
-            return this.boundingSphere;
-        }
-        static createVertexArray(context, geometry) {
-            let geAtts = geometry.attributes;
-            let vertexAtts = Object.keys(geAtts).map(attName => {
-                let geAtt = geAtts[attName];
-                let att = {
-                    type: geAtt.type,
-                    componentDatatype: geAtt.componentDatatype,
-                    componentsPerAttribute: geAtt.componentsPerAttribute,
-                    normalize: geAtt.normalize,
-                };
-                if (geAtt.values) {
-                    att.vertexBuffer = new VertexBuffer({
-                        context: context,
-                        usage: geAtt.beDynamic ? BufferUsageEnum.DYNAMIC_DRAW : BufferUsageEnum.STATIC_DRAW,
-                        typedArray: geAtt.values
-                    });
-                }
-                else {
-                    att.value = geAtt.value;
-                }
-                return att;
-            });
-            let indexBuffer;
-            if (geometry.indices) {
-                indexBuffer = new IndexBuffer({
-                    context: context,
-                    typedArray: geometry.indices,
-                });
-            }
-            return new VertexArray({
-                context: context,
-                vertexAttributes: vertexAtts,
-                indexBuffer: indexBuffer
-            });
-        }
-    }
-    //# sourceMappingURL=Geometry.js.map
-
-    var Private$a;
-    (function (Private) {
-        Private.plan = new Geometry({
-            attributes: [
-                {
-                    type: VertexAttEnum.POSITION,
-                    componentsPerAttribute: 3,
-                    values: [
-                        -1.0, 0, 1.0,
-                        1.0, 0, 1.0,
-                        1.0, 0, -1.0,
-                        -1.0, 0, -1.0,
-                    ]
-                },
-                {
-                    type: VertexAttEnum.TEXCOORD_0,
-                    componentsPerAttribute: 2,
-                    values: [
-                        0.0, 0.0,
-                        1.0, 0.0,
-                        1.0, 1.0,
-                        0.0, 1.0,
-                    ]
-                },
-                {
-                    type: VertexAttEnum.NORMAL,
-                    componentsPerAttribute: 3,
-                    values: [
-                        0.0, 1.0, 0.0,
-                        0.0, 1.0, 0.0,
-                        0.0, 1.0, 0.0,
-                        0.0, 1.0, 0.0
-                    ]
-                }
-            ],
-            indices: [0, 1, 2, 0, 2, 3],
-        });
-        Private.quad = new Geometry({
-            attributes: [
-                {
-                    type: VertexAttEnum.POSITION,
-                    componentsPerAttribute: 3,
-                    values: [
-                        -1.0, -1.0, 0,
-                        1.0, -1.0, 0,
-                        1.0, 1.0, 0,
-                        -1.0, 1.0, 0,
-                    ]
-                },
-                {
-                    type: VertexAttEnum.TEXCOORD_0,
-                    componentsPerAttribute: 2,
-                    values: [
-                        0.0, 0.0,
-                        1.0, 0.0,
-                        1.0, 1.0,
-                        0.0, 1.0,
-                    ]
-                },
-                {
-                    type: VertexAttEnum.NORMAL,
-                    componentsPerAttribute: 3,
-                    values: [
-                        0.0, 0.0, 1.0,
-                        0.0, 0.0, 1.0,
-                        0.0, 0.0, 1.0,
-                        0.0, 0.0, 1.0
-                    ]
-                }
-            ],
-            indices: [0, 1, 2, 0, 2, 3],
-        });
-        Private.cube = new Geometry({
-            attributes: [
-                {
-                    type: VertexAttEnum.POSITION,
-                    componentsPerAttribute: 3,
-                    values: [
-                        // Front face
-                        -1.0, -1.0, 1.0,
-                        1.0, -1.0, 1.0,
-                        1.0, 1.0, 1.0,
-                        -1.0, 1.0, 1.0,
-                        // Back face
-                        -1.0, -1.0, -1.0,
-                        -1.0, 1.0, -1.0,
-                        1.0, 1.0, -1.0,
-                        1.0, -1.0, -1.0,
-                        // Top face
-                        -1.0, 1.0, -1.0,
-                        -1.0, 1.0, 1.0,
-                        1.0, 1.0, 1.0,
-                        1.0, 1.0, -1.0,
-                        // Bottom face
-                        -1.0, -1.0, -1.0,
-                        1.0, -1.0, -1.0,
-                        1.0, -1.0, 1.0,
-                        -1.0, -1.0, 1.0,
-                        // Right face
-                        1.0, -1.0, -1.0,
-                        1.0, 1.0, -1.0,
-                        1.0, 1.0, 1.0,
-                        1.0, -1.0, 1.0,
-                        // Left face
-                        -1.0, -1.0, -1.0,
-                        -1.0, -1.0, 1.0,
-                        -1.0, 1.0, 1.0,
-                        -1.0, 1.0, -1.0
-                    ]
-                },
-                {
-                    type: VertexAttEnum.TEXCOORD_0,
-                    componentsPerAttribute: 2,
-                    values: [
-                        // Front
-                        0.0, 0.0,
-                        1.0, 0.0,
-                        1.0, 1.0,
-                        0.0, 1.0,
-                        // Back
-                        0.0, 0.0,
-                        1.0, 0.0,
-                        1.0, 1.0,
-                        0.0, 1.0,
-                        // Top
-                        0.0, 0.0,
-                        1.0, 0.0,
-                        1.0, 1.0,
-                        0.0, 1.0,
-                        // Bottom
-                        0.0, 0.0,
-                        1.0, 0.0,
-                        1.0, 1.0,
-                        0.0, 1.0,
-                        // Right
-                        0.0, 0.0,
-                        1.0, 0.0,
-                        1.0, 1.0,
-                        0.0, 1.0,
-                        // Left
-                        0.0, 0.0,
-                        1.0, 0.0,
-                        1.0, 1.0,
-                        0.0, 1.0
-                    ]
-                },
-                {
-                    type: VertexAttEnum.NORMAL,
-                    componentsPerAttribute: 3,
-                    values: [
-                        // Front
-                        0.0, 0.0, 1.0,
-                        0.0, 0.0, 1.0,
-                        0.0, 0.0, 1.0,
-                        0.0, 0.0, 1.0,
-                        // Back
-                        0.0, 0.0, -1.0,
-                        0.0, 0.0, -1.0,
-                        0.0, 0.0, -1.0,
-                        0.0, 0.0, -1.0,
-                        // Top
-                        0.0, 1.0, 0.0,
-                        0.0, 1.0, 0.0,
-                        0.0, 1.0, 0.0,
-                        0.0, 1.0, 0.0,
-                        // Bottom
-                        0.0, -1.0, 0.0,
-                        0.0, -1.0, 0.0,
-                        0.0, -1.0, 0.0,
-                        0.0, -1.0, 0.0,
-                        // Right
-                        1.0, 0.0, 0.0,
-                        1.0, 0.0, 0.0,
-                        1.0, 0.0, 0.0,
-                        1.0, 0.0, 0.0,
-                        // Left
-                        -1.0, 0.0, 0.0,
-                        -1.0, 0.0, 0.0,
-                        -1.0, 0.0, 0.0,
-                        -1.0, 0.0, 0.0
-                    ]
-                }
-            ],
-            indices: [
-                0, 1, 2, 0, 2, 3,
-                4, 5, 6, 4, 6, 7,
-                8, 9, 10, 8, 10, 11,
-                12, 13, 14, 12, 14, 15,
-                16, 17, 18, 16, 18, 19,
-                20, 21, 22, 20, 22, 23 // left
-            ],
-        });
-    })(Private$a || (Private$a = {}));
-    class DefaultGeometry {
-        static get ins() { return new DefaultGeometry(); }
-        get quad() { return Private$a.quad; }
-        get cube() { return Private$a.cube; }
-        get plan() { return Private$a.plan; }
-    }
-    //# sourceMappingURL=DefaultGeometry.js.map
-
-    class MemoryTexture extends TextureAsset {
-        constructor(options) {
-            var _a;
-            super();
-            this.arrayBufferView = options.arrayBufferView;
-            this.width = options.width;
-            this.height = options.height;
-            this._pixelFormat = options.pixelFormat || PixelFormatEnum.RGBA;
-            this._pixelDatatype = options.pixelDatatype || PixelDatatypeEnum.UNSIGNED_BYTE;
-            this._preMultiplyAlpha = options.preMultiplyAlpha || this.pixelFormat === PixelFormatEnum.RGB || this.pixelFormat === PixelFormatEnum.LUMINANCE;
-            this._flipY = (_a = options.flipY) !== null && _a !== void 0 ? _a : true;
-            this.sampler = new Sampler(options.sampler);
-        }
-        create(device) {
-            if (this.arrayBufferView) {
-                return Texture.fromTypedArray({
-                    context: device,
-                    width: this.width,
-                    height: this.height,
-                    arrayBufferView: this.arrayBufferView,
-                    pixelFormat: this._pixelFormat,
-                    pixelDatatype: this._pixelDatatype,
-                    sampler: this.sampler
-                });
-            }
-            return null;
-        }
-        refresh(device) {
-            throw new Error("Method not implemented.");
-        }
-        set pixelFormat(format) { this._pixelFormat = format; }
-        ;
-        set pixelDatatype(type) { this._pixelDatatype = type; }
-        ;
-        set preMultiplyAlpha(value) { this._preMultiplyAlpha = value; }
-        set flipY(value) { this._flipY = value; }
-    }
-    //# sourceMappingURL=MemoryTexture.js.map
-
-    var Private$b;
-    (function (Private) {
-        Private.white = new MemoryTexture({
-            width: 1,
-            height: 1,
-            arrayBufferView: new Uint8Array([255, 255, 255, 255])
-        });
-        Private.black = new MemoryTexture({
-            width: 1,
-            height: 1,
-            arrayBufferView: new Uint8Array([0, 0, 0, 255])
-        });
-        Private.grid = new MemoryTexture({
-            width: 256,
-            height: 256,
-            arrayBufferView: getGridTexData(256, 256),
-        });
-        function getGridTexData(width, height) {
-            let data = new Uint8Array(width * width * 4);
-            for (let y = 0; y < height; y++) {
-                for (let x = 0; x < width; x++) {
-                    let seek = (y * width + x) * 4;
-                    if ((x - width * 0.5) * (y - height * 0.5) > 0) {
-                        data[seek] = 0;
-                        data[seek + 1] = 0;
-                        data[seek + 2] = 0;
-                        data[seek + 3] = 255;
-                    }
-                    else {
-                        data[seek] = 255;
-                        data[seek + 1] = 255;
-                        data[seek + 2] = 255;
-                        data[seek + 3] = 255;
-                    }
-                }
-            }
-            return data;
-        }
-    })(Private$b || (Private$b = {}));
-    class DefaultTexture {
-        static get white() { return Private$b.white; }
-        ;
-        static get black() { return Private$b.black; }
-        ;
-        static get grid() { return Private$b.grid; }
-        ;
-    }
-    //# sourceMappingURL=DefaultTexture.js.map
-
-    class Base {
+    class LoadGltf {
         static start(toy) {
-            let geometry = DefaultGeometry.ins.quad;
-            let mat = new Material({
-                uniformParameters: {
-                    MainColor: Color.create(0, 1.0, 0.0, 1.0)
-                },
-                shaderOption: {
-                    vsStr: `attribute vec3 POSITION;
-                attribute vec3 TEXCOORD_0;
-                uniform highp mat4 czm_modelViewp;
-                uniform highp float timer;
-                varying mediump vec2 xlv_TEXCOORD0;
-                void main()
-                {
-                    xlv_TEXCOORD0 = vec2(TEXCOORD_0.x+timer,TEXCOORD_0.y);
-                    highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);
-                    gl_Position = czm_modelViewp * tmplet_1;;
-                }`,
-                    fsStr: `uniform highp vec4 MainColor;
-                uniform lowp sampler2D _MainTex;
-                varying mediump vec2 xlv_TEXCOORD0;
-                void main()
-                {
-                    gl_FragData[0] = texture2D(_MainTex, xlv_TEXCOORD0);
-                }`,
-                    attributes: {
-                        POSITION: VertexAttEnum.POSITION,
-                        MainColor: VertexAttEnum.COLOR_0,
-                        TEXCOORD_0: VertexAttEnum.TEXCOORD_0,
-                    }
-                }
+            let duck = "../resources/glTF/duck/Duck.gltf";
+            toy.resource.load(duck)
+                .then(asset => {
+                toy.scene.addChild(Prefab.instance(asset));
             });
-            mat.setUniformParameter("_MainTex", DefaultTexture.grid);
-            // mat.setUniformParameter("_MainTex", DefaultTexture.grid);
-            let tex = new Texture2D();
-            let image = new Image();
-            image.src = "../resources/glTF/duck/DuckCM.png";
-            image.onload = () => {
-                tex.textureSource = image;
-                mat.setUniformParameter("_MainTex", tex);
-                console.log("tex loded!");
-            };
-            let ins = new MeshInstance();
-            ins.geometry = geometry;
-            ins.material = mat;
-            let node = toy.scene.createChild();
-            ins.node = node;
-            toy.scene.tryAddMeshInstance(ins);
-            let camNode = toy.scene.createChild();
-            camNode.localPosition.z = 5;
-            let cam = new Camera();
-            cam.node = camNode;
-            toy.scene.tryAddCamera(cam);
-            let totalTime = 0;
-            toy.scene.preUpdate.addEventListener((delta) => {
-                totalTime += delta;
-                // node.localRotation = Quat.FromEuler(0, roty, 0, node.localRotation);
-                mat.setUniformParameter("timer", totalTime);
-            });
-            // let geometry = DefGeometry.fromType("quad");
-            // ///------------def shader
-            // let shader = DefShader.fromType("3dTex");
-            // //-------------custom shader
-            // let customeShader = Resource.load("../res/shader/base.shader.json") as Shader;
-            // let material = new Material();
-            // material.shader = customeShader;
-            // material.setColor("_MainColor", Color.create(1, 0, 0, 1));
-            // //-----------def tex
-            // let defTex = DefTextrue.GIRD;
-            // //-----------load tex
-            // let tex = Resource.load("../res/imgs/tes.png") as Texture;
-            // material.setTexture("_MainTex", tex);
-            // let obj = new Entity();
-            // let mesh = obj.addCompByName("Mesh") as Mesh;
-            // mesh.geometry = geometry;
-            // mesh.material = material;
-            // toy.scene.addEntity(obj);
-            // let camobj = new Entity("", ["Camera"]);
-            // let trans = camobj.transform;
-            // trans.localPosition = Vec3.create(0, 0, 5);
-            // // trans.localRotation = Quat.FromEuler(-90, 0, 0);
-            // toy.scene.addEntity(camobj);
-            // let roty = 0;
-            // toy.scene.preUpdate = delta =>
-            // {
-            //     roty += delta * 0.01;
-            //     obj.transform.localRotation = Quat.FromEuler(0, roty, 0, obj.transform.localRotation);
-            // };
+            let cam = toy.scene.createCamera();
+            cam.node.localPosition.z = 10;
         }
     }
-    //# sourceMappingURL=bass.js.map
 
     window.onload = () => {
         let toy = ToyGL.create(document.getElementById("canvas"));
-        Base.start(toy);
-        // LoadGltf.start(toy);
+        // Base.start(toy);
+        LoadGltf.start(toy);
         // AssetLoader.addLoader().then(()    // {
         //     // Base.done(toy);
         //     // LoadGltf.done(toy);
@@ -11687,7 +11174,6 @@
         //     // SSAO.done(toy);
         // });
     };
-    //# sourceMappingURL=main.js.map
 
 })));
 //# sourceMappingURL=dome.js.map
