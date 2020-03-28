@@ -37,6 +37,7 @@ export class ToyGL {
         Ecs.addSystem(new ModelSystem(scene))
 
         timer.onTick.addEventListener((deltaTime) => {
+            Ecs.update(deltaTime);
             scene.frameUpdate(deltaTime);
         })
 

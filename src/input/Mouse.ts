@@ -1,23 +1,20 @@
-import { EventHandler } from "../core/Eventhandler";
+import { EventCompositedHandler } from "../core/EventCompositedHandler";
 import { Vec2 } from "../mathD/vec2";
 
-export enum MouseKeyEnum
-{
+export enum MouseKeyEnum {
     Left = "MouseLeft",
     Middle = "MouseMiddle",
     Right = "MouseRight", //
     None = "MouseNone",
 }
-export enum MouseEventEnum
-{
+export enum MouseEventEnum {
     Up = "mouseUp",
     Down = "mouseDown",
     Move = "mouseMove",
     Rotate = "mouseRotate",
 }
 
-export class ClickEvent
-{
+export class ClickEvent {
     /**
      * 屏幕坐标 posx
      */
@@ -36,8 +33,7 @@ export class ClickEvent
 }
 
 
-namespace Private
-{
+namespace Private {
     export const keyDic: { [key: number]: MouseKeyEnum } = {
         0: MouseKeyEnum.Left,
         1: MouseKeyEnum.Middle,
@@ -45,23 +41,19 @@ namespace Private
     };
 }
 
-export class Mouse extends EventHandler
-{
+export class Mouse extends EventCompositedHandler {
     private _position: Vec2 = Vec2.create();
     get position() { return this._position };
-    constructor(canvas: HTMLCanvasElement)
-    {
+    constructor(canvas: HTMLCanvasElement) {
         super();
         /**
          * 屏蔽网页原生鼠标事件
          */
-        document.oncontextmenu = e =>
-        {
+        document.oncontextmenu = e => {
             return false;
         };
 
-        canvas.addEventListener("mousedown", (ev: MouseEvent) =>
-        {
+        canvas.addEventListener("mousedown", (ev: MouseEvent) => {
             let key = ev.button;
             let keyEnum = Private.keyDic[key];
 
@@ -70,8 +62,7 @@ export class Mouse extends EventHandler
             this.fire([keyEnum, MouseEventEnum.Down], event);
         });
 
-        canvas.addEventListener("mouseup", (ev: MouseEvent) =>
-        {
+        canvas.addEventListener("mouseup", (ev: MouseEvent) => {
             let key = ev.button;
             let keyEnum = Private.keyDic[key];
 
@@ -80,21 +71,18 @@ export class Mouse extends EventHandler
             this.fire([keyEnum, MouseEventEnum.Down], event);
         });
 
-        canvas.addEventListener("mousemove", (ev: MouseEvent) =>
-        {
+        canvas.addEventListener("mousemove", (ev: MouseEvent) => {
             let event = this.getClickEventByMouseEvent(ev);
             this.fire(MouseEventEnum.Move, event);
         });
 
-        canvas.addEventListener("mousewheel", (ev: any) =>
-        {
+        canvas.addEventListener("mousewheel", (ev: any) => {
             let event = this.getClickEventByMouseEvent(ev);
             this.fire(MouseEventEnum.Rotate, event);
         });
     }
 
-    private getClickEventByMouseEvent(ev: any): ClickEvent
-    {
+    private getClickEventByMouseEvent(ev: any): ClickEvent {
         let event = new ClickEvent();
         event.pointx = ev.offsetX; //鼠标指针相对于目标节点内边位置的X坐标
         event.pointy = ev.offsetY; //鼠标指针相对于目标节点内边位置的Y坐标

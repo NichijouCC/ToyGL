@@ -19,7 +19,7 @@ export class ParseNode {
         let name = node.name || "node" + index;
         let sceneNode = new Entity(name);
         if (node.matrix) {
-            sceneNode.localMatrix = Mat4.fromArray(node.matrix);
+            sceneNode.localMatrix = Mat4.fromNumberArray(node.matrix);
         }
         if (node.translation) {
             Vec3.copy(node.translation, sceneNode.localPosition);

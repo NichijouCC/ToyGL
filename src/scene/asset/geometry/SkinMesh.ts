@@ -1,4 +1,3 @@
-import { Transform } from "../../../core/Transform";
 import { Geometry } from "./Geometry";
 import { Mat4 } from "../../../mathD/mat4";
 import { Entity } from "../../../core/Entity";
@@ -8,7 +7,6 @@ import { VertexArray } from "../../../webgl/VertextArray";
 import { MemoryTexture } from "../texture/MemoryTexture";
 import { PixelFormatEnum } from "../../../webgl/PixelFormatEnum";
 import { PixelDatatypeEnum } from "../../../webgl/PixelDatatype";
-import { Material } from "../Material";
 
 namespace Private {
     export let offsetMatrix: Mat4 = Mat4.create();
@@ -16,8 +14,8 @@ namespace Private {
 
 export class SkinMesh extends Geometry {
     inverseBindMatrices!: Float32Array;
-    jointIds!: number[];
-    skeleton!: Entity;
+    boneIds!: number[];
+    rootBone!: Entity;
 
     private _bones!: Entity[];
     private _boneInverses!: Mat4[];
@@ -25,31 +23,13 @@ export class SkinMesh extends Geometry {
     private _boneTexture: MemoryTexture;
 
     create(device: GraphicsDevice): VertexArray {
-        this.initMatrices(device);
-        return super.create(device);
-    }
-
-    update() {
-        const { offsetMatrix } = Private;
-        for (let i = 0; i < this._bones.length; ++i) {
-            const matrix = this._bones[i] ? this._bones[i].worldMatrix : Mat4.IDENTITY;
-            Mat4.multiply(matrix, this._boneInverses[i], offsetMatrix);
-            Mat4.toArray(offsetMatrix, this._boneMatrices, i * 16);
-        }
-        if (this._boneTexture) {
-            this._boneTexture.markDirty();
-        }
-    }
-
-    private initMatrices(device: GraphicsDevice) {
-
         this._bones = [];
         this._boneInverses = [];
         let id: number;
         let boneIndex = 0;
-        for (let i = 0; i < this.jointIds.length; i++) {
-            id = this.jointIds[i];
-            let bone = this.skeleton.find((item) => item.id == id);
+        for (let i = 0; i < this.boneIds.length; i++) {
+            id = this.boneIds[i];
+            let bone = this.rootBone.find((item) => item.id == id);
             if (bone) {
                 this._bones[boneIndex++] = bone;
             } else {
@@ -59,7 +39,6 @@ export class SkinMesh extends Geometry {
             this._boneInverses[i] = Mat4.fromArray(this.inverseBindMatrices, i);
             if (this._boneInverses[i] == null) console.error("cannot get bone inverse mat data!");
         }
-
 
         // layout (1 matrix = 4 pixels)
         //      RGBA RGBA RGBA RGBA (=> column1, column2, column3, column4)
@@ -80,6 +59,19 @@ export class SkinMesh extends Geometry {
                 pixelFormat: PixelFormatEnum.RGBA,
                 pixelDatatype: PixelDatatypeEnum.FLOAT
             });
+        }
+        return super.create(device);
+    }
+
+    update() {
+        const { offsetMatrix } = Private;
+        for (let i = 0; i < this._bones.length; ++i) {
+            const matrix = this._bones[i] ? this._bones[i].worldMatrix : Mat4.IDENTITY;
+            Mat4.multiply(matrix, this._boneInverses[i], offsetMatrix);
+            Mat4.toArray(offsetMatrix, this._boneMatrices, i * 16);
+        }
+        if (this._boneTexture) {
+            this._boneTexture.markDirty();
         }
     }
 }

@@ -1,6 +1,6 @@
-import { GlConstants } from "../render/GlConstant";
-export enum PrimitiveTypeEnum
-{
+import { GlConstants } from "./GLconstant";
+
+export enum PrimitiveTypeEnum {
     POINTS = GlConstants.POINTS,
     LINES = GlConstants.LINES,
     LINE_LOOP = GlConstants.LINE_LOOP,

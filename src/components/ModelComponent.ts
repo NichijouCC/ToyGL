@@ -12,6 +12,9 @@ export class ModelComponent implements Icomponent {
     setAsset(asset: PrimiveAsset, index: number) {
         this.primitives.setValue(asset, index);
     }
+    delectAsset(index: number) {
+        this.primitives.delectItem(index);
+    }
     private meshinstances: MeshInstance[] = [];
     get meshInstances() { return this.meshinstances }
     constructor() {
