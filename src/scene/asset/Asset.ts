@@ -3,23 +3,28 @@ import { GraphicsDevice } from "../../webgl/GraphicsDevice";
 import { EventHandler } from "../../core/Event";
 import { Texture } from "../../webgl/Texture";
 
-export class Asset extends UniqueObject
-{
-    protected _becreated = true;
-    get becreated() { return this._becreated };
-
-    protected _becreating = false;
-    get becreating() { return this._becreating };
-
+export abstract class Asset extends UniqueObject {
+    name: string;
     onDirty = new EventHandler<void>();
     onCreated = new EventHandler<void>();
-
-    destroy() { }
+    abstract destroy(): void;
 }
 
-export interface IgraphicAsset
-{
+export interface IgraphicAsset {
     bind(device: GraphicsDevice): void;
     unbind(): void;
     destroy(): void;
+    onDirty: EventHandler<void>;
+}
+
+export class GraphicAsset extends Asset implements IgraphicAsset {
+    bind(device: GraphicsDevice): void {
+        throw new Error("Method not implemented.");
+    }
+    unbind(): void {
+        throw new Error("Method not implemented.");
+    }
+    destroy(): void {
+        throw new Error("Method not implemented.");
+    }
 }

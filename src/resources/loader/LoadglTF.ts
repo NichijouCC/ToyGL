@@ -5,32 +5,28 @@ import { Igltf, Iproperty } from "./glTF/GltfJsonStruct";
 import { ParseSceneNode } from "./glTF/ParseSceneNode";
 import { Material } from "../../scene/asset/Material";
 import { GraphicsDevice } from "../../webgl/GraphicsDevice";
-import { StaticMesh } from "../../scene/asset/geometry/StaticMesh";
+import { StaticMesh, SubMesh } from "../../scene/asset/geometry/StaticMesh";
 import { IassetLoader } from "../Resource";
 import { Prefab } from "../../scene/asset/Prefab";
 import { Texture2D } from "../../scene/asset/texture/Texture2d";
 import { VertexBuffer } from "../../webgl/VertexBuffer";
 import { IndexBuffer } from "../../webgl/IndexBuffer";
 
-export interface IglTFExtension
-{
+export interface IglTFExtension {
     load(extensionNode: any, loader: LoadGlTF): Promise<any>;
 }
 
-export interface IgltfPrimitive
-{
-    mesh: StaticMesh;
+export interface IgltfPrimitive {
+    mesh: SubMesh;
     material: Material;
 }
 
-export interface IgltfBufferview
-{
+export interface IgltfBufferview {
     viewBuffer: Uint8Array;
     byteStride?: number,
     target?: number
 }
-export class GltfNodeCache
-{
+export class GltfNodeCache {
     meshNodeCache: { [index: number]: Promise<IgltfPrimitive[]> } = {};
     bufferviewNodeCache: { [index: number]: Promise<IgltfBufferview> } = {};
     bufferNodeCache: { [index: number]: Promise<ArrayBuffer> } = {};
@@ -44,26 +40,20 @@ export class GltfNodeCache
     // animationNodeCache: { [index: number]: AnimationClip } = {};
 }
 
-export interface IgltfJson extends Igltf
-{
+export interface IgltfJson extends Igltf {
     rootURL: string;
     cache: GltfNodeCache;
 }
-export class LoadGlTF implements IassetLoader
-{
+export class LoadGlTF implements IassetLoader {
     private context: GraphicsDevice;
-    constructor(device: GraphicsDevice)
-    {
+    constructor(device: GraphicsDevice) {
         this.context = device;
     }
-    load(url: string): Promise<Prefab>
-    {
+    load(url: string): Promise<Prefab> {
         return this.loadAsync(url)
-            .then(gltfJson =>
-            {
+            .then(gltfJson => {
                 let scene = gltfJson.scene != null ? gltfJson.scene : 0;
-                return ParseSceneNode.parse(scene, gltfJson, this.context).then(scene =>
-                {
+                return ParseSceneNode.parse(scene, gltfJson, this.context).then(scene => {
                     let rpefab = new Prefab();
                     rpefab.root = scene;
                     return rpefab;
@@ -72,13 +62,11 @@ export class LoadGlTF implements IassetLoader
     }
     //------------------extensions
     static ExtensionDic: { [type: string]: IglTFExtension } = {};
-    static regExtension(type: string, extension: IglTFExtension)
-    {
+    static regExtension(type: string, extension: IglTFExtension) {
         this.ExtensionDic[type] = extension;
     }
 
-    getExtensionData(node: Iproperty, extendname: string): Promise<any>
-    {
+    getExtensionData(node: Iproperty, extendname: string): Promise<any> {
         if (node.extensions == null) return null;
         let extension = LoadGlTF.ExtensionDic[extendname];
         if (extension == null) return null;
@@ -88,55 +76,44 @@ export class LoadGlTF implements IassetLoader
     }
 
     //------------------------------------load bundle asset
-    private loadAsync(url: string): Promise<IgltfJson>
-    {
-        if (url.endsWith(".gltf"))
-        {
-            return loadJson(url).then(json =>
-            {
+    private loadAsync(url: string): Promise<IgltfJson> {
+        if (url.endsWith(".gltf")) {
+            return loadJson(url).then(json => {
                 let gltfJson = json as any;
                 gltfJson.cache = new GltfNodeCache();
                 gltfJson.rootURL = getAssetDirectory(url);
                 return gltfJson;
             });
-        } else
-        {
+        } else {
             return this.loadglTFBin(url)
-                .then((value: { json: any; chunkbin: Uint8Array[] }) =>
-                {
+                .then((value: { json: any; chunkbin: Uint8Array[] }) => {
                     let gltfJson = value.json as IgltfJson;
                     gltfJson.cache = new GltfNodeCache();
                     gltfJson.rootURL = getAssetDirectory(url);
 
-                    for (let i = 0; i < value.chunkbin.length; i++)
-                    {
+                    for (let i = 0; i < value.chunkbin.length; i++) {
                         gltfJson.cache.bufferNodeCache[i] = Promise.resolve(value.chunkbin[i].buffer);
                     }
                     return gltfJson;
                 });
         }
     }
-    private async loadglTFBin(url: string): Promise<{ json: JSON; chunkbin: Uint8Array[] }>
-    {
-        return loadArrayBuffer(url).then(bin =>
-        {
+    private async loadglTFBin(url: string): Promise<{ json: JSON; chunkbin: Uint8Array[] }> {
+        return loadArrayBuffer(url).then(bin => {
             const Binary = {
                 Magic: 0x46546c67,
             };
             let breader = new BinReader(bin);
             let magic = breader.readUint32();
-            if (magic !== Binary.Magic)
-            {
+            if (magic !== Binary.Magic) {
                 throw new Error("Unexpected magic: " + magic);
             }
             let version = breader.readUint32();
-            if (version != 2)
-            {
+            if (version != 2) {
                 throw new Error("Unsupported version:" + version);
             }
             let length = breader.readUint32();
-            if (length !== breader.getLength())
-            {
+            if (length !== breader.getLength()) {
                 throw new Error(
                     "Length in header does not match actual data length: " + length + " != " + breader.getLength(),
                 );
@@ -149,18 +126,15 @@ export class LoadGlTF implements IassetLoader
             // JSON chunk
             let chunkLength = breader.readUint32();
             let chunkFormat = breader.readUint32();
-            if (chunkFormat !== ChunkFormat.JSON)
-            {
+            if (chunkFormat !== ChunkFormat.JSON) {
                 throw new Error("First chunk format is not JSON");
             }
             let _json = JSON.parse(breader.readUint8ArrToString(chunkLength));
             let _chunkbin: Uint8Array[] = [];
-            while (breader.canread() > 0)
-            {
+            while (breader.canread() > 0) {
                 const chunkLength = breader.readUint32();
                 const chunkFormat = breader.readUint32();
-                switch (chunkFormat)
-                {
+                switch (chunkFormat) {
                     case ChunkFormat.JSON:
                         throw new Error("Unexpected JSON chunk");
                     case ChunkFormat.BIN:

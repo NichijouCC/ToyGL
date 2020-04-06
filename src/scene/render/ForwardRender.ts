@@ -6,6 +6,13 @@ import { Frustum } from "../Frustum";
 import { BoundingSphere } from "../Bounds";
 import { MeshInstance } from "../primitive/MeshInstance";
 import { UniformState } from "../UniformState";
+import { Entity } from "../../core/Entity";
+import { Igeometry } from "../asset/geometry/BaseGeometry";
+import { Mat4 } from "../../mathD/mat4";
+import { SkinInstance } from "../primitive/SkinInstance";
+import { StaticMesh } from "../asset/geometry/StaticMesh";
+import { AutoUniforms } from "../AutoUniform";
+import { ShaderInstance } from "../asset/Shader";
 
 
 export enum SortTypeEnum {
@@ -20,6 +27,20 @@ namespace Private {
     export let temptSphere: BoundingSphere = new BoundingSphere();
 }
 
+export interface Irenderable {
+    bevisible?: boolean;
+    cullingMask?: number;
+    enableCull?: boolean;
+    instanceCount?: number;
+    material: Material;
+    geometry: Igeometry;
+    worldMat: Mat4;
+    bounding: BoundingSphere;
+    zdist?: number;
+
+    skinIns?: SkinInstance;
+}
+
 
 export class ForwardRender {
     private device: GraphicsDevice;
@@ -30,7 +51,7 @@ export class ForwardRender {
 
     setCamera(camera: Camera) {
         this.uniformState.curCamera = camera;
-        this.device.setViewPort(camera.viewport.x, camera.viewport.y, camera.viewport.width, camera.viewport.height);
+        this.device.setViewPort(camera.viewport.x, camera.viewport.y, camera.viewport.width * this.device.width, camera.viewport.height * this.device.height);
         this.device.setClear(
             camera.enableClearDepth ? camera.dePthValue : null,
             camera.enableClearColor ? camera.backgroundColor : null,
@@ -38,23 +59,30 @@ export class ForwardRender {
         );
     }
 
-    render(camera: Camera, drawCalls: MeshInstance[], lights?: any, ) {
+    render(camera: Camera, drawCalls: Irenderable[], lights?: any, ) {
         let culledDrawcalls = this.cull(camera, drawCalls);
-        let drawcall, shader, uniforms, renderState, vertexArray
+        let drawcall, shader, uniforms, renderState, vertexArray, shaderIns: ShaderInstance, uniformValue
         for (let i = 0; i < culledDrawcalls.length; i++) {
             drawcall = culledDrawcalls[i];
-            this.uniformState.matrixModel = drawcall.worldMat;
+
+            if (drawcall.skinIns) {
+                drawcall.skinIns.recomputeBoneData();
+                drawcall.skinIns.applyToAutoUniform(this.uniformState, this.device);
+            } else {
+                this.uniformState.matrixModel = drawcall.worldMat;
+            }
+
+            let bucketId = 0;
             if (drawcall.material != Private.preMaterial || drawcall.material.beDirty) {
                 Private.preMaterial = drawcall.material;
                 drawcall.material.beDirty = false;
 
-                shader = drawcall.material.shader;
+                shaderIns = drawcall.material.shader.getInstance(bucketId);
                 uniforms = drawcall.material.uniformParameters;
                 renderState = drawcall.material.renderState;
 
-                shader.bind(this.device);
-                shader.bindAutoUniforms(this.device, this.uniformState);//auto unfiorm
-                shader.bindManulUniforms(this.device, uniforms);
+                shaderIns.bindAutoUniforms(this.device, this.uniformState);//auto unfiorm
+                shaderIns.bindManulUniforms(this.device, uniforms);
 
                 if (Private.preRenderState != renderState) {
                     this.device.setCullFaceState(renderState.cull.enabled, renderState.cull.cullBack);
@@ -88,11 +116,11 @@ export class ForwardRender {
                     );
                 }
             } else {
-                shader = drawcall.material.shader;
-                shader.bindAutoUniforms(this.device, this.uniformState);//auto unfiorm
+                shaderIns = drawcall.material.shader.getInstance(bucketId)
+                shaderIns.bindAutoUniforms(this.device, this.uniformState);//auto unfiorm
             }
             drawcall.geometry.bind(this.device);
-            drawcall.geometry.draw(this.device, drawcall.instanceCount);
+            this.device.draw(drawcall.geometry.graphicAsset, drawcall.instanceCount)
         }
     }
     /**
@@ -100,7 +128,7 @@ export class ForwardRender {
      * @param camera 
      * @param drawCalls 
      */
-    cull(camera: Camera, drawCalls: MeshInstance[]) {
+    cull(camera: Camera, drawCalls: Irenderable[]) {
         let visualArr = [];
         let { cullingMask, frustum } = camera;
         let drawcall
@@ -118,8 +146,12 @@ export class ForwardRender {
         return visualArr;
     }
 
-    private frustumCull(frustum: Frustum, drawcall: MeshInstance) {
+    private frustumCull(frustum: Frustum, drawcall: Irenderable) {
         // BoundingSphere.fromBoundingBox(drawcall.boundingBox, Private.temptSphere);
         return frustum.containSphere(drawcall.bounding, drawcall.worldMat);
+    }
+
+    drawMesh(options: { mesh: StaticMesh, mat: Material }) {
+
     }
 }

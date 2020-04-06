@@ -9,38 +9,26 @@ import { Color } from "../src/mathD/color";
 import { Camera } from "../src/scene/Camera";
 import { Quat } from "../src/mathD/quat";
 import { Texture2D } from "../src/scene/asset/texture/Texture2d";
-export class Base
-{
-    static start(toy: ToyGL)
-    {
-        let geometry = DefaultGeometry.ins.cube;
+export class Base {
+    static start(toy: ToyGL) {
+        let geometry = DefaultGeometry.ins.quad2d;
         let mat = new Material({
             uniformParameters: {
                 MainColor: Color.create(0, 1.0, 0.0, 1.0)
             },
             shaderOption: {
                 vsStr: `attribute vec3 POSITION;
-                attribute vec3 TEXCOORD_0;
-                uniform highp mat4 czm_modelViewp;
-                uniform highp float timer;
-                varying mediump vec2 xlv_TEXCOORD0;
                 void main()
                 {
-                    xlv_TEXCOORD0 = vec2(TEXCOORD_0.x+timer,TEXCOORD_0.y);
-                    highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);
-                    gl_Position = czm_modelViewp * tmplet_1;;
+                    gl_Position = vec4(POSITION.xy*0.5,1.0,1.0);
                 }`,
                 fsStr: `uniform highp vec4 MainColor;
-                uniform lowp sampler2D _MainTex;
-                varying mediump vec2 xlv_TEXCOORD0;
                 void main()
                 {
-                    gl_FragData[0] = texture2D(_MainTex, xlv_TEXCOORD0)*MainColor;
+                    gl_FragData[0] = MainColor;
                 }`,
                 attributes: {
                     POSITION: VertexAttEnum.POSITION,
-                    MainColor: VertexAttEnum.COLOR_0,
-                    TEXCOORD_0: VertexAttEnum.TEXCOORD_0,
                 }
             }
         });
@@ -49,8 +37,7 @@ export class Base
         let tex = new Texture2D();
         let image = new Image();
         image.src = "../resources/glTF/duck/DuckCM.png";
-        image.onload = () =>
-        {
+        image.onload = () => {
             tex.textureSource = image;
             mat.setUniformParameter("_MainTex", tex);
             console.log("tex loded!")
@@ -73,12 +60,11 @@ export class Base
 
         let roty = 0;
         let totalTime = 0;
-        toy.scene.preUpdate.addEventListener((delta) =>
-        {
+        toy.scene.preUpdate.addEventListener((delta) => {
             roty += delta * 15;
             totalTime += delta;
             // node.localRotation = Quat.FromEuler(0, roty, 0, node.localRotation);
-            mat.setUniformParameter("timer", totalTime);
+            // mat.setUniformParameter("timer", totalTime);
         })
 
         // let geometry = DefGeometry.fromType("quad");

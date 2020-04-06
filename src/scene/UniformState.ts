@@ -3,6 +3,7 @@ import { Mat4 } from "../mathD/mat4";
 import { Texture2D } from "./asset/texture/Texture2d";
 import { Camera } from "./Camera";
 import { Light } from "./light/Light";
+import { MemoryTexture } from "./asset/texture/MemoryTexture";
 
 
 export class UniformState {
@@ -65,4 +66,7 @@ export class UniformState {
     curCamera: Camera;
 
     // lightShadowTex: RenderTexture[] = [];
+
+    boneMatrices: Float32Array;
+    boneTexture: MemoryTexture;
 }

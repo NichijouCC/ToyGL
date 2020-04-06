@@ -2,23 +2,23 @@ import { EventHandler } from "../core/Event";
 import { Asset } from "./asset/Asset";
 import { DebuffAction } from "../core/DebuffAction";
 
-export class AssetReference<T extends Asset>
+interface Iondirty {
+    onDirty: EventHandler<void>;
+}
+
+export class AssetReference<T extends Iondirty>
 {
     private _asset: T;
-    set asset(value: T)
-    {
-        if (this._asset != value)
-        {
+    set asset(value: T) {
+        if (this._asset != value) {
             let oldAsset = this._asset;
             this._asset = value;
 
             this.onAssetChange.raiseEvent({ newAsset: value, oldAsset });
-            this.attachToDirtyAction.excuteAction(() =>
-            {
+            this.attachToDirtyAction.excuteAction(() => {
                 let func = () => { this.onDirty.raiseEvent() }
                 value?.onDirty.addEventListener(func);
-                return () =>
-                {
+                return () => {
                     value?.onDirty.removeEventListener(func);
                 }
             });
@@ -29,8 +29,7 @@ export class AssetReference<T extends Asset>
     onDirty = new EventHandler<void>();
     private attachToDirtyAction = DebuffAction.create();
 
-    destroy()
-    {
+    destroy() {
         this._asset = undefined;
         this.attachToDirtyAction.dispose();
         this.attachToDirtyAction = undefined;
@@ -41,7 +40,7 @@ export class AssetReference<T extends Asset>
 }
 
 
-export class AssetChangedEvent<T extends Asset>
+export class AssetChangedEvent<T extends Iondirty>
 {
     newAsset: T;
     oldAsset: T;

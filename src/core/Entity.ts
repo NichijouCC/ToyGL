@@ -54,6 +54,12 @@ export class Entity extends Transform implements Ientity {
         return null;
     }
 
+    findInParents(check: (e: Entity) => boolean) {
+        if (check(this)) return this;
+        (this.parent as Entity).findInParents(check);
+        return null
+    }
+
     clone(): Entity {
         //TODO
         return new Entity();

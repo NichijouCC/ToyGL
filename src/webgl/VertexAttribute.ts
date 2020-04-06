@@ -4,8 +4,7 @@ import { ComponentDatatypeEnum } from "./ComponentDatatypeEnum";
 import { VertexAttEnum } from "./VertexAttEnum";
 import { BufferConfig } from "./Buffer";
 
-export interface IvertexAttribute
-{
+export interface IvertexAttribute {
     // index: number; // 0;
     type: string | VertexAttEnum
     enabled: boolean; // true;
@@ -18,8 +17,7 @@ export interface IvertexAttribute
     strideInBytes: number; // 0; // tightly packed
     instanceDivisor: number; // 0; // not instanced
 }
-export interface IvertexAttributeOption
-{
+export interface IvertexAttributeOption {
     // index?: number; // 0;
     type: string | VertexAttEnum
     enabled?: boolean; // true;
@@ -33,8 +31,7 @@ export interface IvertexAttributeOption
     instanceDivisor?: number; // 0; // not instanced
 }
 
-export class VertexAttribute implements IvertexAttribute
-{
+export class VertexAttribute implements IvertexAttribute {
     readonly type: string | VertexAttEnum;
     readonly index: number;
     readonly enabled: boolean;
@@ -50,12 +47,10 @@ export class VertexAttribute implements IvertexAttribute
     readonly count: number;
 
     private _gl: WebGLRenderingContext;
-    constructor(context: GraphicsDevice, options: IvertexAttributeOption)
-    {
+    constructor(context: GraphicsDevice, options: IvertexAttributeOption) {
 
         //todo  check 
-        if (options.vertexBuffer == null && options.value == null)
-        {
+        if (options.vertexBuffer == null && options.value == null) {
             throw new Error('attribute must have a vertexBuffer or a value.');
         }
 
@@ -71,24 +66,19 @@ export class VertexAttribute implements IvertexAttribute
         this.normalize = att.normalize ?? false; // false;
         this.offsetInBytes = att.offsetInBytes ?? 0; // 0;
         this.strideInBytes = att.strideInBytes ?? 0; // 0; // tightly packed
-        this.instanceDivisor = att.instanceDivisor ?? 0; // 0; // not instanced
+        this.instanceDivisor = att.instanceDivisor; // 0; // not instanced
 
-        if (this.vertexBuffer)
-        {
+        if (this.vertexBuffer) {
             let bytes = this.vertexBuffer.sizeInbytes - this.offsetInBytes;
-            if (this.strideInBytes == 0)
-            {
+            if (this.strideInBytes == 0) {
                 this.count = bytes / (this.componentsPerAttribute * ComponentDatatypeEnum.byteSize(this.componentDatatype))
-            } else
-            {
+            } else {
                 this.count = bytes / this.strideInBytes;
             }
         }
 
-        if (att.vertexBuffer)
-        {
-            this.bind = () =>
-            {
+        if (att.vertexBuffer) {
+            this.bind = () => {
                 att.vertexBuffer.bind();
                 this._gl.enableVertexAttribArray(this.index);
                 this._gl.vertexAttribPointer(
@@ -99,25 +89,20 @@ export class VertexAttribute implements IvertexAttribute
                     this.strideInBytes,
                     this.offsetInBytes,
                 );
-                if (this.instanceDivisor !== undefined)
-                {
+                if (this.instanceDivisor != null) {
                     this._gl.vertexAttribDivisor(this.index, att.instanceDivisor);
                 }
             }
-            this.unbind = () =>
-            {
+            this.unbind = () => {
                 this._gl.disableVertexAttribArray(this.index);
-                if (att.instanceDivisor !== undefined)
-                {
+                if (att.instanceDivisor != null) {
                     this._gl.vertexAttribDivisor(this.index, 0);
                 }
             }
 
-        } else
-        {
+        } else {
             let bindFunc = BufferConfig.vertexAttributeSetter[att.componentsPerAttribute];
-            this.bind = () =>
-            {
+            this.bind = () => {
                 bindFunc(this.index, this.value);
             }
         }

@@ -2,7 +2,7 @@ import { Asset } from "../Asset";
 import { Texture } from "../../../webgl/Texture";
 import { GraphicsDevice } from "../../../webgl/GraphicsDevice";
 
-export abstract class TextureAsset extends Asset {
+export abstract class BaseTexture extends Asset {
     protected graphicAsset: Texture;
     protected beNeedRefreshGraphicAsset: boolean = false;
     protected abstract create(device: GraphicsDevice): Texture
@@ -30,6 +30,5 @@ export abstract class TextureAsset extends Asset {
 
     destroy() {
         this.graphicAsset?.destroy();
-        super.destroy();
     }
 }

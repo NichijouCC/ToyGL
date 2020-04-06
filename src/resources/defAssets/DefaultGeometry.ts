@@ -71,7 +71,7 @@ namespace Private {
                 ]
             }
         ],
-        indices: [0, 1, 2, 0, 2, 3],
+        indices: [0, 1, 2, 0, 3, 2],
     });
 
     export const quad2d = new Geometry({
@@ -238,6 +238,7 @@ namespace Private {
 
 export class DefaultGeometry {
     static get ins() { return new DefaultGeometry() }
+    get quad2d() { return Private.quad2d }
     get quad() { return Private.quad }
     get cube() { return Private.cube }
     get plan() { return Private.plan }

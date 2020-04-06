@@ -3,32 +3,25 @@ import { RenderLayerEnum } from "../RenderLayer";
 import { RenderState } from "../RenderState";
 import { Asset } from "./Asset";
 import { AssetReference, AssetChangedEvent } from "../AssetReference";
-namespace Private
-{
+namespace Private {
     export let id: number = 0;
 }
-export class Material extends Asset
-{
+export class Material extends Asset {
     name: string;
     uniformParameters: { [name: string]: any } = {};
-    constructor(options?: ImatOption)
-    {
+    constructor(options?: ImatOption) {
         super();
         this.name = options?.name;
         this._sortId = Private.id++;
 
-        if (options?.shaderOption != null)
-        {
-            if (options?.shaderOption instanceof Shader)
-            {
+        if (options?.shaderOption != null) {
+            if (options?.shaderOption instanceof Shader) {
                 this.shader = options.shaderOption;
-            } else
-            {
+            } else {
                 this.shader = new Shader(options.shaderOption)
             }
         }
-        if (options?.uniformParameters)
-        {
+        if (options?.uniformParameters) {
             this.uniformParameters = { ...options.uniformParameters }
         }
         this.onDirty.addEventListener(() => { this.beDirty = true; })
@@ -43,8 +36,7 @@ export class Material extends Asset
     get layer() { return this._layer || this.shader.layer || RenderLayerEnum.Geometry; }
 
     private _layerIndex: number;
-    setLayerIndex(layer: RenderLayerEnum, queue: number = 0)
-    {
+    setLayerIndex(layer: RenderLayerEnum, queue: number = 0) {
         this._layer = layer;
         this._layerIndex = layer + queue;
         this.onDirty.raiseEvent();
@@ -55,16 +47,16 @@ export class Material extends Asset
     private _sortId: number;
     get sortId() { return this._sortId + 1000 * this.shader?.sortId }
 
-    setUniformParameter(uniformKey: string, value: any)
-    {
+    setUniformParameter(uniformKey: string, value: any) {
         this.uniformParameters[uniformKey] = value;
         this.beDirty = true;
     }
-    dispose(): void { }
+    destroy(): void {
+        throw new Error("Method not implemented.");
+    }
 }
 
-export interface ImatOption
-{
+export interface ImatOption {
     name?: string;
     uniformParameters?: { [name: string]: any };
     shaderOption?: IshaderOption | Shader;

@@ -32,9 +32,9 @@ namespace Private {
             uniform lowp sampler2D MainTex;
             void main()
             {
-                gl_FragData[0] = MainColor;
+                gl_FragData[0] = texture2D(MainTex, xlv_TEXCOORD0)*MainColor;
             }`
-        }//texture2D(MainTex, xlv_TEXCOORD0)*
+        }
     });
 }
 

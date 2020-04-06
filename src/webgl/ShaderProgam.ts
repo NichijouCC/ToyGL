@@ -25,23 +25,16 @@ import { Texture } from "./Texture";
  *      `,
  * });
  */
-export class ShaderProgram implements IshaderProgram
-{
+export class ShaderProgram implements IshaderProgram {
     program: WebGLProgram;
     uniforms: { [name: string]: IuniformInfo; };
     // samples: { [name: string]: IuniformInfo };
     attributes: { [type: string]: IattributeInfo; };
-    /**
-     * uniform value guid 缓存，用于更新修改的uniform
-     */
-    private _cachedUniform: { [name: string]: number } = {};
     private static _cachedProgram: WebGLProgram;
 
-    constructor(options: IshaderProgramOption)
-    {
+    constructor(options: IshaderProgramOption) {
         let res = options.context.complileAndLinkShader(options);
-        if (res)
-        {
+        if (res) {
             this.program = res.shader;
             this.uniforms = res.uniforms;
             // this.samples = res.samples;
@@ -49,37 +42,29 @@ export class ShaderProgram implements IshaderProgram
 
             //---------------------初始化 uniforms缓存值 为null
             let type: UniformTypeEnum;
-            for (let key in this.uniforms)
-            {
+            for (let key in this.uniforms) {
                 type = this.uniforms[key].type;
-                if (type == UniformTypeEnum.FLOAT || type === UniformTypeEnum.INT || type === UniformTypeEnum.BOOL)
-                {
+                if (type == UniformTypeEnum.FLOAT || type === UniformTypeEnum.INT || type === UniformTypeEnum.BOOL) {
                     this.uniforms[key].value = null;
-                } else
-                {
+                } else {
                     this.uniforms[key].value = [null, null, null, null]
                 }
             }
         }
 
         let gl = options.context.gl;
-        this.bind = () =>
-        {
-            if (this.program != ShaderProgram._cachedProgram)
-            {
+        this.bind = () => {
+            if (this.program != ShaderProgram._cachedProgram) {
                 gl.useProgram(this.program);
                 ShaderProgram._cachedProgram = this.program;
             }
-
         }
-        this.unbind = () =>
-        {
+        this.unbind = () => {
             gl.useProgram(null);
             ShaderProgram._cachedProgram = null;
         }
 
-        this.bindUniform = (name: string, value: any) =>
-        {
+        this.bindUniform = (name: string, value: any) => {
             // let _cahched = this._cachedUniform[name];
             // if (_cahched == null || _cahched != value.guid)
             // {
@@ -89,32 +74,15 @@ export class ShaderProgram implements IshaderProgram
             options.context.setUniform(this.uniforms[name], value);
         }
     }
-    private bindUniform(key: string, value: any) { }
+    bindUniform(key: string, value: any) { }
 
-    bindUniforms(device: GraphicsDevice, values: { [name: string]: any })
-    {
-        // for (let key in this.uniforms)
-        // {
-        //     if (value[key])
-        //     {
-        //         this.bindUniform(key, value[key]);
-        //     }
-        // }
-        // let unit = 0;
-        // for (let key in this.samples)
-        // {
-        //     if (value[key])
-        //     {
-        //         value[key].bind(device, unit++);
-        //     }
-        // }
+    bindUniforms(device: GraphicsDevice, values: { [name: string]: any }) {
         let uniformInfo: IuniformInfo;
-        for (let key in values)
-        {
+        for (let key in values) {
             uniformInfo = this.uniforms[key];
+            if (uniformInfo == null) continue;
             uniformInfo?.setter(uniformInfo, values[key]);
         }
-
     }
 
     bind() { }
@@ -126,8 +94,7 @@ export class ShaderProgram implements IshaderProgram
 /**
  * shaderProgram 的uniform info
  */
-export interface IuniformInfo
-{
+export interface IuniformInfo {
     name: string;
     type: UniformTypeEnum;
     location: WebGLUniformLocation;
@@ -141,8 +108,7 @@ export interface IuniformInfo
 /**
  * shderprogram的 attribute info
  */
-export interface IattributeInfo
-{
+export interface IattributeInfo {
     name: string;
     location: number;
     type: VertexAttEnum;
@@ -150,15 +116,13 @@ export interface IattributeInfo
 /**
  * shaderprogram
  */
-export interface IshaderProgram
-{
+export interface IshaderProgram {
     program: WebGLProgram;
     uniforms: { [name: string]: IuniformInfo };
     attributes: { [name: string]: IattributeInfo };
 }
 
-export interface IshaderProgramOption
-{
+export interface IshaderProgramOption {
     context: GraphicsDevice;
     attributes: { [attName: string]: VertexAttEnum };
     vsStr: string;

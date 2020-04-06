@@ -3,14 +3,11 @@ import { Texture, IsamplerOptions, Sampler } from "../../../webgl/Texture";
 import { GraphicsDevice } from "../../../webgl/GraphicsDevice";
 import { PixelFormatEnum } from "../../../webgl/PixelFormatEnum";
 import { PixelDatatypeEnum } from "../../../webgl/PixelDatatype";
-import { TextureAsset } from "./TextureAsset";
+import { BaseTexture } from "./TextureAsset";
 
-export class Texture2D extends TextureAsset
-{
-    protected create(device: GraphicsDevice): Texture
-    {
-        if (this._source)
-        {
+export class Texture2D extends BaseTexture {
+    protected create(device: GraphicsDevice): Texture {
+        if (this._source) {
             return Texture.fromImageSource({
                 context: device,
                 image: this._source,
@@ -21,8 +18,7 @@ export class Texture2D extends TextureAsset
         }
         return null;
     }
-    protected refresh(device: GraphicsDevice): void
-    {
+    protected refresh(device: GraphicsDevice): void {
         throw new Error("Method not implemented.");
     }
     private _source: TexImageSource;
@@ -37,8 +33,7 @@ export class Texture2D extends TextureAsset
     set flipY(value: boolean) { this._flipY = value; }
     private sampler: Sampler;
 
-    constructor(options?: Texture2dOption)
-    {
+    constructor(options?: Texture2dOption) {
         super();
         this._source = options?.image;
         this._pixelFormat = options?.pixelFormat || PixelFormatEnum.RGBA;
@@ -49,8 +44,7 @@ export class Texture2D extends TextureAsset
     }
 }
 
-export interface Texture2dOption
-{
+export interface Texture2dOption {
     image: TexImageSource;
 
     pixelFormat?: PixelFormatEnum;

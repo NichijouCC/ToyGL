@@ -1,10 +1,11 @@
-import { Asset } from "../Asset";
+import { Asset, IgraphicAsset } from "../Asset";
 import { VertexArray } from "../../../webgl/VertextArray";
 import { GraphicsDevice } from "../../../webgl/GraphicsDevice";
 import { BoundingSphere } from "../../Bounds";
+import { EventHandler } from "../../../core/Event";
 
-export abstract class GeometryAsset extends Asset {
-    protected graphicAsset: VertexArray;
+export abstract class BaseGeometry extends Asset implements Igeometry {
+    graphicAsset: VertexArray;
     protected beNeedRefreshGraphicAsset: boolean = false;
     protected abstract create(device: GraphicsDevice): VertexArray
     protected abstract refresh(device: GraphicsDevice): void
@@ -35,6 +36,14 @@ export abstract class GeometryAsset extends Asset {
 
     destroy() {
         this.graphicAsset?.destroy();
-        super.destroy();
     }
+}
+
+export interface Igeometry {
+    onDirty: EventHandler<void>;
+    graphicAsset: VertexArray;
+    bounding: BoundingSphere;
+    bind(device: GraphicsDevice): void;
+    unbind(): void;
+    destroy(): void;
 }

@@ -10,7 +10,7 @@ import { GraphicsDevice } from "../../../webgl/GraphicsDevice";
 import { MeshInstance } from "../../../scene/primitive/MeshInstance";
 import { Entity } from "../../../core/Entity";
 import { ModelComponent } from "../../../components/ModelComponent";
-import { PrimiveAsset } from "../../../scene/asset/PrimiveAsset";
+import { StaticMesh } from "../../../scene/asset/geometry/StaticMesh";
 
 export class ParseNode {
     static parse(index: number, gltf: IgltfJson, context: GraphicsDevice): Promise<Entity> {
@@ -41,9 +41,10 @@ export class ParseNode {
             let task = ParseMeshNode.parse(node.mesh, gltf, context)
                 .then(primitives => {
                     let modelcomp = sceneNode.addComponent("ModelComponent") as ModelComponent;
-                    for (let i = 0; i < primitives.length; i++) {
-                        modelcomp.setAsset(new PrimiveAsset(primitives[i].material, primitives[i].mesh), i);
-                    }
+                    let newMesh = new StaticMesh();
+                    newMesh.sbuMeshs = primitives.map(item => item.mesh);
+                    modelcomp.mesh = newMesh
+                    modelcomp.materials = primitives.map(item => item.material);
                 });
             allTask.push(task);
         }

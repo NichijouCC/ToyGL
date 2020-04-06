@@ -128,7 +128,7 @@ export class VertexArray implements IglElement {
         })
         this._indexbuffer = options.indexBuffer;
         this._primitiveType = options.primitiveType ?? PrimitiveTypeEnum.TRIANGLES;
-        this._primitiveOffset = options.primitiveOffset;
+        this._primitiveOffset = options.primitiveOffset ?? 0;
 
         let gl = options.context.gl;
 

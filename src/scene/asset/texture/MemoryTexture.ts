@@ -4,9 +4,9 @@ import { TypedArray } from "../../../core/TypedArray";
 import { PixelFormatEnum } from "../../../webgl/PixelFormatEnum";
 import { PixelDatatypeEnum } from "../../../webgl/PixelDatatype";
 import { IsamplerOptions, Sampler, Texture } from "../../../webgl/Texture";
-import { TextureAsset } from "./TextureAsset";
+import { BaseTexture } from "./TextureAsset";
 
-export class MemoryTexture extends TextureAsset {
+export class MemoryTexture extends BaseTexture {
     protected create(device: GraphicsDevice): Texture {
         if (this.arrayBufferView) {
             return Texture.fromTypedArray({

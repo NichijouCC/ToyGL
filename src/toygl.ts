@@ -8,6 +8,7 @@ import { LoadGlTF } from "./resources/loader/LoadglTF";
 import { Ecs } from "./core/Ecs";
 import { ModelSystem } from "./components/ModelSystem";
 import { ForwardRender } from "./scene/render/ForwardRender";
+import { EventHandler } from "./core/Event";
 export class ToyGL {
     static create(element: HTMLDivElement | HTMLCanvasElement): ToyGL {
         let canvas: HTMLCanvasElement;
@@ -34,11 +35,12 @@ export class ToyGL {
         let resource = new Resource();
         let scene = new InterScene(render);
         resource.registerAssetLoader(".gltf", new LoadGlTF(device));
-        Ecs.addSystem(new ModelSystem(scene))
+        Ecs.addSystem(new ModelSystem(scene, render))
 
         timer.onTick.addEventListener((deltaTime) => {
+            toy.preUpdate.raiseEvent(deltaTime);
             Ecs.update(deltaTime);
-            scene.frameUpdate(deltaTime);
+            // scene.frameUpdate(deltaTime);
         })
 
         toy._timer = timer;
@@ -49,6 +51,10 @@ export class ToyGL {
 
         return toy;
     }
+
+    preUpdate = new EventHandler<number>();
+
+
     private _input: Input;
     get input() { return this._input }
 

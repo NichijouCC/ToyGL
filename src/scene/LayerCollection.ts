@@ -1,21 +1,21 @@
 import { MeshInstance } from "./primitive/MeshInstance";
-import { SortTypeEnum } from "./render/ForwardRender";
+import { SortTypeEnum, Irenderable } from "./render/ForwardRender";
 import { Camera } from "./Camera";
 import { RenderLayerEnum } from "./RenderLayer";
 namespace Private {
-    export const sortByMatLayerIndex = (drawa: MeshInstance, drawb: MeshInstance): number => {
+    export const sortByMatLayerIndex = (drawa: Irenderable, drawb: Irenderable): number => {
         return drawa.material.layerIndex - drawb.material.layerIndex;
     }
 
-    export const sortByZdist_FrontToBack = (drawa: MeshInstance, drawb: MeshInstance): number => {
+    export const sortByZdist_FrontToBack = (drawa: Irenderable, drawb: Irenderable): number => {
         return drawa.zdist - drawb.zdist;
     }
 
-    export const sortByZdist_BackToFront = (drawa: MeshInstance, drawb: MeshInstance): number => {
+    export const sortByZdist_BackToFront = (drawa: Irenderable, drawb: Irenderable): number => {
         return drawb.zdist - drawa.zdist;
     }
 
-    export const sortByMatSortId = (drawa: MeshInstance, drawb: MeshInstance): number => {
+    export const sortByMatSortId = (drawa: Irenderable, drawb: Irenderable): number => {
         return drawb.material.sortId - drawb.material.sortId;
     }
 
@@ -29,7 +29,7 @@ namespace Private {
         };
         sortTypeInfo[SortTypeEnum.Zdist_FrontToBack] = {
             sortFunc: sortByZdist_FrontToBack,
-            beforeSort: (ins: MeshInstance[], cam: Camera) => {
+            beforeSort: (ins: Irenderable[], cam: Camera) => {
                 let camPos = cam.worldPos;
                 let camFwd = cam.forwardInword;
                 let i, drawCall, meshPos;
@@ -47,15 +47,15 @@ namespace Private {
     }
 
     export interface IsortInfo {
-        sortFunc: (drawa: MeshInstance, drawb: MeshInstance) => number,
+        sortFunc: (drawa: Irenderable, drawb: Irenderable) => number,
         // eventFunc?: (ins: MeshInstance) => ValueEvent<MeshInstance, any>,
-        beforeSort?: (ins: MeshInstance[], cam: Camera) => void
+        beforeSort?: (ins: Irenderable[], cam: Camera) => void
     }
 }
 
 export class LayerCollection {
     readonly layer: RenderLayerEnum;
-    private _insArr: MeshInstance[] = [];
+    private _insArr: Irenderable[] = [];
     getSortedinsArr(cam: Camera) {
         this.beforeSort.forEach(func => func(this._insArr, cam))
         if (this.beDirty && this.sortFunction) {
@@ -66,10 +66,10 @@ export class LayerCollection {
 
     get insCount() { return this._insArr.length };
 
-    private sortFunction: (a: MeshInstance, b: MeshInstance) => number;
+    private sortFunction: (a: Irenderable, b: Irenderable) => number;
     // private onAdd: ((ins: MeshInstance) => void)[] = []
     // private onRemove: ((ins: MeshInstance) => void)[] = [];
-    private beforeSort: ((ins: MeshInstance[], cam: Camera) => void)[] = [];
+    private beforeSort: ((ins: Irenderable[], cam: Camera) => void)[] = [];
 
     constructor(layer: RenderLayerEnum, sortType: number = 0) {
         this.layer = layer;
@@ -82,7 +82,7 @@ export class LayerCollection {
             //     this.onRemove.push(ins => { sortInfo?.eventFunc(ins).removeEventListener(func) })
             // }
             if (sortInfo?.beforeSort) {
-                this.beforeSort.push((ins: MeshInstance[], cam: Camera) => { sortInfo?.beforeSort(ins, cam); this.markDirty(); });
+                this.beforeSort.push((ins: Irenderable[], cam: Camera) => { sortInfo?.beforeSort(ins, cam); this.markDirty(); });
             }
         }
         if (sortType & SortTypeEnum.MatLayerIndex) {
@@ -99,7 +99,7 @@ export class LayerCollection {
         this.beDirty = true;
     }
 
-    add(newIns: MeshInstance) {
+    add(newIns: Irenderable) {
         let index = this._insArr.indexOf(newIns);
         if (index == -1) {
             this._insArr.push(newIns);
@@ -108,7 +108,7 @@ export class LayerCollection {
             // this.onAdd.forEach(func => func(newIns));
         }
     }
-    remove(item: MeshInstance) {
+    remove(item: Irenderable) {
         let index = this._insArr.indexOf(item);
         if (index >= 0) {
             this._insArr.splice(index, 1);

@@ -1,7 +1,8 @@
 import { MeshInstance } from "./primitive/MeshInstance";
 import { RenderLayerEnum } from "./RenderLayer";
 import { LayerCollection } from "./LayerCollection";
-import { SortTypeEnum } from "./render/ForwardRender";
+import { SortTypeEnum, Irenderable } from "./render/ForwardRender";
+import { EventHandler } from "../core/Event";
 export class LayerComposition {
     private layers: Map<number, LayerCollection> = new Map();
     private nolayers: LayerCollection = new LayerCollection("nolayer" as any);
@@ -23,7 +24,7 @@ export class LayerComposition {
     }
 
     private insMap: { [insId: number]: LayerCollection } = {};
-    tryAddMeshInstance(ins: MeshInstance) {
+    tryAddMeshInstance(ins: IlayeredRenderable) {
         if (this.insMap[ins.id] != null) return;
 
         let layer = ins.material?.layer;
@@ -38,7 +39,7 @@ export class LayerComposition {
         ins.onDirty.addEventListener(this.onInsDirty);
         ins.ondispose.addEventListener(this.onInsDispose)
     }
-    removeMeshInstance(ins: MeshInstance) {
+    removeMeshInstance(ins: IlayeredRenderable) {
         if (this.insMap[ins.id] == null) return;
 
         let layerCollection = this.insMap[ins.id];
@@ -48,7 +49,7 @@ export class LayerComposition {
         ins.ondispose.removeEventListener(this.onInsDispose)
     }
 
-    private onInsDirty = (ins: MeshInstance) => {
+    private onInsDirty = (ins: IlayeredRenderable) => {
         let layer = ins.material?.layer;
         let collection = this.insMap[ins.id];
         if (collection.layer != layer) {
@@ -66,7 +67,13 @@ export class LayerComposition {
         this.insMap[ins.id].markDirty();
     }
 
-    private onInsDispose = (ins: MeshInstance) => {
+    private onInsDispose = (ins: IlayeredRenderable) => {
         this.removeMeshInstance(ins);
     }
+}
+
+export interface IlayeredRenderable extends Irenderable {
+    onDirty: EventHandler<MeshInstance>;
+    ondispose: EventHandler<MeshInstance>;
+    id: number;
 }

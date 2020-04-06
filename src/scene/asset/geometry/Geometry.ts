@@ -1,5 +1,5 @@
 import { IndicesArray, IndexBuffer } from "../../../webgl/IndexBuffer";
-import { GeometryAsset } from "./GeoemtryAsset";
+import { BaseGeometry } from "./BaseGeometry";
 import { GeometryAttribute, IgeometryAttributeOptions } from "./GeometryAttribute";
 import { PrimitiveTypeEnum } from "../../../webgl/PrimitiveTypeEnum";
 import { BoundingSphere } from "../../Bounds";
@@ -33,7 +33,7 @@ import { BufferUsageEnum } from "../../../webgl/Buffer";
  * });
  * ```
  */
-export class Geometry extends GeometryAsset {
+export class Geometry extends BaseGeometry {
     attributes: { [keyName: string]: GeometryAttribute } = {};
     indices?: IndicesArray;
     primitiveType: PrimitiveTypeEnum;

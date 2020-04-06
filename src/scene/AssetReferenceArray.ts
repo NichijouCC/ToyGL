@@ -6,21 +6,16 @@ import { DebuffAction } from "../core/DebuffAction";
 export class AssetReferenceArray<T extends Asset>
 {
     assets: AssetReference<T>[] = [];
-    setValue(asset: T, index = 0)
-    {
-        if (this.assets[index] == null)
-        {
+    setValue(asset: T, index = 0) {
+        if (this.assets[index] == null) {
             let newRef = new AssetReference<T>();
             this.assets[index] = newRef;
-            this.attachToItemAssetChangeAction[index] = DebuffAction.create(() =>
-            {
-                let func = (event: AssetChangedEvent<T>) =>
-                {
+            this.attachToItemAssetChangeAction[index] = DebuffAction.create(() => {
+                let func = (event: AssetChangedEvent<T>) => {
                     this.onAssetChange.raiseEvent({ ...event, index: index });
                 }
                 newRef.onAssetChange.addEventListener(func);
-                return () =>
-                {
+                return () => {
                     newRef.onAssetChange.removeEventListener(func)
                 }
             })
@@ -28,12 +23,14 @@ export class AssetReferenceArray<T extends Asset>
         }
         this.assets[index].asset = asset;
     }
-    getValue(index = 0)
-    {
+    setValues(assets: T[]) {
+        assets.forEach((item, index) => this.setValue(item, index))
+    }
+
+    getValue(index = 0) {
         return this.assets[index]
     }
-    delectItem(index: number)
-    {
+    delectItem(index: number) {
         this.assets.splice(index, 1);
         this.attachToItemAssetChangeAction[index]?.dispose();
         this.onItemDelect.raiseEvent(index);
