@@ -8,6 +8,7 @@ import { StaticMesh } from "../scene/asset/geometry/StaticMesh";
 import { Material } from "../scene/asset/Material";
 import { SkinInstance } from "../scene/primitive/SkinInstance";
 import { Skin } from "../scene/asset/Skin";
+import { Irenderable } from "../scene/render/Irenderable";
 
 @Ecs.registeComp
 export class ModelComponent implements Icomponent {
@@ -22,45 +23,45 @@ export class ModelComponent implements Icomponent {
     get materials() { return this._materials.assets.map(item => item.asset) };
     set materials(mats: Material[]) { this._materials.setValues(mats); }
 
-    protected _meshinstances: MeshInstance[] = [];
-    get meshInstances() { return this._meshinstances }
-
     private _skin: AssetReference<Skin> = new AssetReference();
     set skin(skin: Skin) { this._skin.asset = skin };
     get skin() { return this._skin.asset }
 
     private _skinInstance: SkinInstance;
-    get skinInstance() { return this._skinInstance };
+    get skinIns() { return this._skinInstance };
     constructor() {
-        this._materials.onAssetChange.addEventListener((event) => {
-            let { newAsset, index } = event;
-            let ins = this._meshinstances[index];
-            if (ins == null && this.mesh?.sbuMeshs?.[index] && newAsset) {
-                ins = this._meshinstances[index] = new MeshInstance();
-                ins.node = this.entity;
-                ins.geometry = this.mesh.sbuMeshs[index];
-                ins.skin = this._skin.asset;
-                this.onMeshinsCountChange.raiseEvent(this);
-            }
-            if (ins) { ins.material = newAsset; }
-        });
+        // this._materials.onAssetChange.addEventListener((event) => {
+        //     let { newAsset, index } = event;
+        //     let ins = this._meshinstances[index];
+        //     if (ins == null && this.mesh?.sbuMeshs?.[index] && newAsset) {
+        //         ins = this._meshinstances[index] = new MeshInstance();
+        //         ins.node = this.entity;
+        //         ins.geometry = this.mesh.sbuMeshs[index];
+        //         ins.skin = this._skin.asset;
+        //         this.onMeshinsCountChange.raiseEvent(this);
+        //     }
+        //     if (ins) { ins.material = newAsset; }
+        // });
 
-        this._mesh.onAssetChange.addEventListener((event) => {
-            let { newAsset, oldAsset } = event;
-            for (let index = 0; index < this._meshinstances.length; index++) {
-                let element = this._meshinstances[index];
-                if (newAsset?.sbuMeshs[index] == null) {
-                    element.dispose();
-                    this._meshinstances[index] = null;
-                } else {
-                    element.geometry = newAsset?.sbuMeshs[index];
-                }
-            }
-        });
+        // this._mesh.onAssetChange.addEventListener((event) => {
+        //     let { newAsset, oldAsset } = event;
+        //     for (let index = 0; index < this._meshinstances.length; index++) {
+        //         let element = this._meshinstances[index];
+        //         if (newAsset?.sbuMeshs[index] == null) {
+        //             element.dispose();
+        //             this._meshinstances[index] = null;
+        //         } else {
+        //             element.geometry = newAsset?.sbuMeshs[index];
+        //         }
+        //     }
+        // });
 
         this._skin.onAssetChange.addEventListener((event) => {
             let { newAsset, oldAsset } = event;
-            this._meshinstances.forEach(item => { item.skin = newAsset; })
+            if (this._skinInstance) { this._skinInstance.destroy(); this._skinInstance = null; };
+            if (newAsset) {
+                this._skinInstance = new SkinInstance(newAsset, this.entity);
+            }
         })
     }
 

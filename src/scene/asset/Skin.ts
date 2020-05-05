@@ -1,10 +1,12 @@
 import { Asset } from "./Asset";
+import { Mat4 } from "../../mathD/mat4";
 
 export class Skin extends Asset {
-    inverseBindMatrices!: Float32Array;
+    inverseBindMatrices!: Mat4[];
     boneNames!: string[];
     rootBoneName!: string;
+    potentialSearchRoot?: string;
 
-    rootModelName: string;
+    // rootModelName: string;
     destroy(): void { }
 }

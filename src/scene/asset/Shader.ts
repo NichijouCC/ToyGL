@@ -13,20 +13,8 @@ namespace Private {
 export class Shader extends Asset {
 
     private _shader: ShaderProgram;
-    private _autoUniforms: string[] = [];
     private _instances: Map<number, ShaderInstance> = new Map();
 
-    // get autoUniforms() { return this._autoUniforms }
-    // get glShader() { return this._shader };
-    // set glShader(shader: ShaderProgram)
-    // {
-    //     if (this._shader != shader)
-    //     {
-    //         if (this._shader) { this._shader.destroy(); }
-    //         this._shader = shader;
-    //         this.onDirty.raiseEvent();
-    //     }
-    // }
     private _layer: RenderLayerEnum;
     get layer() { return this._layer; }
 
@@ -56,39 +44,13 @@ export class Shader extends Asset {
 
     getInstance(bucketId: number) {
         if (!this._instances.has(bucketId)) {
-            this._instances.set(bucketId, new ShaderInstance(this.vsStr, this.fsStr, this.attributes));
+            this._instances.set(bucketId, new ShaderInstance(
+                ShaderBucket.packShaderStr(bucketId, this.vsStr),
+                ShaderBucket.packShaderStr(bucketId, this.fsStr),
+                this.attributes));
         }
         return this._instances.get(bucketId);
     }
-
-    // bind(device: GraphicsDevice, bucketId: number) {
-    //     if (!this._instances.has(bucketId)) {
-    //         let program = new ShaderProgram({ context: device, attributes: this.attributes, vsStr: this.vsStr, fsStr: this.fsStr });
-    //         let autouniforms: string[] = [];
-    //         Object.keys(program.uniforms).forEach(uniform => {
-    //             if (AutoUniforms.containAuto(uniform)) {
-    //                 autouniforms.push(uniform);
-    //             }
-    //         })
-
-    //         this._instances.set(bucketId, { program, autouniforms });
-    //     }
-    //     let shader = this._instances.get(bucketId);
-    //     shader.program.bind();
-    //     return shader;
-    // }
-
-    // bindManulUniforms(device: GraphicsDevice, uniforms: { [name: string]: any }) {
-    //     this._shader.bindUniforms(device, uniforms);
-    // }
-
-    // bindAutoUniforms(device: GraphicsDevice, uniformState: UniformState) {
-    //     let uniforms: { [name: string]: any } = {};
-    //     this._autoUniforms.forEach(item => {
-    //         uniforms[item] = AutoUniforms.getAutoUniformValue(item, uniformState);
-    //     })
-    //     this._shader.bindUniforms(device, uniforms);
-    // }
 
     unbind(): void {
         this._shader?.unbind();
@@ -96,6 +58,24 @@ export class Shader extends Asset {
 
     destroy() {
         this._shader?.destroy();
+    }
+}
+
+
+export enum ShaderBucket {
+    SKIN = 1,
+    FOG = 1 << 1,
+}
+export namespace ShaderBucket {
+    export const packShaderStr = (buket: number, shaderStr: string) => {
+        let str = "";
+        if (buket && ShaderBucket.SKIN) {
+            str = "#define SKIN \n" + str;
+        }
+        if (buket && ShaderBucket.FOG) {
+            str = "#define FOG \n" + str;
+        }
+        return str + shaderStr;
     }
 }
 

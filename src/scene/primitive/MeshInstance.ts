@@ -6,6 +6,7 @@ import { EventHandler } from "../../core/Event";
 import { Skin } from "../asset/Skin";
 import { SkinInstance } from "./SkinInstance";
 import { Entity } from "../../core/Entity";
+import { Irenderable } from "../render/Irenderable";
 
 // instance ondirty 触发 layercomposition 对instance 重新分层，重新sort
 
@@ -13,7 +14,7 @@ namespace Private {
     export let id: number = 0;
 }
 
-export class MeshInstance {
+export class MeshInstance implements Irenderable {
     readonly id: number;
     bevisible: boolean = true;
     enableCull: boolean = false;

@@ -76,8 +76,7 @@ export class Transform {
     }
 
     set localRotation(value: Quat) {
-        Vec3.copy(value, this._localRotation);
-        // this._localRotation = value;
+        Quat.copy(value, this._localRotation);
         this.markDirty();
     }
     get localRotation(): Quat {
@@ -185,7 +184,11 @@ export class Transform {
     private _worldMatrix: Mat4 = Mat4.create();
     get worldMatrix(): Mat4 {
         if (this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.LOCALMAT)) {
-            Mat4.multiply(this.parent.worldMatrix, this.localMatrix, this._worldMatrix);
+            if (this.parent) {
+                Mat4.multiply(this.parent.worldMatrix, this.localMatrix, this._worldMatrix);
+            } else {
+                Mat4.copy(this.localMatrix, this._worldMatrix);
+            }
             this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLDMAT;
             this.dirtyFlag =
                 this.dirtyFlag | DirtyFlagEnum.WORLD_ROTATION | DirtyFlagEnum.WORLD_SCALE | DirtyFlagEnum.WWORLD_POS;

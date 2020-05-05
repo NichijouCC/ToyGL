@@ -55,7 +55,7 @@ export class ShaderCodeInjector {
 
         if (useFog === true) {
             directives = `${directives}
-            #define USE_FOG`;
+#define USE_FOG`;
             needInjection = true;
         }
 

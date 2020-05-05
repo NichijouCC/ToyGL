@@ -115,10 +115,16 @@ export class VertexArray implements IglElement {
     private _primitiveType: PrimitiveTypeEnum;
     get primitiveType() { return this._primitiveType }
     set primitiveType(type: PrimitiveTypeEnum) { this._primitiveType = type };
-    get primitveCount() { return this._indexbuffer?.numberOfIndices ?? this.vertexcount; }
-    private _primitiveOffset: number = 0;
-    get primitiveOffset() { return this._primitiveOffset; }
-    set primitiveOffset(offset: number) { this._primitiveOffset = (this._indexbuffer?.bytesPerIndex ?? 1) * offset; }
+
+    private _primitiveCount: number;
+    set primitiveCount(count: number) { this._primitiveCount = count; }
+    get primitveCount() { return this._primitiveCount ?? this._indexbuffer?.numberOfIndices ?? this.vertexcount; }
+
+    private _primitiveByteOffset: number = 0;
+    get primitiveByteOffset() { return this._primitiveByteOffset; }
+    set primitiveByteOffset(offset: number) {
+        this._primitiveByteOffset = offset;
+    }
 
     constructor(options: IvaoOptions) {
         this._context = options.context;
@@ -128,7 +134,8 @@ export class VertexArray implements IglElement {
         })
         this._indexbuffer = options.indexBuffer;
         this._primitiveType = options.primitiveType ?? PrimitiveTypeEnum.TRIANGLES;
-        this._primitiveOffset = options.primitiveOffset ?? 0;
+        this._primitiveByteOffset = options.primitiveByteOffset ?? 0;
+        this._primitiveCount = options.primitiveCount;
 
         let gl = options.context.gl;
 
@@ -243,5 +250,6 @@ export interface IvaoOptions {
     indexBuffer?: IndexBuffer;
     offset?: number
     primitiveType?: PrimitiveTypeEnum;
-    primitiveOffset?: number;
+    primitiveByteOffset?: number;
+    primitiveCount?: number;
 }

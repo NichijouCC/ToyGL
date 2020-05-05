@@ -5,6 +5,7 @@ import { Vec3 } from "../../../mathD/vec3";
 import { Color } from "../../../mathD/color";
 import { Material } from '../../../scene/asset/Material';
 import { VertexAttEnum } from "../../../webgl/VertexAttEnum";
+import { DefaultMaterial } from "../../defAssets/DefaultMaterial";
 
 
 namespace Private {
@@ -17,19 +18,43 @@ namespace Private {
                 POSITION: VertexAttEnum.POSITION,
                 TEXCOORD_0: VertexAttEnum.TEXCOORD_0,
             },
-            vsStr: `attribute vec3 POSITION;
+            vsStr: `precision highp float;
             attribute vec3 TEXCOORD_0;
-            uniform highp mat4 czm_modelViewp;
+            uniform mat4 czm_modelViewp;
             varying mediump vec2 xlv_TEXCOORD0;
+            #ifdef SKIN
+            attribute vec4 skinIndex;
+            attribute vec4 skinWeight;
+            uniform mat4 czm_boneMatrices[40];
+            vec4 calcVertex(vec4 srcVertex,vec4 blendIndex,vec4 blendWeight)
+            {
+                int i = int(blendIndex.x);  
+                int i2 =int(blendIndex.y);
+                int i3 =int(blendIndex.z);
+                int i4 =int(blendIndex.w);
+                
+                mat4 mat = czm_boneMatrices[i]*blendWeight.x 
+                        + czm_boneMatrices[i2]*blendWeight.y 
+                        + czm_boneMatrices[i3]*blendWeight.z 
+                        + czm_boneMatrices[i4]*blendWeight.w;
+                return mat* srcVertex;
+            }
+            #endif
+            attribute vec3 POSITION;
             void main()
             {
-                highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);
+                vec4 position=vec4(POSITION.xyz,1.0);
+                #ifdef SKIN
+                position =calcVertex(position,skinIndex,skinWeight);
+                #endif
+
                 xlv_TEXCOORD0 = TEXCOORD_0.xy;
-                gl_Position = czm_modelViewp * tmplet_1;
+                gl_Position = czm_modelViewp * position;
             }`,
-            fsStr: `uniform highp vec4 MainColor;
-            varying mediump vec2 xlv_TEXCOORD0;
-            uniform lowp sampler2D MainTex;
+            fsStr: `precision highp float;
+            uniform vec4 MainColor;
+            varying vec2 xlv_TEXCOORD0;
+            uniform sampler2D MainTex;
             void main()
             {
                 gl_FragData[0] = texture2D(MainTex, xlv_TEXCOORD0)*MainColor;
@@ -48,16 +73,18 @@ export class ParseMaterialNode {
             //     return Promise.resolve(null);
             // }
             let node = gltf.materials[index];
-            let mat = new Material();
-            mat.setUniformParameter("MainColor", Color.create(1.0, 1.0, 1.0, 1));
-            mat.shader = Private.defmat.shader;
+
             if (node.pbrMetallicRoughness?.baseColorTexture != null) {
+                let mat = new Material();
+                mat.setUniformParameter("MainColor", Color.create(1.0, 1.0, 1.0, 1));
+                mat.shader = Private.defmat.shader;
                 return ParseTextureNode.parse(node.pbrMetallicRoughness?.baseColorTexture.index, gltf)
                     .then(tex => {
                         mat.setUniformParameter("MainTex", tex);
                         return mat;
                     });
             } else {
+                let mat = DefaultMaterial.color_3d;
                 return Promise.resolve(mat);
             }
 

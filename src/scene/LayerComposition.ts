@@ -1,79 +1,41 @@
 import { MeshInstance } from "./primitive/MeshInstance";
 import { RenderLayerEnum } from "./RenderLayer";
 import { LayerCollection } from "./LayerCollection";
-import { SortTypeEnum, Irenderable } from "./render/ForwardRender";
+import { SortTypeEnum } from "./render/SortTypeEnum";
+import { Irenderable } from "./render/Irenderable";
 import { EventHandler } from "../core/Event";
 export class LayerComposition {
     private layers: Map<number, LayerCollection> = new Map();
-    private nolayers: LayerCollection = new LayerCollection("nolayer" as any);
+    // private nolayers: LayerCollection = new LayerCollection("nolayer" as any);
     constructor() {
         this._addLayer(RenderLayerEnum.Background);
         this._addLayer(RenderLayerEnum.Geometry, SortTypeEnum.MatLayerIndex | SortTypeEnum.ShaderId);
         this._addLayer(RenderLayerEnum.AlphaTest, SortTypeEnum.MatLayerIndex | SortTypeEnum.Zdist_FrontToBack);
         this._addLayer(RenderLayerEnum.Transparent, SortTypeEnum.MatLayerIndex | SortTypeEnum.Zdist_FrontToBack);
     }
-    _addLayer(layer: RenderLayerEnum, sortType: number = 0) {
+    private _addLayer(layer: RenderLayerEnum, sortType: number = 0) {
         if (!this.layers.has(layer)) {
             let collection = new LayerCollection(layer, sortType);
             this.layers.set(layer, collection);
         }
     }
-
     getlayers() {
         return Array.from(this.layers.values());
     }
 
-    private insMap: { [insId: number]: LayerCollection } = {};
-    tryAddMeshInstance(ins: IlayeredRenderable) {
-        if (this.insMap[ins.id] != null) return;
+    getSortedRenderArr() {
 
-        let layer = ins.material?.layer;
-        if (layer == null) {
-            this.nolayers.add(ins);
-            this.insMap[ins.id] = this.nolayers;
-        } else {
+    }
+
+    addRenableItem(ins: Irenderable) {
+        let layer = ins.material.layer;
+        if (layer != null) {
             let layerCollection = this.layers.get(layer);
             layerCollection.add(ins);
-            this.insMap[ins.id] = layerCollection;
         }
-        ins.onDirty.addEventListener(this.onInsDirty);
-        ins.ondispose.addEventListener(this.onInsDispose)
-    }
-    removeMeshInstance(ins: IlayeredRenderable) {
-        if (this.insMap[ins.id] == null) return;
-
-        let layerCollection = this.insMap[ins.id];
-        layerCollection.remove(ins);
-        delete this.insMap[ins.id];
-        ins.onDirty.removeEventListener(this.onInsDirty);
-        ins.ondispose.removeEventListener(this.onInsDispose)
     }
 
-    private onInsDirty = (ins: IlayeredRenderable) => {
-        let layer = ins.material?.layer;
-        let collection = this.insMap[ins.id];
-        if (collection.layer != layer) {
-            collection.remove(ins);
-
-            if (layer != null) {
-                let layerCollection = this.layers.get(layer);
-                layerCollection.add(ins);
-                this.insMap[ins.id] = layerCollection;
-            } else {
-                this.nolayers.add(ins);
-                this.insMap[ins.id] = this.nolayers;
-            }
-        }
-        this.insMap[ins.id].markDirty();
+    clear() {
+        this.layers.forEach(item => item.clear())
     }
-
-    private onInsDispose = (ins: IlayeredRenderable) => {
-        this.removeMeshInstance(ins);
-    }
-}
-
-export interface IlayeredRenderable extends Irenderable {
-    onDirty: EventHandler<MeshInstance>;
-    ondispose: EventHandler<MeshInstance>;
-    id: number;
 }

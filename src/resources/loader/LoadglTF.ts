@@ -11,6 +11,8 @@ import { Prefab } from "../../scene/asset/Prefab";
 import { Texture2D } from "../../scene/asset/texture/Texture2d";
 import { VertexBuffer } from "../../webgl/VertexBuffer";
 import { IndexBuffer } from "../../webgl/IndexBuffer";
+import { ParseAnimationNode } from "./glTF/ParseAnimationNode";
+import { Animation } from '../../components/Animation'
 
 export interface IglTFExtension {
     load(extensionNode: any, loader: LoadGlTF): Promise<any>;
@@ -51,13 +53,20 @@ export class LoadGlTF implements IassetLoader {
     }
     load(url: string): Promise<Prefab> {
         return this.loadAsync(url)
-            .then(gltfJson => {
+            .then(async (gltfJson) => {
                 let scene = gltfJson.scene != null ? gltfJson.scene : 0;
-                return ParseSceneNode.parse(scene, gltfJson, this.context).then(scene => {
-                    let rpefab = new Prefab();
-                    rpefab.root = scene;
-                    return rpefab;
-                });
+                let sceneRoot = await ParseSceneNode.parse(scene, gltfJson, this.context);
+
+                if (gltfJson.animations != null) {
+                    let animations = await Promise.all(gltfJson.animations.map((item, index) => {
+                        return ParseAnimationNode.parse(index, gltfJson);
+                    }));
+                    let comp = sceneRoot.addComponent("Animation") as Animation;
+                    animations.forEach(item => comp.addAnimationClip(item));
+                }
+                let rpefab = new Prefab();
+                rpefab.root = sceneRoot;
+                return rpefab;
             })
     }
     //------------------extensions

@@ -155,12 +155,18 @@ export class GraphicsDevice {
         this.uniformSetter[UniformTypeEnum.FLOAT_MAT2] = (uniform: IuniformInfo, value) => {
             gl.uniformMatrix2fv(uniform.location, false, value);
         };
+        this.uniformSetter[UniformTypeEnum.FLOAT_MAT2_ARRAY] = this.uniformSetter[UniformTypeEnum.FLOAT_MAT2];
+
         this.uniformSetter[UniformTypeEnum.FLOAT_MAT3] = (uniform: IuniformInfo, value) => {
             gl.uniformMatrix3fv(uniform.location, false, value);
         };
+        this.uniformSetter[UniformTypeEnum.FLOAT_MAT3_ARRAY] = this.uniformSetter[UniformTypeEnum.FLOAT_MAT3];
+
         this.uniformSetter[UniformTypeEnum.FLOAT_MAT4] = (uniform: IuniformInfo, value) => {
             gl.uniformMatrix4fv(uniform.location, false, value);
         };
+        this.uniformSetter[UniformTypeEnum.FLOAT_MAT4_ARRAY] = this.uniformSetter[UniformTypeEnum.FLOAT_MAT4];
+
         this.uniformSetter[UniformTypeEnum.FLOAT_ARRAY] = (uniform: IuniformInfo, value) => {
             gl.uniform1fv(uniform.location, value);
         };
@@ -168,6 +174,7 @@ export class GraphicsDevice {
             value.bind(this, unit);
             gl.uniform1i(uniform.location, unit);
         }
+
 
         //------------------buffer
         this.bufferTargetToGLNumber[BufferTargetEnum.ARRAY_BUFFER] = gl.ARRAY_BUFFER;
@@ -197,17 +204,7 @@ export class GraphicsDevice {
     //--------------------------------------uniform
     private getUniformTypeFromGLtype(gltype: number, beArray?: boolean) {
         let gl = this.gl;
-        if (beArray) {
-            if (gltype == gl.FLOAT) {
-                return UniformTypeEnum.FLOAT_ARRAY
-            }
-            else if (gltype == gl.BOOL) {
-                return UniformTypeEnum.BOOL_ARRAY
-            } else if (gltype == gl.INT) {
-                return UniformTypeEnum.INT
-            }
-        }
-        let type = UniformTypeEnum.fromGlType(gltype);
+        let type = UniformTypeEnum.fromGlType(gltype, beArray);
         if (type == null) {
             console.error("unhandle uniform GLtype:", gltype);
         }
@@ -227,7 +224,6 @@ export class GraphicsDevice {
             let shader = gl.createProgram();
             gl.attachShader(shader, vsshader);
             gl.attachShader(shader, fsshader);
-            let attributes = this.preSetAttributeLocation(gl, shader, definition.attributes);
             gl.linkProgram(shader);
             let check = gl.getProgramParameter(shader, gl.LINK_STATUS);
             if (check == false) {
@@ -236,6 +232,8 @@ export class GraphicsDevice {
                 gl.deleteProgram(shader);
                 return null;
             } else {
+                let attributes = this.preSetAttributeLocation(gl, shader, definition.attributes);
+                gl.linkProgram(shader);
                 let uniformDic = this.getUniformsInfo(gl, shader);
                 //TODO :SMAPLES
                 let samples = {};
@@ -326,6 +324,9 @@ export class GraphicsDevice {
                 uniformDic[name] = newUniformElemt;
                 newUniformElemt.beTexture = false;
                 newUniformElemt.setter = this.uniformSetter[uniformtype];
+                if (newUniformElemt.setter == null) {
+                    console.error("cannot find uniform setter!");
+                }
             }
         }
 
@@ -616,16 +617,19 @@ export class GraphicsDevice {
         let indexBuffer = vertexArray.indexBuffer;
         if (indexBuffer) {
             if (instanceCount != 0) {
-                this.gl.drawElementsInstanced(vertexArray.primitiveType, vertexArray.primitveCount, indexBuffer.indexDatatype, vertexArray.primitiveOffset, instanceCount);
+                this.gl.drawElementsInstanced(vertexArray.primitiveType, vertexArray.primitveCount, indexBuffer.indexDatatype, vertexArray.primitiveByteOffset, instanceCount);
             } else {
-                this.gl.drawElements(vertexArray.primitiveType, vertexArray.primitveCount, indexBuffer.indexDatatype, vertexArray.primitiveOffset);
+                this.gl.drawElements(vertexArray.primitiveType, vertexArray.primitveCount, indexBuffer.indexDatatype, vertexArray.primitiveByteOffset);
             }
         } else {
             if (instanceCount != 0) {
-                this.gl.drawArraysInstanced(vertexArray.primitiveType, vertexArray.primitiveOffset, vertexArray.primitveCount, instanceCount);
+                this.gl.drawArraysInstanced(vertexArray.primitiveType, vertexArray.primitiveByteOffset, vertexArray.primitveCount, instanceCount);
             } else {
-                this.gl.drawArrays(vertexArray.primitiveType, vertexArray.primitiveOffset, vertexArray.primitveCount);
+                this.gl.drawArrays(vertexArray.primitiveType, vertexArray.primitiveByteOffset, vertexArray.primitveCount);
             }
+        }
+        if (this.bindingVao != null) {
+            vertexArray.unbind();
         }
     }
 }

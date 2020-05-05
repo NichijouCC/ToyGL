@@ -11,13 +11,13 @@ export class ClipInstance {
     private speed: number = 1;
     private localTime: number = 0;
     private enableTimeFlow: boolean = false;
-    private beLoop: boolean = false;
+    private beLoop: boolean;
 
     constructor(clip: AnimationClip, options: { animator: Entity } & ClipInsOptions) {
         this.clip = clip;
         this.curFrame = 0;
         this.speed = options.speed ?? 1;
-        this.beLoop = options.beLoop ?? false;
+        this.beLoop = options.beLoop ?? true;
 
         let animatorEntity = options.animator;
         clip.channels.forEach(item => {
@@ -43,32 +43,39 @@ export class ClipInstance {
     update(deltaTime: number) {
         if (!this.enableTimeFlow) return;
         this.localTime += deltaTime * this.speed;
-        let currentFrame = (this.localTime * this.clip.FPS) | 0;
+        let currentFrame = (this.localTime * AnimationClip.FPS) | 0;
         if (currentFrame != this.curFrame) {
             let { totalFrame, channels } = this.clip;
-            if (currentFrame > totalFrame && this.curFrame < totalFrame) {
-                currentFrame = totalFrame;
-            } else {
-                if (this.beLoop) {//----------------------restart play
-                    currentFrame = 0;
-                    this.localTime = 0;
-                    this.temptLastStartIndex = null;
-                } else {//--------------------------------play end
-                    this.enableTimeFlow = false;
-                    return;
+            let channel: AnimationChannel, target: Entity, keyframes: number[];
+            if (currentFrame > totalFrame) {
+                if (this.curFrame < totalFrame) {
+                    currentFrame = totalFrame;
+                } else {
+                    if (this.beLoop) {//----------------------restart play
+                        currentFrame = 0;
+                        this.localTime = 0;
+                        this.temptLastStartIndex = null;
+
+                        for (let i = 0, len = channels.length; i < len; i++) {
+                            channel = channels[i];
+                            target = this.targets.get(channel?.targetName);
+                            let setfunc = AnimationChannelTargetPath.setFunc(channel.propertyName);
+                            setfunc(channel.values[0], target);
+                        }
+                    } else {//--------------------------------play end
+                        this.enableTimeFlow = false;
+                        return;
+                    }
                 }
             }
             this.curFrame = currentFrame;
-
-            let channel: AnimationChannel, target: Entity, keyframes: number[];
+            // console.warn("current frame", currentFrame);
             for (let i = 0, len = channels.length; i < len; i++) {
                 channel = channels[i];
+                if (currentFrame < channel.startFrame || currentFrame > channel.endFrame) continue;
                 target = this.targets.get(channel?.targetName);
                 if (target == null) continue;
                 keyframes = channel.keyframes;
-                if (currentFrame < channel.startFrame || currentFrame > channel.endFrame) continue;
-
-
                 //---------------------------------寻找lerp start end frame
                 let startIndex = this.temptLastStartIndex ?? ((keyframes.length - 1) * currentFrame / channel.endFrame) | 0;
                 if (keyframes[startIndex] < currentFrame) {
@@ -81,12 +88,16 @@ export class ClipInstance {
                 this.temptLastStartIndex = startIndex;
 
                 let endIndex = startIndex + 1;
-                if (endIndex > channel.endFrame) {
-                    endIndex = channel.endFrame;
+                if (keyframes[endIndex] == null) {
+                    endIndex = startIndex;
+                    let setfunc = AnimationChannelTargetPath.setFunc(channel.propertyName);
+                    setfunc(channel.values[startIndex], target);
+                } else {
+                    let lerpfunc = AnimationChannelTargetPath.lerpFunc(channel.propertyName);
+                    let lerp = (this.curFrame - keyframes[startIndex]) / (keyframes[endIndex] - keyframes[startIndex]);
+                    lerpfunc(channel.values[startIndex], channel.values[endIndex], lerp, target);
                 }
-                let lerpfunc = AnimationChannelTargetPath.lerpFunc(channel.propertyName);
-                let lerp = (this.curFrame - keyframes[startIndex]) / (keyframes[endIndex] - keyframes[startIndex]);
-                lerpfunc(channel.values[startIndex], channel.values[endIndex], lerp, target);
+
             }
         }
     }
@@ -98,24 +109,44 @@ export interface ClipInsOptions {
 }
 
 export enum AnimationChannelTargetPath {
-    ROTATION,
-    SCALE,
-    TRANSLATION,
-    WEIGHTS
+    /**
+     * Translation
+     */
+    TRANSLATION = "translation",
+    /**
+     * Rotation
+     */
+    ROTATION = "rotation",
+    /**
+     * Scale
+     */
+    SCALE = "scale",
+    /**
+     * Weights
+     */
+    WEIGHTS = "weights",
 }
-
 export namespace AnimationChannelTargetPath {
+    let temptPos = Vec3.create();
+    let temptScale = Vec3.create();
+    let temptQuat = Quat.create();
     let funcMap: Map<AnimationChannelTargetPath, (from: any, to: any, lerp: number, obj: Entity) => void> = new Map();
     {
         funcMap.set(AnimationChannelTargetPath.ROTATION, (from: Quat, to: Quat, lerp: number, obj: Entity) => {
-            Quat.lerp(from, to, lerp, obj.localRotation);
-            Quat.normalize(obj.localRotation, obj.localRotation);
+            Quat.lerp(from, to, lerp, temptQuat);
+            Quat.normalize(temptQuat, temptQuat);
+            if (isNaN(temptQuat.x)) {
+                console.warn("error");
+            }
+            obj.localRotation = temptQuat;
         });
         funcMap.set(AnimationChannelTargetPath.SCALE, (from: Vec3, to: Vec3, lerp: number, obj: Entity) => {
-            Vec3.lerp(from, to, lerp, obj.localScale);
+            Vec3.lerp(from, to, lerp, temptScale);
+            obj.localScale = temptScale
         });
         funcMap.set(AnimationChannelTargetPath.TRANSLATION, (from: Vec3, to: Vec3, lerp: number, obj: Entity) => {
-            Vec3.lerp(from, to, lerp, obj.localPosition);
+            Vec3.lerp(from, to, lerp, temptPos);
+            obj.localPosition = temptPos;
         });
         funcMap.set(AnimationChannelTargetPath.WEIGHTS, (from: number, to: number, lerp: number, obj: any) => {
             obj["WEIGHTS"] = numberLerp(from, to, lerp);
@@ -123,5 +154,22 @@ export namespace AnimationChannelTargetPath {
     }
     export const lerpFunc = (value: AnimationChannelTargetPath) => {
         return funcMap.get(value);
+    }
+
+    let setMap: Map<AnimationChannelTargetPath, (value: any, obj: Entity) => void> = new Map();
+    {
+        setMap.set(AnimationChannelTargetPath.ROTATION, (value: any, obj: Entity) => {
+            obj.localRotation = value;
+        });
+        setMap.set(AnimationChannelTargetPath.SCALE, (value: any, obj: Entity) => {
+            obj.localScale = value;
+        });
+        setMap.set(AnimationChannelTargetPath.TRANSLATION, (value: any, obj: Entity) => {
+            obj.localPosition = value;
+        });
+    }
+
+    export const setFunc = (value: AnimationChannelTargetPath) => {
+        return setMap.get(value);
     }
 }

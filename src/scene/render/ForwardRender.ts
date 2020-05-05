@@ -7,40 +7,19 @@ import { BoundingSphere } from "../Bounds";
 import { MeshInstance } from "../primitive/MeshInstance";
 import { UniformState } from "../UniformState";
 import { Entity } from "../../core/Entity";
-import { Igeometry } from "../asset/geometry/BaseGeometry";
-import { Mat4 } from "../../mathD/mat4";
-import { SkinInstance } from "../primitive/SkinInstance";
 import { StaticMesh } from "../asset/geometry/StaticMesh";
 import { AutoUniforms } from "../AutoUniform";
-import { ShaderInstance } from "../asset/Shader";
+import { ShaderInstance, ShaderBucket } from "../asset/Shader";
+import { LayerComposition } from "../LayerComposition";
+import { Irenderable } from "./Irenderable";
 
-
-export enum SortTypeEnum {
-    MatLayerIndex = 0b10000,
-    ShaderId = 0b01000,
-    Zdist_FrontToBack = 0b00100
-}
 
 namespace Private {
     export let preMaterial: Material;
+    export let preBuketID: number;
     export let preRenderState: RenderState;
     export let temptSphere: BoundingSphere = new BoundingSphere();
 }
-
-export interface Irenderable {
-    bevisible?: boolean;
-    cullingMask?: number;
-    enableCull?: boolean;
-    instanceCount?: number;
-    material: Material;
-    geometry: Igeometry;
-    worldMat: Mat4;
-    bounding: BoundingSphere;
-    zdist?: number;
-
-    skinIns?: SkinInstance;
-}
-
 
 export class ForwardRender {
     private device: GraphicsDevice;
@@ -49,7 +28,7 @@ export class ForwardRender {
         this.device = device;
     }
 
-    setCamera(camera: Camera) {
+    private setCamera(camera: Camera) {
         this.uniformState.curCamera = camera;
         this.device.setViewPort(camera.viewport.x, camera.viewport.y, camera.viewport.width * this.device.width, camera.viewport.height * this.device.height);
         this.device.setClear(
@@ -59,28 +38,82 @@ export class ForwardRender {
         );
     }
 
-    render(camera: Camera, drawCalls: Irenderable[], lights?: any, ) {
-        let culledDrawcalls = this.cull(camera, drawCalls);
-        let drawcall, shader, uniforms, renderState, vertexArray, shaderIns: ShaderInstance, uniformValue
-        for (let i = 0; i < culledDrawcalls.length; i++) {
-            drawcall = culledDrawcalls[i];
+    private camerRenderLayers = new Map<Camera, LayerComposition>();
 
-            if (drawcall.skinIns) {
-                drawcall.skinIns.recomputeBoneData();
-                drawcall.skinIns.applyToAutoUniform(this.uniformState, this.device);
+    render(cameras: Camera[], renderArr: Irenderable[], lights?: any, ) {
+        cameras = cameras.sort(item => item.priority);
+        let cam: Camera, layercomps: LayerComposition, renderItem: Irenderable;
+
+        //---------------clear preFrame Data
+        for (let k = 0; k < cameras.length; k++) {
+            cam = cameras[k];
+            if (!this.camerRenderLayers.has(cam)) {
+                layercomps = new LayerComposition();
+                this.camerRenderLayers.set(cam, layercomps);
             } else {
-                this.uniformState.matrixModel = drawcall.worldMat;
+                layercomps = this.camerRenderLayers.get(cam)
+                layercomps.clear();
             }
+        }
+
+        //----------------collect render Ins
+        for (let i = 0; i < renderArr.length; i++) {
+            renderItem = renderArr[i];
+            if (!renderItem.bevisible || renderItem.geometry == null || renderItem.material?.shader == null) continue;
+            for (let k = 0; k < cameras.length; k++) {
+                cam = cameras[k];
+                let { cullingMask, frustum } = cam;
+                layercomps = this.camerRenderLayers.get(cam);
+
+                if (renderItem.cullingMask != null && ((renderItem.cullingMask & cullingMask) == 0)) continue;
+                if (renderItem.enableCull) {
+                    if (this.frustumCull(frustum, renderItem)) {
+                        layercomps.addRenableItem(renderItem);
+                    }
+                } else {
+                    layercomps.addRenableItem(renderItem);
+                }
+            }
+        }
+
+        //------------------------render per camera
+        for (let k = 0; k < cameras.length; k++) {
+            cam = cameras[k];
+            this.setCamera(cam);
+            layercomps = this.camerRenderLayers.get(cam);
+            layercomps.getlayers().forEach(layer => {
+                if (layer.insCount == 0) return;
+                let renderInsArr = layer.getSortedinsArr(cam);
+                this.renderList(cam, renderInsArr);
+            })
+        }
+
+    }
+
+    private renderList(cam: Camera, renderInsArr: Irenderable[]) {
+        let renderItem: Irenderable, material: Material, uniforms, renderState, vertexArray, shaderIns: ShaderInstance, uniformValue
+        for (let i = 0; i < renderInsArr.length; i++) {
+            renderItem = renderInsArr[i];
 
             let bucketId = 0;
-            if (drawcall.material != Private.preMaterial || drawcall.material.beDirty) {
-                Private.preMaterial = drawcall.material;
-                drawcall.material.beDirty = false;
+            if (renderItem.skinIns) {
+                bucketId = bucketId | ShaderBucket.SKIN;
+                renderItem.skinIns.update(this.device, this.uniformState);
+            } else {
+                this.uniformState.matrixModel = renderItem.worldMat;
+            }
 
-                shaderIns = drawcall.material.shader.getInstance(bucketId);
-                uniforms = drawcall.material.uniformParameters;
-                renderState = drawcall.material.renderState;
+            material = renderItem.material;
+            if (material != Private.preMaterial || material.beDirty || Private.preBuketID != bucketId) {
+                Private.preMaterial = material;
+                Private.preBuketID = bucketId;
+                material.beDirty = false;
 
+                shaderIns = material.shader.getInstance(bucketId);
+                uniforms = material.uniformParameters;
+                renderState = material.renderState;
+
+                shaderIns.bind(this.device);
                 shaderIns.bindAutoUniforms(this.device, this.uniformState);//auto unfiorm
                 shaderIns.bindManulUniforms(this.device, uniforms);
 
@@ -116,38 +149,15 @@ export class ForwardRender {
                     );
                 }
             } else {
-                shaderIns = drawcall.material.shader.getInstance(bucketId)
+                shaderIns = material.shader.getInstance(bucketId)
                 shaderIns.bindAutoUniforms(this.device, this.uniformState);//auto unfiorm
             }
-            drawcall.geometry.bind(this.device);
-            this.device.draw(drawcall.geometry.graphicAsset, drawcall.instanceCount)
+            renderItem.geometry.bind(this.device);
+            this.device.draw(renderItem.geometry.graphicAsset, renderItem.instanceCount)
         }
-    }
-    /**
-     * 使用camera cullingMask和frustum 剔除不可见物体
-     * @param camera 
-     * @param drawCalls 
-     */
-    cull(camera: Camera, drawCalls: Irenderable[]) {
-        let visualArr = [];
-        let { cullingMask, frustum } = camera;
-        let drawcall
-        for (let i = 0; i < drawCalls.length; i++) {
-            drawcall = drawCalls[i];
-            if (!drawcall.bevisible || (drawcall.cullingMask != null && ((drawcall.cullingMask & cullingMask) == 0))) continue;
-            if (drawcall.enableCull) {
-                if (this.frustumCull(frustum, drawcall)) {
-                    visualArr.push(drawcall);
-                }
-            } else {
-                visualArr.push(drawcall);
-            }
-        }
-        return visualArr;
     }
 
     private frustumCull(frustum: Frustum, drawcall: Irenderable) {
-        // BoundingSphere.fromBoundingBox(drawcall.boundingBox, Private.temptSphere);
         return frustum.containSphere(drawcall.bounding, drawcall.worldMat);
     }
 

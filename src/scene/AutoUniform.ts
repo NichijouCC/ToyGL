@@ -3,8 +3,7 @@ import { UniformState } from "./UniformState";
 
 /* eslint-disable @typescript-eslint/camelcase */
 
-namespace Private
-{
+namespace Private {
     export const datatypeToGlsl: { [uniformType: string]: string } = {};
     {
         datatypeToGlsl[UniformTypeEnum.FLOAT] = "float";
@@ -30,136 +29,123 @@ namespace Private
 
 
 
-export interface IautomaticUniform
-{
+export interface IautomaticUniform {
     size: number;
     datatype: UniformTypeEnum;
     getValue(uniformState: UniformState): any;
 }
 
-export class AutoUniforms
-{
+export class AutoUniforms {
     private static autoUniformDic: { [name: string]: IautomaticUniform } = {
         czm_model: {
             size: 1,
             datatype: UniformTypeEnum.FLOAT_MAT4,
-            getValue: (uniformState: UniformState) =>
-            {
+            getValue: (uniformState: UniformState) => {
                 return uniformState.matrixModel;
             },
         },
         czm_view: {
             size: 1,
             datatype: UniformTypeEnum.FLOAT_MAT4,
-            getValue: (uniformState: UniformState) =>
-            {
+            getValue: (uniformState: UniformState) => {
                 return uniformState.matrixView;
             },
         },
         czm_projection: {
             size: 1,
             datatype: UniformTypeEnum.FLOAT_MAT4,
-            getValue: (uniformState: UniformState) =>
-            {
+            getValue: (uniformState: UniformState) => {
                 return uniformState.matrixProject;
             },
         },
         czm_modelView: {
             size: 1,
             datatype: UniformTypeEnum.FLOAT_MAT4,
-            getValue: (uniformState: UniformState) =>
-            {
+            getValue: (uniformState: UniformState) => {
                 return uniformState.matrixModelView;
             },
         },
         czm_viewP: {
             size: 1,
             datatype: UniformTypeEnum.FLOAT_MAT4,
-            getValue: (uniformState: UniformState) =>
-            {
+            getValue: (uniformState: UniformState) => {
                 return uniformState.matrixViewProject;
             },
         },
         czm_modelViewp: {
             size: 1,
             datatype: UniformTypeEnum.FLOAT_MAT4,
-            getValue: (uniformState: UniformState) =>
-            {
+            getValue: (uniformState: UniformState) => {
                 return uniformState.matrixModelViewProject;
             },
         },
         czm_normal: {
             size: 1,
             datatype: UniformTypeEnum.FLOAT_MAT4,
-            getValue: (uniformState: UniformState) =>
-            {
+            getValue: (uniformState: UniformState) => {
                 return uniformState.matrixNormalToView;
             },
         },
         czm_fov: {
             size: 1,
             datatype: UniformTypeEnum.FLOAT,
-            getValue: (uniformState: UniformState) =>
-            {
+            getValue: (uniformState: UniformState) => {
                 return uniformState.curCamera.fov;
             },
         },
         czm_aspect: {
             size: 1,
             datatype: UniformTypeEnum.FLOAT,
-            getValue: (uniformState: UniformState) =>
-            {
+            getValue: (uniformState: UniformState) => {
                 return uniformState.curCamera.aspect;
             },
         },
         czm_near: {
             size: 1,
             datatype: UniformTypeEnum.FLOAT,
-            getValue: (uniformState: UniformState) =>
-            {
+            getValue: (uniformState: UniformState) => {
                 return uniformState.curCamera.near;
             },
         },
         czm_far: {
             size: 1,
             datatype: UniformTypeEnum.FLOAT,
-            getValue: (uniformState: UniformState) =>
-            {
+            getValue: (uniformState: UniformState) => {
                 return uniformState.curCamera.far;
             },
         },
+        czm_boneMatrices: {
+            size: 110,
+            datatype: UniformTypeEnum.FLOAT_MAT4,
+            getValue: (uniformState: UniformState) => {
+                return uniformState.boneMatrices;
+            }
+        }
     };
 
-    static containAuto(unfiorm: string)
-    {
+    static containAuto(unfiorm: string) {
         return this.autoUniformDic[unfiorm] != null;
     }
 
-    static registAutomaticUniform(unfiorm: string, node: IautomaticUniform)
-    {
+    static registAutomaticUniform(unfiorm: string, node: IautomaticUniform) {
         this.autoUniformDic[unfiorm] = node;
     }
 
-    static getUniformDeclaration(unfiorm: string)
-    {
+    static getUniformDeclaration(unfiorm: string) {
         let node = this.autoUniformDic[unfiorm];
-        if (node == null)
-        {
+        if (node == null) {
             return null;
         }
         let declaration = "uniform " + Private.datatypeToGlsl[node.datatype] + " " + name;
-        if (node.size === 1)
-        {
+        if (node.size === 1) {
             declaration += ";";
-        } else
-        {
+        } else {
             declaration += "[" + node.size.toString() + "];";
         }
         return declaration;
     }
 
-    static getAutoUniformValue(uniform: string, uniformState: UniformState)
-    {
+    static getAutoUniformValue(uniform: string, uniformState: UniformState) {
         return this.autoUniformDic[uniform].getValue(uniformState);
     }
 }

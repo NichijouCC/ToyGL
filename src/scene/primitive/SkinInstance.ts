@@ -3,7 +3,7 @@ import { Entity } from "../../core/Entity";
 import { Mat4 } from "../../mathD/mat4";
 import { MemoryTexture } from "../asset/texture/MemoryTexture";
 import { GraphicsDevice } from "../../webgl/GraphicsDevice";
-import { CeilingPOT } from "../../mathD/common";
+import { CeilingPOT, ceilPowerOfTwo } from "../../mathD/common";
 import { PixelFormatEnum } from "../../webgl/PixelFormatEnum";
 import { PixelDatatypeEnum } from "../../webgl/PixelDatatype";
 import { Skin } from "../asset/Skin";
@@ -19,6 +19,7 @@ export class SkinInstance {
     private rootBone: Entity;
     private _boneInverses!: Mat4[];
     private _boneMatrices!: Float32Array;
+    private _boneMatricesViews: Mat4[] = [];
     private _boneTexture: MemoryTexture;
     private attachEntity: Entity;
 
@@ -28,28 +29,33 @@ export class SkinInstance {
         // let skinMeshRoot = attachEntity.findInParents((item) => item.getComponent(Animation.name) != null);
     }
 
-    applyToAutoUniform(state: UniformState, device: GraphicsDevice) {
-        if (!this.beInit) { this.init(device); }
-        state.boneMatrices = this._boneMatrices;
-        state.boneTexture = this._boneTexture;
-        state.matrixModel = this.rootBone.worldMatrix;
-    }
+    // applyToAutoUniform(state: UniformState, device: GraphicsDevice) {
+    //     state.boneMatrices = this._boneMatrices;
+    //     state.boneTexture = this._boneTexture;
+    //     state.matrixModel = this.rootBone.worldMatrix;
+    // }
     private beInit: boolean = false;
     private init(device: GraphicsDevice) {
         let { skin, attachEntity } = this;
         this._boneInverses = [];
-        let skinMeshRoot = attachEntity.findInParents((item) => item.name == skin.rootModelName);
-        this.rootBone = skinMeshRoot.find(item => item.name == skin.rootBoneName);
+        let searchRoot: Entity;
+        this.rootBone = attachEntity.find(item => item.name == skin.rootBoneName);
 
         let bones = skin.boneNames.map((boneName, i) => {
-            let bone = skinMeshRoot.find(item => item.name == boneName);
+            let bone = attachEntity.find(item => item.name == boneName);
             if (bone == null) {
-                console.warn("failed to find bone", boneName, skinMeshRoot);
+                if (skin.potentialSearchRoot != null && searchRoot == null) {
+                    searchRoot = attachEntity.findInParents((item) => item.name == skin.potentialSearchRoot);
+                }
+                bone = searchRoot?.find(item => item.name == boneName);
+                if (bone == null) {
+                    console.warn("failed to find bone", boneName, attachEntity);
+                }
             }
-            this._boneInverses[i] = Mat4.fromArray(skin.inverseBindMatrices, i);
-            if (this._boneInverses[i] == null) console.error("cannot get bone inverse mat data!");
+            // if (this._boneInverses[i] == null) console.error("cannot get bone inverse mat data!");
             return bone;
         });
+        this._boneInverses = skin.inverseBindMatrices;
         this.bones = bones;
 
         // layout (1 matrix = 4 pixels)
@@ -59,7 +65,7 @@ export class SkinInstance {
         //       32x32 pixel texture max  256 bones * 4 pixels = (32 * 32)
         //       64x64 pixel texture max 1024 bones * 4 pixels = (64 * 64)
         let size = Math.sqrt(bones.length * 4); // 4 pixels needed for 1 matrix
-        size = CeilingPOT(size);
+        size = ceilPowerOfTwo(size);
         size = Math.max(size, 4);
         this._boneMatrices = new Float32Array(size * size * 4); // 4 floats per RGBA pixel
 
@@ -72,18 +78,25 @@ export class SkinInstance {
                 pixelDatatype: PixelDatatypeEnum.FLOAT
             });
         }
+
+        this.bones.forEach((item, index) => {
+            this._boneMatricesViews[index] = this._boneMatrices.subarray(index * 16, index * 16 + 16);
+        })
+
     }
     // get boneTexture() { this.recomputeBoneData(); return this._boneTexture }
     // get boneMatrices() { this.recomputeBoneData(); return this._boneMatrices }
 
-    recomputeBoneData() {
+    update(device: GraphicsDevice, state: UniformState) {
+        if (!this.beInit) { this.init(device); this.beInit = true; }
         let { bones, rootBone } = this;
         const { offsetMatrix } = Private;
+        let mat = rootBone.worldTolocalMatrix;
         if (rootBone.beDirty) {//root dirty 全部重新计算
             for (let i = 0; i < bones.length; i++) {
                 const matrix = bones[i] ? bones[i].worldMatrix : Mat4.IDENTITY;
                 Mat4.multiply(matrix, this._boneInverses[i], offsetMatrix);
-                Mat4.multiply(rootBone.worldTolocalMatrix, offsetMatrix, offsetMatrix);
+                Mat4.multiply(mat, offsetMatrix, offsetMatrix);
                 Mat4.toArray(offsetMatrix, this._boneMatrices, i * 16);
             }
             if (this._boneTexture) {
@@ -93,11 +106,12 @@ export class SkinInstance {
         } else {// 哪个bone dirty了对应matrix就重新计算
             let beNeedUpdate = false;
             for (let i = 0; i < bones.length; i++) {
+
                 if (bones[i].beDirty) {
                     beNeedUpdate = true;
                     const matrix = bones[i] ? bones[i].worldMatrix : Mat4.IDENTITY;
                     Mat4.multiply(matrix, this._boneInverses[i], offsetMatrix);
-                    Mat4.multiply(rootBone.worldTolocalMatrix, offsetMatrix, offsetMatrix);
+                    Mat4.multiply(mat, offsetMatrix, offsetMatrix);
                     Mat4.toArray(offsetMatrix, this._boneMatrices, i * 16);
                 }
             }
@@ -105,6 +119,9 @@ export class SkinInstance {
                 this._boneTexture.markDirty();
             }
         }
+        state.boneMatrices = this._boneMatrices;
+        state.boneTexture = this._boneTexture;
+        state.matrixModel = this.rootBone.worldMatrix;
     }
 
     destroy() { }

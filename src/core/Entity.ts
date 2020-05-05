@@ -46,18 +46,25 @@ export class Entity extends Transform implements Ientity {
 
     find(check: (e: Entity) => boolean) {
         if (check(this)) return this;
-        let child;
+        let child: Entity, result: Entity;
         for (let i = 0; i < this.children.length; i++) {
             child = this.children[i] as Entity;
-            child.find(check);
+            result = child.find(check);
+            if (result) break;
         }
-        return null;
+        return result;
     }
 
     findInParents(check: (e: Entity) => boolean) {
-        if (check(this)) return this;
-        (this.parent as Entity).findInParents(check);
-        return null
+        if (check(this)) {
+            return this
+        } else {
+            let result: Entity;
+            if (this.parent) {
+                result = (this.parent as Entity).findInParents(check) as Entity;
+            }
+            return result;
+        }
     }
 
     clone(): Entity {

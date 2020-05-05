@@ -1,5 +1,5 @@
-import { MeshInstance } from "./primitive/MeshInstance";
-import { SortTypeEnum, Irenderable } from "./render/ForwardRender";
+import { SortTypeEnum } from "./render/SortTypeEnum";
+import { Irenderable } from "./render/Irenderable";
 import { Camera } from "./Camera";
 import { RenderLayerEnum } from "./RenderLayer";
 namespace Private {
@@ -23,10 +23,7 @@ namespace Private {
     export const sortTypeInfo: { [type: string]: IsortInfo } = {};
     {
         sortTypeInfo[SortTypeEnum.MatLayerIndex] = { sortFunc: sortByMatLayerIndex };
-        sortTypeInfo[SortTypeEnum.ShaderId] = {
-            sortFunc: sortByMatSortId,
-            // eventFunc: (ins: MeshInstance) => ins.onchangeShader
-        };
+        sortTypeInfo[SortTypeEnum.ShaderId] = { sortFunc: sortByMatSortId, };
         sortTypeInfo[SortTypeEnum.Zdist_FrontToBack] = {
             sortFunc: sortByZdist_FrontToBack,
             beforeSort: (ins: Irenderable[], cam: Camera) => {
@@ -48,7 +45,6 @@ namespace Private {
 
     export interface IsortInfo {
         sortFunc: (drawa: Irenderable, drawb: Irenderable) => number,
-        // eventFunc?: (ins: MeshInstance) => ValueEvent<MeshInstance, any>,
         beforeSort?: (ins: Irenderable[], cam: Camera) => void
     }
 }
@@ -56,33 +52,24 @@ namespace Private {
 export class LayerCollection {
     readonly layer: RenderLayerEnum;
     private _insArr: Irenderable[] = [];
+    get insCount() { return this._insArr.length };
+
     getSortedinsArr(cam: Camera) {
         this.beforeSort.forEach(func => func(this._insArr, cam))
-        if (this.beDirty && this.sortFunction) {
-            this._insArr.sort(this.sortFunction);
-        }
+        this.sortFunction && this._insArr.sort(this.sortFunction);
         return this._insArr
     }
 
-    get insCount() { return this._insArr.length };
-
     private sortFunction: (a: Irenderable, b: Irenderable) => number;
-    // private onAdd: ((ins: MeshInstance) => void)[] = []
-    // private onRemove: ((ins: MeshInstance) => void)[] = [];
+    private sortFunctions: ((a: Irenderable, b: Irenderable) => number)[] = [];
     private beforeSort: ((ins: Irenderable[], cam: Camera) => void)[] = [];
 
     constructor(layer: RenderLayerEnum, sortType: number = 0) {
         this.layer = layer;
-        // let func = () => { this.markDirty(); };
         let attch = (sortInfo: Private.IsortInfo) => {
-            this.sortFunction = this.sortFunction != null ? this.sortFunction && sortInfo.sortFunc : sortInfo.sortFunc;
-            // if (sortInfo?.eventFunc)
-            // {
-            //     this.onAdd.push((ins => { sortInfo?.eventFunc(ins).addEventListener(func) }))
-            //     this.onRemove.push(ins => { sortInfo?.eventFunc(ins).removeEventListener(func) })
-            // }
+            this.sortFunctions.push(sortInfo.sortFunc);
             if (sortInfo?.beforeSort) {
-                this.beforeSort.push((ins: Irenderable[], cam: Camera) => { sortInfo?.beforeSort(ins, cam); this.markDirty(); });
+                this.beforeSort.push((ins: Irenderable[], cam: Camera) => { sortInfo.beforeSort(ins, cam); });
             }
         }
         if (sortType & SortTypeEnum.MatLayerIndex) {
@@ -93,30 +80,24 @@ export class LayerCollection {
             let sortInfo = Private.sortTypeInfo[SortTypeEnum.ShaderId];
             attch(sortInfo);
         }
-    }
-    private beDirty: boolean = true;
-    markDirty = () => {
-        this.beDirty = true;
+
+        if (this.sortFunctions.length > 0) {
+            this.sortFunction = (a, b) => {
+                let result;
+                for (let i = 0; i < this.sortFunctions.length; i++) {
+                    result = this.sortFunctions[i](a, b);
+                    if (result != 0) break;
+                }
+                return result;
+            }
+        }
     }
 
     add(newIns: Irenderable) {
-        let index = this._insArr.indexOf(newIns);
-        if (index == -1) {
-            this._insArr.push(newIns);
-            this.markDirty();
-            // this.onAddMeshInstance.raiseEvent(newIns)
-            // this.onAdd.forEach(func => func(newIns));
-        }
-    }
-    remove(item: Irenderable) {
-        let index = this._insArr.indexOf(item);
-        if (index >= 0) {
-            this._insArr.splice(index, 1);
-            // this.onRemoveMeshInstance.raiseEvent(item);
-            // this.onRemove.forEach(func => func(item));
-        }
+        this._insArr.push(newIns);
     }
 
-    // onAddMeshInstance = new EventHandler<MeshInstance>();
-    // onRemoveMeshInstance = new EventHandler<MeshInstance>();
+    clear() {
+        this._insArr = [];
+    }
 }

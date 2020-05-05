@@ -97,7 +97,8 @@ export class ParseMeshNode {
                         console.error("index data type not Uint16Array or Uint32Array!");
                     }
                     vaoOptions.indexBuffer = arrayInfo.buffer as IndexBuffer ?? new IndexBuffer({ context, typedArray: arrayInfo.typedArray as IndicesArray });
-                    vaoOptions.primitiveOffset = arrayInfo.bytesOffset;
+                    vaoOptions.primitiveByteOffset = arrayInfo.bytesOffset;
+                    vaoOptions.primitiveCount = arrayInfo.count;
                 });
             taskAtts.push(indexTask);
         }

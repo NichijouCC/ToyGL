@@ -106,6 +106,12 @@
         else
             return v;
     }
+    function numberLerp(fromV, toV, v) {
+        return fromV * (1 - v) + toV * v;
+    }
+    function ceilPowerOfTwo(value) {
+        return Math.pow(2, Math.ceil(Math.log(value) / Math.LN2));
+    }
     function isPowerOf2(value) {
         return (value & (value - 1)) === 0;
     }
@@ -850,25 +856,13 @@
     }
     //# sourceMappingURL=Timer.js.map
 
-    /**
-     * 渲染的层级(从小到大绘制)
-     */
-    var RenderLayerEnum;
-    (function (RenderLayerEnum) {
-        RenderLayerEnum[RenderLayerEnum["Background"] = 1000] = "Background";
-        RenderLayerEnum[RenderLayerEnum["Geometry"] = 2000] = "Geometry";
-        RenderLayerEnum[RenderLayerEnum["AlphaTest"] = 2450] = "AlphaTest";
-        RenderLayerEnum[RenderLayerEnum["Transparent"] = 3000] = "Transparent";
-        RenderLayerEnum[RenderLayerEnum["Overlay"] = 4000] = "Overlay";
-    })(RenderLayerEnum || (RenderLayerEnum = {}));
-    //# sourceMappingURL=RenderLayer.js.map
-
-    class Vec3 extends Float32Array {
-        constructor(x = 0, y = 0, z = 0) {
-            super(3);
+    class Rect extends Float32Array {
+        constructor(x = 0, y = 0, w = 0, h = 0) {
+            super(4);
             this[0] = x;
             this[1] = y;
-            this[2] = z;
+            this[2] = w;
+            this[3] = h;
         }
         get x() {
             return this[0];
@@ -888,647 +882,210 @@
         set z(value) {
             this[2] = value;
         }
-        static create(x = 0, y = 0, z = 0) {
-            if (Vec3.Recycle && Vec3.Recycle.length > 0) {
-                let item = Vec3.Recycle.pop();
+        get width() {
+            return this[2] - this[0];
+        }
+        get height() {
+            return this[3] - this[1];
+        }
+        get w() {
+            return this[3];
+        }
+        set w(value) {
+            this[3] = value;
+        }
+        static create(x = 0, y = 0, w = 0, h = 0) {
+            if (Rect.Recycle && Rect.Recycle.length > 0) {
+                let item = Rect.Recycle.pop();
                 item[0] = x;
                 item[1] = y;
-                item[2] = z;
+                item[2] = w;
+                item[3] = h;
                 return item;
             }
             else {
-                // let item=new Float32Array(3);
-                // item[0]=x;
-                // item[1]=y;
-                // item[2]=z;
-                let item = new Vec3(x, y, z);
+                let item = new Rect(x, y, w, h);
                 return item;
             }
         }
         static clone(from) {
-            if (Vec3.Recycle.length > 0) {
-                let item = Vec3.Recycle.pop();
-                Vec3.copy(from, item);
+            if (Rect.Recycle.length > 0) {
+                let item = Rect.Recycle.pop();
+                Rect.copy(from, item);
                 return item;
             }
             else {
-                //let item=new Float32Array(3);
-                let item = new Vec3(from[0], from[1], from[2]);
-                // item[0]=from[0];
-                // item[1]=from[1];
-                // item[2]=from[2];
+                let item = new Rect(from[0], from[1], from[2], from[3]);
                 return item;
             }
         }
         static recycle(item) {
-            Vec3.Recycle.push(item);
+            Rect.Recycle.push(item);
         }
         static disposeRecycledItems() {
-            Vec3.Recycle.length = 0;
+            Rect.Recycle.length = 0;
         }
-        /**
-         * Copy the values from one vec3 to another
-         *
-         * @param out the receiving vector
-         * @param src the source vector
-         * @returns out
-         */
-        static copy(from, out = Vec3.create()) {
-            out[0] = from[0];
-            out[1] = from[1];
-            out[2] = from[2];
+        static copy(a, out) {
+            out[0] = a[0];
+            out[1] = a[1];
+            out[2] = a[2];
+            out[3] = a[3];
             return out;
         }
-        /**
-         * Adds two vec3's
-         *
-         * @param out the receiving vector
-         * @param lhs the first operand
-         * @param rhs the second operand
-         * @returns out
-         */
-        static add(lhs, rhs, out = Vec3.create()) {
-            out[0] = lhs[0] + rhs[0];
-            out[1] = lhs[1] + rhs[1];
-            out[2] = lhs[2] + rhs[2];
-            return out;
+        static euqal(a, b) {
+            if (a[0] != b[0])
+                return false;
+            if (a[1] != b[1])
+                return false;
+            if (a[2] != b[2])
+                return false;
+            if (a[3] != b[3])
+                return false;
+            return true;
         }
-        static toZero(a) {
-            a[0] = a[1] = a[2] = 0;
+    }
+    Rect.Recycle = [];
+    Rect.Identity = new Rect(0, 0, 1, 1);
+    //# sourceMappingURL=rect.js.map
+
+    class Color extends Float32Array {
+        constructor(r = 1, g, b = 1, a = 1) {
+            super(4);
+            this[0] = r;
+            this[1] = g;
+            this[2] = b;
+            this[3] = a;
         }
-        /**
-         * Subtracts vector b from vector a
-         *
-         * @param out the receiving vector
-         * @param lhs the first operand
-         * @param rhs the second operand
-         * @returns out
-         */
-        static subtract(lhs, rhs, out = Vec3.create()) {
-            out[0] = lhs[0] - rhs[0];
-            out[1] = lhs[1] - rhs[1];
-            out[2] = lhs[2] - rhs[2];
-            return out;
+        get r() {
+            return this[0];
         }
-        /**
-         * Multiplies two vec3's
-         *
-         * @param out the receiving vector
-         * @param a the first operand
-         * @param b the second operand
-         * @returns out
-         */
-        static multiply(a, b, out = Vec3.create()) {
-            out[0] = a[0] * b[0];
-            out[1] = a[1] * b[1];
-            out[2] = a[2] * b[2];
-            return out;
+        set r(value) {
+            this[0] = value;
         }
-        static center(a, b, out = Vec3.create()) {
-            this.add(a, b, out);
-            this.scale(out, 0.5, out);
-            return out;
+        get g() {
+            return this[1];
         }
-        /**
-         * Divides two vec3's
-         *
-         * @param out the receiving vector
-         * @param a the first operand
-         * @param b the second operand
-         * @returns out
-         */
-        static divide(a, b, out = Vec3.create()) {
-            out[0] = a[0] / b[0];
-            out[1] = a[1] / b[1];
-            out[2] = a[2] / b[2];
-            return out;
+        set g(value) {
+            this[1] = value;
         }
-        /**
-         * Math.ceil the components of a vec3
-         *
-         * @param {Vec3} out the receiving vector
-         * @param {Vec3} a vector to ceil
-         * @returns {Vec3} out
-         */
-        static ceil(out = Vec3.create(), a) {
-            out[0] = Math.ceil(a[0]);
-            out[1] = Math.ceil(a[1]);
-            out[2] = Math.ceil(a[2]);
-            return out;
+        get b() {
+            return this[2];
         }
-        /**
-         * Math.floor the components of a vec3
-         *
-         * @param {Vec3} out the receiving vector
-         * @param {Vec3} a vector to floor
-         * @returns {Vec3} out
-         */
-        static floor(out = Vec3.create(), a) {
-            out[0] = Math.floor(a[0]);
-            out[1] = Math.floor(a[1]);
-            out[2] = Math.floor(a[2]);
-            return out;
+        set b(value) {
+            this[2] = value;
         }
-        /**
-         * Returns the minimum of two vec3's
-         *
-         * @param out the receiving vector
-         * @param a the first operand
-         * @param b the second operand
-         * @returns out
-         */
-        static min(a, b, out = Vec3.create()) {
-            out[0] = Math.min(a[0], b[0]);
-            out[1] = Math.min(a[1], b[1]);
-            out[2] = Math.min(a[2], b[2]);
-            return out;
+        get a() {
+            return this[3];
         }
-        /**
-         * Returns the maximum of two vec3's
-         *
-         * @param out the receiving vector
-         * @param a the first operand
-         * @param b the second operand
-         * @returns out
-         */
-        static max(out = Vec3.create(), a, b) {
-            out[0] = Math.max(a[0], b[0]);
-            out[1] = Math.max(a[1], b[1]);
-            out[2] = Math.max(a[2], b[2]);
-            return out;
+        set a(value) {
+            this[3] = value;
         }
-        /**
-         * Math.round the components of a vec3
-         *
-         * @param {Vec3} out the receiving vector
-         * @param {Vec3} a vector to round
-         * @returns {Vec3} out
-         */
-        static round(out = Vec3.create(), a) {
-            out[0] = Math.round(a[0]);
-            out[1] = Math.round(a[1]);
-            out[2] = Math.round(a[2]);
-            return out;
-        }
-        /**
-         * Scales a vec3 by a scalar number
-         *
-         * @param out the receiving vector
-         * @param a the vector to scale
-         * @param b amount to scale the vector by
-         * @returns out
-         */
-        static scale(a, b, out = Vec3.create()) {
-            out[0] = a[0] * b;
-            out[1] = a[1] * b;
-            out[2] = a[2] * b;
-            return out;
-        }
-        /**
-         * Adds two vec3's after scaling the second operand by a scalar value
-         *
-         * @param out the receiving vector
-         * @param lhs the first operand
-         * @param rhs the second operand
-         * @param scale the amount to scale b by before adding
-         * @returns out
-         */
-        static AddscaledVec(lhs, rhs, scale, out = Vec3.create()) {
-            out[0] = lhs[0] + rhs[0] * scale;
-            out[1] = lhs[1] + rhs[1] * scale;
-            out[2] = lhs[2] + rhs[2] * scale;
-            return out;
-        }
-        /**
-         * Calculates the euclidian distance between two vec3's
-         *
-         * @param a the first operand
-         * @param b the second operand
-         * @returns distance between a and b
-         */
-        static distance(a, b) {
-            let x = b[0] - a[0];
-            let y = b[1] - a[1];
-            let z = b[2] - a[2];
-            return Math.sqrt(x * x + y * y + z * z);
-        }
-        /**
-         * Calculates the squared euclidian distance between two vec3's
-         *
-         * @param a the first operand
-         * @param b the second operand
-         * @returns squared distance between a and b
-         */
-        static squaredDistance(a, b) {
-            let x = b[0] - a[0];
-            let y = b[1] - a[1];
-            let z = b[2] - a[2];
-            return x * x + y * y + z * z;
-        }
-        /**
-         * Calculates the length of a vec3
-         *
-         * @param a vector to calculate length of
-         * @returns length of a
-         */
-        static magnitude(a) {
-            let x = a[0];
-            let y = a[1];
-            let z = a[2];
-            return Math.sqrt(x * x + y * y + z * z);
-        }
-        /**
-         * Calculates the squared length of a vec3
-         *
-         * @param a vector to calculate squared length of
-         * @returns squared length of a
-         */
-        static squaredLength(a) {
-            let x = a[0];
-            let y = a[1];
-            let z = a[2];
-            return x * x + y * y + z * z;
-        }
-        /**
-         * Negates the components of a vec3
-         *
-         * @param out the receiving vector
-         * @param a vector to negate
-         * @returns out
-         */
-        static negate(a, out = Vec3.create()) {
-            out[0] = -a[0];
-            out[1] = -a[1];
-            out[2] = -a[2];
-            return out;
-        }
-        /**
-         * Returns the inverse of the components of a vec3
-         *
-         * @param out the receiving vector
-         * @param a vector to invert
-         * @returns out
-         */
-        static inverse(a, out = Vec3.create()) {
-            out[0] = 1.0 / a[0];
-            out[1] = 1.0 / a[1];
-            out[2] = 1.0 / a[2];
-            return out;
-        }
-        /**
-         * Normalize a vec3
-         *
-         * @param out the receiving vector
-         * @param src vector to normalize
-         * @returns out
-         */
-        static normalize(src, out = Vec3.create()) {
-            let x = src[0];
-            let y = src[1];
-            let z = src[2];
-            let len = x * x + y * y + z * z;
-            if (len > 0) {
-                //TODO: evaluate use of glm_invsqrt here?
-                len = 1 / Math.sqrt(len);
-                out[0] = src[0] * len;
-                out[1] = src[1] * len;
-                out[2] = src[2] * len;
-            }
-            return out;
-        }
-        /**
-         * Calculates the dot product of two vec3's
-         *
-         * @param a the first operand
-         * @param b the second operand
-         * @returns dot product of a and b
-         */
-        static dot(a, b) {
-            return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-        }
-        /**
-         * Computes the cross product of two vec3's
-         *
-         * @param out the receiving vector
-         * @param lhs the first operand
-         * @param rhs the second operand
-         * @returns out
-         */
-        static cross(lhs, rhs, out = Vec3.create()) {
-            let ax = lhs[0], ay = lhs[1], az = lhs[2];
-            let bx = rhs[0], by = rhs[1], bz = rhs[2];
-            out[0] = ay * bz - az * by;
-            out[1] = az * bx - ax * bz;
-            out[2] = ax * by - ay * bx;
-            return out;
-        }
-        /**
-         * Performs a linear interpolation between two vec3's
-         *
-         * @param out the receiving vector
-         * @param lhs the first operand
-         * @param rhs the second operand
-         * @param lerp interpolation amount between the two inputs
-         * @returns out
-         */
-        static lerp(lhs, rhs, lerp$$1, out = Vec3.create()) {
-            let ax = lhs[0];
-            let ay = lhs[1];
-            let az = lhs[2];
-            out[0] = ax + lerp$$1 * (rhs[0] - ax);
-            out[1] = ay + lerp$$1 * (rhs[1] - ay);
-            out[2] = az + lerp$$1 * (rhs[2] - az);
-            return out;
-        }
-        /**
-         * Performs a hermite interpolation with two control points
-         *
-         * @param {Vec3} out the receiving vector
-         * @param {Vec3} a the first operand
-         * @param {Vec3} b the second operand
-         * @param {Vec3} c the third operand
-         * @param {Vec3} d the fourth operand
-         * @param {number} t interpolation amount between the two inputs
-         * @returns {Vec3} out
-         */
-        static hermite(a, b, c, d, t, out = Vec3.create()) {
-            let factorTimes2 = t * t;
-            let factor1 = factorTimes2 * (2 * t - 3) + 1;
-            let factor2 = factorTimes2 * (t - 2) + t;
-            let factor3 = factorTimes2 * (t - 1);
-            let factor4 = factorTimes2 * (3 - 2 * t);
-            out[0] = a[0] * factor1 + b[0] * factor2 + c[0] * factor3 + d[0] * factor4;
-            out[1] = a[1] * factor1 + b[1] * factor2 + c[1] * factor3 + d[1] * factor4;
-            out[2] = a[2] * factor1 + b[2] * factor2 + c[2] * factor3 + d[2] * factor4;
-            return out;
-        }
-        /**
-         * Performs a bezier interpolation with two control points
-         *
-         * @param {Vec3} out the receiving vector
-         * @param {Vec3} a the first operand
-         * @param {Vec3} b the second operand
-         * @param {Vec3} c the third operand
-         * @param {Vec3} d the fourth operand
-         * @param {number} t interpolation amount between the two inputs
-         * @returns {Vec3} out
-         */
-        static bezier(a, b, c, d, t, out = Vec3.create()) {
-            let inverseFactor = 1 - t;
-            let inverseFactorTimesTwo = inverseFactor * inverseFactor;
-            let factorTimes2 = t * t;
-            let factor1 = inverseFactorTimesTwo * inverseFactor;
-            let factor2 = 3 * t * inverseFactorTimesTwo;
-            let factor3 = 3 * factorTimes2 * inverseFactor;
-            let factor4 = factorTimes2 * t;
-            out[0] = a[0] * factor1 + b[0] * factor2 + c[0] * factor3 + d[0] * factor4;
-            out[1] = a[1] * factor1 + b[1] * factor2 + c[1] * factor3 + d[1] * factor4;
-            out[2] = a[2] * factor1 + b[2] * factor2 + c[2] * factor3 + d[2] * factor4;
-            return out;
-        }
-        /**
-         * Generates a random vector with the given scale
-         *
-         * @param out the receiving vector
-         * @param [scale] Length of the resulting vector. If omitted, a unit vector will be returned
-         * @returns out
-         */
-        static random(scale = 1, out = Vec3.create()) {
-            scale = scale || 1.0;
-            let r = Math.random() * 2.0 * Math.PI;
-            let z = Math.random() * 2.0 - 1.0;
-            let zScale = Math.sqrt(1.0 - z * z) * scale;
-            out[0] = Math.cos(r) * zScale;
-            out[1] = Math.sin(r) * zScale;
-            out[2] = z * scale;
-            return out;
-        }
-        // /**
-        //  * Transforms the vec3 with a mat3.
-        //  *
-        //  * @param out the receiving vector
-        //  * @param a the vector to transform
-        //  * @param m the 3x3 matrix to transform with
-        //  * @returns out
-        //  */
-        // public static transformMat3(out: Vec3 = Vec3.create(), a: vec3, m: mat3): vec3{
-        //     let x = a[0],
-        //     y = a[1],
-        //     z = a[2];
-        // out[0] = x * m[0] + y * m[3] + z * m[6];
-        // out[1] = x * m[1] + y * m[4] + z * m[7];
-        // out[2] = x * m[2] + y * m[5] + z * m[8];
-        // return out;
-        // }
-        // /**
-        //  * 转到mat4中
-        //  * Transforms the vec3 with a mat4.
-        //  * 4th vector component is implicitly '1'
-        //  *
-        //  * @param out the receiving vector
-        //  * @param a the vector to transform
-        //  * @param m matrix to transform with
-        //  * @returns out
-        //  */
-        // public static transformMat4(out: Vec3 = Vec3.create(), a: vec3, m: mat4): vec3{
-        //     let x = a[0],
-        //         y = a[1],
-        //         z = a[2];
-        //     let w = m[3] * x + m[7] * y + m[11] * z + m[15];
-        //     w = w || 1.0;
-        //     out[0] = (m[0] * x + m[4] * y + m[8] * z + m[12]) / w;
-        //     out[1] = (m[1] * x + m[5] * y + m[9] * z + m[13]) / w;
-        //     out[2] = (m[2] * x + m[6] * y + m[10] * z + m[14]) / w;
-        //     return out;
-        // }
-        /**
-         * Transforms the vec3 with a Quat
-         *
-         * @param out the receiving vector
-         * @param a the vector to transform
-         * @param q Quaternion to transform with
-         * @returns out
-         */
-        static transformQuat(a, q, out = Vec3.create()) {
-            // benchmarks: http://jsperf.com/Quaternion-transform-vec3-implementations
-            let x = a[0], y = a[1], z = a[2];
-            let qx = q[0], qy = q[1], qz = q[2], qw = q[3];
-            // calculate Quat * vec
-            let ix = qw * x + qy * z - qz * y;
-            let iy = qw * y + qz * x - qx * z;
-            let iz = qw * z + qx * y - qy * x;
-            let iw = -qx * x - qy * y - qz * z;
-            // calculate result * inverse Quat
-            out[0] = ix * qw + iw * -qx + iy * -qz - iz * -qy;
-            out[1] = iy * qw + iw * -qy + iz * -qx - ix * -qz;
-            out[2] = iz * qw + iw * -qz + ix * -qy - iy * -qx;
-            return out;
-        }
-        /**
-         * Rotate a 3D vector around the x-axis
-         * @param out The receiving vec3
-         * @param a The vec3 point to rotate
-         * @param b The origin of the rotation
-         * @param c The angle of rotation
-         * @returns out
-         */
-        static rotateX(a, b, c, out = Vec3.create()) {
-            let p = [], r = [];
-            //Translate point to the origin
-            p[0] = a[0] - b[0];
-            p[1] = a[1] - b[1];
-            p[2] = a[2] - b[2];
-            //perform rotation
-            r[0] = p[0];
-            r[1] = p[1] * Math.cos(c) - p[2] * Math.sin(c);
-            r[2] = p[1] * Math.sin(c) + p[2] * Math.cos(c);
-            //translate to correct position
-            out[0] = r[0] + b[0];
-            out[1] = r[1] + b[1];
-            out[2] = r[2] + b[2];
-            return out;
-        }
-        /**
-         * Rotate a 3D vector around the y-axis
-         * @param out The receiving vec3
-         * @param a The vec3 point to rotate
-         * @param b The origin of the rotation
-         * @param c The angle of rotation
-         * @returns out
-         */
-        static rotateY(a, b, c, out = Vec3.create()) {
-            let p = [], r = [];
-            //Translate point to the origin
-            p[0] = a[0] - b[0];
-            p[1] = a[1] - b[1];
-            p[2] = a[2] - b[2];
-            //perform rotation
-            r[0] = p[2] * Math.sin(c) + p[0] * Math.cos(c);
-            r[1] = p[1];
-            r[2] = p[2] * Math.cos(c) - p[0] * Math.sin(c);
-            //translate to correct position
-            out[0] = r[0] + b[0];
-            out[1] = r[1] + b[1];
-            out[2] = r[2] + b[2];
-            return out;
-        }
-        /**
-         * Rotate a 3D vector around the z-axis
-         * @param out The receiving vec3
-         * @param a The vec3 point to rotate
-         * @param b The origin of the rotation
-         * @param c The angle of rotation
-         * @returns out
-         */
-        static rotateZ(a, b, c, out = Vec3.create()) {
-            let p = [], r = [];
-            //Translate point to the origin
-            p[0] = a[0] - b[0];
-            p[1] = a[1] - b[1];
-            p[2] = a[2] - b[2];
-            //perform rotation
-            r[0] = p[0] * Math.cos(c) - p[1] * Math.sin(c);
-            r[1] = p[0] * Math.sin(c) + p[1] * Math.cos(c);
-            r[2] = p[2];
-            //translate to correct position
-            out[0] = r[0] + b[0];
-            out[1] = r[1] + b[1];
-            out[2] = r[2] + b[2];
-            return out;
-        }
-        // /**
-        //  * Perform some operation over an array of vec3s.
-        //  *
-        //  * @param a the array of vectors to iterate over
-        //  * @param stride Number of elements between the start of each vec3. If 0 assumes tightly packed
-        //  * @param offset Number of elements to skip at the beginning of the array
-        //  * @param count Number of vec3s to iterate over. If 0 iterates over entire array
-        //  * @param fn Function to call for each vector in the array
-        //  * @param arg additional argument to pass to fn
-        //  * @returns a
-        //  * @function
-        //  */
-        // public static forEach(a: Float32Array, stride: number, offset: number, count: number,
-        //                       fn: (a: vec3, b: vec3, arg: any) => void, arg: any): Float32Array;
-        // /**
-        //  * Perform some operation over an array of vec3s.
-        //  *
-        //  * @param a the array of vectors to iterate over
-        //  * @param stride Number of elements between the start of each vec3. If 0 assumes tightly packed
-        //  * @param offset Number of elements to skip at the beginning of the array
-        //  * @param count Number of vec3s to iterate over. If 0 iterates over entire array
-        //  * @param fn Function to call for each vector in the array
-        //  * @returns a
-        //  * @function
-        //  */
-        // public static forEach(a: Float32Array, stride: number, offset: number, count: number,
-        //                       fn: (a: vec3, b: vec3) => void): Float32Array;
-        /**
-         * Get the angle between two 3D vectors
-         * @param a The first operand
-         * @param b The second operand
-         * @returns The angle in radians
-         */
-        static angle(a, b) {
-            let tempA = Vec3.clone(a);
-            let tempB = Vec3.clone(b);
-            // let tempA = vec3.fromValues(a[0], a[1], a[2]);
-            // let tempB = vec3.fromValues(b[0], b[1], b[2]);
-            Vec3.normalize(tempA, tempA);
-            Vec3.normalize(tempB, tempB);
-            let cosine = Vec3.dot(tempA, tempB);
-            if (cosine > 1.0) {
-                return 0;
-            }
-            else if (cosine < -1.0) {
-                return Math.PI;
+        static create(r = 1, g = 1, b = 1, a = 1) {
+            if (Color.Recycle && Color.Recycle.length > 0) {
+                let item = Color.Recycle.pop();
+                item[0] = r;
+                item[1] = g;
+                item[2] = b;
+                item[3] = a;
+                return item;
             }
             else {
-                return Math.acos(cosine);
+                let item = new Color(r, g, b, a);
+                return item;
             }
         }
-        /**
-         * Returns a string representation of a vector
-         *
-         * @param a vector to represent as a string
-         * @returns string representation of the vector
-         */
-        static str(a) {
-            return "vec3(" + a[0] + ", " + a[1] + ", " + a[2] + ")";
+        static random() {
+            let item = new Color(Math.random() * 0.5 + 0.5, Math.random() * 0.5 + 0.5, Math.random() * 0.5 + 0.5, 1.0);
+            return item;
+        }
+        static clone(from) {
+            if (Color.Recycle.length > 0) {
+                let item = Color.Recycle.pop();
+                Color.copy(from, item);
+                return item;
+            }
+            else {
+                let item = new Color(from[0], from[1], from[2], from[3]);
+                return item;
+            }
+        }
+        static recycle(item) {
+            Color.Recycle.push(item);
+        }
+        static disposeRecycledItems() {
+            Color.Recycle.length = 0;
+        }
+        static setWhite(out) {
+            out[0] = 1;
+            out[1] = 1;
+            out[2] = 1;
+            out[3] = 1;
+            return out;
+        }
+        static setBlack(out) {
+            out[0] = 0;
+            out[1] = 0;
+            out[2] = 0;
+            out[3] = 1;
+        }
+        static setGray(out) {
+            out[0] = 0.5;
+            out[1] = 0.5;
+            out[2] = 0.5;
+            out[3] = 1;
+        }
+        static multiply(srca, srcb, out) {
+            out[0] = srca[0] * srcb[0];
+            out[1] = srca[1] * srcb[1];
+            out[2] = srca[2] * srcb[2];
+            out[3] = srca[3] * srcb[3];
+        }
+        static scaleToRef(src, scale, out) {
+            out[0] = src[0] * scale;
+            out[1] = src[1] * scale;
+            out[2] = src[2] * scale;
+            out[3] = src[3] * scale;
+        }
+        static lerp(srca, srcb, t, out) {
+            t = clamp(t);
+            out[0] = t * (srcb[0] - srca[0]) + srca[0];
+            out[1] = t * (srcb[1] - srca[1]) + srca[1];
+            out[2] = t * (srcb[2] - srca[2]) + srca[2];
+            out[3] = t * (srcb[3] - srca[3]) + srca[3];
         }
         /**
-         * Returns whether or not the vectors have exactly the same elements in the same position (when compared with ===)
+         * Copy the values from one color to another
          *
-         * @param {Vec3} a The first vector.
-         * @param {Vec3} b The second vector.
-         * @returns {boolean} True if the vectors are equal, false otherwise.
+         * @param out the receiving vector
+         * @param a the source vector
+         * @returns out
          */
-        static exactEquals(a, b) {
-            return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
+        static copy(a, out) {
+            out[0] = a[0];
+            out[1] = a[1];
+            out[2] = a[2];
+            out[3] = a[3];
+            return out;
         }
         /**
-         * Returns whether or not the vectors have approximately the same elements in the same position.
+         * Returns whether or not the vectors have approximately the same elements in the same color.
          *
-         * @param {Vec3} a The first vector.
-         * @param {Vec3} b The second vector.
+         * @param {vec4} a The first vector.
+         * @param {vec4} b The second vector.
          * @returns {boolean} True if the vectors are equal, false otherwise.
          */
         static equals(a, b) {
-            let a0 = a[0], a1 = a[1], a2 = a[2];
-            let b0 = b[0], b1 = b[1], b2 = b[2];
-            return Math.abs(a0 - b0) <= EPSILON && Math.abs(a1 - b1) <= EPSILON && Math.abs(a2 - b2) <= EPSILON;
+            let a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3];
+            let b0 = b[0], b1 = b[1], b2 = b[2], b3 = b[3];
+            return (Math.abs(a0 - b0) <= EPSILON * Math.max(1.0, Math.abs(a0), Math.abs(b0)) &&
+                Math.abs(a1 - b1) <= EPSILON * Math.max(1.0, Math.abs(a1), Math.abs(b1)) &&
+                Math.abs(a2 - b2) <= EPSILON * Math.max(1.0, Math.abs(a2), Math.abs(b2)) &&
+                Math.abs(a3 - b3) <= EPSILON * Math.max(1.0, Math.abs(a3), Math.abs(b3)));
         }
     }
-    Vec3.UP = Vec3.create(0, 1, 0);
-    Vec3.DOWN = Vec3.create(0, -1, 0);
-    Vec3.RIGHT = Vec3.create(1, 0, 0);
-    Vec3.LEFT = Vec3.create(-1, 0, 0);
-    Vec3.FORWARD = Vec3.create(0, 0, 1);
-    Vec3.BACKWARD = Vec3.create(0, 0, -1);
-    Vec3.ONE = Vec3.create(1, 1, 1);
-    Vec3.ZERO = Vec3.create(0, 0, 0);
-    Vec3.Recycle = [];
-    //# sourceMappingURL=vec3.js.map
+    Color.WHITE = new Color(1, 1, 1, 1);
+    Color.Recycle = [];
+    //# sourceMappingURL=color.js.map
 
     class Mat4 extends Float32Array {
         constructor() {
@@ -3274,7 +2831,7 @@
             return array;
         }
         static fromArray(array, index) {
-            if ((index + 1) * 64 < array.byteLength) {
+            if ((index + 1) * 64 <= array.byteLength) {
                 return new Float32Array(array.buffer, array.byteOffset + index * 64, 16);
             }
             else {
@@ -3285,6 +2842,697 @@
     Mat4.Recycle = [];
     Mat4.IDENTITY = Mat4.create();
     //# sourceMappingURL=mat4.js.map
+
+    class Vec3 extends Float32Array {
+        constructor(x = 0, y = 0, z = 0) {
+            super(3);
+            this[0] = x;
+            this[1] = y;
+            this[2] = z;
+        }
+        get x() {
+            return this[0];
+        }
+        set x(value) {
+            this[0] = value;
+        }
+        get y() {
+            return this[1];
+        }
+        set y(value) {
+            this[1] = value;
+        }
+        get z() {
+            return this[2];
+        }
+        set z(value) {
+            this[2] = value;
+        }
+        static create(x = 0, y = 0, z = 0) {
+            if (Vec3.Recycle && Vec3.Recycle.length > 0) {
+                let item = Vec3.Recycle.pop();
+                item[0] = x;
+                item[1] = y;
+                item[2] = z;
+                return item;
+            }
+            else {
+                // let item=new Float32Array(3);
+                // item[0]=x;
+                // item[1]=y;
+                // item[2]=z;
+                let item = new Vec3(x, y, z);
+                return item;
+            }
+        }
+        static clone(from) {
+            if (Vec3.Recycle.length > 0) {
+                let item = Vec3.Recycle.pop();
+                Vec3.copy(from, item);
+                return item;
+            }
+            else {
+                //let item=new Float32Array(3);
+                let item = new Vec3(from[0], from[1], from[2]);
+                // item[0]=from[0];
+                // item[1]=from[1];
+                // item[2]=from[2];
+                return item;
+            }
+        }
+        static recycle(item) {
+            Vec3.Recycle.push(item);
+        }
+        static disposeRecycledItems() {
+            Vec3.Recycle.length = 0;
+        }
+        /**
+         * Copy the values from one vec3 to another
+         *
+         * @param out the receiving vector
+         * @param src the source vector
+         * @returns out
+         */
+        static copy(from, out = Vec3.create()) {
+            out[0] = from[0];
+            out[1] = from[1];
+            out[2] = from[2];
+            return out;
+        }
+        /**
+         * Adds two vec3's
+         *
+         * @param out the receiving vector
+         * @param lhs the first operand
+         * @param rhs the second operand
+         * @returns out
+         */
+        static add(lhs, rhs, out = Vec3.create()) {
+            out[0] = lhs[0] + rhs[0];
+            out[1] = lhs[1] + rhs[1];
+            out[2] = lhs[2] + rhs[2];
+            return out;
+        }
+        static toZero(a) {
+            a[0] = a[1] = a[2] = 0;
+        }
+        /**
+         * Subtracts vector b from vector a
+         *
+         * @param out the receiving vector
+         * @param lhs the first operand
+         * @param rhs the second operand
+         * @returns out
+         */
+        static subtract(lhs, rhs, out = Vec3.create()) {
+            out[0] = lhs[0] - rhs[0];
+            out[1] = lhs[1] - rhs[1];
+            out[2] = lhs[2] - rhs[2];
+            return out;
+        }
+        /**
+         * Multiplies two vec3's
+         *
+         * @param out the receiving vector
+         * @param a the first operand
+         * @param b the second operand
+         * @returns out
+         */
+        static multiply(a, b, out = Vec3.create()) {
+            out[0] = a[0] * b[0];
+            out[1] = a[1] * b[1];
+            out[2] = a[2] * b[2];
+            return out;
+        }
+        static center(a, b, out = Vec3.create()) {
+            this.add(a, b, out);
+            this.scale(out, 0.5, out);
+            return out;
+        }
+        /**
+         * Divides two vec3's
+         *
+         * @param out the receiving vector
+         * @param a the first operand
+         * @param b the second operand
+         * @returns out
+         */
+        static divide(a, b, out = Vec3.create()) {
+            out[0] = a[0] / b[0];
+            out[1] = a[1] / b[1];
+            out[2] = a[2] / b[2];
+            return out;
+        }
+        /**
+         * Math.ceil the components of a vec3
+         *
+         * @param {Vec3} out the receiving vector
+         * @param {Vec3} a vector to ceil
+         * @returns {Vec3} out
+         */
+        static ceil(out = Vec3.create(), a) {
+            out[0] = Math.ceil(a[0]);
+            out[1] = Math.ceil(a[1]);
+            out[2] = Math.ceil(a[2]);
+            return out;
+        }
+        /**
+         * Math.floor the components of a vec3
+         *
+         * @param {Vec3} out the receiving vector
+         * @param {Vec3} a vector to floor
+         * @returns {Vec3} out
+         */
+        static floor(out = Vec3.create(), a) {
+            out[0] = Math.floor(a[0]);
+            out[1] = Math.floor(a[1]);
+            out[2] = Math.floor(a[2]);
+            return out;
+        }
+        /**
+         * Returns the minimum of two vec3's
+         *
+         * @param out the receiving vector
+         * @param a the first operand
+         * @param b the second operand
+         * @returns out
+         */
+        static min(a, b, out = Vec3.create()) {
+            out[0] = Math.min(a[0], b[0]);
+            out[1] = Math.min(a[1], b[1]);
+            out[2] = Math.min(a[2], b[2]);
+            return out;
+        }
+        /**
+         * Returns the maximum of two vec3's
+         *
+         * @param out the receiving vector
+         * @param a the first operand
+         * @param b the second operand
+         * @returns out
+         */
+        static max(out = Vec3.create(), a, b) {
+            out[0] = Math.max(a[0], b[0]);
+            out[1] = Math.max(a[1], b[1]);
+            out[2] = Math.max(a[2], b[2]);
+            return out;
+        }
+        /**
+         * Math.round the components of a vec3
+         *
+         * @param {Vec3} out the receiving vector
+         * @param {Vec3} a vector to round
+         * @returns {Vec3} out
+         */
+        static round(out = Vec3.create(), a) {
+            out[0] = Math.round(a[0]);
+            out[1] = Math.round(a[1]);
+            out[2] = Math.round(a[2]);
+            return out;
+        }
+        /**
+         * Scales a vec3 by a scalar number
+         *
+         * @param out the receiving vector
+         * @param a the vector to scale
+         * @param b amount to scale the vector by
+         * @returns out
+         */
+        static scale(a, b, out = Vec3.create()) {
+            out[0] = a[0] * b;
+            out[1] = a[1] * b;
+            out[2] = a[2] * b;
+            return out;
+        }
+        /**
+         * Adds two vec3's after scaling the second operand by a scalar value
+         *
+         * @param out the receiving vector
+         * @param lhs the first operand
+         * @param rhs the second operand
+         * @param scale the amount to scale b by before adding
+         * @returns out
+         */
+        static AddscaledVec(lhs, rhs, scale, out = Vec3.create()) {
+            out[0] = lhs[0] + rhs[0] * scale;
+            out[1] = lhs[1] + rhs[1] * scale;
+            out[2] = lhs[2] + rhs[2] * scale;
+            return out;
+        }
+        /**
+         * Calculates the euclidian distance between two vec3's
+         *
+         * @param a the first operand
+         * @param b the second operand
+         * @returns distance between a and b
+         */
+        static distance(a, b) {
+            let x = b[0] - a[0];
+            let y = b[1] - a[1];
+            let z = b[2] - a[2];
+            return Math.sqrt(x * x + y * y + z * z);
+        }
+        /**
+         * Calculates the squared euclidian distance between two vec3's
+         *
+         * @param a the first operand
+         * @param b the second operand
+         * @returns squared distance between a and b
+         */
+        static squaredDistance(a, b) {
+            let x = b[0] - a[0];
+            let y = b[1] - a[1];
+            let z = b[2] - a[2];
+            return x * x + y * y + z * z;
+        }
+        /**
+         * Calculates the length of a vec3
+         *
+         * @param a vector to calculate length of
+         * @returns length of a
+         */
+        static magnitude(a) {
+            let x = a[0];
+            let y = a[1];
+            let z = a[2];
+            return Math.sqrt(x * x + y * y + z * z);
+        }
+        /**
+         * Calculates the squared length of a vec3
+         *
+         * @param a vector to calculate squared length of
+         * @returns squared length of a
+         */
+        static squaredLength(a) {
+            let x = a[0];
+            let y = a[1];
+            let z = a[2];
+            return x * x + y * y + z * z;
+        }
+        /**
+         * Negates the components of a vec3
+         *
+         * @param out the receiving vector
+         * @param a vector to negate
+         * @returns out
+         */
+        static negate(a, out = Vec3.create()) {
+            out[0] = -a[0];
+            out[1] = -a[1];
+            out[2] = -a[2];
+            return out;
+        }
+        /**
+         * Returns the inverse of the components of a vec3
+         *
+         * @param out the receiving vector
+         * @param a vector to invert
+         * @returns out
+         */
+        static inverse(a, out = Vec3.create()) {
+            out[0] = 1.0 / a[0];
+            out[1] = 1.0 / a[1];
+            out[2] = 1.0 / a[2];
+            return out;
+        }
+        /**
+         * Normalize a vec3
+         *
+         * @param out the receiving vector
+         * @param src vector to normalize
+         * @returns out
+         */
+        static normalize(src, out = Vec3.create()) {
+            let x = src[0];
+            let y = src[1];
+            let z = src[2];
+            let len = x * x + y * y + z * z;
+            if (len > 0) {
+                //TODO: evaluate use of glm_invsqrt here?
+                len = 1 / Math.sqrt(len);
+                out[0] = src[0] * len;
+                out[1] = src[1] * len;
+                out[2] = src[2] * len;
+            }
+            return out;
+        }
+        /**
+         * Calculates the dot product of two vec3's
+         *
+         * @param a the first operand
+         * @param b the second operand
+         * @returns dot product of a and b
+         */
+        static dot(a, b) {
+            return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+        }
+        /**
+         * Computes the cross product of two vec3's
+         *
+         * @param out the receiving vector
+         * @param lhs the first operand
+         * @param rhs the second operand
+         * @returns out
+         */
+        static cross(lhs, rhs, out = Vec3.create()) {
+            let ax = lhs[0], ay = lhs[1], az = lhs[2];
+            let bx = rhs[0], by = rhs[1], bz = rhs[2];
+            out[0] = ay * bz - az * by;
+            out[1] = az * bx - ax * bz;
+            out[2] = ax * by - ay * bx;
+            return out;
+        }
+        /**
+         * Performs a linear interpolation between two vec3's
+         *
+         * @param out the receiving vector
+         * @param lhs the first operand
+         * @param rhs the second operand
+         * @param lerp interpolation amount between the two inputs
+         * @returns out
+         */
+        static lerp(lhs, rhs, lerp$$1, out = Vec3.create()) {
+            let ax = lhs[0];
+            let ay = lhs[1];
+            let az = lhs[2];
+            out[0] = ax + lerp$$1 * (rhs[0] - ax);
+            out[1] = ay + lerp$$1 * (rhs[1] - ay);
+            out[2] = az + lerp$$1 * (rhs[2] - az);
+            return out;
+        }
+        /**
+         * Performs a hermite interpolation with two control points
+         *
+         * @param {Vec3} out the receiving vector
+         * @param {Vec3} a the first operand
+         * @param {Vec3} b the second operand
+         * @param {Vec3} c the third operand
+         * @param {Vec3} d the fourth operand
+         * @param {number} t interpolation amount between the two inputs
+         * @returns {Vec3} out
+         */
+        static hermite(a, b, c, d, t, out = Vec3.create()) {
+            let factorTimes2 = t * t;
+            let factor1 = factorTimes2 * (2 * t - 3) + 1;
+            let factor2 = factorTimes2 * (t - 2) + t;
+            let factor3 = factorTimes2 * (t - 1);
+            let factor4 = factorTimes2 * (3 - 2 * t);
+            out[0] = a[0] * factor1 + b[0] * factor2 + c[0] * factor3 + d[0] * factor4;
+            out[1] = a[1] * factor1 + b[1] * factor2 + c[1] * factor3 + d[1] * factor4;
+            out[2] = a[2] * factor1 + b[2] * factor2 + c[2] * factor3 + d[2] * factor4;
+            return out;
+        }
+        /**
+         * Performs a bezier interpolation with two control points
+         *
+         * @param {Vec3} out the receiving vector
+         * @param {Vec3} a the first operand
+         * @param {Vec3} b the second operand
+         * @param {Vec3} c the third operand
+         * @param {Vec3} d the fourth operand
+         * @param {number} t interpolation amount between the two inputs
+         * @returns {Vec3} out
+         */
+        static bezier(a, b, c, d, t, out = Vec3.create()) {
+            let inverseFactor = 1 - t;
+            let inverseFactorTimesTwo = inverseFactor * inverseFactor;
+            let factorTimes2 = t * t;
+            let factor1 = inverseFactorTimesTwo * inverseFactor;
+            let factor2 = 3 * t * inverseFactorTimesTwo;
+            let factor3 = 3 * factorTimes2 * inverseFactor;
+            let factor4 = factorTimes2 * t;
+            out[0] = a[0] * factor1 + b[0] * factor2 + c[0] * factor3 + d[0] * factor4;
+            out[1] = a[1] * factor1 + b[1] * factor2 + c[1] * factor3 + d[1] * factor4;
+            out[2] = a[2] * factor1 + b[2] * factor2 + c[2] * factor3 + d[2] * factor4;
+            return out;
+        }
+        /**
+         * Generates a random vector with the given scale
+         *
+         * @param out the receiving vector
+         * @param [scale] Length of the resulting vector. If omitted, a unit vector will be returned
+         * @returns out
+         */
+        static random(scale = 1, out = Vec3.create()) {
+            scale = scale || 1.0;
+            let r = Math.random() * 2.0 * Math.PI;
+            let z = Math.random() * 2.0 - 1.0;
+            let zScale = Math.sqrt(1.0 - z * z) * scale;
+            out[0] = Math.cos(r) * zScale;
+            out[1] = Math.sin(r) * zScale;
+            out[2] = z * scale;
+            return out;
+        }
+        // /**
+        //  * Transforms the vec3 with a mat3.
+        //  *
+        //  * @param out the receiving vector
+        //  * @param a the vector to transform
+        //  * @param m the 3x3 matrix to transform with
+        //  * @returns out
+        //  */
+        // public static transformMat3(out: Vec3 = Vec3.create(), a: vec3, m: mat3): vec3{
+        //     let x = a[0],
+        //     y = a[1],
+        //     z = a[2];
+        // out[0] = x * m[0] + y * m[3] + z * m[6];
+        // out[1] = x * m[1] + y * m[4] + z * m[7];
+        // out[2] = x * m[2] + y * m[5] + z * m[8];
+        // return out;
+        // }
+        // /**
+        //  * 转到mat4中
+        //  * Transforms the vec3 with a mat4.
+        //  * 4th vector component is implicitly '1'
+        //  *
+        //  * @param out the receiving vector
+        //  * @param a the vector to transform
+        //  * @param m matrix to transform with
+        //  * @returns out
+        //  */
+        // public static transformMat4(out: Vec3 = Vec3.create(), a: vec3, m: mat4): vec3{
+        //     let x = a[0],
+        //         y = a[1],
+        //         z = a[2];
+        //     let w = m[3] * x + m[7] * y + m[11] * z + m[15];
+        //     w = w || 1.0;
+        //     out[0] = (m[0] * x + m[4] * y + m[8] * z + m[12]) / w;
+        //     out[1] = (m[1] * x + m[5] * y + m[9] * z + m[13]) / w;
+        //     out[2] = (m[2] * x + m[6] * y + m[10] * z + m[14]) / w;
+        //     return out;
+        // }
+        /**
+         * Transforms the vec3 with a Quat
+         *
+         * @param out the receiving vector
+         * @param a the vector to transform
+         * @param q Quaternion to transform with
+         * @returns out
+         */
+        static transformQuat(a, q, out = Vec3.create()) {
+            // benchmarks: http://jsperf.com/Quaternion-transform-vec3-implementations
+            let x = a[0], y = a[1], z = a[2];
+            let qx = q[0], qy = q[1], qz = q[2], qw = q[3];
+            // calculate Quat * vec
+            let ix = qw * x + qy * z - qz * y;
+            let iy = qw * y + qz * x - qx * z;
+            let iz = qw * z + qx * y - qy * x;
+            let iw = -qx * x - qy * y - qz * z;
+            // calculate result * inverse Quat
+            out[0] = ix * qw + iw * -qx + iy * -qz - iz * -qy;
+            out[1] = iy * qw + iw * -qy + iz * -qx - ix * -qz;
+            out[2] = iz * qw + iw * -qz + ix * -qy - iy * -qx;
+            return out;
+        }
+        /**
+         * Rotate a 3D vector around the x-axis
+         * @param out The receiving vec3
+         * @param a The vec3 point to rotate
+         * @param b The origin of the rotation
+         * @param c The angle of rotation
+         * @returns out
+         */
+        static rotateX(a, b, c, out = Vec3.create()) {
+            let p = [], r = [];
+            //Translate point to the origin
+            p[0] = a[0] - b[0];
+            p[1] = a[1] - b[1];
+            p[2] = a[2] - b[2];
+            //perform rotation
+            r[0] = p[0];
+            r[1] = p[1] * Math.cos(c) - p[2] * Math.sin(c);
+            r[2] = p[1] * Math.sin(c) + p[2] * Math.cos(c);
+            //translate to correct position
+            out[0] = r[0] + b[0];
+            out[1] = r[1] + b[1];
+            out[2] = r[2] + b[2];
+            return out;
+        }
+        /**
+         * Rotate a 3D vector around the y-axis
+         * @param out The receiving vec3
+         * @param a The vec3 point to rotate
+         * @param b The origin of the rotation
+         * @param c The angle of rotation
+         * @returns out
+         */
+        static rotateY(a, b, c, out = Vec3.create()) {
+            let p = [], r = [];
+            //Translate point to the origin
+            p[0] = a[0] - b[0];
+            p[1] = a[1] - b[1];
+            p[2] = a[2] - b[2];
+            //perform rotation
+            r[0] = p[2] * Math.sin(c) + p[0] * Math.cos(c);
+            r[1] = p[1];
+            r[2] = p[2] * Math.cos(c) - p[0] * Math.sin(c);
+            //translate to correct position
+            out[0] = r[0] + b[0];
+            out[1] = r[1] + b[1];
+            out[2] = r[2] + b[2];
+            return out;
+        }
+        /**
+         * Rotate a 3D vector around the z-axis
+         * @param out The receiving vec3
+         * @param a The vec3 point to rotate
+         * @param b The origin of the rotation
+         * @param c The angle of rotation
+         * @returns out
+         */
+        static rotateZ(a, b, c, out = Vec3.create()) {
+            let p = [], r = [];
+            //Translate point to the origin
+            p[0] = a[0] - b[0];
+            p[1] = a[1] - b[1];
+            p[2] = a[2] - b[2];
+            //perform rotation
+            r[0] = p[0] * Math.cos(c) - p[1] * Math.sin(c);
+            r[1] = p[0] * Math.sin(c) + p[1] * Math.cos(c);
+            r[2] = p[2];
+            //translate to correct position
+            out[0] = r[0] + b[0];
+            out[1] = r[1] + b[1];
+            out[2] = r[2] + b[2];
+            return out;
+        }
+        // /**
+        //  * Perform some operation over an array of vec3s.
+        //  *
+        //  * @param a the array of vectors to iterate over
+        //  * @param stride Number of elements between the start of each vec3. If 0 assumes tightly packed
+        //  * @param offset Number of elements to skip at the beginning of the array
+        //  * @param count Number of vec3s to iterate over. If 0 iterates over entire array
+        //  * @param fn Function to call for each vector in the array
+        //  * @param arg additional argument to pass to fn
+        //  * @returns a
+        //  * @function
+        //  */
+        // public static forEach(a: Float32Array, stride: number, offset: number, count: number,
+        //                       fn: (a: vec3, b: vec3, arg: any) => void, arg: any): Float32Array;
+        // /**
+        //  * Perform some operation over an array of vec3s.
+        //  *
+        //  * @param a the array of vectors to iterate over
+        //  * @param stride Number of elements between the start of each vec3. If 0 assumes tightly packed
+        //  * @param offset Number of elements to skip at the beginning of the array
+        //  * @param count Number of vec3s to iterate over. If 0 iterates over entire array
+        //  * @param fn Function to call for each vector in the array
+        //  * @returns a
+        //  * @function
+        //  */
+        // public static forEach(a: Float32Array, stride: number, offset: number, count: number,
+        //                       fn: (a: vec3, b: vec3) => void): Float32Array;
+        /**
+         * Get the angle between two 3D vectors
+         * @param a The first operand
+         * @param b The second operand
+         * @returns The angle in radians
+         */
+        static angle(a, b) {
+            let tempA = Vec3.clone(a);
+            let tempB = Vec3.clone(b);
+            // let tempA = vec3.fromValues(a[0], a[1], a[2]);
+            // let tempB = vec3.fromValues(b[0], b[1], b[2]);
+            Vec3.normalize(tempA, tempA);
+            Vec3.normalize(tempB, tempB);
+            let cosine = Vec3.dot(tempA, tempB);
+            if (cosine > 1.0) {
+                return 0;
+            }
+            else if (cosine < -1.0) {
+                return Math.PI;
+            }
+            else {
+                return Math.acos(cosine);
+            }
+        }
+        /**
+         * Returns a string representation of a vector
+         *
+         * @param a vector to represent as a string
+         * @returns string representation of the vector
+         */
+        static str(a) {
+            return "vec3(" + a[0] + ", " + a[1] + ", " + a[2] + ")";
+        }
+        /**
+         * Returns whether or not the vectors have exactly the same elements in the same position (when compared with ===)
+         *
+         * @param {Vec3} a The first vector.
+         * @param {Vec3} b The second vector.
+         * @returns {boolean} True if the vectors are equal, false otherwise.
+         */
+        static exactEquals(a, b) {
+            return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
+        }
+        /**
+         * Returns whether or not the vectors have approximately the same elements in the same position.
+         *
+         * @param {Vec3} a The first vector.
+         * @param {Vec3} b The second vector.
+         * @returns {boolean} True if the vectors are equal, false otherwise.
+         */
+        static equals(a, b) {
+            let a0 = a[0], a1 = a[1], a2 = a[2];
+            let b0 = b[0], b1 = b[1], b2 = b[2];
+            return Math.abs(a0 - b0) <= EPSILON && Math.abs(a1 - b1) <= EPSILON && Math.abs(a2 - b2) <= EPSILON;
+        }
+    }
+    Vec3.UP = Vec3.create(0, 1, 0);
+    Vec3.DOWN = Vec3.create(0, -1, 0);
+    Vec3.RIGHT = Vec3.create(1, 0, 0);
+    Vec3.LEFT = Vec3.create(-1, 0, 0);
+    Vec3.FORWARD = Vec3.create(0, 0, 1);
+    Vec3.BACKWARD = Vec3.create(0, 0, -1);
+    Vec3.ONE = Vec3.create(1, 1, 1);
+    Vec3.ZERO = Vec3.create(0, 0, 0);
+    Vec3.Recycle = [];
+    //# sourceMappingURL=vec3.js.map
+
+    class Plane {
+        constructor() {
+            //ax+by+cz+d=0;
+            this.normal = Vec3.create(0, 1, 0);
+            this.constant = 0;
+        }
+        distanceToPoint(point) {
+            return Vec3.dot(point, this.normal) + this.constant;
+        }
+        copy(to) {
+            Vec3.copy(this.normal, to.normal);
+            to.constant = this.constant;
+        }
+        setComponents(nx, ny, nz, ds) {
+            this.normal[0] = nx;
+            this.normal[1] = ny;
+            this.normal[2] = nz;
+            let inverseNormalLength = 1.0 / Vec3.magnitude(this.normal);
+            Vec3.scale(this.normal, inverseNormalLength, this.normal);
+            this.constant = ds * inverseNormalLength;
+        }
+    }
+    //# sourceMappingURL=Plane.js.map
 
     var VertexAttEnum;
     (function (VertexAttEnum) {
@@ -3543,563 +3791,6 @@
     }
     BoundingSphere.pool = [];
     //# sourceMappingURL=Bounds.js.map
-
-    class Rect extends Float32Array {
-        constructor(x = 0, y = 0, w = 0, h = 0) {
-            super(4);
-            this[0] = x;
-            this[1] = y;
-            this[2] = w;
-            this[3] = h;
-        }
-        get x() {
-            return this[0];
-        }
-        set x(value) {
-            this[0] = value;
-        }
-        get y() {
-            return this[1];
-        }
-        set y(value) {
-            this[1] = value;
-        }
-        get z() {
-            return this[2];
-        }
-        set z(value) {
-            this[2] = value;
-        }
-        get width() {
-            return this[2] - this[0];
-        }
-        get height() {
-            return this[3] - this[1];
-        }
-        get w() {
-            return this[3];
-        }
-        set w(value) {
-            this[3] = value;
-        }
-        static create(x = 0, y = 0, w = 0, h = 0) {
-            if (Rect.Recycle && Rect.Recycle.length > 0) {
-                let item = Rect.Recycle.pop();
-                item[0] = x;
-                item[1] = y;
-                item[2] = w;
-                item[3] = h;
-                return item;
-            }
-            else {
-                let item = new Rect(x, y, w, h);
-                return item;
-            }
-        }
-        static clone(from) {
-            if (Rect.Recycle.length > 0) {
-                let item = Rect.Recycle.pop();
-                Rect.copy(from, item);
-                return item;
-            }
-            else {
-                let item = new Rect(from[0], from[1], from[2], from[3]);
-                return item;
-            }
-        }
-        static recycle(item) {
-            Rect.Recycle.push(item);
-        }
-        static disposeRecycledItems() {
-            Rect.Recycle.length = 0;
-        }
-        static copy(a, out) {
-            out[0] = a[0];
-            out[1] = a[1];
-            out[2] = a[2];
-            out[3] = a[3];
-            return out;
-        }
-        static euqal(a, b) {
-            if (a[0] != b[0])
-                return false;
-            if (a[1] != b[1])
-                return false;
-            if (a[2] != b[2])
-                return false;
-            if (a[3] != b[3])
-                return false;
-            return true;
-        }
-    }
-    Rect.Recycle = [];
-    Rect.Identity = new Rect(0, 0, 1, 1);
-    //# sourceMappingURL=rect.js.map
-
-    class UniformState {
-        constructor() {
-            this.viewPortPixel = new Rect(0, 0, 0, 0); //像素的viewport
-            this._matrixNormalToworld = Mat4.create();
-            this._matrixNormalToView = Mat4.create();
-            this._matrixMV = Mat4.create();
-            this._matMVP = Mat4.create();
-            //matrixNormal: matrix = new matrix();
-            this._lights = [];
-            this.lightmap = null;
-            // lightShadowTex: RenderTexture[] = [];
-        }
-        get matrixNormalToworld() {
-            Mat4.invert(this.matrixModel, this._matrixNormalToworld);
-            Mat4.transpose(this._matrixNormalToworld, this._matrixNormalToworld);
-            return this._matrixNormalToworld;
-        }
-        get matrixNormalToView() {
-            Mat4.invert(this.matrixModelView, this._matrixNormalToView);
-            Mat4.transpose(this._matrixNormalToView, this._matrixNormalToView);
-            return this._matrixNormalToView;
-        }
-        get matrixModelView() {
-            return Mat4.multiply(this.curCamera.viewMatrix, this.matrixModel, this._matrixMV);
-        }
-        get matrixModelViewProject() {
-            return Mat4.multiply(this.curCamera.viewProjectMatrix, this.matrixModel, this._matMVP);
-        }
-        get matrixView() {
-            return this.curCamera.viewMatrix;
-        }
-        get matrixProject() {
-            return this.curCamera.projectMatrix;
-        }
-        get matrixViewProject() {
-            return this.curCamera.viewProjectMatrix;
-        }
-        get fov() {
-            return this.curCamera.fov;
-        }
-        get aspect() {
-            return this.curCamera.aspect;
-        }
-        set lights(value) {
-            this._lights = value;
-        }
-        get lightCount() { return this._lights.length; }
-        ;
-    }
-    //# sourceMappingURL=UniformState.js.map
-
-    var SortTypeEnum;
-    (function (SortTypeEnum) {
-        SortTypeEnum[SortTypeEnum["MatLayerIndex"] = 16] = "MatLayerIndex";
-        SortTypeEnum[SortTypeEnum["ShaderId"] = 8] = "ShaderId";
-        SortTypeEnum[SortTypeEnum["Zdist_FrontToBack"] = 4] = "Zdist_FrontToBack";
-    })(SortTypeEnum || (SortTypeEnum = {}));
-    var Private$2;
-    (function (Private) {
-        Private.temptSphere = new BoundingSphere();
-    })(Private$2 || (Private$2 = {}));
-    class ForwardRender {
-        constructor(device) {
-            this.uniformState = new UniformState();
-            this.device = device;
-        }
-        setCamera(camera) {
-            this.uniformState.curCamera = camera;
-            this.device.setViewPort(camera.viewport.x, camera.viewport.y, camera.viewport.width * this.device.width, camera.viewport.height * this.device.height);
-            this.device.setClear(camera.enableClearDepth ? camera.dePthValue : null, camera.enableClearColor ? camera.backgroundColor : null, camera.enableClearStencil ? camera.stencilValue : null);
-        }
-        render(camera, drawCalls, lights) {
-            let culledDrawcalls = this.cull(camera, drawCalls);
-            let drawcall, shader, uniforms, renderState;
-            for (let i = 0; i < culledDrawcalls.length; i++) {
-                drawcall = culledDrawcalls[i];
-                this.uniformState.matrixModel = drawcall.worldMat;
-                if (drawcall.material != Private$2.preMaterial || drawcall.material.beDirty) {
-                    Private$2.preMaterial = drawcall.material;
-                    drawcall.material.beDirty = false;
-                    shader = drawcall.material.shader;
-                    uniforms = drawcall.material.uniformParameters;
-                    renderState = drawcall.material.renderState;
-                    shader.bind(this.device);
-                    shader.bindAutoUniforms(this.device, this.uniformState); //auto unfiorm
-                    shader.bindManulUniforms(this.device, uniforms);
-                    if (Private$2.preRenderState != renderState) {
-                        this.device.setCullFaceState(renderState.cull.enabled, renderState.cull.cullBack);
-                        this.device.setDepthState(renderState.depthWrite, renderState.depthTest.enabled, renderState.depthTest.depthFunc);
-                        this.device.setColorMask(renderState.colorWrite.red, renderState.colorWrite.green, renderState.colorWrite.blue, renderState.colorWrite.alpha);
-                        this.device.setBlendState(renderState.blend.enabled, renderState.blend.blendEquation, renderState.blend.blendSrc, renderState.blend.blendDst, renderState.blend.enableSeparateBlend, renderState.blend.blendAlphaEquation, renderState.blend.blendSrcAlpha, renderState.blend.blendDstAlpha);
-                        this.device.setStencilState(renderState.stencilTest.enabled, renderState.stencilTest.stencilFunction, renderState.stencilTest.stencilRefValue, renderState.stencilTest.stencilMask, renderState.stencilTest.stencilFail, renderState.stencilTest.stencilFaileZpass, renderState.stencilTest.stencilPassZfail, renderState.stencilTest.enableSeparateStencil, renderState.stencilTest.stencilFunctionBack, renderState.stencilTest.stencilRefValueBack, renderState.stencilTest.stencilMaskBack, renderState.stencilTest.stencilFailBack, renderState.stencilTest.stencilFaileZpassBack, renderState.stencilTest.stencilPassZfailBack);
-                    }
-                }
-                else {
-                    shader = drawcall.material.shader;
-                    shader.bindAutoUniforms(this.device, this.uniformState); //auto unfiorm
-                }
-                drawcall.geometry.bind(this.device);
-                this.device.draw(drawcall.geometry.graphicAsset, drawcall.instanceCount);
-            }
-        }
-        /**
-         * 使用camera cullingMask和frustum 剔除不可见物体
-         * @param camera
-         * @param drawCalls
-         */
-        cull(camera, drawCalls) {
-            let visualArr = [];
-            let { cullingMask, frustum } = camera;
-            let drawcall;
-            for (let i = 0; i < drawCalls.length; i++) {
-                drawcall = drawCalls[i];
-                if (!drawcall.bevisible || (drawcall.cullingMask != null && ((drawcall.cullingMask & cullingMask) == 0)))
-                    continue;
-                if (drawcall.enableCull) {
-                    if (this.frustumCull(frustum, drawcall)) {
-                        visualArr.push(drawcall);
-                    }
-                }
-                else {
-                    visualArr.push(drawcall);
-                }
-            }
-            return visualArr;
-        }
-        frustumCull(frustum, drawcall) {
-            // BoundingSphere.fromBoundingBox(drawcall.boundingBox, Private.temptSphere);
-            return frustum.containSphere(drawcall.bounding, drawcall.worldMat);
-        }
-    }
-    //# sourceMappingURL=ForwardRender.js.map
-
-    var Private$3;
-    (function (Private) {
-        Private.sortByMatLayerIndex = (drawa, drawb) => {
-            return drawa.material.layerIndex - drawb.material.layerIndex;
-        };
-        Private.sortByZdist_FrontToBack = (drawa, drawb) => {
-            return drawa.zdist - drawb.zdist;
-        };
-        Private.sortByZdist_BackToFront = (drawa, drawb) => {
-            return drawb.zdist - drawa.zdist;
-        };
-        Private.sortByMatSortId = (drawa, drawb) => {
-            return drawb.material.sortId - drawb.material.sortId;
-        };
-        Private.sortTypeInfo = {};
-        {
-            Private.sortTypeInfo[SortTypeEnum.MatLayerIndex] = { sortFunc: Private.sortByMatLayerIndex };
-            Private.sortTypeInfo[SortTypeEnum.ShaderId] = {
-                sortFunc: Private.sortByMatSortId,
-            };
-            Private.sortTypeInfo[SortTypeEnum.Zdist_FrontToBack] = {
-                sortFunc: Private.sortByZdist_FrontToBack,
-                beforeSort: (ins, cam) => {
-                    let camPos = cam.worldPos;
-                    let camFwd = cam.forwardInword;
-                    let i, drawCall, meshPos;
-                    let tempx, tempy, tempz;
-                    for (i = 0; i < ins.length; i++) {
-                        drawCall = ins[i];
-                        meshPos = drawCall.bounding.center;
-                        tempx = meshPos.x - camPos.x;
-                        tempy = meshPos.y - camPos.y;
-                        tempz = meshPos.z - camPos.z;
-                        drawCall.zdist = tempx * camFwd.x + tempy * camFwd.y + tempz * camFwd.z;
-                    }
-                }
-            };
-        }
-    })(Private$3 || (Private$3 = {}));
-    class LayerCollection {
-        constructor(layer, sortType = 0) {
-            this._insArr = [];
-            // private onAdd: ((ins: MeshInstance) => void)[] = []
-            // private onRemove: ((ins: MeshInstance) => void)[] = [];
-            this.beforeSort = [];
-            this.beDirty = true;
-            this.markDirty = () => {
-                this.beDirty = true;
-            };
-            this.layer = layer;
-            // let func = () => { this.markDirty(); };
-            let attch = (sortInfo) => {
-                this.sortFunction = this.sortFunction != null ? this.sortFunction && sortInfo.sortFunc : sortInfo.sortFunc;
-                // if (sortInfo?.eventFunc)
-                // {
-                //     this.onAdd.push((ins => { sortInfo?.eventFunc(ins).addEventListener(func) }))
-                //     this.onRemove.push(ins => { sortInfo?.eventFunc(ins).removeEventListener(func) })
-                // }
-                if (sortInfo === null || sortInfo === void 0 ? void 0 : sortInfo.beforeSort) {
-                    this.beforeSort.push((ins, cam) => { sortInfo === null || sortInfo === void 0 ? void 0 : sortInfo.beforeSort(ins, cam); this.markDirty(); });
-                }
-            };
-            if (sortType & SortTypeEnum.MatLayerIndex) {
-                let sortInfo = Private$3.sortTypeInfo[SortTypeEnum.MatLayerIndex];
-                attch(sortInfo);
-            }
-            if (sortType & SortTypeEnum.ShaderId) {
-                let sortInfo = Private$3.sortTypeInfo[SortTypeEnum.ShaderId];
-                attch(sortInfo);
-            }
-        }
-        getSortedinsArr(cam) {
-            this.beforeSort.forEach(func => func(this._insArr, cam));
-            if (this.beDirty && this.sortFunction) {
-                this._insArr.sort(this.sortFunction);
-            }
-            return this._insArr;
-        }
-        get insCount() { return this._insArr.length; }
-        ;
-        add(newIns) {
-            let index = this._insArr.indexOf(newIns);
-            if (index == -1) {
-                this._insArr.push(newIns);
-                this.markDirty();
-                // this.onAddMeshInstance.raiseEvent(newIns)
-                // this.onAdd.forEach(func => func(newIns));
-            }
-        }
-        remove(item) {
-            let index = this._insArr.indexOf(item);
-            if (index >= 0) {
-                this._insArr.splice(index, 1);
-                // this.onRemoveMeshInstance.raiseEvent(item);
-                // this.onRemove.forEach(func => func(item));
-            }
-        }
-    }
-    //# sourceMappingURL=LayerCollection.js.map
-
-    class LayerComposition {
-        constructor() {
-            this.layers = new Map();
-            this.nolayers = new LayerCollection("nolayer");
-            this.insMap = {};
-            this.onInsDirty = (ins) => {
-                var _a;
-                let layer = (_a = ins.material) === null || _a === void 0 ? void 0 : _a.layer;
-                let collection = this.insMap[ins.id];
-                if (collection.layer != layer) {
-                    collection.remove(ins);
-                    if (layer != null) {
-                        let layerCollection = this.layers.get(layer);
-                        layerCollection.add(ins);
-                        this.insMap[ins.id] = layerCollection;
-                    }
-                    else {
-                        this.nolayers.add(ins);
-                        this.insMap[ins.id] = this.nolayers;
-                    }
-                }
-                this.insMap[ins.id].markDirty();
-            };
-            this.onInsDispose = (ins) => {
-                this.removeMeshInstance(ins);
-            };
-            this._addLayer(RenderLayerEnum.Background);
-            this._addLayer(RenderLayerEnum.Geometry, SortTypeEnum.MatLayerIndex | SortTypeEnum.ShaderId);
-            this._addLayer(RenderLayerEnum.AlphaTest, SortTypeEnum.MatLayerIndex | SortTypeEnum.Zdist_FrontToBack);
-            this._addLayer(RenderLayerEnum.Transparent, SortTypeEnum.MatLayerIndex | SortTypeEnum.Zdist_FrontToBack);
-        }
-        _addLayer(layer, sortType = 0) {
-            if (!this.layers.has(layer)) {
-                let collection = new LayerCollection(layer, sortType);
-                this.layers.set(layer, collection);
-            }
-        }
-        getlayers() {
-            return Array.from(this.layers.values());
-        }
-        tryAddMeshInstance(ins) {
-            var _a;
-            if (this.insMap[ins.id] != null)
-                return;
-            let layer = (_a = ins.material) === null || _a === void 0 ? void 0 : _a.layer;
-            if (layer == null) {
-                this.nolayers.add(ins);
-                this.insMap[ins.id] = this.nolayers;
-            }
-            else {
-                let layerCollection = this.layers.get(layer);
-                layerCollection.add(ins);
-                this.insMap[ins.id] = layerCollection;
-            }
-            ins.onDirty.addEventListener(this.onInsDirty);
-            ins.ondispose.addEventListener(this.onInsDispose);
-        }
-        removeMeshInstance(ins) {
-            if (this.insMap[ins.id] == null)
-                return;
-            let layerCollection = this.insMap[ins.id];
-            layerCollection.remove(ins);
-            delete this.insMap[ins.id];
-            ins.onDirty.removeEventListener(this.onInsDirty);
-            ins.ondispose.removeEventListener(this.onInsDispose);
-        }
-    }
-    //# sourceMappingURL=LayerComposition.js.map
-
-    class Color extends Float32Array {
-        constructor(r = 1, g, b = 1, a = 1) {
-            super(4);
-            this[0] = r;
-            this[1] = g;
-            this[2] = b;
-            this[3] = a;
-        }
-        get r() {
-            return this[0];
-        }
-        set r(value) {
-            this[0] = value;
-        }
-        get g() {
-            return this[1];
-        }
-        set g(value) {
-            this[1] = value;
-        }
-        get b() {
-            return this[2];
-        }
-        set b(value) {
-            this[2] = value;
-        }
-        get a() {
-            return this[3];
-        }
-        set a(value) {
-            this[3] = value;
-        }
-        static create(r = 1, g = 1, b = 1, a = 1) {
-            if (Color.Recycle && Color.Recycle.length > 0) {
-                let item = Color.Recycle.pop();
-                item[0] = r;
-                item[1] = g;
-                item[2] = b;
-                item[3] = a;
-                return item;
-            }
-            else {
-                let item = new Color(r, g, b, a);
-                return item;
-            }
-        }
-        static random() {
-            let item = new Color(Math.random() * 0.5 + 0.5, Math.random() * 0.5 + 0.5, Math.random() * 0.5 + 0.5, 1.0);
-            return item;
-        }
-        static clone(from) {
-            if (Color.Recycle.length > 0) {
-                let item = Color.Recycle.pop();
-                Color.copy(from, item);
-                return item;
-            }
-            else {
-                let item = new Color(from[0], from[1], from[2], from[3]);
-                return item;
-            }
-        }
-        static recycle(item) {
-            Color.Recycle.push(item);
-        }
-        static disposeRecycledItems() {
-            Color.Recycle.length = 0;
-        }
-        static setWhite(out) {
-            out[0] = 1;
-            out[1] = 1;
-            out[2] = 1;
-            out[3] = 1;
-            return out;
-        }
-        static setBlack(out) {
-            out[0] = 0;
-            out[1] = 0;
-            out[2] = 0;
-            out[3] = 1;
-        }
-        static setGray(out) {
-            out[0] = 0.5;
-            out[1] = 0.5;
-            out[2] = 0.5;
-            out[3] = 1;
-        }
-        static multiply(srca, srcb, out) {
-            out[0] = srca[0] * srcb[0];
-            out[1] = srca[1] * srcb[1];
-            out[2] = srca[2] * srcb[2];
-            out[3] = srca[3] * srcb[3];
-        }
-        static scaleToRef(src, scale, out) {
-            out[0] = src[0] * scale;
-            out[1] = src[1] * scale;
-            out[2] = src[2] * scale;
-            out[3] = src[3] * scale;
-        }
-        static lerp(srca, srcb, t, out) {
-            t = clamp(t);
-            out[0] = t * (srcb[0] - srca[0]) + srca[0];
-            out[1] = t * (srcb[1] - srca[1]) + srca[1];
-            out[2] = t * (srcb[2] - srca[2]) + srca[2];
-            out[3] = t * (srcb[3] - srca[3]) + srca[3];
-        }
-        /**
-         * Copy the values from one color to another
-         *
-         * @param out the receiving vector
-         * @param a the source vector
-         * @returns out
-         */
-        static copy(a, out) {
-            out[0] = a[0];
-            out[1] = a[1];
-            out[2] = a[2];
-            out[3] = a[3];
-            return out;
-        }
-        /**
-         * Returns whether or not the vectors have approximately the same elements in the same color.
-         *
-         * @param {vec4} a The first vector.
-         * @param {vec4} b The second vector.
-         * @returns {boolean} True if the vectors are equal, false otherwise.
-         */
-        static equals(a, b) {
-            let a0 = a[0], a1 = a[1], a2 = a[2], a3 = a[3];
-            let b0 = b[0], b1 = b[1], b2 = b[2], b3 = b[3];
-            return (Math.abs(a0 - b0) <= EPSILON * Math.max(1.0, Math.abs(a0), Math.abs(b0)) &&
-                Math.abs(a1 - b1) <= EPSILON * Math.max(1.0, Math.abs(a1), Math.abs(b1)) &&
-                Math.abs(a2 - b2) <= EPSILON * Math.max(1.0, Math.abs(a2), Math.abs(b2)) &&
-                Math.abs(a3 - b3) <= EPSILON * Math.max(1.0, Math.abs(a3), Math.abs(b3)));
-        }
-    }
-    Color.WHITE = new Color(1, 1, 1, 1);
-    Color.Recycle = [];
-    //# sourceMappingURL=color.js.map
-
-    class Plane {
-        constructor() {
-            //ax+by+cz+d=0;
-            this.normal = Vec3.create(0, 1, 0);
-            this.constant = 0;
-        }
-        distanceToPoint(point) {
-            return Vec3.dot(point, this.normal) + this.constant;
-        }
-        copy(to) {
-            Vec3.copy(this.normal, to.normal);
-            to.constant = this.constant;
-        }
-        setComponents(nx, ny, nz, ds) {
-            this.normal[0] = nx;
-            this.normal[1] = ny;
-            this.normal[2] = nz;
-            let inverseNormalLength = 1.0 / Vec3.magnitude(this.normal);
-            Vec3.scale(this.normal, inverseNormalLength, this.normal);
-            this.constant = ds * inverseNormalLength;
-        }
-    }
-    //# sourceMappingURL=Plane.js.map
 
     class Frustum {
         constructor(p0 = null, p1 = null, p2 = null, p3 = null, p4 = null, p5 = null) {
@@ -5976,6 +5667,7 @@
                 set: value => { this._localScale[2] = value; this.markDirty(); }
             });
         }
+        get beDirty() { return this.dirtyFlag != 0; }
         set localPosition(value) {
             Vec3.copy(value, this._localPosition);
             this.markDirty();
@@ -5984,8 +5676,7 @@
             return this._localPosition;
         }
         set localRotation(value) {
-            Vec3.copy(value, this._localRotation);
-            // this._localRotation = value;
+            Quat.copy(value, this._localRotation);
             this.markDirty();
         }
         get localRotation() {
@@ -6078,7 +5769,12 @@
         }
         get worldMatrix() {
             if (this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.LOCALMAT)) {
-                Mat4.multiply(this.parent.worldMatrix, this.localMatrix, this._worldMatrix);
+                if (this.parent) {
+                    Mat4.multiply(this.parent.worldMatrix, this.localMatrix, this._worldMatrix);
+                }
+                else {
+                    Mat4.copy(this.localMatrix, this._worldMatrix);
+                }
                 this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLDMAT;
                 this.dirtyFlag =
                     this.dirtyFlag | DirtyFlagEnum.WORLD_ROTATION | DirtyFlagEnum.WORLD_SCALE | DirtyFlagEnum.WWORLD_POS;
@@ -6264,17 +5960,17 @@
     }
     //# sourceMappingURL=RefData.js.map
 
-    var Private$4;
+    var Private$2;
     (function (Private) {
         Private.id = 0;
-    })(Private$4 || (Private$4 = {}));
+    })(Private$2 || (Private$2 = {}));
     class Entity extends Transform {
         constructor(name) {
             super();
             this.ref_beActive = new RefData(true);
             this._uniteBitkey = new UniteBitkey();
             this.name = name;
-            this.id = Private$4.id++;
+            this.id = Private$2.id++;
         }
         get beActive() { return this.ref_beActive.data; }
         ;
@@ -6305,12 +6001,26 @@
         find(check) {
             if (check(this))
                 return this;
-            let child;
+            let child, result;
             for (let i = 0; i < this.children.length; i++) {
                 child = this.children[i];
-                child.find(check);
+                result = child.find(check);
+                if (result)
+                    break;
             }
-            return null;
+            return result;
+        }
+        findInParents(check) {
+            if (check(this)) {
+                return this;
+            }
+            else {
+                let result;
+                if (this.parent) {
+                    result = this.parent.findInParents(check);
+                }
+                return result;
+            }
         }
         clone() {
             //TODO
@@ -6321,38 +6031,16 @@
 
     class InterScene {
         constructor(render) {
-            this.layers = new LayerComposition();
-            this.cameras = new Map();
-            this.preUpdate = new EventHandler();
+            this._cameras = new Map();
             this.root = new Entity();
             this.render = render;
         }
-        tryAddMeshInstance(ins) {
-            this.layers.tryAddMeshInstance(ins);
-        }
-        removeMeshInstance(ins) {
-            this.layers.removeMeshInstance(ins);
-        }
         tryAddCamera(cam) {
-            if (!this.cameras.has(cam.id)) {
-                this.cameras.set(cam.id, cam);
+            if (!this._cameras.has(cam.id)) {
+                this._cameras.set(cam.id, cam);
             }
         }
-        frameUpdate(delta) {
-            this.preUpdate.raiseEvent(delta);
-            this.cameras.forEach(cam => {
-                this.render.setCamera(cam);
-                this.layers.getlayers().forEach(layer => {
-                    if (layer.insCount == 0)
-                        return;
-                    let commands = layer.getSortedinsArr(cam);
-                    this.render.render(cam, commands);
-                    // this.render.renderLayers(cam, layer)
-                });
-            });
-        }
-        traverseMeshinStance(handler) {
-        }
+        get cameras() { return this._cameras; }
         createChild() {
             let trans = new Entity();
             this.root.addChild(trans);
@@ -7136,22 +6824,36 @@
         UniformTypeEnum["FLOAT_VEC2"] = "FLOAT_VEC2";
         UniformTypeEnum["FLOAT_VEC3"] = "FLOAT_VEC3";
         UniformTypeEnum["FLOAT_VEC4"] = "FLOAT_VEC4";
-        UniformTypeEnum["INT"] = "INT";
         UniformTypeEnum["BOOL"] = "BOOL";
-        UniformTypeEnum["INT_VEC2"] = "INT_VEC2";
         UniformTypeEnum["BOOL_VEC2"] = "BOOL_VEC2";
-        UniformTypeEnum["INT_VEC3"] = "INT_VEC3";
         UniformTypeEnum["BOOL_VEC3"] = "BOOL_VEC3";
-        UniformTypeEnum["INT_VEC4"] = "INT_VEC4";
         UniformTypeEnum["BOOL_VEC4"] = "BOOL_VEC4";
+        UniformTypeEnum["INT"] = "INT";
+        UniformTypeEnum["INT_VEC2"] = "INT_VEC2";
+        UniformTypeEnum["INT_VEC3"] = "INT_VEC3";
+        UniformTypeEnum["INT_VEC4"] = "INT_VEC4";
         UniformTypeEnum["FLOAT_MAT2"] = "FLOAT_MAT2";
         UniformTypeEnum["FLOAT_MAT3"] = "FLOAT_MAT3";
         UniformTypeEnum["FLOAT_MAT4"] = "FLOAT_MAT4";
-        UniformTypeEnum["FLOAT_ARRAY"] = "FLOAT_ARRAY";
-        UniformTypeEnum["BOOL_ARRAY"] = "BOOL_ARRAY";
-        UniformTypeEnum["INT_ARRAY"] = "INT_ARRAY";
         UniformTypeEnum["SAMPLER_2D"] = "SAMPLER_2D";
         UniformTypeEnum["SAMPLER_CUBE"] = "SAMPLER_CUBE";
+        UniformTypeEnum["FLOAT_ARRAY"] = "FLOAT";
+        UniformTypeEnum["FLOAT_VEC2_ARRAY"] = "FLOAT_VEC2_ARRAY";
+        UniformTypeEnum["FLOAT_VEC3_ARRAY"] = "FLOAT_VEC3_ARRAY";
+        UniformTypeEnum["FLOAT_VEC4_ARRAY"] = "FLOAT_VEC4_ARRAY";
+        UniformTypeEnum["BOOL_ARRAY"] = "BOOL_ARRAY";
+        UniformTypeEnum["BOOL_VEC2_ARRAY"] = "BOOL_VEC2_ARRAY";
+        UniformTypeEnum["BOOL_VEC3_ARRAY"] = "BOOL_VEC3_ARRAY";
+        UniformTypeEnum["BOOL_VEC4_ARRAY"] = "BOOL_VEC4_ARRAY";
+        UniformTypeEnum["INT_ARRAY"] = "INT_ARRAY";
+        UniformTypeEnum["INT_VEC2_ARRAY"] = "INT_VEC2_ARRAY";
+        UniformTypeEnum["INT_VEC3_ARRAY"] = "INT_VEC3_ARRAY";
+        UniformTypeEnum["INT_VEC4_ARRAY"] = "INT_VEC4_ARRAY";
+        UniformTypeEnum["FLOAT_MAT2_ARRAY"] = "FLOAT_MAT2_ARRAY";
+        UniformTypeEnum["FLOAT_MAT3_ARRAY"] = "FLOAT_MAT3_ARRAY";
+        UniformTypeEnum["FLOAT_MAT4_ARRAY"] = "FLOAT_MAT4_ARRAY";
+        UniformTypeEnum["SAMPLER_2D_ARRAY"] = "SAMPLER_2D_ARRAY";
+        UniformTypeEnum["SAMPLER_CUBE_ARRAY"] = "SAMPLER_CUBE_ARRAY";
     })(UniformTypeEnum || (UniformTypeEnum = {}));
     (function (UniformTypeEnum) {
         const gltypeToUniformType = {};
@@ -7174,8 +6876,33 @@
             gltypeToUniformType[GlConstants.SAMPLER_2D] = UniformTypeEnum.SAMPLER_2D;
             gltypeToUniformType[GlConstants.SAMPLER_CUBE] = UniformTypeEnum.SAMPLER_CUBE;
         }
-        function fromGlType(type) {
-            return gltypeToUniformType[type];
+        const gltypeArrayToUniformType = {};
+        {
+            gltypeArrayToUniformType[GlConstants.FLOAT] = UniformTypeEnum.FLOAT_ARRAY;
+            gltypeArrayToUniformType[GlConstants.FLOAT_VEC2] = UniformTypeEnum.FLOAT_VEC2_ARRAY;
+            gltypeArrayToUniformType[GlConstants.FLOAT_VEC3] = UniformTypeEnum.FLOAT_VEC3_ARRAY;
+            gltypeArrayToUniformType[GlConstants.FLOAT_VEC4] = UniformTypeEnum.FLOAT_VEC4_ARRAY;
+            gltypeArrayToUniformType[GlConstants.INT] = UniformTypeEnum.INT_ARRAY;
+            gltypeArrayToUniformType[GlConstants.INT_VEC2] = UniformTypeEnum.INT_VEC2_ARRAY;
+            gltypeArrayToUniformType[GlConstants.INT_VEC3] = UniformTypeEnum.INT_VEC3_ARRAY;
+            gltypeArrayToUniformType[GlConstants.INT_VEC4] = UniformTypeEnum.INT_VEC4_ARRAY;
+            gltypeArrayToUniformType[GlConstants.BOOL] = UniformTypeEnum.BOOL_ARRAY;
+            gltypeArrayToUniformType[GlConstants.BOOL_VEC2] = UniformTypeEnum.BOOL_VEC2_ARRAY;
+            gltypeArrayToUniformType[GlConstants.BOOL_VEC3] = UniformTypeEnum.BOOL_VEC3_ARRAY;
+            gltypeArrayToUniformType[GlConstants.BOOL_VEC4] = UniformTypeEnum.BOOL_VEC4_ARRAY;
+            gltypeArrayToUniformType[GlConstants.FLOAT_MAT2] = UniformTypeEnum.FLOAT_MAT2_ARRAY;
+            gltypeArrayToUniformType[GlConstants.FLOAT_MAT3] = UniformTypeEnum.FLOAT_MAT3_ARRAY;
+            gltypeArrayToUniformType[GlConstants.FLOAT_MAT4] = UniformTypeEnum.FLOAT_MAT4_ARRAY;
+            gltypeArrayToUniformType[GlConstants.SAMPLER_2D] = UniformTypeEnum.SAMPLER_2D_ARRAY;
+            gltypeArrayToUniformType[GlConstants.SAMPLER_CUBE] = UniformTypeEnum.SAMPLER_CUBE_ARRAY;
+        }
+        function fromGlType(type, beArray = false) {
+            if (beArray) {
+                return gltypeArrayToUniformType[type];
+            }
+            else {
+                return gltypeToUniformType[type];
+            }
         }
         UniformTypeEnum.fromGlType = fromGlType;
     })(UniformTypeEnum || (UniformTypeEnum = {}));
@@ -7429,12 +7156,15 @@
             this.uniformSetter[UniformTypeEnum.FLOAT_MAT2] = (uniform, value) => {
                 gl.uniformMatrix2fv(uniform.location, false, value);
             };
+            this.uniformSetter[UniformTypeEnum.FLOAT_MAT2_ARRAY] = this.uniformSetter[UniformTypeEnum.FLOAT_MAT2];
             this.uniformSetter[UniformTypeEnum.FLOAT_MAT3] = (uniform, value) => {
                 gl.uniformMatrix3fv(uniform.location, false, value);
             };
+            this.uniformSetter[UniformTypeEnum.FLOAT_MAT3_ARRAY] = this.uniformSetter[UniformTypeEnum.FLOAT_MAT3];
             this.uniformSetter[UniformTypeEnum.FLOAT_MAT4] = (uniform, value) => {
                 gl.uniformMatrix4fv(uniform.location, false, value);
             };
+            this.uniformSetter[UniformTypeEnum.FLOAT_MAT4_ARRAY] = this.uniformSetter[UniformTypeEnum.FLOAT_MAT4];
             this.uniformSetter[UniformTypeEnum.FLOAT_ARRAY] = (uniform, value) => {
                 gl.uniform1fv(uniform.location, value);
             };
@@ -7469,18 +7199,7 @@
         //--------------------------------------uniform
         getUniformTypeFromGLtype(gltype, beArray) {
             let gl = this.gl;
-            if (beArray) {
-                if (gltype == gl.FLOAT) {
-                    return UniformTypeEnum.FLOAT_ARRAY;
-                }
-                else if (gltype == gl.BOOL) {
-                    return UniformTypeEnum.BOOL_ARRAY;
-                }
-                else if (gltype == gl.INT) {
-                    return UniformTypeEnum.INT;
-                }
-            }
-            let type = UniformTypeEnum.fromGlType(gltype);
+            let type = UniformTypeEnum.fromGlType(gltype, beArray);
             if (type == null) {
                 console.error("unhandle uniform GLtype:", gltype);
             }
@@ -7498,7 +7217,6 @@
                 let shader = gl.createProgram();
                 gl.attachShader(shader, vsshader);
                 gl.attachShader(shader, fsshader);
-                let attributes = this.preSetAttributeLocation(gl, shader, definition.attributes);
                 gl.linkProgram(shader);
                 let check = gl.getProgramParameter(shader, gl.LINK_STATUS);
                 if (check == false) {
@@ -7508,6 +7226,8 @@
                     return null;
                 }
                 else {
+                    let attributes = this.preSetAttributeLocation(gl, shader, definition.attributes);
+                    gl.linkProgram(shader);
                     let uniformDic = this.getUniformsInfo(gl, shader);
                     return { shader, attributes, uniforms: uniformDic };
                 }
@@ -7589,6 +7309,9 @@
                     uniformDic[name] = newUniformElemt;
                     newUniformElemt.beTexture = false;
                     newUniformElemt.setter = this.uniformSetter[uniformtype];
+                    if (newUniformElemt.setter == null) {
+                        console.error("cannot find uniform setter!");
+                    }
                 }
             }
             sampleArr.forEach((item, index) => {
@@ -7796,19 +7519,22 @@
             let indexBuffer = vertexArray.indexBuffer;
             if (indexBuffer) {
                 if (instanceCount != 0) {
-                    this.gl.drawElementsInstanced(vertexArray.primitiveType, vertexArray.primitveCount, indexBuffer.indexDatatype, vertexArray.primitiveOffset, instanceCount);
+                    this.gl.drawElementsInstanced(vertexArray.primitiveType, vertexArray.primitveCount, indexBuffer.indexDatatype, vertexArray.primitiveByteOffset, instanceCount);
                 }
                 else {
-                    this.gl.drawElements(vertexArray.primitiveType, vertexArray.primitveCount, indexBuffer.indexDatatype, vertexArray.primitiveOffset);
+                    this.gl.drawElements(vertexArray.primitiveType, vertexArray.primitveCount, indexBuffer.indexDatatype, vertexArray.primitiveByteOffset);
                 }
             }
             else {
                 if (instanceCount != 0) {
-                    this.gl.drawArraysInstanced(vertexArray.primitiveType, vertexArray.primitiveOffset, vertexArray.primitveCount, instanceCount);
+                    this.gl.drawArraysInstanced(vertexArray.primitiveType, vertexArray.primitiveByteOffset, vertexArray.primitveCount, instanceCount);
                 }
                 else {
-                    this.gl.drawArrays(vertexArray.primitiveType, vertexArray.primitiveOffset, vertexArray.primitveCount);
+                    this.gl.drawArrays(vertexArray.primitiveType, vertexArray.primitiveByteOffset, vertexArray.primitveCount);
                 }
+            }
+            if (this.bindingVao != null) {
+                vertexArray.unbind();
             }
         }
     }
@@ -9447,7 +9173,7 @@
     //# sourceMappingURL=ShaderProgam.js.map
 
     /* eslint-disable @typescript-eslint/camelcase */
-    var Private$5;
+    var Private$3;
     (function (Private) {
         Private.datatypeToGlsl = {};
         {
@@ -9470,7 +9196,7 @@
             Private.datatypeToGlsl[UniformTypeEnum.SAMPLER_CUBE] = "samplerCube";
         }
         Private.autoUniformDic = {};
-    })(Private$5 || (Private$5 = {}));
+    })(Private$3 || (Private$3 = {}));
     class AutoUniforms {
         static containAuto(unfiorm) {
             return this.autoUniformDic[unfiorm] != null;
@@ -9483,7 +9209,7 @@
             if (node == null) {
                 return null;
             }
-            let declaration = "uniform " + Private$5.datatypeToGlsl[node.datatype] + " " + name;
+            let declaration = "uniform " + Private$3.datatypeToGlsl[node.datatype] + " " + name;
             if (node.size === 1) {
                 declaration += ";";
             }
@@ -9574,33 +9300,28 @@
                 return uniformState.curCamera.far;
             },
         },
+        czm_boneMatrices: {
+            size: 110,
+            datatype: UniformTypeEnum.FLOAT_MAT4,
+            getValue: (uniformState) => {
+                return uniformState.boneMatrices;
+            }
+        }
     };
     //# sourceMappingURL=AutoUniform.js.map
 
-    var Private$6;
+    var Private$4;
     (function (Private) {
         Private.sortId = 0;
-    })(Private$6 || (Private$6 = {}));
+    })(Private$4 || (Private$4 = {}));
     class Shader extends Asset {
         constructor(options) {
             super();
-            this._autoUniforms = [];
-            this.sortId = Private$6.sortId++;
+            this._instances = new Map();
+            this.sortId = Private$4.sortId++;
             this.vsStr = options.vsStr;
             this.fsStr = options.fsStr;
             this.attributes = options.attributes;
-        }
-        get autoUniforms() { return this._autoUniforms; }
-        get glShader() { return this._shader; }
-        ;
-        set glShader(shader) {
-            if (this._shader != shader) {
-                if (this._shader) {
-                    this._shader.destroy();
-                }
-                this._shader = shader;
-                this.onDirty.raiseEvent();
-            }
         }
         get layer() { return this._layer; }
         setLayerIndex(layer, queue = 0) {
@@ -9613,28 +9334,11 @@
         }
         get layerIndex() { return this._layerIndex; }
         ;
-        bind(device) {
-            if (this._shader == null) {
-                let newShader = new ShaderProgram({ context: device, attributes: this.attributes, vsStr: this.vsStr, fsStr: this.fsStr });
-                this._shader = newShader;
-                this._autoUniforms = [];
-                Object.keys(newShader.uniforms).forEach(uniform => {
-                    if (AutoUniforms.containAuto(uniform)) {
-                        this._autoUniforms.push(uniform);
-                    }
-                });
+        getInstance(bucketId) {
+            if (!this._instances.has(bucketId)) {
+                this._instances.set(bucketId, new ShaderInstance(ShaderBucket.packShaderStr(bucketId, this.vsStr), ShaderBucket.packShaderStr(bucketId, this.fsStr), this.attributes));
             }
-            this._shader.bind();
-        }
-        bindManulUniforms(device, uniforms) {
-            this._shader.bindUniforms(device, uniforms);
-        }
-        bindAutoUniforms(device, uniformState) {
-            let uniforms = {};
-            this._autoUniforms.forEach(item => {
-                uniforms[item] = AutoUniforms.getAutoUniformValue(item, uniformState);
-            });
-            this._shader.bindUniforms(device, uniforms);
+            return this._instances.get(bucketId);
         }
         unbind() {
             var _a;
@@ -9645,7 +9349,69 @@
             (_a = this._shader) === null || _a === void 0 ? void 0 : _a.destroy();
         }
     }
+    var ShaderBucket;
+    (function (ShaderBucket) {
+        ShaderBucket[ShaderBucket["SKIN"] = 1] = "SKIN";
+        ShaderBucket[ShaderBucket["FOG"] = 2] = "FOG";
+    })(ShaderBucket || (ShaderBucket = {}));
+    (function (ShaderBucket) {
+        ShaderBucket.packShaderStr = (buket, shaderStr) => {
+            let str = "";
+            if (buket && ShaderBucket.SKIN) {
+                str = "#define SKIN \n" + str;
+            }
+            if (buket && ShaderBucket.FOG) {
+                str = "#define FOG \n" + str;
+            }
+            return str + shaderStr;
+        };
+    })(ShaderBucket || (ShaderBucket = {}));
+    class ShaderInstance {
+        constructor(vsStr, fsStr, attributes) {
+            this.create = (device) => { };
+            this.create = (device) => {
+                let program = new ShaderProgram({ context: device, attributes, vsStr, fsStr });
+                let autouniforms = [];
+                Object.keys(program.uniforms).forEach(uniform => {
+                    if (AutoUniforms.containAuto(uniform)) {
+                        autouniforms.push(uniform);
+                    }
+                });
+                this.program = program;
+                this.autouniforms = autouniforms;
+            };
+        }
+        bind(device) {
+            if (this.program == null) {
+                this.create(device);
+            }
+            this.program.bind();
+        }
+        bindManulUniforms(device, uniforms) {
+            this.program.bindUniforms(device, uniforms);
+        }
+        bindAutoUniforms(device, uniformState) {
+            let uniforms = {};
+            this.autouniforms.forEach(item => {
+                uniforms[item] = AutoUniforms.getAutoUniformValue(item, uniformState);
+            });
+            this.program.bindUniforms(device, uniforms);
+        }
+    }
     //# sourceMappingURL=Shader.js.map
+
+    /**
+     * 渲染的层级(从小到大绘制)
+     */
+    var RenderLayerEnum;
+    (function (RenderLayerEnum) {
+        RenderLayerEnum[RenderLayerEnum["Background"] = 1000] = "Background";
+        RenderLayerEnum[RenderLayerEnum["Geometry"] = 2000] = "Geometry";
+        RenderLayerEnum[RenderLayerEnum["AlphaTest"] = 2450] = "AlphaTest";
+        RenderLayerEnum[RenderLayerEnum["Transparent"] = 3000] = "Transparent";
+        RenderLayerEnum[RenderLayerEnum["Overlay"] = 4000] = "Overlay";
+    })(RenderLayerEnum || (RenderLayerEnum = {}));
+    //# sourceMappingURL=RenderLayer.js.map
 
     class RenderState {
         constructor() {
@@ -9792,10 +9558,10 @@
     }
     //# sourceMappingURL=AssetReference.js.map
 
-    var Private$7;
+    var Private$5;
     (function (Private) {
         Private.id = 0;
-    })(Private$7 || (Private$7 = {}));
+    })(Private$5 || (Private$5 = {}));
     class Material extends Asset {
         constructor(options) {
             super();
@@ -9804,7 +9570,7 @@
             this.shaderRef = new AssetReference();
             this.renderState = new RenderState();
             this.name = options === null || options === void 0 ? void 0 : options.name;
-            this._sortId = Private$7.id++;
+            this._sortId = Private$5.id++;
             if ((options === null || options === void 0 ? void 0 : options.shaderOption) != null) {
                 if ((options === null || options === void 0 ? void 0 : options.shaderOption) instanceof Shader) {
                     this.shader = options.shaderOption;
@@ -9842,7 +9608,222 @@
     }
     //# sourceMappingURL=Material.js.map
 
+    var Private$6;
+    (function (Private) {
+        Private.color_2d = new Shader({
+            attributes: {
+                POSITION: VertexAttEnum.POSITION
+            },
+            vsStr: `attribute vec3 POSITION;
+        void main()
+        {
+            highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
+            gl_Position = tmplet_1;\
+        }`,
+            fsStr: `uniform highp vec4 MainColor;
+        void main()
+        {
+            gl_FragData[0] = MainColor;
+        }`
+        });
+        Private.tex_2d = new Shader({
+            attributes: {
+                POSITION: VertexAttEnum.POSITION,
+                TEXCOORD_0: VertexAttEnum.TEXCOORD_0
+            },
+            vsStr: `attribute vec3 POSITION;
+          attribute vec2 TEXCOORD_0;
+          varying mediump vec2 xlv_TEXCOORD0;
+          void main()
+          {
+              highp vec4 tmplet_1=vec4(POSITION.xyz*2.0,1.0);
+              xlv_TEXCOORD0 = TEXCOORD_0.xy;
+              gl_Position = tmplet_1;
+          }`,
+            fsStr: `uniform highp vec4 MainColor;
+          uniform lowp sampler2D MainTex;
+          varying mediump vec2 xlv_TEXCOORD0;
+          void main()
+          {
+              gl_FragData[0] = texture2D(MainTex, xlv_TEXCOORD0);
+          }`
+        });
+        Private.color_3d = new Shader({
+            attributes: {
+                POSITION: VertexAttEnum.POSITION,
+                TEXCOORD_0: VertexAttEnum.TEXCOORD_0,
+            },
+            vsStr: `attribute vec3 POSITION;
+        uniform highp mat4 czm_modelViewp;
+        void main()
+        {
+            highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);
+            gl_Position = czm_modelViewp * tmplet_1;
+        }`,
+            fsStr: `uniform highp vec4 MainColor;
+        void main()
+        {
+            gl_FragData[0] = MainColor;
+        }`
+        });
+        Private.tex_3d = new Shader({
+            attributes: {
+                POSITION: VertexAttEnum.POSITION,
+                TEXCOORD_0: VertexAttEnum.TEXCOORD_0,
+            },
+            vsStr: `attribute vec3 POSITION;
+        attribute vec3 TEXCOORD_0;
+        uniform highp mat4 czm_modelViewp;
+        varying mediump vec2 xlv_TEXCOORD0;
+        void main()
+        {
+            highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);
+            xlv_TEXCOORD0 = TEXCOORD_0.xy;
+            gl_Position = czm_modelViewp * tmplet_1;
+        }`,
+            fsStr: `uniform highp vec4 MainColor;
+        varying mediump vec2 xlv_TEXCOORD0;
+        uniform lowp sampler2D MainTex;
+        void main()
+        {
+            gl_FragData[0] = texture2D(MainTex, xlv_TEXCOORD0)*MainColor;
+        }`
+        });
+    })(Private$6 || (Private$6 = {}));
+    class DefaultShader {
+        static get color_2d() { return Private$6.color_2d; }
+        ;
+        static get color_3d() { return Private$6.color_3d; }
+        ;
+        static get tex_2d() { return Private$6.tex_2d; }
+        ;
+        static get tex_3d() { return Private$6.tex_3d; }
+        ;
+    }
+    //# sourceMappingURL=DefaultShader.js.map
+
+    class MemoryTexture extends BaseTexture {
+        constructor(options) {
+            var _a;
+            super();
+            this.arrayBufferView = options.arrayBufferView;
+            this.width = options.width;
+            this.height = options.height;
+            this._pixelFormat = options.pixelFormat || PixelFormatEnum.RGBA;
+            this._pixelDatatype = options.pixelDatatype || PixelDatatypeEnum.UNSIGNED_BYTE;
+            this._preMultiplyAlpha = options.preMultiplyAlpha || this.pixelFormat === PixelFormatEnum.RGB || this.pixelFormat === PixelFormatEnum.LUMINANCE;
+            this._flipY = (_a = options.flipY) !== null && _a !== void 0 ? _a : true;
+            this.sampler = new Sampler(options.sampler);
+        }
+        create(device) {
+            if (this.arrayBufferView) {
+                return Texture.fromTypedArray({
+                    context: device,
+                    width: this.width,
+                    height: this.height,
+                    arrayBufferView: this.arrayBufferView,
+                    pixelFormat: this._pixelFormat,
+                    pixelDatatype: this._pixelDatatype,
+                    sampler: this.sampler
+                });
+            }
+            return null;
+        }
+        refresh(device) {
+            this.graphicAsset.update();
+        }
+        set pixelFormat(format) { this._pixelFormat = format; }
+        ;
+        set pixelDatatype(type) { this._pixelDatatype = type; }
+        ;
+        set preMultiplyAlpha(value) { this._preMultiplyAlpha = value; }
+        set flipY(value) { this._flipY = value; }
+    }
+    //# sourceMappingURL=MemoryTexture.js.map
+
+    var Private$7;
+    (function (Private) {
+        Private.white = new MemoryTexture({
+            width: 1,
+            height: 1,
+            arrayBufferView: new Uint8Array([255, 255, 255, 255])
+        });
+        Private.black = new MemoryTexture({
+            width: 1,
+            height: 1,
+            arrayBufferView: new Uint8Array([0, 0, 0, 255])
+        });
+        Private.grid = new MemoryTexture({
+            width: 256,
+            height: 256,
+            arrayBufferView: getGridTexData(256, 256),
+        });
+        function getGridTexData(width, height) {
+            let data = new Uint8Array(width * width * 4);
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    let seek = (y * width + x) * 4;
+                    if ((x - width * 0.5) * (y - height * 0.5) > 0) {
+                        data[seek] = 0;
+                        data[seek + 1] = 0;
+                        data[seek + 2] = 0;
+                        data[seek + 3] = 255;
+                    }
+                    else {
+                        data[seek] = 255;
+                        data[seek + 1] = 255;
+                        data[seek + 2] = 255;
+                        data[seek + 3] = 255;
+                    }
+                }
+            }
+            return data;
+        }
+    })(Private$7 || (Private$7 = {}));
+    class DefaultTexture {
+        static get white() { return Private$7.white; }
+        ;
+        static get black() { return Private$7.black; }
+        ;
+        static get grid() { return Private$7.grid; }
+        ;
+    }
+    //# sourceMappingURL=DefaultTexture.js.map
+
     var Private$8;
+    (function (Private) {
+        Private.color_2d = new Material({ name: "color_2d", shaderOption: DefaultShader.color_2d, uniformParameters: { MainColor: Color.create(1, 1, 1, 1) } });
+        Private.color_3d = new Material({ name: "color_3d", shaderOption: DefaultShader.color_3d, uniformParameters: { MainColor: Color.create(1, 0, 0, 1) } });
+        Private.tex_2d = new Material({
+            name: "tex_2d",
+            shaderOption: DefaultShader.tex_2d,
+            uniformParameters: {
+                MainColor: Color.create(1, 1, 1, 1),
+                MainTex: DefaultTexture.white
+            }
+        });
+        Private.tex_3d = new Material({
+            name: "tex_3d",
+            shaderOption: DefaultShader.tex_3d,
+            uniformParameters: {
+                MainColor: Color.create(1, 1, 1, 1),
+                MainTex: DefaultTexture.white
+            }
+        });
+    })(Private$8 || (Private$8 = {}));
+    class DefaultMaterial {
+        static get color_2d() { return Private$8.color_2d; }
+        ;
+        static get color_3d() { return Private$8.color_3d; }
+        ;
+        static get tex_2d() { return Private$8.tex_2d; }
+        ;
+        static get tex_3d() { return Private$8.tex_3d; }
+        ;
+    }
+    //# sourceMappingURL=DefaultMaterial.js.map
+
+    var Private$9;
     (function (Private) {
         Private.defmat = new Material({
             uniformParameters: {
@@ -9853,26 +9834,50 @@
                     POSITION: VertexAttEnum.POSITION,
                     TEXCOORD_0: VertexAttEnum.TEXCOORD_0,
                 },
-                vsStr: `attribute vec3 POSITION;
+                vsStr: `precision highp float;
             attribute vec3 TEXCOORD_0;
-            uniform highp mat4 czm_modelViewp;
+            uniform mat4 czm_modelViewp;
             varying mediump vec2 xlv_TEXCOORD0;
+            #ifdef SKIN
+            attribute vec4 skinIndex;
+            attribute vec4 skinWeight;
+            uniform mat4 czm_boneMatrices[40];
+            vec4 calcVertex(vec4 srcVertex,vec4 blendIndex,vec4 blendWeight)
+            {
+                int i = int(blendIndex.x);  
+                int i2 =int(blendIndex.y);
+                int i3 =int(blendIndex.z);
+                int i4 =int(blendIndex.w);
+                
+                mat4 mat = czm_boneMatrices[i]*blendWeight.x 
+                        + czm_boneMatrices[i2]*blendWeight.y 
+                        + czm_boneMatrices[i3]*blendWeight.z 
+                        + czm_boneMatrices[i4]*blendWeight.w;
+                return mat* srcVertex;
+            }
+            #endif
+            attribute vec3 POSITION;
             void main()
             {
-                highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);
+                vec4 position=vec4(POSITION.xyz,1.0);
+                #ifdef SKIN
+                position =calcVertex(position,skinIndex,skinWeight);
+                #endif
+
                 xlv_TEXCOORD0 = TEXCOORD_0.xy;
-                gl_Position = czm_modelViewp * tmplet_1;
+                gl_Position = czm_modelViewp * position;
             }`,
-                fsStr: `uniform highp vec4 MainColor;
-            varying mediump vec2 xlv_TEXCOORD0;
-            uniform lowp sampler2D MainTex;
+                fsStr: `precision highp float;
+            uniform vec4 MainColor;
+            varying vec2 xlv_TEXCOORD0;
+            uniform sampler2D MainTex;
             void main()
             {
                 gl_FragData[0] = texture2D(MainTex, xlv_TEXCOORD0)*MainColor;
             }`
             }
         });
-    })(Private$8 || (Private$8 = {}));
+    })(Private$9 || (Private$9 = {}));
     class ParseMaterialNode {
         static parse(index, gltf) {
             var _a, _b;
@@ -9885,10 +9890,10 @@
                 //     return Promise.resolve(null);
                 // }
                 let node = gltf.materials[index];
-                let mat = new Material();
-                mat.setUniformParameter("MainColor", Color.create(1.0, 1.0, 1.0, 1));
-                mat.shader = Private$8.defmat.shader;
                 if (((_a = node.pbrMetallicRoughness) === null || _a === void 0 ? void 0 : _a.baseColorTexture) != null) {
+                    let mat = new Material();
+                    mat.setUniformParameter("MainColor", Color.create(1.0, 1.0, 1.0, 1));
+                    mat.shader = Private$9.defmat.shader;
                     return ParseTextureNode.parse((_b = node.pbrMetallicRoughness) === null || _b === void 0 ? void 0 : _b.baseColorTexture.index, gltf)
                         .then(tex => {
                         mat.setUniformParameter("MainTex", tex);
@@ -9896,6 +9901,7 @@
                     });
                 }
                 else {
+                    let mat = DefaultMaterial.color_3d;
                     return Promise.resolve(mat);
                 }
                 //     let baseVs =
@@ -10126,12 +10132,6 @@
         }
         TypedArray.glType = glType;
     })(TypedArray || (TypedArray = {}));
-    var GlType;
-    (function (GlType) {
-        function bytesPerElement() {
-        }
-        GlType.bytesPerElement = bytesPerElement;
-    })(GlType || (GlType = {}));
     //# sourceMappingURL=TypedArray.js.map
 
     class IndexBuffer extends Buffer {
@@ -10167,8 +10167,26 @@
     }
     //# sourceMappingURL=VertexBuffer.js.map
 
+    var Accessor;
+    (function (Accessor) {
+        function getTypedData(data) {
+            let result = [];
+            let { typedArray, componentSize, bytesStride, bytesOffset } = data;
+            let startOffset = bytesOffset / typedArray.BYTES_PER_ELEMENT;
+            let elementOffset = 0;
+            if (bytesStride > 0) {
+                elementOffset = bytesStride / typedArray.BYTES_PER_ELEMENT;
+            }
+            for (let i = 0; i < data.count; i++) {
+                let start = startOffset + i * componentSize + i * elementOffset;
+                result.push(typedArray.subarray(start, componentSize + start));
+            }
+            return result;
+        }
+        Accessor.getTypedData = getTypedData;
+    })(Accessor || (Accessor = {}));
     class ParseAccessorNode {
-        static parse(index, gltf, dataInfo) {
+        static parse(index, gltf, bufferOptions) {
             let arrayInfo = {};
             // return new Promise<AccessorNode>((resolve,reject)=>{
             let accessor = gltf.accessors[index];
@@ -10208,9 +10226,9 @@
                         });
                     }
                     arrayInfo.typedArray = typedArray;
-                    if (dataInfo != null || value.target != null) {
-                        let context = dataInfo.context;
-                        let target = dataInfo.target || value.target;
+                    if (bufferOptions != null || value.target != null) {
+                        let context = bufferOptions.context;
+                        let target = bufferOptions.target || value.target;
                         switch (target) {
                             case BufferTargetEnum.ARRAY_BUFFER:
                                 if (canUseCache) {
@@ -10522,7 +10540,7 @@
         constructor(options) {
             var _a, _b;
             this._vertexAttributes = {};
-            this._primitiveOffset = 0;
+            this._primitiveByteOffset = 0;
             this._context = options.context;
             // this.vertexAttributes = options.vertexAttributes.map(item => new VertexAttribute(options.context, item));
             options.vertexAttributes.forEach(item => {
@@ -10530,7 +10548,8 @@
             });
             this._indexbuffer = options.indexBuffer;
             this._primitiveType = (_a = options.primitiveType) !== null && _a !== void 0 ? _a : PrimitiveTypeEnum.TRIANGLES;
-            this._primitiveOffset = (_b = options.primitiveOffset) !== null && _b !== void 0 ? _b : 0;
+            this._primitiveByteOffset = (_b = options.primitiveByteOffset) !== null && _b !== void 0 ? _b : 0;
+            this._primitiveCount = options.primitiveCount;
             let gl = options.context.gl;
             if (options.context.caps.vertexArrayObject) {
                 this._bind = () => {
@@ -10568,9 +10587,12 @@
         get primitiveType() { return this._primitiveType; }
         set primitiveType(type) { this._primitiveType = type; }
         ;
-        get primitveCount() { var _a, _b; return (_b = (_a = this._indexbuffer) === null || _a === void 0 ? void 0 : _a.numberOfIndices) !== null && _b !== void 0 ? _b : this.vertexcount; }
-        get primitiveOffset() { return this._primitiveOffset; }
-        set primitiveOffset(offset) { var _a, _b; this._primitiveOffset = ((_b = (_a = this._indexbuffer) === null || _a === void 0 ? void 0 : _a.bytesPerIndex) !== null && _b !== void 0 ? _b : 1) * offset; }
+        set primitiveCount(count) { this._primitiveCount = count; }
+        get primitveCount() { var _a, _b, _c; return (_c = (_a = this._primitiveCount) !== null && _a !== void 0 ? _a : (_b = this._indexbuffer) === null || _b === void 0 ? void 0 : _b.numberOfIndices) !== null && _c !== void 0 ? _c : this.vertexcount; }
+        get primitiveByteOffset() { return this._primitiveByteOffset; }
+        set primitiveByteOffset(offset) {
+            this._primitiveByteOffset = offset;
+        }
         hasAttribute(att) {
             return this._vertexAttributes[att] != null;
         }
@@ -10787,7 +10809,8 @@
                         console.error("index data type not Uint16Array or Uint32Array!");
                     }
                     vaoOptions.indexBuffer = (_a = arrayInfo.buffer) !== null && _a !== void 0 ? _a : new IndexBuffer({ context, typedArray: arrayInfo.typedArray });
-                    vaoOptions.primitiveOffset = arrayInfo.bytesOffset;
+                    vaoOptions.primitiveByteOffset = arrayInfo.bytesOffset;
+                    vaoOptions.primitiveCount = arrayInfo.count;
                 });
                 taskAtts.push(indexTask);
             }
@@ -10801,10 +10824,50 @@
     }
     //# sourceMappingURL=ParseMeshNode.js.map
 
+    class Skin extends Asset {
+        // rootModelName: string;
+        destroy() { }
+    }
+    //# sourceMappingURL=Skin.js.map
+
+    var GlTF;
+    (function (GlTF) {
+        function getNodeName(index, gltf) {
+            return gltf.nodes[index].name || "node" + index;
+        }
+        GlTF.getNodeName = getNodeName;
+    })(GlTF || (GlTF = {}));
+    //# sourceMappingURL=util.js.map
+
+    class ParseSkinNode {
+        static parse(index, nodeName, root, gltf) {
+            let skin = new Skin();
+            skin.rootBoneName = nodeName;
+            skin.potentialSearchRoot = root.name; //动画的骨骼节点不一定是skin节点的child
+            let skinData = gltf.skins[index];
+            skin.boneNames = skinData.joints.map(item => {
+                return GlTF.getNodeName(item, gltf);
+            });
+            return ParseAccessorNode.parse(skinData.inverseBindMatrices, gltf)
+                .then((res) => {
+                // skin.inverseBindMatrices = skinData.joints.map((item, index) => {
+                //     let boneMat = Mat4.fromArray(res.typedArray as any, index);
+                //     if (boneMat == null) {
+                //         console.error("cannot get bone inverse mat data!");
+                //     }
+                //     return boneMat;
+                // })
+                skin.inverseBindMatrices = Accessor.getTypedData(res);
+                return skin;
+            });
+        }
+    }
+    //# sourceMappingURL=ParseSkinNode.js.map
+
     class ParseNode {
-        static parse(index, gltf, context) {
+        static parse(index, gltf, root, context) {
             let node = gltf.nodes[index];
-            let name = node.name || "node" + index;
+            let name = GlTF.getNodeName(index, gltf);
             let sceneNode = new Entity(name);
             if (node.matrix) {
                 sceneNode.localMatrix = Mat4.fromNumberArray(node.matrix);
@@ -10824,54 +10887,45 @@
             }
             let allTask = [];
             if (node.mesh != null) {
+                let modelcomp = sceneNode.addComponent("ModelComponent");
                 let task = ParseMeshNode.parse(node.mesh, gltf, context)
                     .then(primitives => {
-                    let modelcomp = sceneNode.addComponent("ModelComponent");
                     let newMesh = new StaticMesh();
                     newMesh.sbuMeshs = primitives.map(item => item.mesh);
                     modelcomp.mesh = newMesh;
                     modelcomp.materials = primitives.map(item => item.material);
                 });
+                if (node.skin != null) {
+                    ParseSkinNode.parse(node.skin, name, root, gltf).then((skin) => {
+                        modelcomp.skin = skin;
+                    });
+                }
                 allTask.push(task);
             }
             if (node.children) {
                 for (let i = 0; i < node.children.length; i++) {
                     let nodeindex = node.children[i];
-                    let childTask = this.parse(nodeindex, gltf, context)
+                    let childTask = this.parse(nodeindex, gltf, root, context)
                         .then(child => {
                         sceneNode.addChild(child);
                     });
                     allTask.push(childTask);
                 }
             }
+            //------------------debug skin
+            // let arr: number[] = [];
+            // gltf.skins.forEach(item => arr = arr.concat(item.joints));
+            // if (arr.indexOf(index) >= 0) {
+            //     let debugNode = new Entity(name);
+            //     let comp = debugNode.addComponent("ModelComponent") as ModelComponent;
+            //     comp.mesh = DefaultMesh.cube;
+            //     comp.material = DefaultMaterial.color_3d;
+            //     debugNode.localScale = Vec3.create(0.1, 0.1, 0.1);
+            //     sceneNode.addChild(debugNode);
+            // }
             return Promise.all(allTask).then(() => {
                 return sceneNode;
             });
-            // if (node.skin != null && node.mesh != null) {
-            //     let nodemeshdata: PrimitiveNode[] = bundle.meshNodeCache[node.mesh];
-            //     let skindata = bundle.skinNodeCache[node.skin];
-            //     for (let key in nodemeshdata) {
-            //         let data = nodemeshdata[key];
-            //         //-----------------------------
-            //         let obj = new GameObject();
-            //         trans.addChild(obj.transform);
-            //         let meshr = obj.addComponent<SkinMeshRender>("SkinMeshRender");
-            //         // let mat=assetMgr.load("resource/mat/diff.mat.json") as Material;
-            //         // meshr.material=mat;
-            //         meshr.mesh = data.mesh;
-            //         meshr.material = data.mat;
-            //         // meshr.joints=skindata.joints;
-            //         for (let i = 0; i < skindata.jointIndexs.length; i++) {
-            //             let trans = bundle.nodeDic[skindata.jointIndexs[i]];
-            //             if (trans == null) {
-            //                 console.error("解析gltf 异常！");
-            //             }
-            //             meshr.joints.push(trans);
-            //         }
-            //         meshr.bindPoses = skindata.inverseBindMat;
-            //         meshr.bindPlayer = bundle.bundleAnimator;
-            //     }
-            // } else
         }
     }
     //# sourceMappingURL=ParseNode.js.map
@@ -10879,16 +10933,13 @@
     class ParseSceneNode {
         static parse(index, gltf, context) {
             let node = gltf.scenes[index];
-            let root = new Entity(node.name);
-            let rootNodes = node.nodes.map(item => {
-                return ParseNode.parse(item, gltf, context);
-            });
-            return Promise.all(rootNodes).then(element => {
-                element.forEach(item => {
-                    root.addChild(item);
+            let root = new Entity(`gltf-scene[${index}]-root`);
+            return Promise.all(node.nodes.map(item => {
+                return ParseNode.parse(item, gltf, root, context)
+                    .then(childNode => {
+                    root.addChild(childNode);
                 });
-                return root;
-            });
+            })).then(() => root);
         }
     }
     //# sourceMappingURL=ParseSceneNode.js.map
@@ -10906,6 +10957,83 @@
         }
     }
     //# sourceMappingURL=Prefab.js.map
+
+    class AnimationClip extends Asset {
+        constructor(name) {
+            super();
+            this.channels = [];
+            this.totalFrame = 0;
+            this.name = name;
+        }
+        destroy() {
+            throw new Error("Method not implemented.");
+        }
+    }
+    AnimationClip.FPS = 30;
+    class AnimationChannel {
+        constructor() {
+            this.keyframes = [];
+            this.values = [];
+        }
+        get startFrame() { return this.keyframes[0]; }
+        ;
+        get endFrame() { return this.keyframes[this.keyframes.length - 1]; }
+        ;
+    }
+    var AnimationSamplerInterpolation$1;
+    (function (AnimationSamplerInterpolation) {
+        /**
+         * The animated values are linearly interpolated between keyframes
+         */
+        AnimationSamplerInterpolation["LINEAR"] = "LINEAR";
+        /**
+         * The animated values remain constant to the output of the first keyframe, until the next keyframe
+         */
+        AnimationSamplerInterpolation["STEP"] = "STEP";
+        /**
+         * The animation's interpolation is computed using a cubic spline with specified tangents
+         */
+        AnimationSamplerInterpolation["CUBICSPLINE"] = "CUBICSPLINE";
+    })(AnimationSamplerInterpolation$1 || (AnimationSamplerInterpolation$1 = {}));
+    //# sourceMappingURL=AnimationClip.js.map
+
+    class ParseAnimationNode {
+        static parse(index, gltf) {
+            let animation = gltf.animations[index];
+            let newAniclip = new AnimationClip(animation.name);
+            let { channels, samplers } = animation;
+            return Promise.all(channels.map(item => {
+                let sampleNode = samplers[item.sampler];
+                return this.parseChannelData(item.target, sampleNode, gltf)
+                    .then((channel) => {
+                    newAniclip.channels.push(channel);
+                    if (channel.endFrame > newAniclip.totalFrame) {
+                        newAniclip.totalFrame = channel.endFrame;
+                    }
+                });
+            })).then(() => { return newAniclip; });
+        }
+        static parseChannelData(channeltarget, sampleNode, gltf) {
+            let chan = new AnimationChannel();
+            chan.targetName = GlTF.getNodeName(channeltarget.node, gltf);
+            chan.propertyName = channeltarget.path;
+            chan.interPolation = sampleNode.interpolation;
+            return Promise.all([
+                ParseAccessorNode.parse(sampleNode.input, gltf),
+                ParseAccessorNode.parse(sampleNode.output, gltf)
+            ]).then(([inputdata, outputdata]) => {
+                let timedata = inputdata.typedArray;
+                // chan.keys=new Float32Array(timedata.length);
+                let keyframes = Accessor.getTypedData(inputdata);
+                for (let i = 0; i < keyframes.length; i++) {
+                    chan.keyframes[i] = (keyframes[i] * AnimationClip.FPS) | 0; //变成frame
+                }
+                chan.values = Accessor.getTypedData(outputdata);
+                return chan;
+            });
+        }
+    }
+    //# sourceMappingURL=ParseAnimationNode.js.map
 
     class GltfNodeCache {
         constructor() {
@@ -10927,14 +11055,20 @@
         }
         load(url) {
             return this.loadAsync(url)
-                .then(gltfJson => {
+                .then((gltfJson) => __awaiter(this, void 0, void 0, function* () {
                 let scene = gltfJson.scene != null ? gltfJson.scene : 0;
-                return ParseSceneNode.parse(scene, gltfJson, this.context).then(scene => {
-                    let rpefab = new Prefab();
-                    rpefab.root = scene;
-                    return rpefab;
-                });
-            });
+                let sceneRoot = yield ParseSceneNode.parse(scene, gltfJson, this.context);
+                if (gltfJson.animations != null) {
+                    let animations = yield Promise.all(gltfJson.animations.map((item, index) => {
+                        return ParseAnimationNode.parse(index, gltfJson);
+                    }));
+                    let comp = sceneRoot.addComponent("Animation");
+                    animations.forEach(item => comp.addAnimationClip(item));
+                }
+                let rpefab = new Prefab();
+                rpefab.root = sceneRoot;
+                return rpefab;
+            }));
         }
         static regExtension(type, extension) {
             this.ExtensionDic[type] = extension;
@@ -11028,34 +11162,6 @@
     LoadGlTF.ExtensionDic = {};
     //# sourceMappingURL=LoadglTF.js.map
 
-    // instance ondirty 触发 layercomposition 对instance 重新分层，重新sort
-    var Private$9;
-    (function (Private) {
-        Private.id = 0;
-    })(Private$9 || (Private$9 = {}));
-    class MeshInstance {
-        constructor() {
-            this.bevisible = true;
-            this.enableCull = false;
-            this.geometryRef = new AssetReference();
-            this.materialRef = new AssetReference();
-            this.onDirty = new EventHandler();
-            this.ondispose = new EventHandler();
-            this.id = Private$9.id++;
-            this.geometryRef.onDirty.addEventListener(() => { this.onDirty.raiseEvent(this); });
-            this.materialRef.onDirty.addEventListener(() => { this.onDirty.raiseEvent(this); });
-        }
-        get worldMat() { var _a; return (_a = this.node) === null || _a === void 0 ? void 0 : _a.worldMatrix; }
-        get geometry() { return this.geometryRef.asset; }
-        set geometry(value) { this.geometryRef.asset = value; this.onDirty.raiseEvent(this); }
-        get bounding() { return this.geometryRef.asset.bounding; }
-        get material() { return this.materialRef.asset; }
-        set material(mat) { this.materialRef.asset = mat; this.onDirty.raiseEvent(this); }
-        dispose() { this.ondispose.raiseEvent(this); }
-        ;
-    }
-    //# sourceMappingURL=MeshInstance.js.map
-
     class AssetReferenceArray {
         constructor() {
             this.assets = [];
@@ -11094,34 +11200,153 @@
     }
     //# sourceMappingURL=AssetReferenceArray.js.map
 
+    var Private$a;
+    (function (Private) {
+        Private.offsetMatrix = Mat4.create();
+    })(Private$a || (Private$a = {}));
+    class SkinInstance {
+        constructor(skin, attachEntity) {
+            this.bones = [];
+            this._boneMatricesViews = [];
+            // applyToAutoUniform(state: UniformState, device: GraphicsDevice) {
+            //     state.boneMatrices = this._boneMatrices;
+            //     state.boneTexture = this._boneTexture;
+            //     state.matrixModel = this.rootBone.worldMatrix;
+            // }
+            this.beInit = false;
+            this.skin = skin;
+            this.attachEntity = attachEntity;
+            // let skinMeshRoot = attachEntity.findInParents((item) => item.getComponent(Animation.name) != null);
+        }
+        init(device) {
+            let { skin, attachEntity } = this;
+            this._boneInverses = [];
+            let searchRoot;
+            this.rootBone = attachEntity.find(item => item.name == skin.rootBoneName);
+            let bones = skin.boneNames.map((boneName, i) => {
+                let bone = attachEntity.find(item => item.name == boneName);
+                if (bone == null) {
+                    if (skin.potentialSearchRoot != null && searchRoot == null) {
+                        searchRoot = attachEntity.findInParents((item) => item.name == skin.potentialSearchRoot);
+                    }
+                    bone = searchRoot === null || searchRoot === void 0 ? void 0 : searchRoot.find(item => item.name == boneName);
+                    if (bone == null) {
+                        console.warn("failed to find bone", boneName, attachEntity);
+                    }
+                }
+                // if (this._boneInverses[i] == null) console.error("cannot get bone inverse mat data!");
+                return bone;
+            });
+            this._boneInverses = skin.inverseBindMatrices;
+            this.bones = bones;
+            // layout (1 matrix = 4 pixels)
+            //      RGBA RGBA RGBA RGBA (=> column1, column2, column3, column4)
+            //  with  8x8  pixel texture max   16 bones * 4 pixels =  (8 * 8)
+            //       16x16 pixel texture max   64 bones * 4 pixels = (16 * 16)
+            //       32x32 pixel texture max  256 bones * 4 pixels = (32 * 32)
+            //       64x64 pixel texture max 1024 bones * 4 pixels = (64 * 64)
+            let size = Math.sqrt(bones.length * 4); // 4 pixels needed for 1 matrix
+            size = ceilPowerOfTwo(size);
+            size = Math.max(size, 4);
+            this._boneMatrices = new Float32Array(size * size * 4); // 4 floats per RGBA pixel
+            if (device.caps.textureFloat) {
+                this._boneTexture = new MemoryTexture({
+                    width: size,
+                    height: size,
+                    arrayBufferView: this._boneMatrices,
+                    pixelFormat: PixelFormatEnum.RGBA,
+                    pixelDatatype: PixelDatatypeEnum.FLOAT
+                });
+            }
+            this.bones.forEach((item, index) => {
+                this._boneMatricesViews[index] = this._boneMatrices.subarray(index * 16, index * 16 + 16);
+            });
+        }
+        // get boneTexture() { this.recomputeBoneData(); return this._boneTexture }
+        // get boneMatrices() { this.recomputeBoneData(); return this._boneMatrices }
+        update(device, state) {
+            if (!this.beInit) {
+                this.init(device);
+                this.beInit = true;
+            }
+            let { bones, rootBone } = this;
+            const { offsetMatrix } = Private$a;
+            let mat = rootBone.worldTolocalMatrix;
+            if (rootBone.beDirty) { //root dirty 全部重新计算
+                for (let i = 0; i < bones.length; i++) {
+                    const matrix = bones[i] ? bones[i].worldMatrix : Mat4.IDENTITY;
+                    Mat4.multiply(matrix, this._boneInverses[i], offsetMatrix);
+                    Mat4.multiply(mat, offsetMatrix, offsetMatrix);
+                    Mat4.toArray(offsetMatrix, this._boneMatrices, i * 16);
+                }
+                if (this._boneTexture) {
+                    this._boneTexture.markDirty();
+                }
+            }
+            else { // 哪个bone dirty了对应matrix就重新计算
+                let beNeedUpdate = false;
+                for (let i = 0; i < bones.length; i++) {
+                    if (bones[i].beDirty) {
+                        beNeedUpdate = true;
+                        const matrix = bones[i] ? bones[i].worldMatrix : Mat4.IDENTITY;
+                        Mat4.multiply(matrix, this._boneInverses[i], offsetMatrix);
+                        Mat4.multiply(mat, offsetMatrix, offsetMatrix);
+                        Mat4.toArray(offsetMatrix, this._boneMatrices, i * 16);
+                    }
+                }
+                if (beNeedUpdate && this._boneTexture) {
+                    this._boneTexture.markDirty();
+                }
+            }
+            state.boneMatrices = this._boneMatrices;
+            state.boneTexture = this._boneTexture;
+            state.matrixModel = this.rootBone.worldMatrix;
+        }
+        destroy() { }
+    }
+    //# sourceMappingURL=SkinInstance.js.map
+
     let ModelComponent = class ModelComponent {
         constructor() {
+            // this._materials.onAssetChange.addEventListener((event) => {
+            //     let { newAsset, index } = event;
+            //     let ins = this._meshinstances[index];
+            //     if (ins == null && this.mesh?.sbuMeshs?.[index] && newAsset) {
+            //         ins = this._meshinstances[index] = new MeshInstance();
+            //         ins.node = this.entity;
+            //         ins.geometry = this.mesh.sbuMeshs[index];
+            //         ins.skin = this._skin.asset;
+            //         this.onMeshinsCountChange.raiseEvent(this);
+            //     }
+            //     if (ins) { ins.material = newAsset; }
+            // });
             this._mesh = new AssetReference();
             this._materials = new AssetReferenceArray();
-            this.meshinstances = [];
+            this._skin = new AssetReference();
             /**
              * meshInstance create Or Delect
              */
-            this.onDirty = new EventHandler();
-            this._materials.onAssetChange.addEventListener((event) => {
-                var _a, _b;
-                let { newAsset, index } = event;
-                let ins = this.meshinstances[index];
-                if (ins == null && ((_b = (_a = this.mesh) === null || _a === void 0 ? void 0 : _a.sbuMeshs) === null || _b === void 0 ? void 0 : _b[index]) && newAsset) {
-                    ins = this.meshinstances[index] = new MeshInstance();
-                    ins.geometry = this.mesh.sbuMeshs[index];
-                    ins.node = this.entity;
-                    this.onDirty.raiseEvent(this);
-                }
-                if (ins) {
-                    ins.material = newAsset;
-                }
-            });
-            this._mesh.onAssetChange.addEventListener((event) => {
+            this.onMeshinsCountChange = new EventHandler();
+            // this._mesh.onAssetChange.addEventListener((event) => {
+            //     let { newAsset, oldAsset } = event;
+            //     for (let index = 0; index < this._meshinstances.length; index++) {
+            //         let element = this._meshinstances[index];
+            //         if (newAsset?.sbuMeshs[index] == null) {
+            //             element.dispose();
+            //             this._meshinstances[index] = null;
+            //         } else {
+            //             element.geometry = newAsset?.sbuMeshs[index];
+            //         }
+            //     }
+            // });
+            this._skin.onAssetChange.addEventListener((event) => {
                 let { newAsset, oldAsset } = event;
-                for (let index = 0; index < this.meshinstances.length; index++) {
-                    let element = this.meshinstances[index];
-                    element.geometry = newAsset === null || newAsset === void 0 ? void 0 : newAsset.sbuMeshs[index];
+                if (this._skinInstance) {
+                    this._skinInstance.destroy();
+                    this._skinInstance = null;
+                }
+                if (newAsset) {
+                    this._skinInstance = new SkinInstance(newAsset, this.entity);
                 }
             });
         }
@@ -11136,7 +11361,10 @@
         get materials() { return this._materials.assets.map(item => item.asset); }
         ;
         set materials(mats) { this._materials.setValues(mats); }
-        get meshInstances() { return this.meshinstances; }
+        set skin(skin) { this._skin.asset = skin; }
+        ;
+        get skin() { return this._skin.asset; }
+        get skinIns() { return this._skinInstance; }
         ;
     };
     ModelComponent = __decorate([
@@ -11174,40 +11402,558 @@
     //# sourceMappingURL=BassCompSystem.js.map
 
     class ModelSystem extends BassCompSystem {
-        constructor(scene) {
+        constructor(scene, render) {
             super();
             this.caredComps = [ModelComponent.name];
-            this.dirtyComp = new Map();
-            this.beDirty = true;
-            this.onCompDirty = (comp) => {
-                this.beDirty = true;
-                this.dirtyComp.set(comp.entity.id, comp);
-            };
             this.scene = scene;
-            this.on(CompSymEventEnum.afterAddE, (comps) => {
-                this.dirtyComp.set(comps[0].entity.id, comps[0]);
-                this.beDirty = true;
-                comps[0].onDirty.addEventListener(this.onCompDirty);
-            });
-            this.on(CompSymEventEnum.beforeRemoveE, (comps) => {
-                comps[0].onDirty.removeEventListener(this.onCompDirty);
-            });
+            this.render = render;
         }
         update(deltaTime) {
-            if (this.beDirty) {
-                this.beDirty = false;
-                this.dirtyComp.forEach(comp => {
-                    comp.meshInstances.forEach(ins => {
-                        this.scene.tryAddMeshInstance(ins);
-                    });
+            let { cameras } = this.scene;
+            let comps = Array.from(this.comps.values()).map(item => item[0]);
+            let renderArr = [];
+            comps.forEach(item => {
+                var _a;
+                (_a = item.mesh) === null || _a === void 0 ? void 0 : _a.sbuMeshs.forEach((submeshItem, index) => {
+                    let renderIns = {};
+                    renderIns.geometry = submeshItem;
+                    renderIns.skinIns = item.skinIns;
+                    renderIns.material = item.materials[index];
+                    renderIns.worldMat = item.entity.worldMatrix;
+                    renderIns.bevisible = item.entity.beActive;
+                    renderArr.push(renderIns);
                 });
-                this.dirtyComp.clear();
-            }
+            });
+            this.render.render(Array.from(cameras.values()), renderArr);
         }
     }
     //# sourceMappingURL=ModelSystem.js.map
 
+    class UniformState {
+        constructor() {
+            this.viewPortPixel = new Rect(0, 0, 0, 0); //像素的viewport
+            this._matrixNormalToworld = Mat4.create();
+            this._matrixNormalToView = Mat4.create();
+            this._matrixMV = Mat4.create();
+            this._matMVP = Mat4.create();
+            //matrixNormal: matrix = new matrix();
+            this._lights = [];
+            this.lightmap = null;
+        }
+        get matrixNormalToworld() {
+            Mat4.invert(this.matrixModel, this._matrixNormalToworld);
+            Mat4.transpose(this._matrixNormalToworld, this._matrixNormalToworld);
+            return this._matrixNormalToworld;
+        }
+        get matrixNormalToView() {
+            Mat4.invert(this.matrixModelView, this._matrixNormalToView);
+            Mat4.transpose(this._matrixNormalToView, this._matrixNormalToView);
+            return this._matrixNormalToView;
+        }
+        get matrixModelView() {
+            return Mat4.multiply(this.curCamera.viewMatrix, this.matrixModel, this._matrixMV);
+        }
+        get matrixModelViewProject() {
+            return Mat4.multiply(this.curCamera.viewProjectMatrix, this.matrixModel, this._matMVP);
+        }
+        get matrixView() {
+            return this.curCamera.viewMatrix;
+        }
+        get matrixProject() {
+            return this.curCamera.projectMatrix;
+        }
+        get matrixViewProject() {
+            return this.curCamera.viewProjectMatrix;
+        }
+        get fov() {
+            return this.curCamera.fov;
+        }
+        get aspect() {
+            return this.curCamera.aspect;
+        }
+        set lights(value) {
+            this._lights = value;
+        }
+        get lightCount() { return this._lights.length; }
+        ;
+    }
+    //# sourceMappingURL=UniformState.js.map
+
+    var SortTypeEnum;
+    (function (SortTypeEnum) {
+        SortTypeEnum[SortTypeEnum["MatLayerIndex"] = 16] = "MatLayerIndex";
+        SortTypeEnum[SortTypeEnum["ShaderId"] = 8] = "ShaderId";
+        SortTypeEnum[SortTypeEnum["Zdist_FrontToBack"] = 4] = "Zdist_FrontToBack";
+    })(SortTypeEnum || (SortTypeEnum = {}));
+    //# sourceMappingURL=SortTypeEnum.js.map
+
+    var Private$b;
+    (function (Private) {
+        Private.sortByMatLayerIndex = (drawa, drawb) => {
+            return drawa.material.layerIndex - drawb.material.layerIndex;
+        };
+        Private.sortByZdist_FrontToBack = (drawa, drawb) => {
+            return drawa.zdist - drawb.zdist;
+        };
+        Private.sortByZdist_BackToFront = (drawa, drawb) => {
+            return drawb.zdist - drawa.zdist;
+        };
+        Private.sortByMatSortId = (drawa, drawb) => {
+            return drawb.material.sortId - drawb.material.sortId;
+        };
+        Private.sortTypeInfo = {};
+        {
+            Private.sortTypeInfo[SortTypeEnum.MatLayerIndex] = { sortFunc: Private.sortByMatLayerIndex };
+            Private.sortTypeInfo[SortTypeEnum.ShaderId] = { sortFunc: Private.sortByMatSortId, };
+            Private.sortTypeInfo[SortTypeEnum.Zdist_FrontToBack] = {
+                sortFunc: Private.sortByZdist_FrontToBack,
+                beforeSort: (ins, cam) => {
+                    let camPos = cam.worldPos;
+                    let camFwd = cam.forwardInword;
+                    let i, drawCall, meshPos;
+                    let tempx, tempy, tempz;
+                    for (i = 0; i < ins.length; i++) {
+                        drawCall = ins[i];
+                        meshPos = drawCall.bounding.center;
+                        tempx = meshPos.x - camPos.x;
+                        tempy = meshPos.y - camPos.y;
+                        tempz = meshPos.z - camPos.z;
+                        drawCall.zdist = tempx * camFwd.x + tempy * camFwd.y + tempz * camFwd.z;
+                    }
+                }
+            };
+        }
+    })(Private$b || (Private$b = {}));
+    class LayerCollection {
+        constructor(layer, sortType = 0) {
+            this._insArr = [];
+            this.sortFunctions = [];
+            this.beforeSort = [];
+            this.layer = layer;
+            let attch = (sortInfo) => {
+                this.sortFunctions.push(sortInfo.sortFunc);
+                if (sortInfo === null || sortInfo === void 0 ? void 0 : sortInfo.beforeSort) {
+                    this.beforeSort.push((ins, cam) => { sortInfo.beforeSort(ins, cam); });
+                }
+            };
+            if (sortType & SortTypeEnum.MatLayerIndex) {
+                let sortInfo = Private$b.sortTypeInfo[SortTypeEnum.MatLayerIndex];
+                attch(sortInfo);
+            }
+            if (sortType & SortTypeEnum.ShaderId) {
+                let sortInfo = Private$b.sortTypeInfo[SortTypeEnum.ShaderId];
+                attch(sortInfo);
+            }
+            if (this.sortFunctions.length > 0) {
+                this.sortFunction = (a, b) => {
+                    let result;
+                    for (let i = 0; i < this.sortFunctions.length; i++) {
+                        result = this.sortFunctions[i](a, b);
+                        if (result != 0)
+                            break;
+                    }
+                    return result;
+                };
+            }
+        }
+        get insCount() { return this._insArr.length; }
+        ;
+        getSortedinsArr(cam) {
+            this.beforeSort.forEach(func => func(this._insArr, cam));
+            this.sortFunction && this._insArr.sort(this.sortFunction);
+            return this._insArr;
+        }
+        add(newIns) {
+            this._insArr.push(newIns);
+        }
+        clear() {
+            this._insArr = [];
+        }
+    }
+    //# sourceMappingURL=LayerCollection.js.map
+
+    class LayerComposition {
+        // private nolayers: LayerCollection = new LayerCollection("nolayer" as any);
+        constructor() {
+            this.layers = new Map();
+            this._addLayer(RenderLayerEnum.Background);
+            this._addLayer(RenderLayerEnum.Geometry, SortTypeEnum.MatLayerIndex | SortTypeEnum.ShaderId);
+            this._addLayer(RenderLayerEnum.AlphaTest, SortTypeEnum.MatLayerIndex | SortTypeEnum.Zdist_FrontToBack);
+            this._addLayer(RenderLayerEnum.Transparent, SortTypeEnum.MatLayerIndex | SortTypeEnum.Zdist_FrontToBack);
+        }
+        _addLayer(layer, sortType = 0) {
+            if (!this.layers.has(layer)) {
+                let collection = new LayerCollection(layer, sortType);
+                this.layers.set(layer, collection);
+            }
+        }
+        getlayers() {
+            return Array.from(this.layers.values());
+        }
+        getSortedRenderArr() {
+        }
+        addRenableItem(ins) {
+            let layer = ins.material.layer;
+            if (layer != null) {
+                let layerCollection = this.layers.get(layer);
+                layerCollection.add(ins);
+            }
+        }
+        clear() {
+            this.layers.forEach(item => item.clear());
+        }
+    }
+    //# sourceMappingURL=LayerComposition.js.map
+
+    var Private$c;
+    (function (Private) {
+        Private.temptSphere = new BoundingSphere();
+    })(Private$c || (Private$c = {}));
+    class ForwardRender {
+        constructor(device) {
+            this.uniformState = new UniformState();
+            this.camerRenderLayers = new Map();
+            this.device = device;
+        }
+        setCamera(camera) {
+            this.uniformState.curCamera = camera;
+            this.device.setViewPort(camera.viewport.x, camera.viewport.y, camera.viewport.width * this.device.width, camera.viewport.height * this.device.height);
+            this.device.setClear(camera.enableClearDepth ? camera.dePthValue : null, camera.enableClearColor ? camera.backgroundColor : null, camera.enableClearStencil ? camera.stencilValue : null);
+        }
+        render(cameras, renderArr, lights) {
+            var _a;
+            cameras = cameras.sort(item => item.priority);
+            let cam, layercomps, renderItem;
+            //---------------clear preFrame Data
+            for (let k = 0; k < cameras.length; k++) {
+                cam = cameras[k];
+                if (!this.camerRenderLayers.has(cam)) {
+                    layercomps = new LayerComposition();
+                    this.camerRenderLayers.set(cam, layercomps);
+                }
+                else {
+                    layercomps = this.camerRenderLayers.get(cam);
+                    layercomps.clear();
+                }
+            }
+            //----------------collect render Ins
+            for (let i = 0; i < renderArr.length; i++) {
+                renderItem = renderArr[i];
+                if (!renderItem.bevisible || renderItem.geometry == null || ((_a = renderItem.material) === null || _a === void 0 ? void 0 : _a.shader) == null)
+                    continue;
+                for (let k = 0; k < cameras.length; k++) {
+                    cam = cameras[k];
+                    let { cullingMask, frustum } = cam;
+                    layercomps = this.camerRenderLayers.get(cam);
+                    if (renderItem.cullingMask != null && ((renderItem.cullingMask & cullingMask) == 0))
+                        continue;
+                    if (renderItem.enableCull) {
+                        if (this.frustumCull(frustum, renderItem)) {
+                            layercomps.addRenableItem(renderItem);
+                        }
+                    }
+                    else {
+                        layercomps.addRenableItem(renderItem);
+                    }
+                }
+            }
+            //------------------------render per camera
+            for (let k = 0; k < cameras.length; k++) {
+                cam = cameras[k];
+                this.setCamera(cam);
+                layercomps = this.camerRenderLayers.get(cam);
+                layercomps.getlayers().forEach(layer => {
+                    if (layer.insCount == 0)
+                        return;
+                    let renderInsArr = layer.getSortedinsArr(cam);
+                    this.renderList(cam, renderInsArr);
+                });
+            }
+        }
+        renderList(cam, renderInsArr) {
+            let renderItem, material, uniforms, renderState, shaderIns;
+            for (let i = 0; i < renderInsArr.length; i++) {
+                renderItem = renderInsArr[i];
+                let bucketId = 0;
+                if (renderItem.skinIns) {
+                    bucketId = bucketId | ShaderBucket.SKIN;
+                    renderItem.skinIns.update(this.device, this.uniformState);
+                }
+                else {
+                    this.uniformState.matrixModel = renderItem.worldMat;
+                }
+                material = renderItem.material;
+                if (material != Private$c.preMaterial || material.beDirty || Private$c.preBuketID != bucketId) {
+                    Private$c.preMaterial = material;
+                    Private$c.preBuketID = bucketId;
+                    material.beDirty = false;
+                    shaderIns = material.shader.getInstance(bucketId);
+                    uniforms = material.uniformParameters;
+                    renderState = material.renderState;
+                    shaderIns.bind(this.device);
+                    shaderIns.bindAutoUniforms(this.device, this.uniformState); //auto unfiorm
+                    shaderIns.bindManulUniforms(this.device, uniforms);
+                    if (Private$c.preRenderState != renderState) {
+                        this.device.setCullFaceState(renderState.cull.enabled, renderState.cull.cullBack);
+                        this.device.setDepthState(renderState.depthWrite, renderState.depthTest.enabled, renderState.depthTest.depthFunc);
+                        this.device.setColorMask(renderState.colorWrite.red, renderState.colorWrite.green, renderState.colorWrite.blue, renderState.colorWrite.alpha);
+                        this.device.setBlendState(renderState.blend.enabled, renderState.blend.blendEquation, renderState.blend.blendSrc, renderState.blend.blendDst, renderState.blend.enableSeparateBlend, renderState.blend.blendAlphaEquation, renderState.blend.blendSrcAlpha, renderState.blend.blendDstAlpha);
+                        this.device.setStencilState(renderState.stencilTest.enabled, renderState.stencilTest.stencilFunction, renderState.stencilTest.stencilRefValue, renderState.stencilTest.stencilMask, renderState.stencilTest.stencilFail, renderState.stencilTest.stencilFaileZpass, renderState.stencilTest.stencilPassZfail, renderState.stencilTest.enableSeparateStencil, renderState.stencilTest.stencilFunctionBack, renderState.stencilTest.stencilRefValueBack, renderState.stencilTest.stencilMaskBack, renderState.stencilTest.stencilFailBack, renderState.stencilTest.stencilFaileZpassBack, renderState.stencilTest.stencilPassZfailBack);
+                    }
+                }
+                else {
+                    shaderIns = material.shader.getInstance(bucketId);
+                    shaderIns.bindAutoUniforms(this.device, this.uniformState); //auto unfiorm
+                }
+                renderItem.geometry.bind(this.device);
+                this.device.draw(renderItem.geometry.graphicAsset, renderItem.instanceCount);
+            }
+        }
+        frustumCull(frustum, drawcall) {
+            return frustum.containSphere(drawcall.bounding, drawcall.worldMat);
+        }
+        drawMesh(options) {
+        }
+    }
+    //# sourceMappingURL=ForwardRender.js.map
+
+    class ClipInstance {
+        constructor(clip, options) {
+            var _a, _b;
+            this.targets = new Map();
+            this.curFrame = 0;
+            this.speed = 1;
+            this.localTime = 0;
+            this.enableTimeFlow = false;
+            this.clip = clip;
+            this.curFrame = 0;
+            this.speed = (_a = options.speed) !== null && _a !== void 0 ? _a : 1;
+            this.beLoop = (_b = options.beLoop) !== null && _b !== void 0 ? _b : true;
+            let animatorEntity = options.animator;
+            clip.channels.forEach(item => {
+                let bone = animatorEntity.find(child => item.targetName == child.name);
+                if (bone != null) {
+                    this.targets.set(item.targetName, bone);
+                }
+                else {
+                    console.warn("cannot find bone.", item.targetName);
+                }
+            });
+        }
+        active() {
+            this.enableTimeFlow = true;
+            this.curFrame = 0;
+            this.localTime = 0;
+        }
+        disactive() {
+            this.enableTimeFlow = false;
+        }
+        update(deltaTime) {
+            var _a;
+            if (!this.enableTimeFlow)
+                return;
+            this.localTime += deltaTime * this.speed;
+            let currentFrame = (this.localTime * AnimationClip.FPS) | 0;
+            if (currentFrame != this.curFrame) {
+                let { totalFrame, channels } = this.clip;
+                let channel, target, keyframes;
+                if (currentFrame > totalFrame) {
+                    if (this.curFrame < totalFrame) {
+                        currentFrame = totalFrame;
+                    }
+                    else {
+                        if (this.beLoop) { //----------------------restart play
+                            currentFrame = 0;
+                            this.localTime = 0;
+                            this.temptLastStartIndex = null;
+                            for (let i = 0, len = channels.length; i < len; i++) {
+                                channel = channels[i];
+                                target = this.targets.get(channel === null || channel === void 0 ? void 0 : channel.targetName);
+                                let setfunc = AnimationChannelTargetPath$1.setFunc(channel.propertyName);
+                                setfunc(channel.values[0], target);
+                            }
+                        }
+                        else { //--------------------------------play end
+                            this.enableTimeFlow = false;
+                            return;
+                        }
+                    }
+                }
+                this.curFrame = currentFrame;
+                // console.warn("current frame", currentFrame);
+                for (let i = 0, len = channels.length; i < len; i++) {
+                    channel = channels[i];
+                    if (currentFrame < channel.startFrame || currentFrame > channel.endFrame)
+                        continue;
+                    target = this.targets.get(channel === null || channel === void 0 ? void 0 : channel.targetName);
+                    if (target == null)
+                        continue;
+                    keyframes = channel.keyframes;
+                    //---------------------------------寻找lerp start end frame
+                    let startIndex = (_a = this.temptLastStartIndex) !== null && _a !== void 0 ? _a : ((keyframes.length - 1) * currentFrame / channel.endFrame) | 0;
+                    if (keyframes[startIndex] < currentFrame) {
+                        startIndex++;
+                        while (keyframes[startIndex] < currentFrame) {
+                            startIndex++;
+                        }
+                        if (keyframes[startIndex] > currentFrame) {
+                            startIndex--;
+                        }
+                    }
+                    else {
+                        while (keyframes[startIndex] > currentFrame) {
+                            startIndex--;
+                        }
+                    }
+                    this.temptLastStartIndex = startIndex;
+                    let endIndex = startIndex + 1;
+                    if (keyframes[endIndex] == null) {
+                        endIndex = startIndex;
+                        let setfunc = AnimationChannelTargetPath$1.setFunc(channel.propertyName);
+                        setfunc(channel.values[startIndex], target);
+                    }
+                    else {
+                        let lerpfunc = AnimationChannelTargetPath$1.lerpFunc(channel.propertyName);
+                        let lerp$$1 = (this.curFrame - keyframes[startIndex]) / (keyframes[endIndex] - keyframes[startIndex]);
+                        lerpfunc(channel.values[startIndex], channel.values[endIndex], lerp$$1, target);
+                    }
+                }
+            }
+        }
+    }
+    var AnimationChannelTargetPath$1;
+    (function (AnimationChannelTargetPath) {
+        /**
+         * Translation
+         */
+        AnimationChannelTargetPath["TRANSLATION"] = "translation";
+        /**
+         * Rotation
+         */
+        AnimationChannelTargetPath["ROTATION"] = "rotation";
+        /**
+         * Scale
+         */
+        AnimationChannelTargetPath["SCALE"] = "scale";
+        /**
+         * Weights
+         */
+        AnimationChannelTargetPath["WEIGHTS"] = "weights";
+    })(AnimationChannelTargetPath$1 || (AnimationChannelTargetPath$1 = {}));
+    (function (AnimationChannelTargetPath) {
+        let temptPos = Vec3.create();
+        let temptScale = Vec3.create();
+        let temptQuat = Quat.create();
+        let funcMap = new Map();
+        {
+            funcMap.set(AnimationChannelTargetPath.ROTATION, (from, to, lerp$$1, obj) => {
+                Quat.lerp(from, to, lerp$$1, temptQuat);
+                Quat.normalize(temptQuat, temptQuat);
+                if (isNaN(temptQuat.x)) {
+                    console.warn("error");
+                }
+                obj.localRotation = temptQuat;
+            });
+            funcMap.set(AnimationChannelTargetPath.SCALE, (from, to, lerp$$1, obj) => {
+                Vec3.lerp(from, to, lerp$$1, temptScale);
+                obj.localScale = temptScale;
+            });
+            funcMap.set(AnimationChannelTargetPath.TRANSLATION, (from, to, lerp$$1, obj) => {
+                Vec3.lerp(from, to, lerp$$1, temptPos);
+                obj.localPosition = temptPos;
+            });
+            funcMap.set(AnimationChannelTargetPath.WEIGHTS, (from, to, lerp$$1, obj) => {
+                obj["WEIGHTS"] = numberLerp(from, to, lerp$$1);
+            });
+        }
+        AnimationChannelTargetPath.lerpFunc = (value) => {
+            return funcMap.get(value);
+        };
+        let setMap = new Map();
+        {
+            setMap.set(AnimationChannelTargetPath.ROTATION, (value, obj) => {
+                obj.localRotation = value;
+            });
+            setMap.set(AnimationChannelTargetPath.SCALE, (value, obj) => {
+                obj.localScale = value;
+            });
+            setMap.set(AnimationChannelTargetPath.TRANSLATION, (value, obj) => {
+                obj.localPosition = value;
+            });
+        }
+        AnimationChannelTargetPath.setFunc = (value) => {
+            return setMap.get(value);
+        };
+    })(AnimationChannelTargetPath$1 || (AnimationChannelTargetPath$1 = {}));
+    //# sourceMappingURL=ClipInstance.js.map
+
+    let Animation = class Animation {
+        constructor() {
+            this._clipsMap = new Map();
+            this._clips = [];
+            this.beAutoPlay = true;
+        }
+        get clips() { return this._clips; }
+        addAnimationClip(clip, options) {
+            if (!this._clipsMap.has(clip.name)) {
+                let clipIns = new ClipInstance(clip, Object.assign({ animator: this.entity }, options));
+                this._clipsMap.set(clip.name, { ins: clipIns, clip: clip });
+                this._clips.push(clip);
+                return clipIns;
+            }
+            else {
+                return this._clipsMap.get(clip.name).ins;
+            }
+        }
+        get currentClip() { return this._currentClip; }
+        play(clip) {
+            if (this._currentClip != null) ;
+            let playClip;
+            if (typeof clip == "string") {
+                playClip = this._clipsMap.get(clip).ins;
+            }
+            else {
+                playClip = this.addAnimationClip(clip);
+            }
+            if (playClip != null) {
+                this._currentClip = playClip;
+                playClip.active();
+            }
+            else {
+                console.warn("failed to play clip!", clip);
+            }
+        }
+    };
+    Animation = __decorate([
+        Ecs.registeComp
+    ], Animation);
+    //# sourceMappingURL=Animation.js.map
+
+    class AnimationSystem extends BassCompSystem {
+        constructor() {
+            super(...arguments);
+            this.caredComps = [Animation.name];
+        }
+        update(deltaTime) {
+            this.comps.forEach(item => {
+                let animation = item[0];
+                if (animation.currentClip) {
+                    animation.currentClip.update(deltaTime);
+                }
+                else {
+                    if (animation.beAutoPlay && animation.clips.length > 0) {
+                        animation.play(animation.clips[0]);
+                    }
+                }
+            });
+        }
+    }
+    //# sourceMappingURL=AnimationSystem.js.map
+
     class ToyGL {
+        constructor() {
+            this.preUpdate = new EventHandler();
+        }
         static create(element) {
             let canvas;
             if (element instanceof HTMLDivElement) {
@@ -11222,6 +11968,8 @@
             }
             else {
                 canvas = element;
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
             }
             let toy = new ToyGL();
             let timer = new Timer();
@@ -11232,10 +11980,12 @@
             let resource = new Resource();
             let scene = new InterScene(render);
             resource.registerAssetLoader(".gltf", new LoadGlTF(device));
-            Ecs.addSystem(new ModelSystem(scene));
+            Ecs.addSystem(new ModelSystem(scene, render));
+            Ecs.addSystem(new AnimationSystem());
             timer.onTick.addEventListener((deltaTime) => {
+                toy.preUpdate.raiseEvent(deltaTime);
                 Ecs.update(deltaTime);
-                scene.frameUpdate(deltaTime);
+                // scene.frameUpdate(deltaTime);
             });
             toy._timer = timer;
             toy._input = input;
@@ -11254,10 +12004,12 @@
 
     class LoadGltf {
         static start(toy) {
-            let duck = "../resources/glTF/duck/Duck.gltf";
-            toy.resource.load(duck)
+            let cesiumMan = "../resources/glTF/CesiumMan/glTF/CesiumMan.gltf";
+            toy.resource.load(cesiumMan)
                 .then(asset => {
-                toy.scene.addChild(Prefab.instance(asset));
+                let newasset = Prefab.instance(asset);
+                newasset.localRotation = Quat.FromEuler(0, -90, 0);
+                toy.scene.addChild(newasset);
             });
             let cam = toy.scene.createCamera();
             cam.node.localPosition.z = 10;

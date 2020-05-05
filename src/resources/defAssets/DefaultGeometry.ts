@@ -1,7 +1,7 @@
 import { VertexAttEnum } from "../../webgl/VertexAttEnum";
 import { Geometry } from "../../scene/asset/geometry/Geometry";
 
-namespace Private {
+export namespace Private {
     export const plan = new Geometry({
         attributes: [
             {
@@ -237,9 +237,11 @@ namespace Private {
 }
 
 export class DefaultGeometry {
-    static get ins() { return new DefaultGeometry() }
-    get quad2d() { return Private.quad2d }
-    get quad() { return Private.quad }
-    get cube() { return Private.cube }
-    get plan() { return Private.plan }
+    // static get ins() { return new DefaultGeometry() }
+    static get quad2d() { return Private.quad2d }
+    static get quad() { return Private.quad }
+    static get cube() { return Private.cube }
+    static get plan() { return Private.plan }
 }
+
+

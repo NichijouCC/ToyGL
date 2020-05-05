@@ -11,12 +11,19 @@ import { MeshInstance } from "../../../scene/primitive/MeshInstance";
 import { Entity } from "../../../core/Entity";
 import { ModelComponent } from "../../../components/ModelComponent";
 import { StaticMesh } from "../../../scene/asset/geometry/StaticMesh";
+import { Skin } from "../../../scene/asset/Skin";
+import { ParseAccessorNode } from "./ParseAccessorNode";
+import { ParseSkinNode } from "./ParseSkinNode";
+import { GlTF } from "./util";
+import { DefaultGeometry } from "../../defAssets/DefaultGeometry";
+import { DefaultMesh } from "../../defAssets/DefaultMesh";
+import { DefaultMaterial } from "../../defAssets/DefaultMaterial";
 
 export class ParseNode {
-    static parse(index: number, gltf: IgltfJson, context: GraphicsDevice): Promise<Entity> {
-        let node = gltf.nodes[index];
 
-        let name = node.name || "node" + index;
+    static parse(index: number, gltf: IgltfJson, root: Entity, context: GraphicsDevice): Promise<Entity> {
+        let node = gltf.nodes[index];
+        let name = GlTF.getNodeName(index, gltf);
         let sceneNode = new Entity(name);
         if (node.matrix) {
             sceneNode.localMatrix = Mat4.fromNumberArray(node.matrix);
@@ -38,58 +45,48 @@ export class ParseNode {
 
         let allTask: Promise<void>[] = [];
         if (node.mesh != null) {
+            let modelcomp = sceneNode.addComponent("ModelComponent") as ModelComponent;
             let task = ParseMeshNode.parse(node.mesh, gltf, context)
                 .then(primitives => {
-                    let modelcomp = sceneNode.addComponent("ModelComponent") as ModelComponent;
                     let newMesh = new StaticMesh();
                     newMesh.sbuMeshs = primitives.map(item => item.mesh);
                     modelcomp.mesh = newMesh
                     modelcomp.materials = primitives.map(item => item.material);
                 });
+
+            if (node.skin != null) {
+                ParseSkinNode.parse(node.skin, name, root, gltf).then((skin) => {
+                    modelcomp.skin = skin;
+                });
+            }
             allTask.push(task);
         }
 
         if (node.children) {
             for (let i = 0; i < node.children.length; i++) {
                 let nodeindex = node.children[i];
-                let childTask = this.parse(nodeindex, gltf, context)
+                let childTask = this.parse(nodeindex, gltf, root, context)
                     .then(child => {
                         sceneNode.addChild(child);
                     });
                 allTask.push(childTask);
             }
         }
+
+        //------------------debug skin
+        // let arr: number[] = [];
+        // gltf.skins.forEach(item => arr = arr.concat(item.joints));
+        // if (arr.indexOf(index) >= 0) {
+        //     let debugNode = new Entity(name);
+        //     let comp = debugNode.addComponent("ModelComponent") as ModelComponent;
+        //     comp.mesh = DefaultMesh.cube;
+        //     comp.material = DefaultMaterial.color_3d;
+        //     debugNode.localScale = Vec3.create(0.1, 0.1, 0.1);
+        //     sceneNode.addChild(debugNode);
+        // }
+
         return Promise.all(allTask).then(() => {
             return sceneNode;
         });
-
-        // if (node.skin != null && node.mesh != null) {
-        //     let nodemeshdata: PrimitiveNode[] = bundle.meshNodeCache[node.mesh];
-        //     let skindata = bundle.skinNodeCache[node.skin];
-
-        //     for (let key in nodemeshdata) {
-        //         let data = nodemeshdata[key];
-        //         //-----------------------------
-        //         let obj = new GameObject();
-        //         trans.addChild(obj.transform);
-        //         let meshr = obj.addComponent<SkinMeshRender>("SkinMeshRender");
-        //         // let mat=assetMgr.load("resource/mat/diff.mat.json") as Material;
-        //         // meshr.material=mat;
-        //         meshr.mesh = data.mesh;
-        //         meshr.material = data.mat;
-
-        //         // meshr.joints=skindata.joints;
-        //         for (let i = 0; i < skindata.jointIndexs.length; i++) {
-        //             let trans = bundle.nodeDic[skindata.jointIndexs[i]];
-        //             if (trans == null) {
-        //                 console.error("解析gltf 异常！");
-        //             }
-        //             meshr.joints.push(trans);
-        //         }
-
-        //         meshr.bindPoses = skindata.inverseBindMat;
-        //         meshr.bindPlayer = bundle.bundleAnimator;
-        //     }
-        // } else
     }
 }

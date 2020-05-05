@@ -9,6 +9,7 @@ import { Ecs } from "./core/Ecs";
 import { ModelSystem } from "./components/ModelSystem";
 import { ForwardRender } from "./scene/render/ForwardRender";
 import { EventHandler } from "./core/Event";
+import { AnimationSystem } from "./components/AnimationSystem";
 export class ToyGL {
     static create(element: HTMLDivElement | HTMLCanvasElement): ToyGL {
         let canvas: HTMLCanvasElement;
@@ -24,6 +25,9 @@ export class ToyGL {
             }
         } else {
             canvas = element;
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
         }
 
         let toy = new ToyGL();
@@ -35,7 +39,8 @@ export class ToyGL {
         let resource = new Resource();
         let scene = new InterScene(render);
         resource.registerAssetLoader(".gltf", new LoadGlTF(device));
-        Ecs.addSystem(new ModelSystem(scene, render))
+        Ecs.addSystem(new ModelSystem(scene, render));
+        Ecs.addSystem(new AnimationSystem());
 
         timer.onTick.addEventListener((deltaTime) => {
             toy.preUpdate.raiseEvent(deltaTime);

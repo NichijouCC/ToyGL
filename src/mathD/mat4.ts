@@ -2056,7 +2056,7 @@ export class Mat4 extends Float32Array {
     }
 
     static fromArray(array: Float32Array, index: number) {
-        if ((index + 1) * 64 < array.byteLength) {
+        if ((index + 1) * 64 <= array.byteLength) {
             return new Float32Array(array.buffer, array.byteOffset + index * 64, 16);
         } else {
             return null;
