@@ -1,5 +1,5 @@
 import { Camera } from "../Camera";
-import { Material } from "../asset/Material";
+import { Material } from "../asset/material/Material";
 import { GraphicsDevice } from "../../webgl/GraphicsDevice";
 import { RenderState } from "../RenderState";
 import { Frustum } from "../Frustum";
@@ -9,7 +9,8 @@ import { UniformState } from "../UniformState";
 import { Entity } from "../../core/Entity";
 import { StaticMesh } from "../asset/geometry/StaticMesh";
 import { AutoUniforms } from "../AutoUniform";
-import { ShaderInstance, ShaderBucket } from "../asset/Shader";
+import { ShaderBucket } from "../asset/material/ShaderBucket";
+import { ShaderInstance } from "../asset/material/ShaderInstance";
 import { LayerComposition } from "../LayerComposition";
 import { Irenderable } from "./Irenderable";
 
@@ -104,13 +105,17 @@ export class ForwardRender {
             }
 
             material = renderItem.material;
+            uniforms = material.uniformParameters;
+            if (uniforms["MainTex"]) {
+                bucketId = bucketId | ShaderBucket.DIFFUSEMAP;
+            }
+
             if (material != Private.preMaterial || material.beDirty || Private.preBuketID != bucketId) {
                 Private.preMaterial = material;
                 Private.preBuketID = bucketId;
                 material.beDirty = false;
 
                 shaderIns = material.shader.getInstance(bucketId);
-                uniforms = material.uniformParameters;
                 renderState = material.renderState;
 
                 shaderIns.bind(this.device);

@@ -1,7 +1,7 @@
 import { CullingMask } from "../Camera";
 import { AssetReference } from "../AssetReference";
 import { Igeometry } from "../asset/geometry/BaseGeometry";
-import { Material } from "../asset/Material";
+import { Material } from "../asset/material/Material";
 import { EventHandler } from "../../core/Event";
 import { Skin } from "../asset/Skin";
 import { SkinInstance } from "./SkinInstance";

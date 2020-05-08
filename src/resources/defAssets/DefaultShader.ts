@@ -1,8 +1,9 @@
-import { Shader } from "../../scene/asset/Shader";
+import { Shader } from "../../scene/asset/material/Shader";
 import { VertexAttEnum } from "../../webgl/VertexAttEnum";
+import baseVs from '../../shaders/Unlit.vert.glsl';
+import baseFs from '../../shaders/Unlit.vert.glsl';
 
-namespace Private
-{
+namespace Private {
     export const color_2d = new Shader({
         attributes: {
             POSITION: VertexAttEnum.POSITION
@@ -83,11 +84,20 @@ namespace Private
             gl_FragData[0] = texture2D(MainTex, xlv_TEXCOORD0)*MainColor;
         }`
     });
+
+    export const unlit_3d = new Shader({
+        attributes: {
+            POSITION: VertexAttEnum.POSITION,
+            TEXCOORD_0: VertexAttEnum.TEXCOORD_0,
+        },
+        vsStr: baseVs,
+        fsStr: baseFs
+    });
 }
-export class DefaultShader
-{
+export class DefaultShader {
     static get color_2d() { return Private.color_2d };
     static get color_3d() { return Private.color_3d };
     static get tex_2d() { return Private.tex_2d };
     static get tex_3d() { return Private.tex_3d };
+    static get unlit_3d() { return Private.unlit_3d };
 }

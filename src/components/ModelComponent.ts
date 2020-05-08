@@ -5,7 +5,7 @@ import { AssetReferenceArray } from "../scene/AssetReferenceArray";
 import { EventHandler } from "../core/Event";
 import { AssetReference } from "../scene/AssetReference";
 import { StaticMesh } from "../scene/asset/geometry/StaticMesh";
-import { Material } from "../scene/asset/Material";
+import { Material } from "../scene/asset/material/Material";
 import { SkinInstance } from "../scene/primitive/SkinInstance";
 import { Skin } from "../scene/asset/Skin";
 import { Irenderable } from "../scene/render/Irenderable";

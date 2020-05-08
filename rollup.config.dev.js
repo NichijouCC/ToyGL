@@ -4,6 +4,7 @@ import sourceMaps from "rollup-plugin-sourcemaps";
 // import camelCase from 'lodash.camelcase'
 import typescript from "rollup-plugin-typescript2";
 import json from "rollup-plugin-json";
+import glsl from 'rollup-plugin-glsl';
 
 import serve from "rollup-plugin-serve";
 import livereload from "rollup-plugin-livereload";
@@ -22,18 +23,27 @@ export default {
     plugins: [
         // Allow json resolution
         json(),
-        // Compile TypeScript files
-        typescript({
-            tsconfig: "examples/tsconfig.json",
-            tsconfigOverride: { compilerOptions: { declaration: false } },
-        }),
         // Allow bundling cjs modules (unlike webpack, rollup doesn't understand cjs)
         commonjs(),
         // Allow node_modules resolution, so you can use 'external' to control
         // which external modules to include in the bundle
         // https://github.com/rollup/rollup-plugin-node-resolve#usage
         resolve(),
-
+        // glsl({
+        //     include: ['src/shaders/**/*.glsl', 'src/shaders/*.glsl'],
+        //     sourceMap: true,
+        //     // compress: production
+        // }),
+        glsl({
+            include: /.*(.glsl|.vs|.fs)$/,
+            sourceMap: true,
+            compress: false
+        }),
+        // Compile TypeScript files
+        typescript({
+            tsconfig: "examples/tsconfig.json",
+            tsconfigOverride: { compilerOptions: { declaration: false } },
+        }),
         // Resolve source maps to the original source
         sourceMaps(),
         serve({

@@ -1,4 +1,4 @@
-import { Material } from "../../scene/asset/Material"
+import { Material } from "../../scene/asset/material/Material"
 import { DefaultShader } from "./DefaultShader";
 import { Color } from "../../mathD/color";
 import { DefaultTexture } from "./DefaultTexture";
@@ -22,6 +22,14 @@ namespace Private {
             MainTex: DefaultTexture.white
         }
     });
+
+    export const unlit_3d = new Material({
+        name: "unlit_3d",
+        shaderOption: DefaultShader.unlit_3d,
+        uniformParameters: {
+            MainColor: Color.create(1, 1, 1, 1),
+        }
+    });
 }
 
 export class DefaultMaterial {
@@ -29,4 +37,5 @@ export class DefaultMaterial {
     static get color_3d() { return Private.color_3d };
     static get tex_2d() { return Private.tex_2d };
     static get tex_3d() { return Private.tex_3d };
+    static get unlit_3d() { return Private.unlit_3d };
 }

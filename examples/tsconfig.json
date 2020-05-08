@@ -17,6 +17,10 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     // "declarationDir": "../exampesDist/types",
-    "outDir": "../exampesDist"
-  }
+    "outDir": "../exampesDist",
+  },
+  "include": [
+    "../src/*.d.ts",
+    "./*.ts"
+  ],
 }

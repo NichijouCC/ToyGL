@@ -7634,10 +7634,11 @@
     }
 
     function __awaiter(thisArg, _arguments, P, generator) {
+        function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
         return new (P || (P = Promise))(function (resolve, reject) {
             function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
             function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-            function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+            function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
             step((generator = generator.apply(thisArg, _arguments || [])).next());
         });
     }
@@ -9310,62 +9311,6 @@
     };
     //# sourceMappingURL=AutoUniform.js.map
 
-    var Private$4;
-    (function (Private) {
-        Private.sortId = 0;
-    })(Private$4 || (Private$4 = {}));
-    class Shader extends Asset {
-        constructor(options) {
-            super();
-            this._instances = new Map();
-            this.sortId = Private$4.sortId++;
-            this.vsStr = options.vsStr;
-            this.fsStr = options.fsStr;
-            this.attributes = options.attributes;
-        }
-        get layer() { return this._layer; }
-        setLayerIndex(layer, queue = 0) {
-            let layerIndex = layer + queue;
-            if (this._layerIndex != layerIndex) {
-                this._layer = layer;
-                this._layerIndex = layerIndex;
-                this.onDirty.raiseEvent();
-            }
-        }
-        get layerIndex() { return this._layerIndex; }
-        ;
-        getInstance(bucketId) {
-            if (!this._instances.has(bucketId)) {
-                this._instances.set(bucketId, new ShaderInstance(ShaderBucket.packShaderStr(bucketId, this.vsStr), ShaderBucket.packShaderStr(bucketId, this.fsStr), this.attributes));
-            }
-            return this._instances.get(bucketId);
-        }
-        unbind() {
-            var _a;
-            (_a = this._shader) === null || _a === void 0 ? void 0 : _a.unbind();
-        }
-        destroy() {
-            var _a;
-            (_a = this._shader) === null || _a === void 0 ? void 0 : _a.destroy();
-        }
-    }
-    var ShaderBucket;
-    (function (ShaderBucket) {
-        ShaderBucket[ShaderBucket["SKIN"] = 1] = "SKIN";
-        ShaderBucket[ShaderBucket["FOG"] = 2] = "FOG";
-    })(ShaderBucket || (ShaderBucket = {}));
-    (function (ShaderBucket) {
-        ShaderBucket.packShaderStr = (buket, shaderStr) => {
-            let str = "";
-            if (buket && ShaderBucket.SKIN) {
-                str = "#define SKIN \n" + str;
-            }
-            if (buket && ShaderBucket.FOG) {
-                str = "#define FOG \n" + str;
-            }
-            return str + shaderStr;
-        };
-    })(ShaderBucket || (ShaderBucket = {}));
     class ShaderInstance {
         constructor(vsStr, fsStr, attributes) {
             this.create = (device) => { };
@@ -9396,6 +9341,71 @@
                 uniforms[item] = AutoUniforms.getAutoUniformValue(item, uniformState);
             });
             this.program.bindUniforms(device, uniforms);
+        }
+    }
+    //# sourceMappingURL=ShaderInstance.js.map
+
+    var ShaderBucket;
+    (function (ShaderBucket) {
+        ShaderBucket[ShaderBucket["SKIN"] = 1] = "SKIN";
+        ShaderBucket[ShaderBucket["FOG"] = 2] = "FOG";
+        ShaderBucket[ShaderBucket["DIFFUSEMAP"] = 4] = "DIFFUSEMAP";
+    })(ShaderBucket || (ShaderBucket = {}));
+    (function (ShaderBucket) {
+        ShaderBucket.packShaderStr = (buket) => {
+            let str = "";
+            if (buket & ShaderBucket.SKIN) {
+                str += "#define SKIN \n";
+            }
+            if (buket & ShaderBucket.FOG) {
+                str += "#define FOG \n";
+            }
+            if (buket & ShaderBucket.DIFFUSEMAP) {
+                str += "#define Diffuse \n";
+            }
+            return str;
+        };
+    })(ShaderBucket || (ShaderBucket = {}));
+    //# sourceMappingURL=ShaderBucket.js.map
+
+    var Private$4;
+    (function (Private) {
+        Private.sortId = 0;
+    })(Private$4 || (Private$4 = {}));
+    class Shader extends Asset {
+        constructor(options) {
+            super();
+            this._instances = new Map();
+            this.sortId = Private$4.sortId++;
+            this.vsStr = options.vsStr;
+            this.fsStr = options.fsStr;
+            this.attributes = options.attributes;
+        }
+        get layer() { return this._layer; }
+        setLayerIndex(layer, queue = 0) {
+            let layerIndex = layer + queue;
+            if (this._layerIndex != layerIndex) {
+                this._layer = layer;
+                this._layerIndex = layerIndex;
+                this.onDirty.raiseEvent();
+            }
+        }
+        get layerIndex() { return this._layerIndex; }
+        ;
+        getInstance(bucketId) {
+            if (!this._instances.has(bucketId)) {
+                let packStr = ShaderBucket.packShaderStr(bucketId);
+                this._instances.set(bucketId, new ShaderInstance(packStr + this.vsStr, packStr + this.fsStr, this.attributes));
+            }
+            return this._instances.get(bucketId);
+        }
+        unbind() {
+            var _a;
+            (_a = this._shader) === null || _a === void 0 ? void 0 : _a.unbind();
+        }
+        destroy() {
+            var _a;
+            (_a = this._shader) === null || _a === void 0 ? void 0 : _a.destroy();
         }
     }
     //# sourceMappingURL=Shader.js.map
@@ -9608,6 +9618,8 @@
     }
     //# sourceMappingURL=Material.js.map
 
+    var baseFs = "precision highp float;\r\n\r\nattribute vec4 POSITION;\r\nattribute vec2 TEXCOORD_0;\r\n\r\nuniform mat4 czm_modelViewp;\r\nvarying mediump vec2 xlv_TEXCOORD0;\r\n#ifdef SKIN\r\nattribute vec4 skinIndex;\r\nattribute vec4 skinWeight;\r\nuniform mat4 czm_boneMatrices[40];\r\nvec4 calcVertex(vec4 srcVertex,vec4 blendIndex,vec4 blendWeight)\r\n{\r\n    int i = int(blendIndex.x);  \r\n    int i2 =int(blendIndex.y);\r\n    int i3 =int(blendIndex.z);\r\n    int i4 =int(blendIndex.w);\r\n    \r\n    mat4 mat = czm_boneMatrices[i]*blendWeight.x \r\n            + czm_boneMatrices[i2]*blendWeight.y \r\n            + czm_boneMatrices[i3]*blendWeight.z \r\n            + czm_boneMatrices[i4]*blendWeight.w;\r\n    return mat* srcVertex;\r\n}\r\n#endif\r\nvoid main()\r\n{\r\n    vec4 position=POSITION;\r\n    #ifdef SKIN\r\n    position =calcVertex(position,skinIndex,skinWeight);\r\n    #endif\r\n\r\n    xlv_TEXCOORD0 = TEXCOORD_0.xy;\r\n    gl_Position = czm_modelViewp * position;\r\n}";
+
     var Private$6;
     (function (Private) {
         Private.color_2d = new Shader({
@@ -9689,6 +9701,14 @@
             gl_FragData[0] = texture2D(MainTex, xlv_TEXCOORD0)*MainColor;
         }`
         });
+        Private.unlit_3d = new Shader({
+            attributes: {
+                POSITION: VertexAttEnum.POSITION,
+                TEXCOORD_0: VertexAttEnum.TEXCOORD_0,
+            },
+            vsStr: baseFs,
+            fsStr: baseFs
+        });
     })(Private$6 || (Private$6 = {}));
     class DefaultShader {
         static get color_2d() { return Private$6.color_2d; }
@@ -9698,6 +9718,8 @@
         static get tex_2d() { return Private$6.tex_2d; }
         ;
         static get tex_3d() { return Private$6.tex_3d; }
+        ;
+        static get unlit_3d() { return Private$6.unlit_3d; }
         ;
     }
     //# sourceMappingURL=DefaultShader.js.map
@@ -9810,6 +9832,13 @@
                 MainTex: DefaultTexture.white
             }
         });
+        Private.unlit_3d = new Material({
+            name: "unlit_3d",
+            shaderOption: DefaultShader.unlit_3d,
+            uniformParameters: {
+                MainColor: Color.create(1, 1, 1, 1),
+            }
+        });
     })(Private$8 || (Private$8 = {}));
     class DefaultMaterial {
         static get color_2d() { return Private$8.color_2d; }
@@ -9820,8 +9849,9 @@
         ;
         static get tex_3d() { return Private$8.tex_3d; }
         ;
+        static get unlit_3d() { return Private$8.unlit_3d; }
+        ;
     }
-    //# sourceMappingURL=DefaultMaterial.js.map
 
     var Private$9;
     (function (Private) {
@@ -11683,12 +11713,15 @@
                     this.uniformState.matrixModel = renderItem.worldMat;
                 }
                 material = renderItem.material;
+                uniforms = material.uniformParameters;
+                if (uniforms["MainTex"]) {
+                    bucketId = bucketId | ShaderBucket.DIFFUSEMAP;
+                }
                 if (material != Private$c.preMaterial || material.beDirty || Private$c.preBuketID != bucketId) {
                     Private$c.preMaterial = material;
                     Private$c.preBuketID = bucketId;
                     material.beDirty = false;
                     shaderIns = material.shader.getInstance(bucketId);
-                    uniforms = material.uniformParameters;
                     renderState = material.renderState;
                     shaderIns.bind(this.device);
                     shaderIns.bindAutoUniforms(this.device, this.uniformState); //auto unfiorm

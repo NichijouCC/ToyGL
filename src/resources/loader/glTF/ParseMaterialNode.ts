@@ -3,7 +3,7 @@ import { IgltfJson } from "../LoadglTF";
 import { ParseTextureNode } from "./ParseTextureNode";
 import { Vec3 } from "../../../mathD/vec3";
 import { Color } from "../../../mathD/color";
-import { Material } from '../../../scene/asset/Material';
+import { Material } from '../../../scene/asset/material/Material';
 import { VertexAttEnum } from "../../../webgl/VertexAttEnum";
 import { DefaultMaterial } from "../../defAssets/DefaultMaterial";
 

@@ -1,4 +1,4 @@
-import { Material } from "../asset/Material";
+import { Material } from "../asset/material/Material";
 import { BoundingSphere } from "../Bounds";
 import { Igeometry } from "../asset/geometry/BaseGeometry";
 import { Mat4 } from "../../mathD/mat4";

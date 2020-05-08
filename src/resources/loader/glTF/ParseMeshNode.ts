@@ -8,7 +8,7 @@ import { VertexAttEnum } from "../../../webgl/VertexAttEnum";
 import { GraphicsDevice } from "../../../webgl/GraphicsDevice";
 import { VertexArray, IvaoOptions } from "../../../webgl/VertextArray";
 import { TypedArray } from "../../../core/TypedArray";
-import { Material } from "../../../scene/asset/Material";
+import { Material } from "../../../scene/asset/material/Material";
 import { StaticMesh, SubMesh } from "../../../scene/asset/geometry/StaticMesh";
 import { IndexBuffer, IndicesArray } from "../../../webgl/IndexBuffer";
 import { VertexBuffer } from "../../../webgl/VertexBuffer";

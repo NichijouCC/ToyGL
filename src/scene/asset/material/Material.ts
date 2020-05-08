@@ -1,8 +1,8 @@
 import { Shader, IlayerIndexEvent, IshaderOption } from "./Shader";
-import { RenderLayerEnum } from "../RenderLayer";
-import { RenderState } from "../RenderState";
-import { Asset } from "./Asset";
-import { AssetReference, AssetChangedEvent } from "../AssetReference";
+import { RenderLayerEnum } from "../../RenderLayer";
+import { RenderState } from "../../RenderState";
+import { Asset } from "../Asset";
+import { AssetReference, AssetChangedEvent } from "../../AssetReference";
 namespace Private {
     export let id: number = 0;
 }

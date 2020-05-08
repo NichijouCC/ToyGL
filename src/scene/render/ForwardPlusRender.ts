@@ -1,6 +1,6 @@
 import { FrameBuffer } from "../../webgl/Framebuffer";
-import { Shader } from "../asset/Shader";
-import { Material } from "../asset/Material";
+import { Shader } from "../asset/material/Shader";
+import { Material } from "../asset/material/Material";
 import { GraphicsDevice } from "../../webgl/GraphicsDevice";
 import { GlConstants } from "../../webgl/GLconstant";
 
