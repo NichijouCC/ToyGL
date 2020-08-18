@@ -1,21 +1,17 @@
 import { getAssetExtralName } from "./Util";
 import { Asset } from "../scene/asset/Asset";
 
-export interface IassetLoader
-{
+export interface IassetLoader {
     load(url: string): Promise<Asset>
 }
 
-export class Resource
-{
+export class Resource {
     private resLoaderDic: { [ExtralName: string]: IassetLoader } = {};
-    registerAssetLoader(extral: string, factory: IassetLoader)
-    {
+    registerAssetLoader(extral: string, factory: IassetLoader) {
         console.warn("loader type:", extral);
         this.resLoaderDic[extral] = factory;
     }
-    getAssetLoader(url: string): IassetLoader
-    {
+    getAssetLoader(url: string): IassetLoader {
         let extralType = getAssetExtralName(url);
         let factory = this.resLoaderDic[extralType];
         return factory;
@@ -30,20 +26,15 @@ export class Resource
      * @param url 地址
      * @param onFinish  load回调]
      */
-    load(url: string): Promise<Asset> 
-    {
-        if (this.loadMap[url])
-        {
+    load(url: string): Promise<Asset> {
+        if (this.loadMap[url]) {
             return this.loadMap[url]
-        } else
-        {
+        } else {
             let loader = this.getAssetLoader(url);
-            if (loader == null)
-            {
+            if (loader == null) {
                 let errorMsg = "ERROR: load Asset error. INfo: not have Load Func to handle (" + getAssetExtralName(url) + ") type File.  load URL:" + url;
                 return Promise.reject(errorMsg);
-            } else
-            {
+            } else {
                 this.loadMap[url] = loader.load(url);
                 return this.loadMap[url];
             }

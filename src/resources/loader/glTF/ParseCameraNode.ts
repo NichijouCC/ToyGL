@@ -3,23 +3,19 @@ import { CameraType } from "./GltfJsonStruct";
 import { IgltfJson } from "../LoadglTF";
 import { Camera, ProjectionEnum } from "../../../scene/Camera";
 
-export class ParseCameraNode
-{
-    static parse(index: number, gltf: IgltfJson)
-    {
+export class ParseCameraNode {
+    static parse(index: number, gltf: IgltfJson) {
         let node = gltf.cameras[index];
         let cam = new Camera();
 
-        switch (node.type)
-        {
+        switch (node.type) {
             case CameraType.PERSPECTIVE:
                 cam.projectionType = ProjectionEnum.PERSPECTIVE;
 
                 let data = node.perspective;
                 cam.fov = data.yfov;
                 cam.near = data.znear;
-                if (data.zfar)
-                {
+                if (data.zfar) {
                     cam.far = data.zfar;
                 }
                 // if (data.aspectRatio) {

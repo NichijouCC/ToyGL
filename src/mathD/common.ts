@@ -125,10 +125,10 @@ export function canWrapReapeat(width: number, height: number, webGLVersion: numb
     return true;
 }
 
-export function filterFallback(gl: WebGLRenderingContext, filter: number): number {
-    if (filter === gl.NEAREST || filter === gl.NEAREST_MIPMAP_LINEAR || filter === gl.NEAREST_MIPMAP_NEAREST) {
-        return gl.NEAREST;
-    }
-    return gl.LINEAR;
-}
+// export function filterFallback(gl: WebGLRenderingContext, filter: number): number {
+//     if (filter === gl.NEAREST || filter === gl.NEAREST_MIPMAP_LINEAR || filter === gl.NEAREST_MIPMAP_NEAREST) {
+//         return gl.NEAREST;
+//     }
+//     return gl.LINEAR;
+// }
 

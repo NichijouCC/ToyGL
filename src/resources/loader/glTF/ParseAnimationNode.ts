@@ -3,7 +3,7 @@ import { AnimationClip, AnimationChannel } from "../../../scene/asset/AnimationC
 import { IgltfAnimationSampler, IgltfAnimationChannelTarget, AnimationChannelTargetPath } from "./GltfJsonStruct";
 import { ParseNode } from "./ParseNode";
 import { ParseAccessorNode, Accessor } from "./ParseAccessorNode";
-import { GlTF } from "./util";
+import { GlTF } from "./Util";
 import { TypedArray } from "../../../core/TypedArray";
 
 export class ParseAnimationNode {

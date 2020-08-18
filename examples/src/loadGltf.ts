@@ -1,6 +1,6 @@
-import { ToyGL } from "../src/toygl";
-import { Prefab } from "../src/scene/asset/Prefab";
-import { Quat } from "../src/mathD/quat";
+import { ToyGL } from "../../src/toygl";
+import { Prefab } from "../../src/scene/asset/Prefab";
+import { Quat } from "../../src/mathD/quat";
 export class LoadGltf {
     static start(toy: ToyGL) {
         let duck = "../resources/glTF/duck/Duck.gltf";

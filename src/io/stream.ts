@@ -21,7 +21,6 @@
         return this._data.byteLength;
     }
     canread(): number {
-        //LogManager.Warn(this._buf.byteLength + "  &&&&&&&&&&&   " + this._seek + "    " + this._buf.buffer.byteLength);
         return this._data.byteLength - this._byteOffset;
     }
     skipBytes(len: number) {
@@ -77,69 +76,58 @@
             }
         }
         return ret.join("");
-
-        //                let b = array[i];
-        //    if (b > 0 && b < 16)
-        //    {
-        //        uri += '%0' + b.toString(16);
-        //    }
-        //    else if (b > 16)
-        //    {
-        //        uri += '%' + b.toString(16);
-        //    }
-        //}
-        //return decodeURIComponent(uri);
     }
-    // readStringUtf8(): string
-    // {
-    //     let length = this._data.getInt8(this._byteOffset);
-    //     this._byteOffset++;
-    //     let arr = new Uint8Array(length);
-    //     this.readUint8Array(arr);
-    //     return binReader.utf8ArrayToString(arr);
-    // }
+
     readUint8ArrToString(length: number): string {
         let arr = this.readUint8Array(length);
         return BinReader._decodeBufferToText(arr);
     }
+
     readSingle(): number {
         let num = this._data.getFloat32(this._byteOffset, true);
         this._byteOffset += 4;
         return num;
     }
+
     readDouble(): number {
         let num = this._data.getFloat64(this._byteOffset, true);
         this._byteOffset += 8;
         return num;
     }
+
     readInt8(): number {
         let num = this._data.getInt8(this._byteOffset);
         this._byteOffset += 1;
         return num;
     }
+
     readUInt8(): number {
         //LogManager.Warn(this._data.byteLength + "  @@@@@@@@@@@@@@@@@  " + this._seek);
         let num = this._data.getUint8(this._byteOffset);
         this._byteOffset += 1;
         return num;
     }
+
     readInt16(): number {
         //LogManager.Log(this._seek + "   " + this.length());
         let num = this._data.getInt16(this._byteOffset, true);
         this._byteOffset += 2;
         return num;
     }
+
     readUInt16(): number {
         let num = this._data.getUint16(this._byteOffset, true);
         this._byteOffset += 2;
         //LogManager.Warn("readUInt16 " + this._seek);
         return num;
     }
+
     readInt32(): number {
         let num = this._data.getInt32(this._byteOffset, true);
         this._byteOffset += 4;
         return num;
     }
+
     readUint32(): number {
         let num = this._data.getUint32(this._byteOffset, true);
         this._byteOffset += 4;
@@ -174,11 +162,6 @@
         return this.readUInt8();
     }
 
-    // readBytes(target: Uint8Array = null, length: number = -1): Uint8Array
-    // {
-    //     return this.readUint8Array(target, length);
-    // }
-
     readUnsignedShort(): number {
         return this.readUInt16();
     }
@@ -191,9 +174,6 @@
         return this.readSingle();
     }
 
-    /// <summary>
-    /// 有符号 Byte
-    /// </summary>
     readSymbolByte(): number {
         return this.readInt8();
     }
@@ -368,9 +348,6 @@ export class BinWriter {
         this.writeUint8Array(strArray);
     }
 
-    /// <summary>
-    /// 写入有符号 Byte
-    /// </summary>
     writeSymbolByte(num: number): void {
         this.writeInt8(num);
     }

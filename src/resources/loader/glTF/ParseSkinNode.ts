@@ -1,7 +1,7 @@
 import { Skin } from "../../../scene/asset/Skin";
 import { IgltfJson } from "../LoadglTF";
 import { ParseAccessorNode, Accessor } from "./ParseAccessorNode";
-import { GlTF } from "./util";
+import { GlTF } from "./Util";
 import { Entity } from "../../../core/Entity";
 import { Mat4 } from "../../../mathD/mat4";
 

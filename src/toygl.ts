@@ -3,7 +3,7 @@ import { Input } from "./input/Input";
 import { Timer } from "./core/Timer";
 import { InterScene } from "./scene/Scene";
 import { GraphicsDevice } from "./webgl/GraphicsDevice";
-import { Resource } from "./resources/resource";
+import { Resource } from "./resources/Resource";
 import { LoadGlTF } from "./resources/loader/LoadglTF";
 import { Ecs } from "./core/Ecs";
 import { ModelSystem } from "./components/ModelSystem";

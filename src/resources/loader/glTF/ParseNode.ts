@@ -14,7 +14,7 @@ import { StaticMesh } from "../../../scene/asset/geometry/StaticMesh";
 import { Skin } from "../../../scene/asset/Skin";
 import { ParseAccessorNode } from "./ParseAccessorNode";
 import { ParseSkinNode } from "./ParseSkinNode";
-import { GlTF } from "./util";
+import { GlTF } from "./Util";
 import { DefaultGeometry } from "../../defAssets/DefaultGeometry";
 import { DefaultMesh } from "../../defAssets/DefaultMesh";
 import { DefaultMaterial } from "../../defAssets/DefaultMaterial";

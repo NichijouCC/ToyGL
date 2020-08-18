@@ -1,6 +1,6 @@
 import { getFileName, getAssetDirectory } from "../Util";
-import { loadText, loadJson, loadArrayBuffer } from "../../io/loadtool";
-import { BinReader } from "../../io/stream";
+import { loadText, loadJson, loadArrayBuffer } from "../../io/Loadtool";
+import { BinReader } from "../../io/Stream";
 import { Igltf, Iproperty } from "./glTF/GltfJsonStruct";
 import { ParseSceneNode } from "./glTF/ParseSceneNode";
 import { Material } from "../../scene/asset/material/Material";

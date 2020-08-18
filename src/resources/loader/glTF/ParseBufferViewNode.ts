@@ -1,19 +1,14 @@
 import { ParseBufferNode } from "./ParseBufferNode";
 import { IgltfJson, IgltfBufferview } from "../LoadglTF";
 
-export class ParseBufferViewNode
-{
-    static parse(index: number, gltf: IgltfJson): Promise<IgltfBufferview>
-    {
-        if (gltf.cache.bufferviewNodeCache[index])
-        {
+export class ParseBufferViewNode {
+    static parse(index: number, gltf: IgltfJson): Promise<IgltfBufferview> {
+        if (gltf.cache.bufferviewNodeCache[index]) {
             return gltf.cache.bufferviewNodeCache[index];
-        } else
-        {
+        } else {
             let bufferview = gltf.bufferViews[index];
             let bufferindex = bufferview.buffer;
-            let task = ParseBufferNode.parse(bufferindex, gltf).then(buffer =>
-            {
+            let task = ParseBufferNode.parse(bufferindex, gltf).then(buffer => {
                 let viewbuffer = new Uint8Array(buffer, bufferview.byteOffset, bufferview.byteLength);
                 // let stride = bufferview.byteStride;
                 // let glbuffer = bufferview.target && GlRender.createBuffer(bufferview.target, viewbuffer);

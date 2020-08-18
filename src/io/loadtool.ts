@@ -5,6 +5,8 @@
     arraybuffer = "arraybuffer",
 }
 
+type requestType = keyof typeof ResponseTypeEnum;
+
 /**
  * Load a script (identified by an url). When the url returns, the
  * content of this file is added into a new script element, attached to the DOM (body element)
@@ -24,6 +26,7 @@ export function LoadScript(scriptUrl: string): Promise<void> {
         };
     });
 }
+
 interface IdownloadInfo {
     loaded: number;
     total: number;
@@ -31,7 +34,7 @@ interface IdownloadInfo {
 
 function httpRequeset(
     url: string,
-    type: ResponseTypeEnum,
+    type: requestType,
     onProgress: (info: IdownloadInfo) => void = null,
 ): Promise<any> {
     return new Promise<any>((resolve, reject) => {
@@ -40,9 +43,7 @@ function httpRequeset(
         req.responseType = type;
 
         req.onprogress = e => {
-            if (onProgress) {
-                onProgress({ loaded: e.loaded, total: e.total });
-            }
+            onProgress?.({ loaded: e.loaded, total: e.total });
         };
         req.onerror = e => {
             reject(e);
@@ -60,7 +61,7 @@ function httpRequeset(
         };
     });
 }
-export function loadJson(url: string, onProgress: (info: IdownloadInfo) => void = null): Promise<JSON> {
+export function loadJson(url: string, onProgress: (info: IdownloadInfo) => void = null): Promise<object> {
     return httpRequeset(url, ResponseTypeEnum.json, onProgress);
 }
 export function loadText(url: string, onProgress: (info: IdownloadInfo) => void = null): Promise<string> {
@@ -76,20 +77,21 @@ export function loadBlob(url: string, onProgress: (info: IdownloadInfo) => void 
 
 export function loadImg(url: string, onProgress: (info: IdownloadInfo) => void = null): Promise<HTMLImageElement> {
     return new Promise<HTMLImageElement>((resolve, reject) => {
-        let img = new Image();
-        img.src = url;
-        img.onerror = error => {
-            reject(error);
-        };
-        img.onload = () => {
-            resolve(img);
-        };
-        img.onprogress = e => {
-            if (onProgress) {
-                onProgress({ loaded: e.loaded, total: e.total });
-            }
-        };
-    });
+        loadArrayBuffer(url, onProgress)
+            .then(res => {
+                let blob = new Blob([res], { type: "image/jpeg" });
+                let imageUrl = window.URL.createObjectURL(blob);
+                let img = new Image();
+                img.src = imageUrl;
+                img.onerror = error => {
+                    reject(error);
+                };
+                img.onload = () => {
+                    URL.revokeObjectURL(img.src);
+                    resolve(img);
+                };
+            })
+    })
 }
 export function arraybufferToImge(data: ArrayBuffer): Promise<HTMLImageElement> {
     return new Promise<HTMLImageElement>((resolve, reject) => {
