@@ -1,5 +1,4 @@
-export enum VertexAttEnum
-{
+export enum VertexAttEnum {
     POSITION = "position",
     TEXCOORD_0 = "uv",
     COLOR_0 = "color",
@@ -12,16 +11,27 @@ export enum VertexAttEnum
 }
 
 
-export namespace VertexAttEnum
-{
-    export function fromShaderAttName(name: string): VertexAttEnum
+export namespace VertexAttEnum {
+
+    export const attTypeToComponentSize: { [type: string]: number } = {};
     {
+        attTypeToComponentSize[VertexAttEnum.POSITION] = 3;
+        attTypeToComponentSize[VertexAttEnum.TEXCOORD_0] = 2;
+        attTypeToComponentSize[VertexAttEnum.TEXCOORD_1] = 2;
+        attTypeToComponentSize[VertexAttEnum.TEXCOORD_2] = 2;
+        attTypeToComponentSize[VertexAttEnum.COLOR_0] = 4;
+        attTypeToComponentSize[VertexAttEnum.NORMAL] = 4;
+        attTypeToComponentSize[VertexAttEnum.TANGENT] = 4;
+        attTypeToComponentSize[VertexAttEnum.WEIGHTS_0] = 4;
+        attTypeToComponentSize[VertexAttEnum.JOINTS_0] = 4;
+    }
+
+    export function fromShaderAttName(name: string): VertexAttEnum {
         //TODO
         return name as any;
     }
     let locationId = 0;
-    export function regist(name: string)
-    {
+    export function regist(name: string) {
         attLocationMap[name] = locationId++;
     }
     let attLocationMap: { [type: string]: number } = {};
@@ -36,14 +46,20 @@ export namespace VertexAttEnum
         regist(VertexAttEnum.TEXCOORD_1);
         regist(VertexAttEnum.TEXCOORD_2);
     }
-    export function toShaderLocation(type: VertexAttEnum | string)
-    {
+    export function toShaderLocation(type: VertexAttEnum | string) {
         let location = attLocationMap[type];
-        if (location == null)
-        {
+        if (location == null) {
             console.warn(`regist new attribute Type: ${type}`);
             regist(type);
         }
         return attLocationMap[type];
+    }
+
+    export function toComponentSize(type: VertexAttEnum | string) {
+        if (attTypeToComponentSize[type] == null) {
+            console.error("无法推断顶点的componentsize", type);
+        } else {
+            return attTypeToComponentSize[type];
+        }
     }
 }

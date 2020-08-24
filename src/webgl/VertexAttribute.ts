@@ -23,7 +23,7 @@ export interface IvertexAttributeOption {
     enabled?: boolean; // true;
     vertexBuffer?: VertexBuffer; // positionBuffer;
     value?: any;
-    componentsPerAttribute: number; // 3;
+    componentsPerAttribute?: number; // 3;
     componentDatatype?: number; // ComponentDatatype.FLOAT;
     normalize?: boolean; // false;
     offsetInBytes?: number; // 0;
@@ -61,7 +61,7 @@ export class VertexAttribute implements IvertexAttribute {
         this.enabled = att.enabled ?? true;// true;
         this.vertexBuffer = att.vertexBuffer;// positionBuffer;
         this.value = att.value;
-        this.componentsPerAttribute = att.componentsPerAttribute;// 3;
+        this.componentsPerAttribute = att.componentsPerAttribute ?? VertexAttEnum.toComponentSize(att.type);// 3;
         this.componentDatatype = att.componentDatatype ?? ComponentDatatypeEnum.FLOAT; // ComponentDatatype.FLOAT;
         this.normalize = att.normalize ?? false; // false;
         this.offsetInBytes = att.offsetInBytes ?? 0; // 0;

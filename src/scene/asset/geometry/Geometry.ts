@@ -8,7 +8,7 @@ import { VertexAttEnum } from "../../../webgl/VertexAttEnum";
 import { TypedArray } from "../../../core/TypedArray";
 import { GraphicsDevice } from "../../../webgl/GraphicsDevice";
 import { VertexArray } from "../../../webgl/VertextArray";
-import { IvertexAttributeOption } from "../../../webgl/VertexAttribute";
+import { IvertexAttributeOption, VertexAttribute } from "../../../webgl/VertexAttribute";
 import { VertexBuffer } from "../../../webgl/VertexBuffer";
 import { BufferUsageEnum } from "../../../webgl/Buffer";
 
@@ -113,10 +113,10 @@ export class Geometry extends BaseGeometry {
         });
     }
 
-    protected refresh(device: GraphicsDevice): void {
+    protected updateDirtyAtts(device: GraphicsDevice): void {
         for (let key in this.dirtyAtt) {
             if (this.graphicAsset.hasAttribute(key)) {
-                this.graphicAsset.updateAttributeBufferData(key, this.dirtyAtt[key].values);
+                this.graphicAsset.updateAttributesData([{ att: key, values: this.dirtyAtt[key].values } as any]);
             } else {
                 let geAtt = this.dirtyAtt[key];
                 let att: IvertexAttributeOption = {
@@ -130,9 +130,10 @@ export class Geometry extends BaseGeometry {
                     usage: geAtt.beDynamic ? BufferUsageEnum.DYNAMIC_DRAW : BufferUsageEnum.STATIC_DRAW,
                     typedArray: geAtt.values
                 });
-                this.graphicAsset.update(att);
+                this.graphicAsset.addNewAttribute(att);
             }
         }
+        this.dirtyAtt = {};
     }
 
 }

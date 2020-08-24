@@ -13,7 +13,7 @@ export class SubMesh extends BaseGeometry {
     protected create(device: GraphicsDevice): VertexArray {
         throw new Error("Method not implemented.");
     }
-    protected refresh(device: GraphicsDevice): void {
+    protected updateDirtyAtts(device: GraphicsDevice): void {
         throw new Error("Method not implemented.");
     }
     bind(device: GraphicsDevice): void {

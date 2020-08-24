@@ -8,7 +8,7 @@ export abstract class BaseGeometry extends Asset implements Igeometry {
     graphicAsset: VertexArray;
     protected beNeedRefreshGraphicAsset: boolean = false;
     protected abstract create(device: GraphicsDevice): VertexArray
-    protected abstract refresh(device: GraphicsDevice): void
+    protected abstract updateDirtyAtts(device: GraphicsDevice): void
 
     protected _bounding: BoundingSphere;
     get bounding() { return this._bounding }
@@ -21,7 +21,7 @@ export abstract class BaseGeometry extends Asset implements Igeometry {
             this.beNeedRefreshGraphicAsset = false;
         }
         if (this.beNeedRefreshGraphicAsset) {
-            this.refresh(device);
+            this.updateDirtyAtts(device);
             this.beNeedRefreshGraphicAsset = false;
         }
         this.graphicAsset?.bind();

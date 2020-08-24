@@ -16,8 +16,7 @@ export type bufferOption =
         sizeInBytes: number;
         usage?: BufferUsageEnum;
     };
-export class Buffer implements IglElement
-{
+export class Buffer implements IglElement {
     protected target: BufferTargetEnum;
     readonly usage: BufferUsageEnum;
     protected _typedArray: TypedArray;
@@ -27,16 +26,14 @@ export class Buffer implements IglElement
     protected _buffer: WebGLBuffer;
     private device: GraphicsDevice;
     private _gl: WebGLRenderingContext;
-    protected constructor(options: bufferOption)
-    {
+    protected constructor(options: bufferOption) {
         this.device = options.context;
         this.target = options.target;
         this.usage = options.usage ?? BufferUsageEnum.STATIC_DRAW;
         this._typedArray = (options as any).typedArray;
         this._sizeInBytes = (options as any).sizeInBytes;
 
-        if (this._typedArray != null)
-        {
+        if (this._typedArray != null) {
             this._sizeInBytes = this._typedArray.byteLength;
         }
 
@@ -46,31 +43,25 @@ export class Buffer implements IglElement
         gl.bufferData(this.target, this._typedArray ?? this._sizeInBytes as any, this.usage);
         gl.bindBuffer(this.target, null);
 
-        this.bind = () =>
-        {
+        this.bind = () => {
             gl.bindBuffer(this.target, buffer);
         }
-        this.unbind = () =>
-        {
+        this.unbind = () => {
             gl.bindBuffer(this.target, null);
         }
 
-        this.update = (sizeInBytesOrTypedArray: TypedArray | number) =>
-        {
+        this.update = (sizeInBytesOrTypedArray: TypedArray | number) => {
             gl.bindBuffer(this.target, buffer);
             gl.bufferData(this.target, sizeInBytesOrTypedArray as any, this.usage);
-            if (typeof sizeInBytesOrTypedArray == "number")
-            {
+            if (typeof sizeInBytesOrTypedArray == "number") {
                 this._sizeInBytes = sizeInBytesOrTypedArray
-            } else
-            {
+            } else {
                 this._typedArray = sizeInBytesOrTypedArray;
             }
             // gl.bindBuffer(this.target, null);
         }
 
-        this.destroy = () =>
-        {
+        this.destroy = () => {
             gl.deleteBuffer(buffer);
         }
     }
@@ -81,38 +72,30 @@ export class Buffer implements IglElement
     destroy() { }
 }
 
-export enum BufferTargetEnum
-{
+export enum BufferTargetEnum {
     ARRAY_BUFFER = GlConstants.ARRAY_BUFFER,
     ELEMENT_ARRAY_BUFFER = GlConstants.ELEMENT_ARRAY_BUFFER,
 }
-export enum BufferUsageEnum
-{
+export enum BufferUsageEnum {
     STATIC_DRAW = GlConstants.STATIC_DRAW,
     DYNAMIC_DRAW = GlConstants.DYNAMIC_DRAW
 }
 
-export class BufferConfig
-{
+export class BufferConfig {
     static bufferUsageToGLNumber: { [useage: string]: number } = {};
     static bufferTargetToGLNumber: { [useage: string]: number } = {};
     static vertexAttributeSetter: { [size: number]: (index: number, value: any) => any } = {};
-    static init(context: GraphicsDevice)
-    {
-        this.vertexAttributeSetter[1] = (index, value) =>
-        {
+    static init(context: GraphicsDevice) {
+        this.vertexAttributeSetter[1] = (index, value) => {
             context.gl.vertexAttrib1f(index, value)
         }
-        this.vertexAttributeSetter[2] = (index, value) =>
-        {
+        this.vertexAttributeSetter[2] = (index, value) => {
             context.gl.vertexAttrib2fv(index, value)
         }
-        this.vertexAttributeSetter[3] = (index, value) =>
-        {
+        this.vertexAttributeSetter[3] = (index, value) => {
             context.gl.vertexAttrib3fv(index, value)
         }
-        this.vertexAttributeSetter[4] = (index, value) =>
-        {
+        this.vertexAttributeSetter[4] = (index, value) => {
             context.gl.vertexAttrib4fv(index, value)
         }
     }
