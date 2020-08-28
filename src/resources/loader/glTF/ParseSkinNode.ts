@@ -6,12 +6,11 @@ import { Entity } from "../../../core/Entity";
 import { Mat4 } from "../../../mathD/mat4";
 
 export class ParseSkinNode {
-
     static parse(index: number, nodeName: string, root: Entity, gltf: IgltfJson): Promise<Skin> {
-        let skin = new Skin();
+        const skin = new Skin();
         skin.rootBoneName = nodeName;
-        skin.potentialSearchRoot = root.name;//动画的骨骼节点不一定是skin节点的child
-        let skinData = gltf.skins[index];
+        skin.potentialSearchRoot = root.name;// 动画的骨骼节点不一定是skin节点的child
+        const skinData = gltf.skins[index];
         skin.boneNames = skinData.joints.map(item => {
             return GlTF.getNodeName(item, gltf);
         });

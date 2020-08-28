@@ -1,7 +1,7 @@
 import { Vec3 } from "../mathD/vec3";
 
 export class Plane {
-    //ax+by+cz+d=0;
+    // ax+by+cz+d=0;
     normal: Vec3 = Vec3.create(0, 1, 0);
     constant: number = 0;
 
@@ -18,7 +18,7 @@ export class Plane {
         this.normal[0] = nx;
         this.normal[1] = ny;
         this.normal[2] = nz;
-        let inverseNormalLength = 1.0 / Vec3.magnitude(this.normal);
+        const inverseNormalLength = 1.0 / Vec3.magnitude(this.normal);
         Vec3.scale(this.normal, inverseNormalLength, this.normal);
         this.constant = ds * inverseNormalLength;
     }

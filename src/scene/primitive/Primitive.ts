@@ -78,6 +78,7 @@ export class Primitive {
         this._geometryInstances = value;
         this.geometryDirty = true;
     }
+
     get geometryInstances() {
         return this._geometryInstances;
     }
@@ -92,6 +93,7 @@ export class Primitive {
         }
         this._appearance = value;
     }
+
     modelMatrix: Mat4;
 
     show: boolean;
@@ -104,7 +106,6 @@ export class Primitive {
         this.geometryInstances = option.geometryInstances;
         this.appearance = option.appearance;
         this.modelMatrix = option.modelMatrix || Mat4.identity();
-        // eslint-disable-next-line prettier/prettier
         this.show = option.show ?? true;
         this.interleave = option.interleave ?? false;
         this.vertexCacheOptimize = option.vertexCacheOptimize ?? false;
@@ -112,10 +113,9 @@ export class Primitive {
     }
 
     update(frameState: any) {
-        //----------------------------------------------------
+        // ----------------------------------------------------
         //                  batch createvao
-        //----------------------------------------------------
-
+        // ----------------------------------------------------
 
         // if (this._batchedGeometrys == null)
         // {
@@ -131,38 +131,29 @@ export class Primitive {
         //     }
         // }
 
+        // ------------check show
 
-        //------------check show
-
-
-
-        //----------------------------------------------------
+        // ----------------------------------------------------
         //                draw commond      
-        //----------------------------------------------------
+        // ----------------------------------------------------
         if (this.appearanceDirty) {
-            //creat shader program
+            // creat shader program
         }
     }
-
 }
 
-
-
 function batchPrimitive(primitive: Primitive) {
-    let insArr = primitive.geometryInstances.map(ins => {
-        //step1: clone ins  todo
-        let cloneIns = ins;
-        //step2: 变换顶点数据
+    const insArr = primitive.geometryInstances.map(ins => {
+        // step1: clone ins  todo
+        const cloneIns = ins;
+        // step2: 变换顶点数据
         // return GeometryPipeline.transformToWorldCoordinates(cloneIns);
     });
-    //step3: 合并ins todo
+    // step3: 合并ins todo
     // let batchGeometry = GeometryPipeline.combineGeometryInstances(insArr);
 
     // return batchGeometry
 }
-
-
-
 
 export interface IprimitiveOption {
     geometryInstances: GeometryInstance | GeometryInstance[];

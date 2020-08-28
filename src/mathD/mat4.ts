@@ -7,11 +7,11 @@ export class Mat4 extends Float32Array {
     private static Recycle: Mat4[] = [];
     public static create() {
         if (Mat4.Recycle && Mat4.Recycle.length > 0) {
-            let item = Mat4.Recycle.pop();
+            const item = Mat4.Recycle.pop();
             Mat4.identity(item);
             return item;
         } else {
-            let item = new Float32Array(16);
+            const item = new Float32Array(16);
             item[0] = 1;
             item[5] = 1;
             item[10] = 1;
@@ -24,13 +24,14 @@ export class Mat4 extends Float32Array {
         if (array.length != 16) return null;
         return new Float32Array(array);
     }
+
     public static clone(from: Mat4): Mat4 {
         if (Mat4.Recycle.length > 0) {
-            let item = Mat4.Recycle.pop();
+            const item = Mat4.Recycle.pop();
             Mat4.copy(from, item);
             return item;
         } else {
-            let out = new Float32Array(16);
+            const out = new Float32Array(16);
             out[0] = from[0];
             out[1] = from[1];
             out[2] = from[2];
@@ -50,12 +51,15 @@ export class Mat4 extends Float32Array {
             return out;
         }
     }
+
     public static recycle(item: Mat4) {
         Mat4.Recycle.push(item);
     }
+
     public static disposeRecycledItems() {
         Mat4.Recycle.length = 0;
     }
+
     constructor() {
         super(16);
         this[0] = 1;
@@ -102,6 +106,7 @@ export class Mat4 extends Float32Array {
         out[15] = src[15];
         return out;
     }
+
     static IDENTITY = Mat4.create();
     /**
      * Set a mat4 to the identity matrix
@@ -139,12 +144,12 @@ export class Mat4 extends Float32Array {
     public static transpose(a: Mat4, out: Mat4 = Mat4.create()): Mat4 {
         // If we are transposing ourselves we can skip a few steps but have to cache some values
         if (out === a) {
-            let a01 = a[1],
-                a02 = a[2],
-                a03 = a[3];
-            let a12 = a[6],
-                a13 = a[7];
-            let a23 = a[11];
+            const a01 = a[1];
+            const a02 = a[2];
+            const a03 = a[3];
+            const a12 = a[6];
+            const a13 = a[7];
+            const a23 = a[11];
 
             out[1] = a[4];
             out[2] = a[8];
@@ -188,35 +193,35 @@ export class Mat4 extends Float32Array {
      * @returns out
      */
     public static invert(a: Mat4, out: Mat4 = Mat4.create()): Mat4 | null {
-        let a00 = a[0],
-            a01 = a[1],
-            a02 = a[2],
-            a03 = a[3];
-        let a10 = a[4],
-            a11 = a[5],
-            a12 = a[6],
-            a13 = a[7];
-        let a20 = a[8],
-            a21 = a[9],
-            a22 = a[10],
-            a23 = a[11];
-        let a30 = a[12],
-            a31 = a[13],
-            a32 = a[14],
-            a33 = a[15];
+        const a00 = a[0];
+        const a01 = a[1];
+        const a02 = a[2];
+        const a03 = a[3];
+        const a10 = a[4];
+        const a11 = a[5];
+        const a12 = a[6];
+        const a13 = a[7];
+        const a20 = a[8];
+        const a21 = a[9];
+        const a22 = a[10];
+        const a23 = a[11];
+        const a30 = a[12];
+        const a31 = a[13];
+        const a32 = a[14];
+        const a33 = a[15];
 
-        let b00 = a00 * a11 - a01 * a10;
-        let b01 = a00 * a12 - a02 * a10;
-        let b02 = a00 * a13 - a03 * a10;
-        let b03 = a01 * a12 - a02 * a11;
-        let b04 = a01 * a13 - a03 * a11;
-        let b05 = a02 * a13 - a03 * a12;
-        let b06 = a20 * a31 - a21 * a30;
-        let b07 = a20 * a32 - a22 * a30;
-        let b08 = a20 * a33 - a23 * a30;
-        let b09 = a21 * a32 - a22 * a31;
-        let b10 = a21 * a33 - a23 * a31;
-        let b11 = a22 * a33 - a23 * a32;
+        const b00 = a00 * a11 - a01 * a10;
+        const b01 = a00 * a12 - a02 * a10;
+        const b02 = a00 * a13 - a03 * a10;
+        const b03 = a01 * a12 - a02 * a11;
+        const b04 = a01 * a13 - a03 * a11;
+        const b05 = a02 * a13 - a03 * a12;
+        const b06 = a20 * a31 - a21 * a30;
+        const b07 = a20 * a32 - a22 * a30;
+        const b08 = a20 * a33 - a23 * a30;
+        const b09 = a21 * a32 - a22 * a31;
+        const b10 = a21 * a33 - a23 * a31;
+        const b11 = a22 * a33 - a23 * a32;
 
         // Calculate the determinant
         let det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
@@ -254,22 +259,22 @@ export class Mat4 extends Float32Array {
      * @returns out
      */
     public static adjoint(a: Mat4, out: Mat4 = Mat4.create()): Mat4 {
-        let a00 = a[0],
-            a01 = a[1],
-            a02 = a[2],
-            a03 = a[3];
-        let a10 = a[4],
-            a11 = a[5],
-            a12 = a[6],
-            a13 = a[7];
-        let a20 = a[8],
-            a21 = a[9],
-            a22 = a[10],
-            a23 = a[11];
-        let a30 = a[12],
-            a31 = a[13],
-            a32 = a[14],
-            a33 = a[15];
+        const a00 = a[0];
+        const a01 = a[1];
+        const a02 = a[2];
+        const a03 = a[3];
+        const a10 = a[4];
+        const a11 = a[5];
+        const a12 = a[6];
+        const a13 = a[7];
+        const a20 = a[8];
+        const a21 = a[9];
+        const a22 = a[10];
+        const a23 = a[11];
+        const a30 = a[12];
+        const a31 = a[13];
+        const a32 = a[14];
+        const a33 = a[15];
 
         out[0] = a11 * (a22 * a33 - a23 * a32) - a21 * (a12 * a33 - a13 * a32) + a31 * (a12 * a23 - a13 * a22);
         out[1] = -(a01 * (a22 * a33 - a23 * a32) - a21 * (a02 * a33 - a03 * a32) + a31 * (a02 * a23 - a03 * a22));
@@ -297,35 +302,35 @@ export class Mat4 extends Float32Array {
      * @returns determinant of a
      */
     public static determinant(a: Mat4): number {
-        let a00 = a[0],
-            a01 = a[1],
-            a02 = a[2],
-            a03 = a[3];
-        let a10 = a[4],
-            a11 = a[5],
-            a12 = a[6],
-            a13 = a[7];
-        let a20 = a[8],
-            a21 = a[9],
-            a22 = a[10],
-            a23 = a[11];
-        let a30 = a[12],
-            a31 = a[13],
-            a32 = a[14],
-            a33 = a[15];
+        const a00 = a[0];
+        const a01 = a[1];
+        const a02 = a[2];
+        const a03 = a[3];
+        const a10 = a[4];
+        const a11 = a[5];
+        const a12 = a[6];
+        const a13 = a[7];
+        const a20 = a[8];
+        const a21 = a[9];
+        const a22 = a[10];
+        const a23 = a[11];
+        const a30 = a[12];
+        const a31 = a[13];
+        const a32 = a[14];
+        const a33 = a[15];
 
-        let b00 = a00 * a11 - a01 * a10;
-        let b01 = a00 * a12 - a02 * a10;
-        let b02 = a00 * a13 - a03 * a10;
-        let b03 = a01 * a12 - a02 * a11;
-        let b04 = a01 * a13 - a03 * a11;
-        let b05 = a02 * a13 - a03 * a12;
-        let b06 = a20 * a31 - a21 * a30;
-        let b07 = a20 * a32 - a22 * a30;
-        let b08 = a20 * a33 - a23 * a30;
-        let b09 = a21 * a32 - a22 * a31;
-        let b10 = a21 * a33 - a23 * a31;
-        let b11 = a22 * a33 - a23 * a32;
+        const b00 = a00 * a11 - a01 * a10;
+        const b01 = a00 * a12 - a02 * a10;
+        const b02 = a00 * a13 - a03 * a10;
+        const b03 = a01 * a12 - a02 * a11;
+        const b04 = a01 * a13 - a03 * a11;
+        const b05 = a02 * a13 - a03 * a12;
+        const b06 = a20 * a31 - a21 * a30;
+        const b07 = a20 * a32 - a22 * a30;
+        const b08 = a20 * a33 - a23 * a30;
+        const b09 = a21 * a32 - a22 * a31;
+        const b10 = a21 * a33 - a23 * a31;
+        const b11 = a22 * a33 - a23 * a32;
 
         // Calculate the determinant
         return b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
@@ -340,28 +345,28 @@ export class Mat4 extends Float32Array {
      * @returns out
      */
     public static multiply(lhs: Mat4, rhs: Mat4, out: Mat4 = Mat4.create()): Mat4 {
-        let a00 = lhs[0],
-            a01 = lhs[1],
-            a02 = lhs[2],
-            a03 = lhs[3];
-        let a10 = lhs[4],
-            a11 = lhs[5],
-            a12 = lhs[6],
-            a13 = lhs[7];
-        let a20 = lhs[8],
-            a21 = lhs[9],
-            a22 = lhs[10],
-            a23 = lhs[11];
-        let a30 = lhs[12],
-            a31 = lhs[13],
-            a32 = lhs[14],
-            a33 = lhs[15];
+        const a00 = lhs[0];
+        const a01 = lhs[1];
+        const a02 = lhs[2];
+        const a03 = lhs[3];
+        const a10 = lhs[4];
+        const a11 = lhs[5];
+        const a12 = lhs[6];
+        const a13 = lhs[7];
+        const a20 = lhs[8];
+        const a21 = lhs[9];
+        const a22 = lhs[10];
+        const a23 = lhs[11];
+        const a30 = lhs[12];
+        const a31 = lhs[13];
+        const a32 = lhs[14];
+        const a33 = lhs[15];
 
         // Cache only the current line of the second matrix
-        let b0 = rhs[0],
-            b1 = rhs[1],
-            b2 = rhs[2],
-            b3 = rhs[3];
+        let b0 = rhs[0];
+        let b1 = rhs[1];
+        let b2 = rhs[2];
+        let b3 = rhs[3];
         out[0] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
         out[1] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
         out[2] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
@@ -405,21 +410,21 @@ export class Mat4 extends Float32Array {
      * @returns out
      */
     public static translate(a: Mat4, v: Vec3, out: Mat4 = Mat4.create()): Mat4 {
-        let x = v[0],
-            y = v[1],
-            z = v[2];
-        let a00: number = void 0,
-            a01: number = void 0,
-            a02: number = void 0,
-            a03: number = void 0;
-        let a10: number = void 0,
-            a11: number = void 0,
-            a12: number = void 0,
-            a13: number = void 0;
-        let a20: number = void 0,
-            a21: number = void 0,
-            a22: number = void 0,
-            a23: number = void 0;
+        const x = v[0];
+        const y = v[1];
+        const z = v[2];
+        let a00: number = void 0;
+        let a01: number = void 0;
+        let a02: number = void 0;
+        let a03: number = void 0;
+        let a10: number = void 0;
+        let a11: number = void 0;
+        let a12: number = void 0;
+        let a13: number = void 0;
+        let a20: number = void 0;
+        let a21: number = void 0;
+        let a22: number = void 0;
+        let a23: number = void 0;
 
         if (a === out) {
             out[12] = a[0] * x + a[4] * y + a[8] * z + a[12];
@@ -471,9 +476,9 @@ export class Mat4 extends Float32Array {
      * @returns out
      **/
     public static scale(a: Mat4, v: Vec3, out: Mat4 = Mat4.create()): Mat4 {
-        let x = v[0],
-            y = v[1],
-            z = v[2];
+        const x = v[0];
+        const y = v[1];
+        const z = v[2];
 
         out[0] = a[0] * x;
         out[1] = a[1] * x;
@@ -504,34 +509,34 @@ export class Mat4 extends Float32Array {
      * @returns out
      */
     public static rotate(a: Mat4, rad: number, axis: Vec3, out: Mat4 = Mat4.create()): Mat4 {
-        let x = axis[0],
-            y = axis[1],
-            z = axis[2];
+        let x = axis[0];
+        let y = axis[1];
+        let z = axis[2];
         let len = Math.sqrt(x * x + y * y + z * z);
-        let s: number = void 0,
-            c: number = void 0,
-            t: number = void 0;
-        let a00: number = void 0,
-            a01: number = void 0,
-            a02: number = void 0,
-            a03: number = void 0;
-        let a10: number = void 0,
-            a11: number = void 0,
-            a12: number = void 0,
-            a13: number = void 0;
-        let a20: number = void 0,
-            a21: number = void 0,
-            a22: number = void 0,
-            a23: number = void 0;
-        let b00: number = void 0,
-            b01: number = void 0,
-            b02: number = void 0;
-        let b10: number = void 0,
-            b11: number = void 0,
-            b12: number = void 0;
-        let b20: number = void 0,
-            b21: number = void 0,
-            b22: number = void 0;
+        let s: number = void 0;
+        let c: number = void 0;
+        let t: number = void 0;
+        let a00: number = void 0;
+        let a01: number = void 0;
+        let a02: number = void 0;
+        let a03: number = void 0;
+        let a10: number = void 0;
+        let a11: number = void 0;
+        let a12: number = void 0;
+        let a13: number = void 0;
+        let a20: number = void 0;
+        let a21: number = void 0;
+        let a22: number = void 0;
+        let a23: number = void 0;
+        let b00: number = void 0;
+        let b01: number = void 0;
+        let b02: number = void 0;
+        let b10: number = void 0;
+        let b11: number = void 0;
+        let b12: number = void 0;
+        let b20: number = void 0;
+        let b21: number = void 0;
+        let b22: number = void 0;
 
         if (Math.abs(len) < 0.000001) {
             return null;
@@ -603,16 +608,16 @@ export class Mat4 extends Float32Array {
      * @returns out
      */
     public static rotateX(a: Mat4, rad: number, out: Mat4 = Mat4.create()): Mat4 {
-        let s = Math.sin(rad);
-        let c = Math.cos(rad);
-        let a10 = a[4];
-        let a11 = a[5];
-        let a12 = a[6];
-        let a13 = a[7];
-        let a20 = a[8];
-        let a21 = a[9];
-        let a22 = a[10];
-        let a23 = a[11];
+        const s = Math.sin(rad);
+        const c = Math.cos(rad);
+        const a10 = a[4];
+        const a11 = a[5];
+        const a12 = a[6];
+        const a13 = a[7];
+        const a20 = a[8];
+        const a21 = a[9];
+        const a22 = a[10];
+        const a23 = a[11];
 
         if (a !== out) {
             // If the source and destination differ, copy the unchanged rows
@@ -647,16 +652,16 @@ export class Mat4 extends Float32Array {
      * @returns out
      */
     public static rotateY(a: Mat4, rad: number, out: Mat4 = Mat4.create()): Mat4 {
-        let s = Math.sin(rad);
-        let c = Math.cos(rad);
-        let a00 = a[0];
-        let a01 = a[1];
-        let a02 = a[2];
-        let a03 = a[3];
-        let a20 = a[8];
-        let a21 = a[9];
-        let a22 = a[10];
-        let a23 = a[11];
+        const s = Math.sin(rad);
+        const c = Math.cos(rad);
+        const a00 = a[0];
+        const a01 = a[1];
+        const a02 = a[2];
+        const a03 = a[3];
+        const a20 = a[8];
+        const a21 = a[9];
+        const a22 = a[10];
+        const a23 = a[11];
 
         if (a !== out) {
             // If the source and destination differ, copy the unchanged rows
@@ -691,16 +696,16 @@ export class Mat4 extends Float32Array {
      * @returns out
      */
     public static rotateZ(a: Mat4, rad: number, out: Mat4 = Mat4.create()): Mat4 {
-        let s = Math.sin(rad);
-        let c = Math.cos(rad);
-        let a00 = a[0];
-        let a01 = a[1];
-        let a02 = a[2];
-        let a03 = a[3];
-        let a10 = a[4];
-        let a11 = a[5];
-        let a12 = a[6];
-        let a13 = a[7];
+        const s = Math.sin(rad);
+        const c = Math.cos(rad);
+        const a00 = a[0];
+        const a01 = a[1];
+        const a02 = a[2];
+        const a03 = a[3];
+        const a10 = a[4];
+        const a11 = a[5];
+        const a12 = a[6];
+        const a13 = a[7];
 
         if (a !== out) {
             // If the source and destination differ, copy the unchanged last row
@@ -801,13 +806,13 @@ export class Mat4 extends Float32Array {
      * @returns {Mat4} out
      */
     public static fromRotation(rad: number, axis: Vec3, out: Mat4 = Mat4.create()): Mat4 {
-        let x = axis[0],
-            y = axis[1],
-            z = axis[2];
+        let x = axis[0];
+        let y = axis[1];
+        let z = axis[2];
         let len = Math.sqrt(x * x + y * y + z * z);
-        let s: number = void 0,
-            c: number = void 0,
-            t: number = void 0;
+        let s: number = void 0;
+        let c: number = void 0;
+        let t: number = void 0;
 
         if (Math.abs(len) < 0.000001) {
             return null;
@@ -854,8 +859,8 @@ export class Mat4 extends Float32Array {
      * @returns {Mat4} out
      */
     public static fromXRotation(rad: number, out: Mat4 = Mat4.create()): Mat4 {
-        let s = Math.sin(rad);
-        let c = Math.cos(rad);
+        const s = Math.sin(rad);
+        const c = Math.cos(rad);
 
         // Perform axis-specific matrix multiplication
         out[0] = 1;
@@ -889,8 +894,8 @@ export class Mat4 extends Float32Array {
      * @returns {Mat4} out
      */
     public static fromYRotation(rad: number, out: Mat4 = Mat4.create()): Mat4 {
-        let s = Math.sin(rad);
-        let c = Math.cos(rad);
+        const s = Math.sin(rad);
+        const c = Math.cos(rad);
 
         // Perform axis-specific matrix multiplication
         out[0] = c;
@@ -924,8 +929,8 @@ export class Mat4 extends Float32Array {
      * @returns {Mat4} out
      */
     public static fromZRotation(rad: number, out: Mat4 = Mat4.create()): Mat4 {
-        let s = Math.sin(rad);
-        let c = Math.cos(rad);
+        const s = Math.sin(rad);
+        const c = Math.cos(rad);
 
         // Perform axis-specific matrix multiplication
         out[0] = c;
@@ -974,15 +979,15 @@ export class Mat4 extends Float32Array {
      * @return {Vec3} out
      */
     public static getScaling(mat: Mat4, out: Vec3): Vec3 {
-        let m11 = mat[0];
-        let m12 = mat[1];
-        let m13 = mat[2];
-        let m21 = mat[4];
-        let m22 = mat[5];
-        let m23 = mat[6];
-        let m31 = mat[8];
-        let m32 = mat[9];
-        let m33 = mat[10];
+        const m11 = mat[0];
+        const m12 = mat[1];
+        const m13 = mat[2];
+        const m21 = mat[4];
+        const m22 = mat[5];
+        const m23 = mat[6];
+        const m31 = mat[8];
+        const m32 = mat[9];
+        const m33 = mat[10];
 
         out[0] = Math.sqrt(m11 * m11 + m12 * m12 + m13 * m13);
         out[1] = Math.sqrt(m21 * m21 + m22 * m22 + m23 * m23);
@@ -992,19 +997,19 @@ export class Mat4 extends Float32Array {
     }
 
     public static getMaxScaleOnAxis(mat: Mat4): number {
-        let m11 = mat[0];
-        let m12 = mat[1];
-        let m13 = mat[2];
-        let m21 = mat[4];
-        let m22 = mat[5];
-        let m23 = mat[6];
-        let m31 = mat[8];
-        let m32 = mat[9];
-        let m33 = mat[10];
+        const m11 = mat[0];
+        const m12 = mat[1];
+        const m13 = mat[2];
+        const m21 = mat[4];
+        const m22 = mat[5];
+        const m23 = mat[6];
+        const m31 = mat[8];
+        const m32 = mat[9];
+        const m33 = mat[10];
 
-        let scaleX = m11 * m11 + m12 * m12 + m13 * m13;
-        let scaleY = m21 * m21 + m22 * m22 + m23 * m23;
-        let scaleZ = m31 * m31 + m32 * m32 + m33 * m33;
+        const scaleX = m11 * m11 + m12 * m12 + m13 * m13;
+        const scaleY = m21 * m21 + m22 * m22 + m23 * m23;
+        const scaleZ = m31 * m31 + m32 * m32 + m33 * m33;
 
         return Math.sqrt(Math.max(scaleX, scaleY, scaleZ));
     }
@@ -1020,7 +1025,7 @@ export class Mat4 extends Float32Array {
      */
     public static getRotation(mat: Mat4, out: Quat): Quat {
         // Algorithm taken from http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
-        let trace = mat[0] + mat[5] + mat[10];
+        const trace = mat[0] + mat[5] + mat[10];
         let S = 0;
 
         if (trace > 0) {
@@ -1077,34 +1082,34 @@ export class Mat4 extends Float32Array {
         v: Vec3,
         s: Vec3,
         o: Vec3,
-        out: Mat4 = Mat4.create(),
+        out: Mat4 = Mat4.create()
     ): Mat4 {
         // Quaternion math
-        let x = q[0],
-            y = q[1],
-            z = q[2],
-            w = q[3];
-        let x2 = x + x;
-        let y2 = y + y;
-        let z2 = z + z;
+        const x = q[0];
+        const y = q[1];
+        const z = q[2];
+        const w = q[3];
+        const x2 = x + x;
+        const y2 = y + y;
+        const z2 = z + z;
 
-        let xx = x * x2;
-        let xy = x * y2;
-        let xz = x * z2;
-        let yy = y * y2;
-        let yz = y * z2;
-        let zz = z * z2;
-        let wx = w * x2;
-        let wy = w * y2;
-        let wz = w * z2;
+        const xx = x * x2;
+        const xy = x * y2;
+        const xz = x * z2;
+        const yy = y * y2;
+        const yz = y * z2;
+        const zz = z * z2;
+        const wx = w * x2;
+        const wy = w * y2;
+        const wz = w * z2;
 
-        let sx = s[0];
-        let sy = s[1];
-        let sz = s[2];
+        const sx = s[0];
+        const sy = s[1];
+        const sz = s[2];
 
-        let ox = o[0];
-        let oy = o[1];
-        let oz = o[2];
+        const ox = o[0];
+        const oy = o[1];
+        const oz = o[2];
 
         out[0] = (1 - (yy + zz)) * sx;
         out[1] = (xy + wz) * sx;
@@ -1135,23 +1140,23 @@ export class Mat4 extends Float32Array {
      * @returns {Mat4} out
      */
     public static fromQuat(q: Quat, out: Mat4 = Mat4.create()): Mat4 {
-        let x = q[0],
-            y = q[1],
-            z = q[2],
-            w = q[3];
-        let x2 = x + x;
-        let y2 = y + y;
-        let z2 = z + z;
+        const x = q[0];
+        const y = q[1];
+        const z = q[2];
+        const w = q[3];
+        const x2 = x + x;
+        const y2 = y + y;
+        const z2 = z + z;
 
-        let xx = x * x2;
-        let yx = y * x2;
-        let yy = y * y2;
-        let zx = z * x2;
-        let zy = z * y2;
-        let zz = z * z2;
-        let wx = w * x2;
-        let wy = w * y2;
-        let wz = w * z2;
+        const xx = x * x2;
+        const yx = y * x2;
+        const yy = y * y2;
+        const zx = z * x2;
+        const zy = z * y2;
+        const zz = z * z2;
+        const wx = w * x2;
+        const wy = w * y2;
+        const wz = w * z2;
 
         out[0] = 1 - yy - zz;
         out[1] = yx + wz;
@@ -1195,11 +1200,11 @@ export class Mat4 extends Float32Array {
         top: number,
         near: number,
         far: number,
-        out: Mat4 = Mat4.create(),
+        out: Mat4 = Mat4.create()
     ): Mat4 {
-        let rl = 1 / (right - left);
-        let tb = 1 / (top - bottom);
-        let nf = 1 / (near - far);
+        const rl = 1 / (right - left);
+        const tb = 1 / (top - bottom);
+        const nf = 1 / (near - far);
         out[0] = near * 2 * rl;
         out[1] = 0;
         out[2] = 0;
@@ -1229,25 +1234,25 @@ export class Mat4 extends Float32Array {
      * @returns out
      */
     public static lookAt(eye: Vec3, center: Vec3, up: Vec3, out: Mat4 = Mat4.create()): Mat4 {
-        let x0: number = void 0,
-            x1: number = void 0,
-            x2: number = void 0,
-            y0: number = void 0,
-            y1: number = void 0,
-            y2: number = void 0,
-            z0: number = void 0,
-            z1: number = void 0,
-            z2: number = void 0,
-            len: number = void 0;
-        let eyex = eye[0];
-        let eyey = eye[1];
-        let eyez = eye[2];
-        let upx = up[0];
-        let upy = up[1];
-        let upz = up[2];
-        let centerx = center[0];
-        let centery = center[1];
-        let centerz = center[2];
+        let x0: number = void 0;
+        let x1: number = void 0;
+        let x2: number = void 0;
+        let y0: number = void 0;
+        let y1: number = void 0;
+        let y2: number = void 0;
+        let z0: number = void 0;
+        let z1: number = void 0;
+        let z2: number = void 0;
+        let len: number = void 0;
+        const eyex = eye[0];
+        const eyey = eye[1];
+        const eyez = eye[2];
+        const upx = up[0];
+        const upy = up[1];
+        const upz = up[2];
+        const centerx = center[0];
+        const centery = center[1];
+        const centerz = center[2];
 
         if (
             Math.abs(eyex - centerx) < 0.000001 &&
@@ -1327,16 +1332,16 @@ export class Mat4 extends Float32Array {
      * @returns {Mat4} out
      */
     public static targetTo(eye: Vec3, target: Vec3, up: Vec3, out: Vec4) {
-        let eyex = eye[0],
-            eyey = eye[1],
-            eyez = eye[2],
-            upx = up[0],
-            upy = up[1],
-            upz = up[2];
+        const eyex = eye[0];
+        const eyey = eye[1];
+        const eyez = eye[2];
+        const upx = up[0];
+        const upy = up[1];
+        const upz = up[2];
 
-        let z0 = eyex - target[0],
-            z1 = eyey - target[1],
-            z2 = eyez - target[2];
+        let z0 = eyex - target[0];
+        let z1 = eyey - target[1];
+        let z2 = eyez - target[2];
 
         let len = z0 * z0 + z1 * z1 + z2 * z2;
         if (len > 0) {
@@ -1346,9 +1351,9 @@ export class Mat4 extends Float32Array {
             z2 *= len;
         }
 
-        let x0 = upy * z2 - upz * z1,
-            x1 = upz * z0 - upx * z2,
-            x2 = upx * z1 - upy * z0;
+        const x0 = upy * z2 - upz * z1;
+        const x1 = upz * z0 - upx * z2;
+        const x2 = upx * z1 - upy * z0;
 
         out[0] = x0;
         out[1] = x1;
@@ -1436,7 +1441,7 @@ export class Mat4 extends Float32Array {
             Math.pow(a[12], 2) +
             Math.pow(a[13], 2) +
             Math.pow(a[14], 2) +
-            Math.pow(a[15], 2),
+            Math.pow(a[15], 2)
         );
     }
 
@@ -1504,7 +1509,7 @@ export class Mat4 extends Float32Array {
      * @param {Mat4} b the second operand
      * @returns {Mat4} out
      */
-    //public static sub(out: Mat4=Mat4.create(), a: mat4, b: mat4): mat4;
+    // public static sub(out: Mat4=Mat4.create(), a: mat4, b: mat4): mat4;
 
     /**
      * Multiply each element of the matrix by a scalar.
@@ -1599,39 +1604,39 @@ export class Mat4 extends Float32Array {
      * @returns {boolean} True if the matrices are equal, false otherwise.
      */
     public static equals(a: Mat4, b: Mat4): boolean {
-        let a0 = a[0],
-            a1 = a[1],
-            a2 = a[2],
-            a3 = a[3];
-        let a4 = a[4],
-            a5 = a[5],
-            a6 = a[6],
-            a7 = a[7];
-        let a8 = a[8],
-            a9 = a[9],
-            a10 = a[10],
-            a11 = a[11];
-        let a12 = a[12],
-            a13 = a[13],
-            a14 = a[14],
-            a15 = a[15];
+        const a0 = a[0];
+        const a1 = a[1];
+        const a2 = a[2];
+        const a3 = a[3];
+        const a4 = a[4];
+        const a5 = a[5];
+        const a6 = a[6];
+        const a7 = a[7];
+        const a8 = a[8];
+        const a9 = a[9];
+        const a10 = a[10];
+        const a11 = a[11];
+        const a12 = a[12];
+        const a13 = a[13];
+        const a14 = a[14];
+        const a15 = a[15];
 
-        let b0 = b[0],
-            b1 = b[1],
-            b2 = b[2],
-            b3 = b[3];
-        let b4 = b[4],
-            b5 = b[5],
-            b6 = b[6],
-            b7 = b[7];
-        let b8 = b[8],
-            b9 = b[9],
-            b10 = b[10],
-            b11 = b[11];
-        let b12 = b[12],
-            b13 = b[13],
-            b14 = b[14],
-            b15 = b[15];
+        const b0 = b[0];
+        const b1 = b[1];
+        const b2 = b[2];
+        const b3 = b[3];
+        const b4 = b[4];
+        const b5 = b[5];
+        const b6 = b[6];
+        const b7 = b[7];
+        const b8 = b[8];
+        const b9 = b[9];
+        const b10 = b[10];
+        const b11 = b[11];
+        const b12 = b[12];
+        const b13 = b[13];
+        const b14 = b[14];
+        const b15 = b[15];
 
         return (
             Math.abs(a0 - b0) <= EPSILON &&
@@ -1664,9 +1669,9 @@ export class Mat4 extends Float32Array {
      * @returns out
      */
     static transformPoint(vector: Vec3, mat: Mat4, out: Vec3): Vec3 {
-        let x = vector[0],
-            y = vector[1],
-            z = vector[2];
+        const x = vector[0];
+        const y = vector[1];
+        const z = vector[2];
         let w = mat[3] * x + mat[7] * y + mat[11] * z + mat[15];
         w = w || 1.0;
         out[0] = (mat[0] * x + mat[4] * y + mat[8] * z + mat[12]) / w;
@@ -1686,9 +1691,9 @@ export class Mat4 extends Float32Array {
      * @returns out
      */
     static transformVector3(vector: Vec3, mat: Mat4, out: Vec3): Vec3 {
-        let x = vector[0],
-            y = vector[1],
-            z = vector[2];
+        const x = vector[0];
+        const y = vector[1];
+        const z = vector[2];
         out[0] = mat[0] * x + mat[4] * y + mat[8] * z;
         out[1] = mat[1] * x + mat[5] * y + mat[9] * z;
         out[2] = mat[2] * x + mat[6] * y + mat[10] * z;
@@ -1710,10 +1715,10 @@ export class Mat4 extends Float32Array {
         aspect: number,
         near: number,
         far: number,
-        out: Mat4 = Mat4.create(),
+        out: Mat4 = Mat4.create()
     ): Mat4 {
-        let f = 1.0 / Math.tan(fovy / 2);
-        let nf = 1 / (near - far);
+        const f = 1.0 / Math.tan(fovy / 2);
+        const nf = 1 / (near - far);
         out[0] = f / aspect;
         out[1] = 0;
         out[2] = 0;
@@ -1732,6 +1737,7 @@ export class Mat4 extends Float32Array {
         out[15] = 0;
         return out;
     }
+
     /**
      * Generates a perspective projection matrix with the given bounds
      * @param fov 上下夹角
@@ -1793,11 +1799,11 @@ export class Mat4 extends Float32Array {
         height: number,
         near: number,
         far: number,
-        out: Mat4 = Mat4.create(),
+        out: Mat4 = Mat4.create()
     ): Mat4 {
-        let lr = -1 / width;
-        let bt = -1 / height;
-        let nf = 1 / (near - far);
+        const lr = -1 / width;
+        const bt = -1 / height;
+        const nf = 1 / (near - far);
         out[0] = -2 * lr;
         out[1] = 0;
         out[2] = 0;
@@ -1854,26 +1860,26 @@ export class Mat4 extends Float32Array {
      * @param out
      */
     static RTS(pos: Vec3, scale: Vec3, rot: Quat, out: Mat4 = Mat4.create()): Mat4 {
-        let x = rot[0],
-            y = rot[1],
-            z = rot[2],
-            w = rot[3];
-        let x2 = x + x;
-        let y2 = y + y;
-        let z2 = z + z;
+        const x = rot[0];
+        const y = rot[1];
+        const z = rot[2];
+        const w = rot[3];
+        const x2 = x + x;
+        const y2 = y + y;
+        const z2 = z + z;
 
-        let xx = x * x2;
-        let xy = x * y2;
-        let xz = x * z2;
-        let yy = y * y2;
-        let yz = y * z2;
-        let zz = z * z2;
-        let wx = w * x2;
-        let wy = w * y2;
-        let wz = w * z2;
-        let sx = scale[0];
-        let sy = scale[1];
-        let sz = scale[2];
+        const xx = x * x2;
+        const xy = x * y2;
+        const xz = x * z2;
+        const yy = y * y2;
+        const yz = y * z2;
+        const zz = z * z2;
+        const wx = w * x2;
+        const wy = w * y2;
+        const wz = w * z2;
+        const sx = scale[0];
+        const sy = scale[1];
+        const sz = scale[2];
 
         out[0] = (1 - (yy + zz)) * sx;
         out[1] = (xy + wz) * sx;
@@ -1894,7 +1900,8 @@ export class Mat4 extends Float32Array {
 
         return out;
     }
-    /**----copy glmatrix
+
+    /** ----copy glmatrix
      * Creates a matrix from a Quaternion rotation and vector translation
      * This is equivalent to (but much faster than):
      *
@@ -1911,23 +1918,23 @@ export class Mat4 extends Float32Array {
      */
     public static RT(q: Quat, v: Vec3, out: Mat4 = Mat4.create()): Mat4 {
         // Quaternion math
-        let x = q[0],
-            y = q[1],
-            z = q[2],
-            w = q[3];
-        let x2 = x + x;
-        let y2 = y + y;
-        let z2 = z + z;
+        const x = q[0];
+        const y = q[1];
+        const z = q[2];
+        const w = q[3];
+        const x2 = x + x;
+        const y2 = y + y;
+        const z2 = z + z;
 
-        let xx = x * x2;
-        let xy = x * y2;
-        let xz = x * z2;
-        let yy = y * y2;
-        let yz = y * z2;
-        let zz = z * z2;
-        let wx = w * x2;
-        let wy = w * y2;
-        let wz = w * z2;
+        const xx = x * x2;
+        const xy = x * y2;
+        const xz = x * z2;
+        const yy = y * y2;
+        const yz = y * z2;
+        const zz = z * z2;
+        const wx = w * x2;
+        const wy = w * y2;
+        const wz = w * z2;
 
         out[0] = 1 - (yy + zz);
         out[1] = xy + wz;
@@ -1948,7 +1955,8 @@ export class Mat4 extends Float32Array {
 
         return out;
     }
-    /**use glmatrix separate function
+
+    /** use glmatrix separate function
      * Returns the translation、scale、rotation  component  of a transformation
      *
      * @param src
@@ -1968,9 +1976,9 @@ export class Mat4 extends Float32Array {
      * @param result defines the target Quaternion
      */
     public static getRotationing(matrix: Mat4, result: Quat, scale: Vec3 = null) {
-        let scalex = 1,
-            scaley = 1,
-            scalez = 1;
+        let scalex = 1;
+        let scaley = 1;
+        let scalez = 1;
         if (scale == null) {
             scalex = Math.sqrt(matrix[0] * matrix[0] + matrix[1] * matrix[1] + matrix[2] * matrix[2]);
             scaley = Math.sqrt(matrix[4] * matrix[4] + matrix[5] * matrix[5] + matrix[6] * matrix[6]);
@@ -1988,16 +1996,16 @@ export class Mat4 extends Float32Array {
             return;
         }
         // var data = matrix.m;
-        let m11 = matrix[0] / scalex,
-            m12 = matrix[4] / scaley,
-            m13 = matrix[8] / scalez;
-        let m21 = matrix[1] / scalex,
-            m22 = matrix[5] / scaley,
-            m23 = matrix[9] / scalez;
-        let m31 = matrix[2] / scalex,
-            m32 = matrix[6] / scaley,
-            m33 = matrix[10] / scalez;
-        let trace = m11 + m22 + m33;
+        const m11 = matrix[0] / scalex;
+        const m12 = matrix[4] / scaley;
+        const m13 = matrix[8] / scalez;
+        const m21 = matrix[1] / scalex;
+        const m22 = matrix[5] / scaley;
+        const m23 = matrix[9] / scalez;
+        const m31 = matrix[2] / scalex;
+        const m32 = matrix[6] / scaley;
+        const m33 = matrix[10] / scalez;
+        const trace = m11 + m22 + m33;
         let s;
 
         if (trace > 0) {
@@ -2032,7 +2040,7 @@ export class Mat4 extends Float32Array {
     }
 
     static toArray(mat: Mat4, array: Float32Array, offset: number) {
-        let te = mat;
+        const te = mat;
         array[offset] = te[0];
         array[offset + 1] = te[1];
         array[offset + 2] = te[2];

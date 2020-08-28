@@ -1,76 +1,66 @@
 import { excuteDebuffAction, IdebuffeAction } from "./DebuffAction";
-import { EventHandler } from "./Event";
+import { EventTarget } from "./EventTarget";
 
-export class Timer implements Itimer
-{
+export class Timer implements Itimer {
     private beActive: boolean = true;
-    active()
-    {
+    active() {
         this.beActive = true;
     }
-    disActive()
-    {
+
+    disActive() {
         this.beActive = false;
     }
-    constructor()
-    {
-        this.frameUpdate();
+
+    constructor() {
+        this.tickUpdate();
     }
+
     private _lastTime: number;
     private _deltaTime: number;
-    get deltaTime()
-    {
+    get deltaTime() {
         return this._deltaTime;
     }
 
     timeScale: number = 1.0;
     private intervalLoop: IdebuffeAction;
-    private update()
-    {
-        let now = Date.now();
+    private update() {
+        const now = Date.now();
         this._deltaTime = this._lastTime ? (now - this._lastTime) * this.timeScale * 0.001 : 0;
         this._lastTime = now;
-        if (this.beActive != null)
-        {
+        if (this.beActive != null) {
             this._ontick.raiseEvent(this._deltaTime);
         }
     }
 
-    private _ontick = new EventHandler<number>();
-    get onTick() { return this._ontick }
+    private _ontick = new EventTarget<number>();
+    get onTick() { return this._ontick; }
 
     FPS: number = 60;
     private _lastFPS: number;
-    private frameUpdate()
-    {
+    private tickUpdate() {
         this.update();
-        if (this.FPS == 60)
-        {
-            requestAnimationFrame(this.frameUpdate.bind(this));
-        } else if (this.FPS != this._lastFPS)
-        {
-            //----------帧率被修改
+        if (this.FPS == 60) {
+            requestAnimationFrame(this.tickUpdate.bind(this));
+        } else if (this.FPS != this._lastFPS) {
+            // ----------帧率被修改
             this.FPS = Math.min(this.FPS, 60);
             this.FPS = Math.max(this.FPS, 0);
             this._lastFPS = this.FPS;
 
-            if (this.intervalLoop) { this.intervalLoop.dispose() }
-            this.intervalLoop = excuteDebuffAction(() =>
-            {
-                let loop = setInterval(() =>
-                {
-                    this.frameUpdate();
+            if (this.intervalLoop) { this.intervalLoop.dispose(); }
+            this.intervalLoop = excuteDebuffAction(() => {
+                const loop = setInterval(() => {
+                    this.tickUpdate();
                 }, 1000 / this.FPS);
 
-                return () => { clearInterval(loop) }
+                return () => { clearInterval(loop); };
             });
         }
     }
 }
 
-export interface Itimer
-{
+export interface Itimer {
     active(): void;
     disActive(): void;
-    readonly onTick: EventHandler<number>;
+    readonly onTick: EventTarget<number>;
 }

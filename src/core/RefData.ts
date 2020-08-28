@@ -1,31 +1,24 @@
-import { EventHandler } from "./Event";
+import { EventTarget } from "./EventTarget";
 
-export class RefData<T>
-{
-    private _data: T;
-    set data(value: T)
-    {
-        if (this._data != value)
-        {
-            let oldData = this._data;
-            this._data = value;
-
-            this.onDataChange.raiseEvent(value);
+export class RefData<T> {
+    protected _current: T;
+    set current(value: T) {
+        if (this._current != value) {
+            const oldData = this._current;
+            this._current = value;
+            this.onDataChange.raiseEvent({ newData: value, oldData });
         }
     };
-    get data() { return this._data };
-    onDataChange: EventHandler<T> = new EventHandler();
 
-    constructor(data: T)
-    {
-        this._data = data;
+    get current() { return this._current; };
+    onDataChange: EventTarget<{ newData: T, oldData: T }> = new EventTarget();
+    constructor(data?: T) {
+        this._current = data;
     }
 
-    destroy()
-    {
-        this._data = undefined;
+    destroy() {
+        this._current = undefined;
         this.onDataChange.destroy();
         this.onDataChange = undefined;
     }
-
 }

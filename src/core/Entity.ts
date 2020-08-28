@@ -1,31 +1,31 @@
 import { Icomponent, Ecs, Ientity, UniteBitkey } from "./Ecs";
 import { Transform } from "./Transform";
-import { EventHandler } from "./Event";
+import { EventTarget } from "./EventTarget";
 import { RefData } from "./RefData";
 
-namespace Private {
-    export let id = 0;
-}
-
 export class Entity extends Transform implements Ientity {
+    static IdCount = 0;
     name: string;
     ref_beActive = new RefData<boolean>(true);
-    get beActive() { return this.ref_beActive.data };
+    get beActive() { return this.ref_beActive.current; };
     set beActive(value: boolean) {
-        this.ref_beActive.data = value;
+        this.ref_beActive.current = value;
     }
+
     readonly id: number;
     constructor(name?: string) {
         super();
         this.name = name;
-        this.id = Private.id++;
+        this.id = Entity.IdCount++;
     }
+
     _uniteBitkey: UniteBitkey = new UniteBitkey();
     addComponent(comp: string): Icomponent {
-        let newComp = Ecs.addComp(this, comp);
+        const newComp = Ecs.addComp(this, comp);
         return newComp;
     }
-    getComponent(comp: string) { return (this as any)[comp] }
+
+    getComponent(comp: string) { return (this as any)[comp]; }
     removeComponent(comp: string): void {
         Ecs.removeComp(this, comp);
     }
@@ -57,7 +57,7 @@ export class Entity extends Transform implements Ientity {
 
     findInParents(check: (e: Entity) => boolean) {
         if (check(this)) {
-            return this
+            return this;
         } else {
             let result: Entity;
             if (this.parent) {
@@ -68,7 +68,7 @@ export class Entity extends Transform implements Ientity {
     }
 
     clone(): Entity {
-        //TODO
+        // TODO
         return new Entity();
     }
 }

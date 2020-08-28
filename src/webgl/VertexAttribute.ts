@@ -48,14 +48,13 @@ export class VertexAttribute implements IvertexAttribute {
 
     private _gl: WebGLRenderingContext;
     constructor(context: GraphicsDevice, options: IvertexAttributeOption) {
-
-        //todo  check 
+        // todo  check
         if (options.vertexBuffer == null && options.value == null) {
-            throw new Error('attribute must have a vertexBuffer or a value.');
+            throw new Error("attribute must have a vertexBuffer or a value.");
         }
 
         this._gl = context.gl;
-        let att = options;
+        const att = options;
         this.type = att.type;
         this.index = VertexAttEnum.toShaderLocation(this.type);
         this.enabled = att.enabled ?? true;// true;
@@ -69,9 +68,9 @@ export class VertexAttribute implements IvertexAttribute {
         this.instanceDivisor = att.instanceDivisor; // 0; // not instanced
 
         if (this.vertexBuffer) {
-            let bytes = this.vertexBuffer.sizeInbytes - this.offsetInBytes;
+            const bytes = this.vertexBuffer.sizeInbytes - this.offsetInBytes;
             if (this.strideInBytes == 0) {
-                this.count = bytes / (this.componentsPerAttribute * ComponentDatatypeEnum.byteSize(this.componentDatatype))
+                this.count = bytes / (this.componentsPerAttribute * ComponentDatatypeEnum.byteSize(this.componentDatatype));
             } else {
                 this.count = bytes / this.strideInBytes;
             }
@@ -87,24 +86,23 @@ export class VertexAttribute implements IvertexAttribute {
                     this.componentDatatype,
                     this.normalize,
                     this.strideInBytes,
-                    this.offsetInBytes,
+                    this.offsetInBytes
                 );
                 if (this.instanceDivisor != null) {
                     this._gl.vertexAttribDivisor(this.index, att.instanceDivisor);
                 }
-            }
+            };
             this.unbind = () => {
                 this._gl.disableVertexAttribArray(this.index);
                 if (att.instanceDivisor != null) {
                     this._gl.vertexAttribDivisor(this.index, 0);
                 }
-            }
-
+            };
         } else {
-            let bindFunc = BufferConfig.vertexAttributeSetter[att.componentsPerAttribute];
+            const bindFunc = BufferConfig.vertexAttributeSetter[att.componentsPerAttribute];
             this.bind = () => {
                 bindFunc(this.index, this.value);
-            }
+            };
         }
     }
 
@@ -112,5 +110,3 @@ export class VertexAttribute implements IvertexAttribute {
 
     unbind() { }
 }
-
-

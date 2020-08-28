@@ -1,47 +1,31 @@
-import { EventHandler } from "../core/Event";
+import { EventTarget } from "../core/EventTarget";
 import { Asset } from "./asset/Asset";
 import { DebuffAction } from "../core/DebuffAction";
+import { RefData } from "../core/RefData";
 
 interface Iondirty {
-    onDirty: EventHandler<void>;
+    onDirty: EventTarget<void>;
 }
 
-export class AssetReference<T extends Iondirty>
-{
-    private _asset: T;
-    set asset(value: T) {
-        if (this._asset != value) {
-            let oldAsset = this._asset;
-            this._asset = value;
+// export type AssetReference<T extends Iondirty>=RefData<T>;
+export class AssetReference<T extends Iondirty> extends RefData<T> {
+    onDirty = new EventTarget<void>();
+    private raiseDiry = () => { this?.onDirty.raiseEvent(); };
 
-            this.onAssetChange.raiseEvent({ newAsset: value, oldAsset });
-            this.attachToDirtyAction.excuteAction(() => {
-                let func = () => { this.onDirty.raiseEvent() }
-                value?.onDirty.addEventListener(func);
-                return () => {
-                    value?.onDirty.removeEventListener(func);
-                }
-            });
+    set current(value: T) {
+        if (this._current != value) {
+            const oldData = this._current;
+            this._current = value;
+            oldData?.onDirty.removeEventListener(this.raiseDiry);
+            value?.onDirty.addEventListener(this.raiseDiry);
+            this.onDataChange.raiseEvent({ newData: value, oldData });
         }
     };
-    get asset() { return this._asset };
-    onAssetChange: EventHandler<AssetChangedEvent<T>> = new EventHandler();
-    onDirty = new EventHandler<void>();
-    private attachToDirtyAction = DebuffAction.create();
+
+    get current() { return this._current; }
 
     destroy() {
-        this._asset = undefined;
-        this.attachToDirtyAction.dispose();
-        this.attachToDirtyAction = undefined;
-        this.onAssetChange.destroy();
-        this.onAssetChange = undefined;
+        super.destroy();
+        this.onDirty.destroy();
     }
-
-}
-
-
-export class AssetChangedEvent<T extends Iondirty>
-{
-    newAsset: T;
-    oldAsset: T;
 }

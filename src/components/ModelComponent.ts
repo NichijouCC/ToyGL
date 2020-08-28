@@ -2,7 +2,7 @@ import { Icomponent, Ientity, Ecs } from "../core/Ecs";
 import { MeshInstance } from "../scene/primitive/MeshInstance";
 import { Entity } from "../core/Entity";
 import { AssetReferenceArray } from "../scene/AssetReferenceArray";
-import { EventHandler } from "../core/Event";
+import { EventTarget } from "../core/EventTarget";
 import { AssetReference } from "../scene/AssetReference";
 import { StaticMesh } from "../scene/asset/geometry/StaticMesh";
 import { Material } from "../scene/asset/material/Material";
@@ -14,21 +14,21 @@ import { Irenderable } from "../scene/render/Irenderable";
 export class ModelComponent implements Icomponent {
     readonly entity: Entity;
     protected _mesh: AssetReference<StaticMesh> = new AssetReference();
-    get mesh() { return this._mesh.asset };
-    set mesh(asset: StaticMesh) { this._mesh.asset = asset };
+    get mesh() { return this._mesh.current; };
+    set mesh(asset: StaticMesh) { this._mesh.current = asset; };
     protected _materials: AssetReferenceArray<Material> = new AssetReferenceArray();
-    set material(asset: Material) { this._materials.setValue(asset) };
-    get material() { return this._materials.getValue().asset };
+    set material(asset: Material) { this._materials.setValue(asset); };
+    get material() { return this._materials.current[0]; };
 
-    get materials() { return this._materials.assets.map(item => item.asset) };
-    set materials(mats: Material[]) { this._materials.setValues(mats); }
+    get materials() { return this._materials.current; };
+    set materials(mats: Material[]) { this._materials.current = mats; }
 
     private _skin: AssetReference<Skin> = new AssetReference();
-    set skin(skin: Skin) { this._skin.asset = skin };
-    get skin() { return this._skin.asset }
+    set skin(skin: Skin) { this._skin.current = skin; };
+    get skin() { return this._skin.current; }
 
     private _skinInstance: SkinInstance;
-    get skinIns() { return this._skinInstance };
+    get skinIns() { return this._skinInstance; };
     constructor() {
         // this._materials.onAssetChange.addEventListener((event) => {
         //     let { newAsset, index } = event;
@@ -56,18 +56,17 @@ export class ModelComponent implements Icomponent {
         //     }
         // });
 
-        this._skin.onAssetChange.addEventListener((event) => {
-            let { newAsset, oldAsset } = event;
+        this._skin.onDataChange.addEventListener((event) => {
+            const { newData: newAsset, oldData: oldAsset } = event;
             if (this._skinInstance) { this._skinInstance.destroy(); this._skinInstance = null; };
             if (newAsset) {
                 this._skinInstance = new SkinInstance(newAsset, this.entity);
             }
-        })
+        });
     }
 
     /**
      * meshInstance create Or Delect
      */
-    onMeshinsCountChange = new EventHandler<ModelComponent>();
-
+    onMeshinsCountChange = new EventTarget<ModelComponent>();
 }

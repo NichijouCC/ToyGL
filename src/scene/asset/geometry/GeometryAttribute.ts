@@ -27,7 +27,7 @@ export class GeometryAttribute {
     constructor(option: IgeometryAttributeOptions) {
         this.value = option.value;
         this.type = option.type;
-        this.componentsPerAttribute = option.componentsPerAttribute;
+        this.componentsPerAttribute = option.componentsPerAttribute ?? VertexAttEnum.toComponentSize(option.type);
         this.normalize = option.normalize ?? false;
         this.beDynamic = option.beDynamic ?? false;
 
@@ -38,14 +38,13 @@ export class GeometryAttribute {
             this.values = option.values;
             if (option.componentDatatype != null) {
                 if (option.values != null && TypedArray.glType(this.values) != option.componentDatatype) {
-                    throw new Error("the componentDatatype is conflict with geometryAttributeOption's value (Typedarray)")
+                    throw new Error("the componentDatatype is conflict with geometryAttributeOption's value (Typedarray)");
                 }
                 this.componentDatatype = option.componentDatatype;
             } else {
                 this.componentDatatype = this.values ? TypedArray.glType(this.values) : ComponentDatatypeEnum.FLOAT;
             }
         }
-
     }
 }
 
@@ -58,5 +57,3 @@ export interface IgeometryAttributeOptions {
     type: VertexAttEnum;
     beDynamic?: boolean;
 }
-
-

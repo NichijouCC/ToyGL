@@ -13,8 +13,7 @@ export type vertexBufferOption =
         typedArray: TypedArray;
     };
 
-export class VertexBuffer extends Buffer
-{
+export class VertexBuffer extends Buffer {
     // componentSize: number;
     // componentDataType: number;
     // // size?: number;
@@ -22,9 +21,7 @@ export class VertexBuffer extends Buffer
     // bytesStride: number;
     // bytesOffset: number;
     // divisor?: number;
-    constructor(options: vertexBufferOption)
-    {
+    constructor(options: vertexBufferOption) {
         super({ ...options, target: BufferTargetEnum.ARRAY_BUFFER });
     }
 }
-

@@ -8,7 +8,7 @@ const pathsMap = require("./config");
 
 module.exports = {
     entry: {
-        app: path.resolve(pathsMap.appPath, "index.tsx"),
+        app: path.resolve(pathsMap.appPath, "index.ts"),
     },
     output: {
         filename: 'js/[name].bundle.js',
@@ -30,8 +30,8 @@ module.exports = {
                         loader: 'html-loader'
                     },
                     {
-                        test: /\.(scss|css)$/,
-                        use: ["style-loader", "css-loader", "sass-loader"]// 将 Sass 编译成 CSS-》将 CSS 转化成 CommonJS 模块-》将 JS 字符串生成为 style 节点
+                        test: /\.css$/,
+                        use: ["style-loader", "css-loader"]// 将 Sass 编译成 CSS-》将 CSS 转化成 CommonJS 模块-》将 JS 字符串生成为 style 节点
                     },
                     {
                         test: /\.(svg|jpg|jpeg|bmp|png|webp|gif|ico|ttf)$/,
@@ -93,7 +93,7 @@ module.exports = {
         // Copy Cesium Assets, Widgets, and Workers to a static directory
         new webpack.DefinePlugin({
             // Define relative base path in cesium for loading assets
-            'CESIUM_BASE_URL': JSON.stringify('./')
+            'VERSION': new Date().toLocaleString()
         })
     ]
 }

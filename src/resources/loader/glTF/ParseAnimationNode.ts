@@ -8,12 +8,12 @@ import { TypedArray } from "../../../core/TypedArray";
 
 export class ParseAnimationNode {
     static parse(index: number, gltf: IgltfJson): Promise<AnimationClip> {
-        let animation = gltf.animations[index];
-        let newAniclip = new AnimationClip(animation.name);
-        let { channels, samplers } = animation;
+        const animation = gltf.animations[index];
+        const newAniclip = new AnimationClip(animation.name);
+        const { channels, samplers } = animation;
 
         return Promise.all(channels.map(item => {
-            let sampleNode = samplers[item.sampler];
+            const sampleNode = samplers[item.sampler];
             return this.parseChannelData(item.target, sampleNode, gltf)
                 .then((channel) => {
                     newAniclip.channels.push(channel);
@@ -21,11 +21,11 @@ export class ParseAnimationNode {
                         newAniclip.totalFrame = channel.endFrame;
                     }
                 });
-        })).then(() => { return newAniclip })
+        })).then(() => { return newAniclip; });
     }
 
     private static parseChannelData(channeltarget: IgltfAnimationChannelTarget, sampleNode: IgltfAnimationSampler, gltf: IgltfJson): Promise<AnimationChannel> {
-        let chan = new AnimationChannel();
+        const chan = new AnimationChannel();
         chan.targetName = GlTF.getNodeName(channeltarget.node, gltf);
         chan.propertyName = channeltarget.path;
         chan.interPolation = sampleNode.interpolation;
@@ -34,11 +34,11 @@ export class ParseAnimationNode {
             ParseAccessorNode.parse(sampleNode.input, gltf),
             ParseAccessorNode.parse(sampleNode.output, gltf)
         ]).then(([inputdata, outputdata]) => {
-            let timedata = inputdata.typedArray;
+            const timedata = inputdata.typedArray;
             // chan.keys=new Float32Array(timedata.length);
-            let keyframes = Accessor.getTypedData(inputdata);
+            const keyframes = Accessor.getTypedData(inputdata);
             for (let i = 0; i < keyframes.length; i++) {
-                chan.keyframes[i] = (keyframes[i] * AnimationClip.FPS) | 0;//变成frame
+                chan.keyframes[i] = (keyframes[i] * AnimationClip.FPS) | 0;// 变成frame
             }
             chan.values = Accessor.getTypedData(outputdata);
             return chan;

@@ -20,16 +20,22 @@
   },
   "scripts": {
     "roll": "rollup -c rollup.config.js",
-    "start": "rollup -c rollup.config.dev.js -w"
+    "start": "rollup -c rollup.config.dev.js -w",
+    "lint": "eslint **/*.ts --fix --ignore-pattern node_modules/"
   },
   "devDependencies": {
     "@types/node": "^10.11.0",
-    "@typescript-eslint/eslint-plugin": "^1.6.0",
-    "@typescript-eslint/parser": "^1.6.0",
+    "@typescript-eslint/eslint-plugin": "^3.10.1",
+    "@typescript-eslint/parser": "^3.10.1",
     "colors": "^1.3.2",
-    "eslint": "^5.16.0",
+    "eslint": "^7.7.0",
     "eslint-config-prettier": "^4.1.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.0.1",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
     "lodash.camelcase": "^4.3.0",
     "prettier": "^1.17.0",
     "prompt": "^1.0.0",

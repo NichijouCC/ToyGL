@@ -1,4 +1,3 @@
-import { Screen } from "./core/Screen";
 import { Input } from "./input/Input";
 import { Timer } from "./core/Timer";
 import { InterScene } from "./scene/Scene";
@@ -8,70 +7,57 @@ import { LoadGlTF } from "./resources/loader/LoadglTF";
 import { Ecs } from "./core/Ecs";
 import { ModelSystem } from "./components/ModelSystem";
 import { ForwardRender } from "./scene/render/ForwardRender";
-import { EventHandler } from "./core/Event";
+import { EventTarget } from "./core/EventTarget";
 import { AnimationSystem } from "./components/AnimationSystem";
+import { ToyScreen } from "./core/ToyScreen";
+import { CamerSystem } from "./components/CamerSystem";
+
 export class ToyGL {
-    static create(element: HTMLDivElement | HTMLCanvasElement): ToyGL {
-        let canvas: HTMLCanvasElement;
-        if (element instanceof HTMLDivElement) {
-            canvas = document.createElement("canvas");
-            canvas.width = element.clientWidth;
-            canvas.width = element.clientHeight;
+    onresize = new EventTarget<{ width: number, height: number }>();
+    static create(element: HTMLDivElement | HTMLCanvasElement, options?: { autoAdaptScreenSize?: boolean }): ToyGL {
+        const toy = new ToyGL();
+        const screen = ToyScreen.create(element, options);
+        const canvas = screen.canvas;
 
-            element.appendChild(canvas);
-            element.onresize = () => {
-                canvas.width = element.clientWidth;
-                canvas.width = element.clientHeight;
-            }
-        } else {
-            canvas = element;
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-
-        }
-
-        let toy = new ToyGL();
-        let timer = new Timer();
-        let input = new Input(canvas);
-        let screen = new Screen(canvas);
-        let device = new GraphicsDevice(canvas);
-        let render = new ForwardRender(device);
-        let resource = new Resource();
-        let scene = new InterScene(render);
+        const timer = new Timer();
+        const input = new Input(canvas);
+        const device = new GraphicsDevice(canvas);
+        const render = new ForwardRender(device);
+        const resource = new Resource();
+        const scene = new InterScene(render, screen);
         resource.registerAssetLoader(".gltf", new LoadGlTF(device));
-        Ecs.addSystem(new ModelSystem(scene, render));
+        Ecs.addSystem(new CamerSystem(scene, screen));
         Ecs.addSystem(new AnimationSystem());
+        Ecs.addSystem(new ModelSystem(scene, render));
 
         timer.onTick.addEventListener((deltaTime) => {
             toy.preUpdate.raiseEvent(deltaTime);
             Ecs.update(deltaTime);
             // scene.frameUpdate(deltaTime);
-        })
+        });
 
         toy._timer = timer;
         toy._input = input;
         toy._screen = screen;
         toy._scene = scene;
         toy._resource = resource;
-
         return toy;
     }
 
-    preUpdate = new EventHandler<number>();
-
+    preUpdate = new EventTarget<number>();
 
     private _input: Input;
-    get input() { return this._input }
+    get input() { return this._input; }
 
-    private _screen: Screen;
-    get screen() { return this._screen }
+    private _screen: ToyScreen;
+    get screen() { return this._screen; }
 
     private _timer: Timer;
-    get timer() { return this._timer }
+    get timer() { return this._timer; }
 
     private _scene: InterScene;
-    get scene() { return this._scene }
+    get scene() { return this._scene; }
 
     private _resource: Resource;
-    get resource() { return this._resource }
+    get resource() { return this._resource; }
 }

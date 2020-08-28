@@ -6,7 +6,7 @@ export class AnimationSystem extends BassCompSystem {
 
     update(deltaTime: number) {
         this.comps.forEach(item => {
-            let animation = item[0] as Animation;
+            const animation = item[0] as Animation;
             if (animation.currentClip) {
                 animation.currentClip.update(deltaTime);
             } else {
@@ -14,6 +14,6 @@ export class AnimationSystem extends BassCompSystem {
                     animation.play(animation.clips[0]);
                 }
             }
-        })
+        });
     }
 }

@@ -8,24 +8,25 @@ export class Mat3 extends Float32Array {
     private static Recycle: Mat3[] = [];
     public static create(): Mat3 {
         if (Mat3.Recycle && Mat3.Recycle.length > 0) {
-            let item = Mat3.Recycle.pop();
+            const item = Mat3.Recycle.pop();
             Mat3.identity(item);
             return item;
         } else {
-            let item = new Float32Array(9);
+            const item = new Float32Array(9);
             item[0] = 1;
             item[4] = 1;
             item[8] = 1;
             return item;
         }
     }
+
     public static clone(from: Mat3): Mat3 {
         if (Mat3.Recycle.length > 0) {
-            let item = Mat3.Recycle.pop();
+            const item = Mat3.Recycle.pop();
             Mat3.copy(from, item);
             return item;
         } else {
-            let out = new Float32Array(9);
+            const out = new Float32Array(9);
             out[0] = from[0];
             out[1] = from[1];
             out[2] = from[2];
@@ -38,12 +39,15 @@ export class Mat3 extends Float32Array {
             return out;
         }
     }
+
     public static recycle(item: Mat3) {
         Mat3.Recycle.push(item);
     }
+
     public static disposeRecycledItems() {
         Mat3.Recycle.length = 0;
     }
+
     constructor() {
         super(9);
         this[0] = 1;
@@ -70,6 +74,7 @@ export class Mat3 extends Float32Array {
         out[8] = a[10];
         return out;
     }
+
     /**
      * Copy the values from one mat3 to another
      *
@@ -119,9 +124,9 @@ export class Mat3 extends Float32Array {
     public static transpose(a: Mat3, out: Mat3) {
         // If we are transposing ourselves we can skip a few steps but have to cache some values
         if (out === a) {
-            let a01 = a[1],
-                a02 = a[2],
-                a12 = a[5];
+            const a01 = a[1];
+            const a02 = a[2];
+            const a12 = a[5];
             out[1] = a[3];
             out[2] = a[6];
             out[3] = a01;
@@ -151,19 +156,19 @@ export class Mat3 extends Float32Array {
      * @returns {Mat3} out
      */
     public static invert(a: Mat3, out: Mat3) {
-        let a00 = a[0],
-            a01 = a[1],
-            a02 = a[2];
-        let a10 = a[3],
-            a11 = a[4],
-            a12 = a[5];
-        let a20 = a[6],
-            a21 = a[7],
-            a22 = a[8];
+        const a00 = a[0];
+        const a01 = a[1];
+        const a02 = a[2];
+        const a10 = a[3];
+        const a11 = a[4];
+        const a12 = a[5];
+        const a20 = a[6];
+        const a21 = a[7];
+        const a22 = a[8];
 
-        let b01 = a22 * a11 - a12 * a21;
-        let b11 = -a22 * a10 + a12 * a20;
-        let b21 = a21 * a10 - a11 * a20;
+        const b01 = a22 * a11 - a12 * a21;
+        const b11 = -a22 * a10 + a12 * a20;
+        const b21 = a21 * a10 - a11 * a20;
 
         // Calculate the determinant
         let det = a00 * b01 + a01 * b11 + a02 * b21;
@@ -193,15 +198,15 @@ export class Mat3 extends Float32Array {
      * @returns {Mat3} out
      */
     public static adjoint(a: Mat3, out: Mat3) {
-        let a00 = a[0],
-            a01 = a[1],
-            a02 = a[2];
-        let a10 = a[3],
-            a11 = a[4],
-            a12 = a[5];
-        let a20 = a[6],
-            a21 = a[7],
-            a22 = a[8];
+        const a00 = a[0];
+        const a01 = a[1];
+        const a02 = a[2];
+        const a10 = a[3];
+        const a11 = a[4];
+        const a12 = a[5];
+        const a20 = a[6];
+        const a21 = a[7];
+        const a22 = a[8];
 
         out[0] = a11 * a22 - a12 * a21;
         out[1] = a02 * a21 - a01 * a22;
@@ -222,15 +227,15 @@ export class Mat3 extends Float32Array {
      * @returns {Number} determinant of a
      */
     public static determinant(a: Mat3) {
-        let a00 = a[0],
-            a01 = a[1],
-            a02 = a[2];
-        let a10 = a[3],
-            a11 = a[4],
-            a12 = a[5];
-        let a20 = a[6],
-            a21 = a[7],
-            a22 = a[8];
+        const a00 = a[0];
+        const a01 = a[1];
+        const a02 = a[2];
+        const a10 = a[3];
+        const a11 = a[4];
+        const a12 = a[5];
+        const a20 = a[6];
+        const a21 = a[7];
+        const a22 = a[8];
 
         return a00 * (a22 * a11 - a12 * a21) + a01 * (-a22 * a10 + a12 * a20) + a02 * (a21 * a10 - a11 * a20);
     }
@@ -244,25 +249,25 @@ export class Mat3 extends Float32Array {
      * @returns {Mat3} out
      */
     public static multiply(a: Mat3, b: Mat3, out: Mat3) {
-        let a00 = a[0],
-            a01 = a[1],
-            a02 = a[2];
-        let a10 = a[3],
-            a11 = a[4],
-            a12 = a[5];
-        let a20 = a[6],
-            a21 = a[7],
-            a22 = a[8];
+        const a00 = a[0];
+        const a01 = a[1];
+        const a02 = a[2];
+        const a10 = a[3];
+        const a11 = a[4];
+        const a12 = a[5];
+        const a20 = a[6];
+        const a21 = a[7];
+        const a22 = a[8];
 
-        let b00 = b[0],
-            b01 = b[1],
-            b02 = b[2];
-        let b10 = b[3],
-            b11 = b[4],
-            b12 = b[5];
-        let b20 = b[6],
-            b21 = b[7],
-            b22 = b[8];
+        const b00 = b[0];
+        const b01 = b[1];
+        const b02 = b[2];
+        const b10 = b[3];
+        const b11 = b[4];
+        const b12 = b[5];
+        const b20 = b[6];
+        const b21 = b[7];
+        const b22 = b[8];
 
         out[0] = b00 * a00 + b01 * a10 + b02 * a20;
         out[1] = b00 * a01 + b01 * a11 + b02 * a21;
@@ -287,17 +292,17 @@ export class Mat3 extends Float32Array {
      * @returns {Mat3} out
      */
     public static translate(a: Mat3, v: Mat3, out: Mat3) {
-        let a00 = a[0],
-            a01 = a[1],
-            a02 = a[2],
-            a10 = a[3],
-            a11 = a[4],
-            a12 = a[5],
-            a20 = a[6],
-            a21 = a[7],
-            a22 = a[8],
-            x = v[0],
-            y = v[1];
+        const a00 = a[0];
+        const a01 = a[1];
+        const a02 = a[2];
+        const a10 = a[3];
+        const a11 = a[4];
+        const a12 = a[5];
+        const a20 = a[6];
+        const a21 = a[7];
+        const a22 = a[8];
+        const x = v[0];
+        const y = v[1];
 
         out[0] = a00;
         out[1] = a01;
@@ -322,17 +327,17 @@ export class Mat3 extends Float32Array {
      * @returns {Mat3} out
      */
     public static rotate(a: Mat3, rad: number, out: Mat3) {
-        let a00 = a[0],
-            a01 = a[1],
-            a02 = a[2],
-            a10 = a[3],
-            a11 = a[4],
-            a12 = a[5],
-            a20 = a[6],
-            a21 = a[7],
-            a22 = a[8],
-            s = Math.sin(rad),
-            c = Math.cos(rad);
+        const a00 = a[0];
+        const a01 = a[1];
+        const a02 = a[2];
+        const a10 = a[3];
+        const a11 = a[4];
+        const a12 = a[5];
+        const a20 = a[6];
+        const a21 = a[7];
+        const a22 = a[8];
+        const s = Math.sin(rad);
+        const c = Math.cos(rad);
 
         out[0] = c * a00 + s * a10;
         out[1] = c * a01 + s * a11;
@@ -357,8 +362,8 @@ export class Mat3 extends Float32Array {
      * @returns {Mat3} out
      **/
     public static scale(a: Mat3, v: Vec2, out: Mat3) {
-        let x = v[0],
-            y = v[1];
+        const x = v[0];
+        const y = v[1];
 
         out[0] = x * a[0];
         out[1] = x * a[1];
@@ -410,8 +415,8 @@ export class Mat3 extends Float32Array {
      * @returns {Mat3} out
      */
     public static fromRotation(rad: number, out: Mat3) {
-        let s = Math.sin(rad),
-            c = Math.cos(rad);
+        const s = Math.sin(rad);
+        const c = Math.cos(rad);
 
         out[0] = c;
         out[1] = s;
@@ -484,23 +489,23 @@ export class Mat3 extends Float32Array {
      * @returns {Mat3} out
      */
     public static fromQuat(q: Quat, out: Mat3) {
-        let x = q[0],
-            y = q[1],
-            z = q[2],
-            w = q[3];
-        let x2 = x + x;
-        let y2 = y + y;
-        let z2 = z + z;
+        const x = q[0];
+        const y = q[1];
+        const z = q[2];
+        const w = q[3];
+        const x2 = x + x;
+        const y2 = y + y;
+        const z2 = z + z;
 
-        let xx = x * x2;
-        let yx = y * x2;
-        let yy = y * y2;
-        let zx = z * x2;
-        let zy = z * y2;
-        let zz = z * z2;
-        let wx = w * x2;
-        let wy = w * y2;
-        let wz = w * z2;
+        const xx = x * x2;
+        const yx = y * x2;
+        const yy = y * y2;
+        const zx = z * x2;
+        const zy = z * y2;
+        const zz = z * z2;
+        const wx = w * x2;
+        const wy = w * y2;
+        const wz = w * z2;
 
         out[0] = 1 - yy - zz;
         out[3] = yx - wz;
@@ -526,35 +531,35 @@ export class Mat3 extends Float32Array {
      * @returns {Mat3} out
      */
     public static normalFromMat4(a: Mat4, out: Mat3) {
-        let a00 = a[0],
-            a01 = a[1],
-            a02 = a[2],
-            a03 = a[3];
-        let a10 = a[4],
-            a11 = a[5],
-            a12 = a[6],
-            a13 = a[7];
-        let a20 = a[8],
-            a21 = a[9],
-            a22 = a[10],
-            a23 = a[11];
-        let a30 = a[12],
-            a31 = a[13],
-            a32 = a[14],
-            a33 = a[15];
+        const a00 = a[0];
+        const a01 = a[1];
+        const a02 = a[2];
+        const a03 = a[3];
+        const a10 = a[4];
+        const a11 = a[5];
+        const a12 = a[6];
+        const a13 = a[7];
+        const a20 = a[8];
+        const a21 = a[9];
+        const a22 = a[10];
+        const a23 = a[11];
+        const a30 = a[12];
+        const a31 = a[13];
+        const a32 = a[14];
+        const a33 = a[15];
 
-        let b00 = a00 * a11 - a01 * a10;
-        let b01 = a00 * a12 - a02 * a10;
-        let b02 = a00 * a13 - a03 * a10;
-        let b03 = a01 * a12 - a02 * a11;
-        let b04 = a01 * a13 - a03 * a11;
-        let b05 = a02 * a13 - a03 * a12;
-        let b06 = a20 * a31 - a21 * a30;
-        let b07 = a20 * a32 - a22 * a30;
-        let b08 = a20 * a33 - a23 * a30;
-        let b09 = a21 * a32 - a22 * a31;
-        let b10 = a21 * a33 - a23 * a31;
-        let b11 = a22 * a33 - a23 * a32;
+        const b00 = a00 * a11 - a01 * a10;
+        const b01 = a00 * a12 - a02 * a10;
+        const b02 = a00 * a13 - a03 * a10;
+        const b03 = a01 * a12 - a02 * a11;
+        const b04 = a01 * a13 - a03 * a11;
+        const b05 = a02 * a13 - a03 * a12;
+        const b06 = a20 * a31 - a21 * a30;
+        const b07 = a20 * a32 - a22 * a30;
+        const b08 = a20 * a33 - a23 * a30;
+        const b09 = a21 * a32 - a22 * a31;
+        const b10 = a21 * a33 - a23 * a31;
+        const b11 = a22 * a33 - a23 * a32;
 
         // Calculate the determinant
         let det = b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06;
@@ -646,7 +651,7 @@ export class Mat3 extends Float32Array {
                 Math.pow(a[5], 2) +
                 Math.pow(a[6], 2) +
                 Math.pow(a[7], 2) +
-                Math.pow(a[8], 2),
+                Math.pow(a[8], 2)
         );
     }
 
@@ -764,24 +769,24 @@ export class Mat3 extends Float32Array {
      * @returns {Boolean} True if the matrices are equal, false otherwise.
      */
     public static equals(a: Mat3, b: Mat3) {
-        let a0 = a[0],
-            a1 = a[1],
-            a2 = a[2],
-            a3 = a[3],
-            a4 = a[4],
-            a5 = a[5],
-            a6 = a[6],
-            a7 = a[7],
-            a8 = a[8];
-        let b0 = b[0],
-            b1 = b[1],
-            b2 = b[2],
-            b3 = b[3],
-            b4 = b[4],
-            b5 = b[5],
-            b6 = b[6],
-            b7 = b[7],
-            b8 = b[8];
+        const a0 = a[0];
+        const a1 = a[1];
+        const a2 = a[2];
+        const a3 = a[3];
+        const a4 = a[4];
+        const a5 = a[5];
+        const a6 = a[6];
+        const a7 = a[7];
+        const a8 = a[8];
+        const b0 = b[0];
+        const b1 = b[1];
+        const b2 = b[2];
+        const b3 = b[3];
+        const b4 = b[4];
+        const b5 = b[5];
+        const b6 = b[6];
+        const b7 = b[7];
+        const b8 = b[8];
         return (
             Math.abs(a0 - b0) <= EPSILON &&
             Math.abs(a1 - b1) <= EPSILON &&

@@ -33,36 +33,36 @@ export class ShaderProgram implements IshaderProgram {
     private static _cachedProgram: WebGLProgram;
 
     constructor(options: IshaderProgramOption) {
-        let res = options.context.complileAndLinkShader(options);
+        const res = options.context.complileAndLinkShader(options);
         if (res) {
             this.program = res.shader;
             this.uniforms = res.uniforms;
             // this.samples = res.samples;
             this.attributes = res.attributes;
 
-            //---------------------初始化 uniforms缓存值 为null
+            // ---------------------初始化 uniforms缓存值 为null
             let type: UniformTypeEnum;
-            for (let key in this.uniforms) {
+            for (const key in this.uniforms) {
                 type = this.uniforms[key].type;
                 if (type == UniformTypeEnum.FLOAT || type === UniformTypeEnum.INT || type === UniformTypeEnum.BOOL) {
                     this.uniforms[key].value = null;
                 } else {
-                    this.uniforms[key].value = [null, null, null, null]
+                    this.uniforms[key].value = [null, null, null, null];
                 }
             }
         }
 
-        let gl = options.context.gl;
+        const gl = options.context.gl;
         this.bind = () => {
             if (this.program != ShaderProgram._cachedProgram) {
                 gl.useProgram(this.program);
                 ShaderProgram._cachedProgram = this.program;
             }
-        }
+        };
         this.unbind = () => {
             gl.useProgram(null);
             ShaderProgram._cachedProgram = null;
-        }
+        };
 
         this.bindUniform = (name: string, value: any) => {
             // let _cahched = this._cachedUniform[name];
@@ -72,13 +72,14 @@ export class ShaderProgram implements IshaderProgram {
             //     options.context.setUniform(this.uniforms[name], value);
             // }
             options.context.setUniform(this.uniforms[name], value);
-        }
+        };
     }
+
     bindUniform(key: string, value: any) { }
 
     bindUniforms(device: GraphicsDevice, values: { [name: string]: any }) {
         let uniformInfo: IuniformInfo;
-        for (let key in values) {
+        for (const key in values) {
             uniformInfo = this.uniforms[key];
             if (uniformInfo == null) continue;
             uniformInfo?.setter(uniformInfo, values[key]);

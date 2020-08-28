@@ -1,18 +1,10 @@
-import { ToyGL } from "../../src/toygl";
-import { MeshInstance } from "../../src/scene/primitive/MeshInstance";
-import { Material } from "TOYGL";
-import { DefaultGeometry } from '../../src/resources/defAssets/DefaultGeometry';
-import { DefaultTexture } from '../../src/resources/defAssets/DefaultTexture';
+import { ToyGL } from "../../src/Toygl";
+import { Material, DefaultGeometry, DefaultTexture, Color, VertexAttEnum, Texture2D, Camera, MeshInstance } from "../src/Index";
 
-import { VertexAttEnum } from "../../src/webgl/VertexAttEnum";
-import { Color } from "../../src/mathD/color";
-import { Camera } from "../../src/scene/Camera";
-import { Quat } from "../../src/mathD/quat";
-import { Texture2D } from "../../src/scene/asset/texture/Texture2d";
 export class Base {
     static start(toy: ToyGL) {
-        let geometry = DefaultGeometry.ins.quad2d;
-        let mat = new Material({
+        const geometry = DefaultGeometry.quad2d;
+        const mat = new Material({
             uniformParameters: {
                 MainColor: Color.create(0, 1.0, 0.0, 1.0)
             },
@@ -28,44 +20,44 @@ export class Base {
                     gl_FragData[0] = MainColor;
                 }`,
                 attributes: {
-                    POSITION: VertexAttEnum.POSITION,
+                    POSITION: VertexAttEnum.POSITION
                 }
             }
         });
         mat.setUniformParameter("_MainTex", DefaultTexture.grid);
         // mat.setUniformParameter("_MainTex", DefaultTexture.grid);
-        let tex = new Texture2D();
-        let image = new Image();
+        const tex = new Texture2D();
+        const image = new Image();
         image.src = "../resources/glTF/duck/DuckCM.png";
         image.onload = () => {
             tex.textureSource = image;
             mat.setUniformParameter("_MainTex", tex);
-            console.log("tex loded!")
-        }
+            console.log("tex loded!");
+        };
 
-        let ins = new MeshInstance();
+        const ins = new MeshInstance();
         ins.geometry = geometry;
         ins.material = mat;
 
-        let node = toy.scene.createChild();
+        const node = toy.scene.createChild();
         ins.node = node;
         toy.scene.tryAddMeshInstance(ins);
 
-
-        let camNode = toy.scene.createChild();
+        const camNode = toy.scene.createChild();
         camNode.localPosition.z = 5;
-        let cam = new Camera();
+        const cam = new Camera();
         cam.node = camNode;
         toy.scene.tryAddCamera(cam);
 
         let roty = 0;
         let totalTime = 0;
+
         toy.scene.preUpdate.addEventListener((delta) => {
             roty += delta * 15;
             totalTime += delta;
             // node.localRotation = Quat.FromEuler(0, roty, 0, node.localRotation);
             // mat.setUniformParameter("timer", totalTime);
-        })
+        });
 
         // let geometry = DefGeometry.fromType("quad");
 

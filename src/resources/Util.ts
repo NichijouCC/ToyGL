@@ -2,8 +2,8 @@
  * 通过url获取资源的名称(包含尾缀)
  */
 export function getFileName(url: string): string {
-    let filei = url.lastIndexOf("/");
-    let file = url.substr(filei + 1);
+    const filei = url.lastIndexOf("/");
+    const file = url.substr(filei + 1);
     return file;
 }
 
@@ -11,11 +11,11 @@ export function getFileName(url: string): string {
  * 通过url获取资源的名称(无尾缀)
  */
 export function getFileNameWithoutExtralName(url: string): string {
-    let filei = url.lastIndexOf("/");
-    let file = url.substr(filei + 1);
+    const filei = url.lastIndexOf("/");
+    const file = url.substr(filei + 1);
 
-    let index = file.indexOf(".", 0);
-    let name = file.substr(0, index);
+    const index = file.indexOf(".", 0);
+    const name = file.substr(0, index);
     return name;
 }
 // static getAssetExtralType(url: string): AssetExtralEnum {
@@ -36,9 +36,9 @@ export function getFileNameWithoutExtralName(url: string): string {
  */
 export function getAssetExtralName(url: string): string {
     let index = url.lastIndexOf("/");
-    let filename = url.substr(index + 1);
+    const filename = url.substr(index + 1);
     index = filename.indexOf(".", 0);
-    let extname = filename.substr(index);
+    const extname = filename.substr(index);
     return extname;
 }
 
@@ -47,7 +47,7 @@ export function getAssetExtralName(url: string): string {
  * @param url 
  */
 export function getAssetDirectory(url: string): string {
-    let filei = url.lastIndexOf("/");
-    let file = url.substr(0, filei);
+    const filei = url.lastIndexOf("/");
+    const file = url.substr(0, filei);
     return file;
 }

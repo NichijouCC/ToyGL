@@ -1,7 +1,7 @@
 import { Vec3 } from "../mathD/vec3";
 import { Quat } from "../mathD/quat";
 import { Mat4 } from "../mathD/mat4";
-import { EventHandler } from "./Event";
+import { EventTarget } from "./EventTarget";
 
 enum DirtyFlagEnum {
     WWORLD_POS = 0b000100,
@@ -16,51 +16,51 @@ export class Transform {
     parent: Transform;
     children: Transform[] = [];
     private dirtyFlag: number = 0;
-    get beDirty() { return this.dirtyFlag != 0 }
+    get beDirty() { return this.dirtyFlag != 0; }
     name: string;
     constructor(name?: string) {
         this.name = name;
-        //--------attach to dirty-------
+        // --------attach to dirty-------
         Object.defineProperty(this._localPosition, "x", {
-            get: () => { return this._localPosition[0] },
-            set: value => { this._localPosition[0] = value; this.markDirty() }
-        })
+            get: () => { return this._localPosition[0]; },
+            set: value => { this._localPosition[0] = value; this.markDirty(); }
+        });
         Object.defineProperty(this._localPosition, "y", {
-            get: () => { return this._localPosition[1] },
-            set: value => { this._localPosition[1] = value; this.markDirty() }
-        })
+            get: () => { return this._localPosition[1]; },
+            set: value => { this._localPosition[1] = value; this.markDirty(); }
+        });
         Object.defineProperty(this._localPosition, "z", {
-            get: () => { return this._localPosition[2] },
-            set: value => { this._localPosition[2] = value; this.markDirty() }
-        })
+            get: () => { return this._localPosition[2]; },
+            set: value => { this._localPosition[2] = value; this.markDirty(); }
+        });
         Object.defineProperty(this._localRotation, "x", {
-            get: () => { return this._localRotation[0] },
-            set: value => { this._localRotation[0] = value; this.markDirty() }
-        })
+            get: () => { return this._localRotation[0]; },
+            set: value => { this._localRotation[0] = value; this.markDirty(); }
+        });
         Object.defineProperty(this._localRotation, "y", {
-            get: () => { return this._localRotation[1] },
-            set: value => { this._localRotation[1] = value; this.markDirty() }
-        })
+            get: () => { return this._localRotation[1]; },
+            set: value => { this._localRotation[1] = value; this.markDirty(); }
+        });
         Object.defineProperty(this._localRotation, "z", {
-            get: () => { return this._localRotation[2] },
-            set: value => { this._localRotation[2] = value; this.markDirty() }
-        })
+            get: () => { return this._localRotation[2]; },
+            set: value => { this._localRotation[2] = value; this.markDirty(); }
+        });
         Object.defineProperty(this._localRotation, "w", {
-            get: () => { return this._localRotation[3] },
-            set: value => { this._localRotation[3] = value; this.markDirty() }
-        })
+            get: () => { return this._localRotation[3]; },
+            set: value => { this._localRotation[3] = value; this.markDirty(); }
+        });
         Object.defineProperty(this._localScale, "x", {
-            get: () => { return this._localScale[0] },
-            set: value => { this._localScale[0] = value; this.markDirty() }
-        })
+            get: () => { return this._localScale[0]; },
+            set: value => { this._localScale[0] = value; this.markDirty(); }
+        });
         Object.defineProperty(this._localScale, "y", {
-            get: () => { return this._localScale[1] },
-            set: value => { this._localScale[1] = value; this.markDirty() }
-        })
+            get: () => { return this._localScale[1]; },
+            set: value => { this._localScale[1] = value; this.markDirty(); }
+        });
         Object.defineProperty(this._localScale, "z", {
-            get: () => { return this._localScale[2] },
-            set: value => { this._localScale[2] = value; this.markDirty() }
-        })
+            get: () => { return this._localScale[2]; },
+            set: value => { this._localScale[2] = value; this.markDirty(); }
+        });
     }
 
     private _localPosition: Vec3 = Vec3.create();
@@ -71,6 +71,7 @@ export class Transform {
         Vec3.copy(value, this._localPosition);
         this.markDirty();
     }
+
     get localPosition(): Vec3 {
         return this._localPosition;
     }
@@ -79,6 +80,7 @@ export class Transform {
         Quat.copy(value, this._localRotation);
         this.markDirty();
     }
+
     get localRotation(): Quat {
         return this._localRotation;
     }
@@ -88,6 +90,7 @@ export class Transform {
         // this._localScale = value;
         this.markDirty();
     }
+
     get localScale(): Vec3 {
         return this._localScale;
     }
@@ -110,11 +113,11 @@ export class Transform {
         return this._localMatrix;
     }
 
-    //-------------------------world属性--------------------------------------------------------------
-    //------------------------------------------------------------------------------------------------
-    //得到worldmatrix后，不会立刻decompse得到worldpos/worldscale/worldort,而是dirty标记起来.
-    //setworld属性转换到setlocal属性
-    //------------------------------------------------------------------------------------------------
+    // -------------------------world属性--------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------
+    // 得到worldmatrix后，不会立刻decompse得到worldpos/worldscale/worldort,而是dirty标记起来.
+    // setworld属性转换到setlocal属性
+    // ------------------------------------------------------------------------------------------------
     private _worldPosition: Vec3 = Vec3.create();
     get worldPosition(): Vec3 {
         if (this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.WWORLD_POS)) {
@@ -123,6 +126,7 @@ export class Transform {
         }
         return this._worldPosition;
     }
+
     set worldPosition(value: Vec3) {
         if (this.parent == null) {
             return;
@@ -130,7 +134,7 @@ export class Transform {
         if (this.parent.parent == null) {
             this._localPosition = value;
         } else {
-            let invparentworld = Mat4.create();
+            const invparentworld = Mat4.create();
             Mat4.invert(this.parent.worldMatrix, invparentworld);
             Mat4.transformPoint(value, invparentworld, this._localPosition);
             Mat4.recycle(invparentworld);
@@ -146,6 +150,7 @@ export class Transform {
         }
         return this._worldRotation;
     }
+
     set worldRotation(value: Quat) {
         if (this.parent == null) {
             return;
@@ -153,7 +158,7 @@ export class Transform {
         if (this.parent.parent == null) {
             this._localRotation = value;
         } else {
-            let invparentworldrot = Quat.create();
+            const invparentworldrot = Quat.create();
             Quat.inverse(this.parent.worldRotation, invparentworldrot);
             Quat.multiply(invparentworldrot, value, this._localRotation);
             Quat.recycle(invparentworldrot);
@@ -169,6 +174,7 @@ export class Transform {
         }
         return this._worldScale;
     }
+
     set worldScale(value: Vec3) {
         if (this.parent == null) {
             return;
@@ -209,7 +215,7 @@ export class Transform {
             Mat4.copy(value, this.localMatrix);
             // this.localMatrix = this._localMatrix;
         } else {
-            let invparentworld = Mat4.create();
+            const invparentworld = Mat4.create();
             Mat4.invert(this.parent.worldMatrix, invparentworld);
             Mat4.multiply(invparentworld, value, this.localMatrix);
             // this.setlocalMatrix(this._localMatrix);
@@ -231,7 +237,7 @@ export class Transform {
      * @param node
      */
     private static NotifyChildSelfDirty(node: Transform) {
-        for (let child of node.children) {
+        for (const child of node.children) {
             if (!(child.dirtyFlag & DirtyFlagEnum.WORLDMAT)) {
                 child.dirtyFlag = child.dirtyFlag | DirtyFlagEnum.WORLDMAT;
                 this.NotifyChildSelfDirty(child);
@@ -259,7 +265,7 @@ export class Transform {
         Transform.NotifyChildSelfDirty(this);
     }
 
-    ///------------------------------------------父子结构
+    /// ------------------------------------------父子结构
     /**
      * 添加子物体实例
      */
@@ -272,17 +278,19 @@ export class Transform {
         node.markDirty();
         // Transform.linkRefScene(node, this.refScene);
     }
+
     /**
      * 移除所有子物体
      */
     removeAllChild() {
-        //if(this.children==undefined||this.children.length==0) return;
+        // if(this.children==undefined||this.children.length==0) return;
         if (this.children.length == 0) return;
         for (let i = 0, len = this.children.length; i < len; i++) {
             this.children[i].parent = null;
         }
         this.children.length = 0;
     }
+
     /**
      * 移除指定子物体
      */
@@ -290,13 +298,14 @@ export class Transform {
         if (node.parent != this || this.children.length == 0) {
             throw new Error("not my child.");
         }
-        let i = this.children.indexOf(node);
+        const i = this.children.indexOf(node);
         if (i >= 0) {
             this.children.splice(i, 1);
             node.parent = null;
         }
     }
-    //-------易用性拓展
+
+    // -------易用性拓展
     /**
      * 获取世界坐标系下当前z轴的朝向
      */
@@ -305,11 +314,13 @@ export class Transform {
         Vec3.normalize(out, out);
         return out;
     }
+
     getRightInWorld(out: Vec3): Vec3 {
         Mat4.transformVector3(Vec3.RIGHT, this.worldMatrix, out);
         Vec3.normalize(out, out);
         return out;
     }
+
     getUpInWorld(out: Vec3): Vec3 {
         Mat4.transformVector3(Vec3.UP, this.worldMatrix, out);
         Vec3.normalize(out, out);
@@ -317,12 +328,13 @@ export class Transform {
     }
 
     moveInWorld(dir: Vec3, amount: number) {
-        let dirInLocal = Vec3.create();
+        const dirInLocal = Vec3.create();
         Mat4.transformVector3(dir, this.worldTolocalMatrix, dirInLocal);
         Vec3.AddscaledVec(this._localPosition, dirInLocal, amount, this._localPosition);
         this.markDirty();
         return this;
     }
+
     moveInlocal(dir: Vec3, amount: number) {
         Vec3.AddscaledVec(this._localPosition, dir, amount, this._localPosition);
         this.markDirty();
@@ -330,18 +342,18 @@ export class Transform {
     }
 
     lookAtPoint(pos: Vec3, up?: Vec3) {
-        let dirz = Vec3.subtract(this.worldPosition, pos);
+        const dirz = Vec3.subtract(this.worldPosition, pos);
         Vec3.normalize(dirz, dirz);
-        let dirx = Vec3.cross(up || Vec3.UP, dirz);
+        const dirx = Vec3.cross(up || Vec3.UP, dirz);
         if (Vec3.magnitude(dirx) == 0) {
-            let dot = Vec3.dot(up || Vec3.UP, dirz);
+            const dot = Vec3.dot(up || Vec3.UP, dirz);
             if (dot == 1) {
-                let currentDir = this.getForwardInWorld(Vec3.create());
+                const currentDir = this.getForwardInWorld(Vec3.create());
                 this.worldRotation = Quat.fromToRotation(currentDir, dirz, this.worldRotation);
             }
         } else {
             Vec3.normalize(dirx, dirx);
-            let diry = Vec3.cross(dirz, dirx);
+            const diry = Vec3.cross(dirz, dirx);
             this.worldRotation = Quat.fromUnitXYZ(dirx, diry, dirz, this.worldRotation);
 
             Vec3.recycle(diry);

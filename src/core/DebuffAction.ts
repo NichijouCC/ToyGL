@@ -8,12 +8,10 @@ export interface IdebuffeAction
  * 执行需要进行清理的方法
  * @param action 
  */
-export function excuteDebuffAction(action: () => Function): IdebuffeAction
-{
+export function excuteDebuffAction(action: () => Function): IdebuffeAction {
     let dispose = action();
     return {
-        excuteAction: (debuffAction: () => Function) =>
-        {
+        excuteAction: (debuffAction: () => Function) => {
             if (dispose) dispose();
             dispose = debuffAction();
         },
@@ -21,21 +19,18 @@ export function excuteDebuffAction(action: () => Function): IdebuffeAction
     };
 }
 
-export class DebuffAction implements IdebuffeAction
-{
-    excuteAction = (debuffAction: () => Function) =>
-    {
+export class DebuffAction implements IdebuffeAction {
+    excuteAction = (debuffAction: () => Function) => {
         if (this.dispose) this.dispose();
         this.dispose = debuffAction();
     };
+
     dispose: Function;
-    static create(action?: () => Function)
-    {
-        let newAct = new DebuffAction();
-        if (action)
-        {
+    static create(action?: () => Function) {
+        const newAct = new DebuffAction();
+        if (action) {
             newAct.dispose = action();
         }
-        return newAct
+        return newAct;
     }
 }

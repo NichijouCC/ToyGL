@@ -1,9 +1,9 @@
-import { ToyGL } from "../../src/toygl";
+import { ToyGL } from "../../src/Toygl";
 import { Base } from "./bass";
 import { LoadGltf } from "./loadGltf";
 
 window.onload = () => {
-    let toy = ToyGL.create(document.getElementById("canvas") as HTMLCanvasElement);
+    const toy = ToyGL.create(document.getElementById("canvas") as HTMLCanvasElement);
     // Base.start(toy);
     LoadGltf.start(toy);
     // AssetLoader.addLoader().then(()    // {

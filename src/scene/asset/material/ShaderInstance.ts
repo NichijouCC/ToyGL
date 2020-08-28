@@ -10,8 +10,8 @@ export class ShaderInstance {
         [attName: string]: VertexAttEnum;
     }) {
         this.create = (device: GraphicsDevice) => {
-            let program = new ShaderProgram({ context: device, attributes, vsStr, fsStr });
-            let autouniforms: string[] = [];
+            const program = new ShaderProgram({ context: device, attributes, vsStr, fsStr });
+            const autouniforms: string[] = [];
             Object.keys(program.uniforms).forEach(uniform => {
                 if (AutoUniforms.containAuto(uniform)) {
                     autouniforms.push(uniform);
@@ -21,6 +21,7 @@ export class ShaderInstance {
             this.autouniforms = autouniforms;
         };
     }
+
     private create = (device: GraphicsDevice) => { };
     bind(device: GraphicsDevice) {
         if (this.program == null) {
@@ -28,13 +29,15 @@ export class ShaderInstance {
         }
         this.program.bind();
     }
+
     bindManulUniforms(device: GraphicsDevice, uniforms: {
         [name: string]: any;
     }) {
         this.program.bindUniforms(device, uniforms);
     }
+
     bindAutoUniforms(device: GraphicsDevice, uniformState: UniformState) {
-        let uniforms: {
+        const uniforms: {
             [name: string]: any;
         } = {};
         this.autouniforms.forEach(item => {

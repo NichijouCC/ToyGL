@@ -1,7 +1,6 @@
 import { GraphicsDevice } from "./GraphicsDevice";
 
-export class DeviceLimit
-{
+export class DeviceLimit {
     readonly maximumCombinedTextureImageUnits: number;
     readonly maximumCubeMapSize: number;
     readonly maximumFragmentUniformVectors: number;
@@ -20,9 +19,8 @@ export class DeviceLimit
     readonly maximumViewportHeight: number
     readonly highpFloatSupported: boolean
     readonly highpIntSupported: boolean
-    constructor(context: GraphicsDevice)
-    {
-        let gl = context.gl;
+    constructor(context: GraphicsDevice) {
+        const gl = context.gl;
         this.maximumCombinedTextureImageUnits = gl.getParameter(gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS); // min: 8
         this.maximumCubeMapSize = gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE); // min: 16
         this.maximumFragmentUniformVectors = gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS); // min: 16

@@ -15,22 +15,24 @@ export class ModelSystem extends BassCompSystem {
         this.scene = scene;
         this.render = render;
     }
-    update(deltaTime: number): void {
-        let { cameras } = this.scene;
-        let comps: ModelComponent[] = Array.from(this.comps.values()).map(item => item[0] as any);
 
-        let renderArr: Irenderable[] = [];
+    update(deltaTime: number): void {
+        const comps: ModelComponent[] = Array.from(this.comps.values()).map(item => item[0] as any);
+
+        const renderArr: Irenderable[] = [];
         comps.forEach(item => {
             item.mesh?.sbuMeshs.forEach((submeshItem, index) => {
-                let renderIns = {} as Irenderable;
+                const renderIns = {} as Irenderable;
                 renderIns.geometry = submeshItem;
                 renderIns.skinIns = item.skinIns;
                 renderIns.material = item.materials[index];
                 renderIns.worldMat = item.entity.worldMatrix;
                 renderIns.bevisible = item.entity.beActive;
                 renderArr.push(renderIns);
-            })
-        })
+            });
+        });
+
+        const { cameras } = this.scene;
         this.render.render(Array.from(cameras.values()), renderArr);
     }
 }

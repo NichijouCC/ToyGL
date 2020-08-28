@@ -13,18 +13,15 @@ export type IndexBufferOption = {
     usage?: BufferUsageEnum;
     typedArray: IndicesArray;
 };
-export class IndexBuffer extends Buffer
-{
+export class IndexBuffer extends Buffer {
     readonly indexDatatype: number;
     readonly bytesPerIndex: number;
     readonly numberOfIndices: number;
-    constructor(options: IndexBufferOption)
-    {
+    constructor(options: IndexBufferOption) {
         super({ ...options, target: BufferTargetEnum.ELEMENT_ARRAY_BUFFER });
         this.indexDatatype = (options as any).indexDatatype;
-        let typedArray = (options as any).typedArray;
-        if (typedArray)
-        {
+        const typedArray = (options as any).typedArray;
+        if (typedArray) {
             this.indexDatatype = TypedArray.glType(typedArray);
         }
         this.bytesPerIndex = getByteSizeFromGLtype(this.indexDatatype);

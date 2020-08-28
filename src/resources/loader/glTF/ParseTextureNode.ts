@@ -11,17 +11,17 @@ export class ParseTextureNode {
             return gltf.cache.textrueNodeCache[index];
         } else {
             if (gltf.textures == null) return null;
-            let node = gltf.textures[index];
+            const node = gltf.textures[index];
             if (gltf.images == null) return null;
-            let imageNode = gltf.images[node.source];
+            const imageNode = gltf.images[node.source];
 
             if (imageNode.uri != null) {
-                let imagUrl = gltf.rootURL + "/" + imageNode.uri;
+                const imagUrl = gltf.rootURL + "/" + imageNode.uri;
 
-                let task = loadImg(imagUrl).then(img => {
-                    let texOp = {} as any;
+                const task = loadImg(imagUrl).then(img => {
+                    const texOp = {} as any;
                     if (node.sampler != null) {
-                        let samplerinfo = gltf.samplers[node.sampler];
+                        const samplerinfo = gltf.samplers[node.sampler];
                         if (samplerinfo.wrapS != null) {
                             texOp.wrapS = samplerinfo.wrapS;
                         }
@@ -35,18 +35,17 @@ export class ParseTextureNode {
                             texOp.filterMin = samplerinfo.minFilter;
                         }
                     }
-                    let texture: Texture2D = new Texture2D({ image: img });
+                    const texture: Texture2D = new Texture2D({ image: img });
                     return texture;
                 });
                 gltf.cache.textrueNodeCache[index] = task;
                 return task;
             } else {
-
-                let task = ParseBufferViewNode.parse(imageNode.bufferView, gltf)
+                const task = ParseBufferViewNode.parse(imageNode.bufferView, gltf)
                     .then(viewnode => {
-                        let texOp = {} as any; //todo
+                        const texOp = {} as any; // todo
                         if (node.sampler != null) {
-                            let samplerinfo = gltf.samplers[node.sampler];
+                            const samplerinfo = gltf.samplers[node.sampler];
                             if (samplerinfo.wrapS != null) {
                                 texOp.wrapS = samplerinfo.wrapS;
                             }
@@ -64,7 +63,7 @@ export class ParseTextureNode {
                         return new Promise<HTMLImageElement>((resolve, reject) => {
                             var blob = new Blob([viewnode.viewBuffer], { type: imageNode.mimeType });
                             var imageUrl = window.URL.createObjectURL(blob);
-                            let img: HTMLImageElement = new Image();
+                            const img: HTMLImageElement = new Image();
                             img.src = imageUrl;
                             img.onerror = error => {
                                 reject(error);
@@ -74,9 +73,9 @@ export class ParseTextureNode {
                                 resolve(img);
                             };
                         }).then((img) => {
-                            let texture = new Texture2D({ image: img });
+                            const texture = new Texture2D({ image: img });
                             return texture;
-                        })
+                        });
                     });
                 gltf.cache.textrueNodeCache[index] = task;
                 return task;

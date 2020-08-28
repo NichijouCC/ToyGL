@@ -20,11 +20,10 @@ import { DefaultMesh } from "../../defAssets/DefaultMesh";
 import { DefaultMaterial } from "../../defAssets/DefaultMaterial";
 
 export class ParseNode {
-
     static parse(index: number, gltf: IgltfJson, root: Entity, context: GraphicsDevice): Promise<Entity> {
-        let node = gltf.nodes[index];
-        let name = GlTF.getNodeName(index, gltf);
-        let sceneNode = new Entity(name);
+        const node = gltf.nodes[index];
+        const name = GlTF.getNodeName(index, gltf);
+        const sceneNode = new Entity(name);
         if (node.matrix) {
             sceneNode.localMatrix = Mat4.fromNumberArray(node.matrix);
         }
@@ -39,18 +38,18 @@ export class ParseNode {
         }
 
         if (node.camera != null) {
-            let cam = ParseCameraNode.parse(node.camera, gltf);
+            const cam = ParseCameraNode.parse(node.camera, gltf);
             cam.node = sceneNode;
         }
 
-        let allTask: Promise<void>[] = [];
+        const allTask: Promise<void>[] = [];
         if (node.mesh != null) {
-            let modelcomp = sceneNode.addComponent("ModelComponent") as ModelComponent;
-            let task = ParseMeshNode.parse(node.mesh, gltf, context)
+            const modelcomp = sceneNode.addComponent("ModelComponent") as ModelComponent;
+            const task = ParseMeshNode.parse(node.mesh, gltf, context)
                 .then(primitives => {
-                    let newMesh = new StaticMesh();
+                    const newMesh = new StaticMesh();
                     newMesh.sbuMeshs = primitives.map(item => item.mesh);
-                    modelcomp.mesh = newMesh
+                    modelcomp.mesh = newMesh;
                     modelcomp.materials = primitives.map(item => item.material);
                 });
 
@@ -64,8 +63,8 @@ export class ParseNode {
 
         if (node.children) {
             for (let i = 0; i < node.children.length; i++) {
-                let nodeindex = node.children[i];
-                let childTask = this.parse(nodeindex, gltf, root, context)
+                const nodeindex = node.children[i];
+                const childTask = this.parse(nodeindex, gltf, root, context)
                     .then(child => {
                         sceneNode.addChild(child);
                     });
@@ -73,7 +72,7 @@ export class ParseNode {
             }
         }
 
-        //------------------debug skin
+        // ------------------debug skin
         // let arr: number[] = [];
         // gltf.skins.forEach(item => arr = arr.concat(item.joints));
         // if (arr.indexOf(index) >= 0) {

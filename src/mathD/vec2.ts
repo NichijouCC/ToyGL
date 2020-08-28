@@ -7,6 +7,7 @@ export class Vec2 extends Float32Array {
     get x() {
         return this[0];
     }
+
     set x(value: number) {
         this[0] = value;
     }
@@ -14,6 +15,7 @@ export class Vec2 extends Float32Array {
     get y() {
         return this[1];
     }
+
     set y(value: number) {
         this[1] = value;
     }
@@ -21,40 +23,45 @@ export class Vec2 extends Float32Array {
     private static Recycle: Vec2[] = [];
     public static create(x: number = 0, y: number = 0) {
         if (Vec2.Recycle && Vec2.Recycle.length > 0) {
-            let item = Vec2.Recycle.pop() as Vec2;
+            const item = Vec2.Recycle.pop() as Vec2;
             item[0] = x;
             item[1] = y;
             return item;
         } else {
-            let item = new Vec2(x, y);
+            const item = new Vec2(x, y);
             // item[0]=x;
             // item[1]=y;
             return item;
         }
     }
+
     public static clone(from: Vec2): Vec2 {
         if (Vec2.Recycle.length > 0) {
-            let item = Vec2.Recycle.pop() as Vec2;
+            const item = Vec2.Recycle.pop() as Vec2;
             Vec2.copy(from, item);
             return item;
         } else {
-            let item = new Vec2(from[0], from[1]);
+            const item = new Vec2(from[0], from[1]);
             // item[0]=from[0];
             // item[1]=from[1];
             return item;
         }
     }
+
     public static recycle(item: Vec2) {
         Vec2.Recycle.push(item);
     }
+
     public static disposeRecycledItems() {
         Vec2.Recycle.length = 0;
     }
+
     constructor(x: number = 0, y: number = 0) {
         super(2);
         this[0] = x;
         this[1] = y;
     }
+
     /**
      * Copy the values from one vec2 to another
      *
@@ -118,7 +125,7 @@ export class Vec2 extends Float32Array {
      * @param b the second operand
      * @returns out
      */
-    //public static mul(a: vec2, b: vec2,out: Vec2 = Vec2.create()): vec2 { return; }
+    // public static mul(a: vec2, b: vec2,out: Vec2 = Vec2.create()): vec2 { return; }
 
     /**
      * Divides two vec2's
@@ -142,7 +149,7 @@ export class Vec2 extends Float32Array {
      * @param b the second operand
      * @returns out
      */
-    //public static div(a: vec2, b: vec2,out: Vec2 = Vec2.create()): vec2 { return; }
+    // public static div(a: vec2, b: vec2,out: Vec2 = Vec2.create()): vec2 { return; }
 
     /**
      * Math.ceil the components of a vec2
@@ -230,6 +237,7 @@ export class Vec2 extends Float32Array {
         out[1] = a[1] * b[1];
         return out;
     }
+
     /**
      * Adds two vec2's after scaling the second operand by a scalar value
      *
@@ -253,8 +261,8 @@ export class Vec2 extends Float32Array {
      * @returns distance between a and b
      */
     public static distance(a: Vec2, b: Vec2): number {
-        let x = b[0] - a[0],
-            y = b[1] - a[1];
+        const x = b[0] - a[0];
+        const y = b[1] - a[1];
         return Math.sqrt(x * x + y * y);
     }
 
@@ -265,7 +273,7 @@ export class Vec2 extends Float32Array {
      * @param b the second operand
      * @returns distance between a and b
      */
-    //public static dist(a: vec2, b: vec2): number { return; }
+    // public static dist(a: vec2, b: vec2): number { return; }
 
     /**
      * Calculates the squared euclidian distance between two vec2's
@@ -275,8 +283,8 @@ export class Vec2 extends Float32Array {
      * @returns squared distance between a and b
      */
     public static squaredDistance(a: Vec2, b: Vec2): number {
-        let x = b[0] - a[0],
-            y = b[1] - a[1];
+        const x = b[0] - a[0];
+        const y = b[1] - a[1];
         return x * x + y * y;
     }
 
@@ -287,7 +295,7 @@ export class Vec2 extends Float32Array {
      * @param b the second operand
      * @returns squared distance between a and b
      */
-    //public static sqrDist(a: vec2, b: vec2): number { return; }
+    // public static sqrDist(a: vec2, b: vec2): number { return; }
 
     /**
      * Calculates the length of a vec2
@@ -296,8 +304,8 @@ export class Vec2 extends Float32Array {
      * @returns length of a
      */
     public static length_(a: Vec2): number {
-        let x = a[0],
-            y = a[1];
+        const x = a[0];
+        const y = a[1];
         return Math.sqrt(x * x + y * y);
     }
 
@@ -307,7 +315,7 @@ export class Vec2 extends Float32Array {
      * @param a vector to calculate length of
      * @returns length of a
      */
-    //public static len(a: vec2): number { return; }
+    // public static len(a: vec2): number { return; }
 
     /**
      * Calculates the squared length of a vec2
@@ -316,8 +324,8 @@ export class Vec2 extends Float32Array {
      * @returns squared length of a
      */
     public static squaredLength(a: Vec2): number {
-        let x = a[0],
-            y = a[1];
+        const x = a[0];
+        const y = a[1];
         return x * x + y * y;
     }
 
@@ -327,7 +335,7 @@ export class Vec2 extends Float32Array {
      * @param a vector to calculate squared length of
      * @returns squared length of a
      */
-    //public static sqrLen(a: vec2): number { return; }
+    // public static sqrLen(a: vec2): number { return; }
 
     /**
      * Negates the components of a vec2
@@ -363,11 +371,11 @@ export class Vec2 extends Float32Array {
      * @returns out
      */
     public static normalize(a: Vec2, out: Vec2 = Vec2.create()): Vec2 {
-        let x = a[0],
-            y = a[1];
+        const x = a[0];
+        const y = a[1];
         let len = x * x + y * y;
         if (len > 0) {
-            //TODO: evaluate use of glm_invsqrt here?
+            // TODO: evaluate use of glm_invsqrt here?
             len = 1 / Math.sqrt(len);
             out[0] = a[0] * len;
             out[1] = a[1] * len;
@@ -396,7 +404,7 @@ export class Vec2 extends Float32Array {
      * @returns out
      */
     public static cross(a: Vec2, b: Vec2, out: Vec3): Vec2 {
-        let z = a[0] * b[1] - a[1] * b[0];
+        const z = a[0] * b[1] - a[1] * b[0];
         out[0] = out[1] = 0;
         out[2] = z;
         return out;
@@ -412,8 +420,8 @@ export class Vec2 extends Float32Array {
      * @returns out
      */
     public static lerp(from: Vec2, to: Vec2, lerp: number, out: Vec2 = Vec2.create()): Vec2 {
-        let ax = from[0],
-            ay = from[1];
+        const ax = from[0];
+        const ay = from[1];
         out[0] = ax + lerp * (to[0] - ax);
         out[1] = ay + lerp * (to[1] - ay);
         return out;
@@ -428,7 +436,7 @@ export class Vec2 extends Float32Array {
      */
     public static random(scale: number = 1, out: Vec2 = Vec2.create()): Vec2 {
         scale = scale || 1.0;
-        let r = Math.random() * 2.0 * Math.PI;
+        const r = Math.random() * 2.0 * Math.PI;
         out[0] = Math.cos(r) * scale;
         out[1] = Math.sin(r) * scale;
         return out;
@@ -459,8 +467,8 @@ export class Vec2 extends Float32Array {
      * @returns out
      */
     public static transformMat2d(a: Vec2, m: Mat2d, out: Vec2 = Vec2.create()): Vec2 {
-        let x = a[0],
-            y = a[1];
+        const x = a[0];
+        const y = a[1];
         out[0] = m[0] * x + m[2] * y + m[4];
         out[1] = m[1] * x + m[3] * y + m[5];
         return out;
@@ -494,8 +502,8 @@ export class Vec2 extends Float32Array {
      * @returns out
      */
     public static transformMat4(a: Vec2, m: Mat4, out: Vec2 = Vec2.create()): Vec2 {
-        let x = a[0];
-        let y = a[1];
+        const x = a[0];
+        const y = a[1];
         out[0] = m[0] * x + m[4] * y + m[12];
         out[1] = m[1] * x + m[5] * y + m[13];
         return out;
@@ -558,10 +566,10 @@ export class Vec2 extends Float32Array {
      * @returns {boolean} True if the vectors are equal, false otherwise.
      */
     public static equals(a: Vec2, b: Vec2): boolean {
-        let a0 = a[0],
-            a1 = a[1];
-        let b0 = b[0],
-            b1 = b[1];
+        const a0 = a[0];
+        const a1 = a[1];
+        const b0 = b[0];
+        const b1 = b[1];
         return Math.abs(a0 - b0) <= EPSILON && Math.abs(a1 - b1) <= EPSILON;
     }
 }

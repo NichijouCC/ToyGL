@@ -8,6 +8,7 @@ export class Vec4 extends Float32Array {
     get x() {
         return this[0];
     }
+
     set x(value: number) {
         this[0] = value;
     }
@@ -15,6 +16,7 @@ export class Vec4 extends Float32Array {
     get y() {
         return this[1];
     }
+
     set y(value: number) {
         this[1] = value;
     }
@@ -22,6 +24,7 @@ export class Vec4 extends Float32Array {
     get z() {
         return this[2];
     }
+
     set z(value: number) {
         this[2] = value;
     }
@@ -29,6 +32,7 @@ export class Vec4 extends Float32Array {
     get w() {
         return this[3];
     }
+
     set w(value: number) {
         this[3] = value;
     }
@@ -36,14 +40,14 @@ export class Vec4 extends Float32Array {
     private static Recycle: Vec4[] = [];
     public static create(x: number = 0, y: number = 0, z: number = 0, w: number = 0): Vec4 {
         if (Vec4.Recycle && Vec4.Recycle.length > 0) {
-            let item = Vec4.Recycle.pop() as Vec4;
+            const item = Vec4.Recycle.pop() as Vec4;
             item[0] = x;
             item[1] = y;
             item[2] = z;
             item[3] = w;
             return item;
         } else {
-            let item = new Vec4(x, y, z, w);
+            const item = new Vec4(x, y, z, w);
             // item[0]=x;
             // item[1]=y;
             // item[2]=z;
@@ -51,13 +55,14 @@ export class Vec4 extends Float32Array {
             return item;
         }
     }
+
     public static clone(from: Vec4): Vec4 {
         if (Vec4.Recycle.length > 0) {
-            let item = Vec4.Recycle.pop() as Vec4;
+            const item = Vec4.Recycle.pop() as Vec4;
             Vec4.copy(from, item);
             return item;
         } else {
-            let item = new Vec4(from[0], from[1], from[2], from[3]);
+            const item = new Vec4(from[0], from[1], from[2], from[3]);
             // item[0]=from[0];
             // item[1]=from[1];
             // item[2]=from[2];
@@ -65,6 +70,7 @@ export class Vec4 extends Float32Array {
             return item;
         }
     }
+
     public static recycle(item: Vec4) {
         Vec4.Recycle.push(item);
     }
@@ -72,6 +78,7 @@ export class Vec4 extends Float32Array {
     public static disposeRecycledItems() {
         Vec4.Recycle.length = 0;
     }
+
     constructor(x: number = 0, y: number = 0, z: number = 0, w: number = 0) {
         super(4);
         this[0] = x;
@@ -277,10 +284,10 @@ export class Vec4 extends Float32Array {
      * @returns distance between a and b
      */
     public static distance(a: Vec4, b: Vec4): number {
-        let x = b[0] - a[0];
-        let y = b[1] - a[1];
-        let z = b[2] - a[2];
-        let w = b[3] - a[3];
+        const x = b[0] - a[0];
+        const y = b[1] - a[1];
+        const z = b[2] - a[2];
+        const w = b[3] - a[3];
         return Math.sqrt(x * x + y * y + z * z + w * w);
     }
 
@@ -292,10 +299,10 @@ export class Vec4 extends Float32Array {
      * @returns squared distance between a and b
      */
     public static squaredDistance(a: Vec4, b: Vec4): number {
-        let x = b[0] - a[0];
-        let y = b[1] - a[1];
-        let z = b[2] - a[2];
-        let w = b[3] - a[3];
+        const x = b[0] - a[0];
+        const y = b[1] - a[1];
+        const z = b[2] - a[2];
+        const w = b[3] - a[3];
         return x * x + y * y + z * z + w * w;
     }
 
@@ -306,12 +313,13 @@ export class Vec4 extends Float32Array {
      * @returns length of a
      */
     public static length_(a: Vec4): number {
-        let x = a[0];
-        let y = a[1];
-        let z = a[2];
-        let w = a[3];
+        const x = a[0];
+        const y = a[1];
+        const z = a[2];
+        const w = a[3];
         return Math.sqrt(x * x + y * y + z * z + w * w);
     }
+
     /**
      * Calculates the squared length of a vec4
      *
@@ -319,10 +327,10 @@ export class Vec4 extends Float32Array {
      * @returns squared length of a
      */
     public static squaredLength(a: Vec4): number {
-        let x = a[0];
-        let y = a[1];
-        let z = a[2];
-        let w = a[3];
+        const x = a[0];
+        const y = a[1];
+        const z = a[2];
+        const w = a[3];
         return x * x + y * y + z * z + w * w;
     }
 
@@ -364,10 +372,10 @@ export class Vec4 extends Float32Array {
      * @returns out
      */
     public static normalize(a: Vec4, out: Vec4 = Vec4.create()): Vec4 {
-        let x = a[0];
-        let y = a[1];
-        let z = a[2];
-        let w = a[3];
+        const x = a[0];
+        const y = a[1];
+        const z = a[2];
+        const w = a[3];
         let len = x * x + y * y + z * z + w * w;
         if (len > 0) {
             len = 1 / Math.sqrt(len);
@@ -400,10 +408,10 @@ export class Vec4 extends Float32Array {
      * @returns out
      */
     public static lerp(lhs: Vec4, rhs: Vec4, lerp: number, out: Vec4 = Vec4.create()): Vec4 {
-        let ax = lhs[0];
-        let ay = lhs[1];
-        let az = lhs[2];
-        let aw = lhs[3];
+        const ax = lhs[0];
+        const ay = lhs[1];
+        const az = lhs[2];
+        const aw = lhs[3];
         out[0] = ax + lerp * (rhs[0] - ax);
         out[1] = ay + lerp * (rhs[1] - ay);
         out[2] = az + lerp * (rhs[2] - az);
@@ -421,7 +429,7 @@ export class Vec4 extends Float32Array {
     public static random(scale: number, out: Vec4 = Vec4.create()): Vec4 {
         scale = scale || 1.0;
 
-        //TODO: This is a pretty awful way of doing this. Find something better.
+        // TODO: This is a pretty awful way of doing this. Find something better.
         out[0] = Math.random();
         out[1] = Math.random();
         out[2] = Math.random();
@@ -440,10 +448,10 @@ export class Vec4 extends Float32Array {
      * @returns out
      */
     public static transformMat4(a: Vec4, m: Mat4, out: Vec4 = Vec4.create()): Vec4 {
-        let x = a[0],
-            y = a[1],
-            z = a[2],
-            w = a[3];
+        const x = a[0];
+        const y = a[1];
+        const z = a[2];
+        const w = a[3];
         out[0] = m[0] * x + m[4] * y + m[8] * z + m[12] * w;
         out[1] = m[1] * x + m[5] * y + m[9] * z + m[13] * w;
         out[2] = m[2] * x + m[6] * y + m[10] * z + m[14] * w;
@@ -461,19 +469,19 @@ export class Vec4 extends Float32Array {
      */
 
     public static transformQuat(a: Vec4, q: Quat, out: Vec4 = Vec4.create()): Vec4 {
-        let x = a[0],
-            y = a[1],
-            z = a[2];
-        let qx = q[0],
-            qy = q[1],
-            qz = q[2],
-            qw = q[3];
+        const x = a[0];
+        const y = a[1];
+        const z = a[2];
+        const qx = q[0];
+        const qy = q[1];
+        const qz = q[2];
+        const qw = q[3];
 
         // calculate Quat * vec
-        let ix = qw * x + qy * z - qz * y;
-        let iy = qw * y + qz * x - qx * z;
-        let iz = qw * z + qx * y - qy * x;
-        let iw = -qx * x - qy * y - qz * z;
+        const ix = qw * x + qy * z - qz * y;
+        const iy = qw * y + qz * x - qx * z;
+        const iz = qw * z + qx * y - qy * x;
+        const iw = -qx * x - qy * y - qz * z;
 
         // calculate result * inverse Quat
         out[0] = ix * qw + iw * -qx + iy * -qz - iz * -qy;
@@ -541,14 +549,14 @@ export class Vec4 extends Float32Array {
      * @returns {boolean} True if the vectors are equal, false otherwise.
      */
     public static equals(a: Vec4, b: Vec4): boolean {
-        let a0 = a[0],
-            a1 = a[1],
-            a2 = a[2],
-            a3 = a[3];
-        let b0 = b[0],
-            b1 = b[1],
-            b2 = b[2],
-            b3 = b[3];
+        const a0 = a[0];
+        const a1 = a[1];
+        const a2 = a[2];
+        const a3 = a[3];
+        const b0 = b[0];
+        const b1 = b[1];
+        const b2 = b[2];
+        const b3 = b[3];
         return (
             Math.abs(a0 - b0) <= EPSILON * Math.max(1.0, Math.abs(a0), Math.abs(b0)) &&
             Math.abs(a1 - b1) <= EPSILON * Math.max(1.0, Math.abs(a1), Math.abs(b1)) &&

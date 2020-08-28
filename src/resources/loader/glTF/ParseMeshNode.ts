@@ -21,24 +21,24 @@ const MapGltfAttributeToToyAtt: { [name: string]: VertexAttEnum } = {
     TEXCOORD_1: VertexAttEnum.TEXCOORD_1,
     COLOR_0: VertexAttEnum.COLOR_0,
     WEIGHTS_0: VertexAttEnum.WEIGHTS_0,
-    JOINTS_0: VertexAttEnum.JOINTS_0,
+    JOINTS_0: VertexAttEnum.JOINTS_0
 };
 export class ParseMeshNode {
     static parse(index: number, gltf: IgltfJson, context: GraphicsDevice): Promise<IgltfPrimitive[]> {
         if (gltf.cache.meshNodeCache[index]) {
             return gltf.cache.meshNodeCache[index];
         } else {
-            let node = gltf.meshes[index];
+            const node = gltf.meshes[index];
 
-            let dataArr: Promise<IgltfPrimitive>[] = [];
+            const dataArr: Promise<IgltfPrimitive>[] = [];
             if (node.primitives) {
-                for (let key in node.primitives) {
-                    let primitive = node.primitives[key];
-                    let data = this.parsePrimitive(primitive, gltf, context);
+                for (const key in node.primitives) {
+                    const primitive = node.primitives[key];
+                    const data = this.parsePrimitive(primitive, gltf, context);
                     dataArr.push(data);
                 }
             }
-            let task = Promise.all(dataArr);
+            const task = Promise.all(dataArr);
             gltf.cache.meshNodeCache[index] = task;
             return task;
         }
@@ -51,12 +51,12 @@ export class ParseMeshNode {
         ).then(
             ([mesh, material]) => {
                 return { mesh: mesh, material: material };
-            },
+            }
         );
     }
 
     static parseMaterial(node: IgltfMeshPrimitive, gltf: IgltfJson): Promise<Material> {
-        let matindex = node.material;
+        const matindex = node.material;
         if (matindex != null) {
             return ParseMaterialNode.parse(matindex, gltf);
         } else {
@@ -65,13 +65,13 @@ export class ParseMeshNode {
     }
 
     static parseMesh(node: IgltfMeshPrimitive, gltf: IgltfJson, context: GraphicsDevice): Promise<SubMesh> {
-        let taskAtts: Promise<void>[] = [];
-        let vaoOptions: IvaoOptions = { vertexAttributes: [], context };
-        let attributes = node.attributes;
-        for (let attName in attributes) {
-            let attIndex = attributes[attName];
-            let attType = MapGltfAttributeToToyAtt[attName];
-            let attTask = ParseAccessorNode.parse(attIndex, gltf, { target: BufferTargetEnum.ARRAY_BUFFER, context })
+        const taskAtts: Promise<void>[] = [];
+        const vaoOptions: IvaoOptions = { vertexAttributes: [], context };
+        const attributes = node.attributes;
+        for (const attName in attributes) {
+            const attIndex = attributes[attName];
+            const attType = MapGltfAttributeToToyAtt[attName];
+            const attTask = ParseAccessorNode.parse(attIndex, gltf, { target: BufferTargetEnum.ARRAY_BUFFER, context })
                 .then(arrayInfo => {
                     vaoOptions.vertexAttributes.push({
                         type: attType,
@@ -83,14 +83,14 @@ export class ParseMeshNode {
                         componentDatatype: arrayInfo.componentDataType,
                         normalize: arrayInfo.normalize,
                         offsetInBytes: arrayInfo.bytesOffset,
-                        strideInBytes: arrayInfo.bytesStride,
-                    })
+                        strideInBytes: arrayInfo.bytesStride
+                    });
                 });
             taskAtts.push(attTask);
         }
-        let index = node.indices;
+        const index = node.indices;
         if (index != null) {
-            let indexTask = ParseAccessorNode.parse(index, gltf, { target: BufferTargetEnum.ELEMENT_ARRAY_BUFFER, context })
+            const indexTask = ParseAccessorNode.parse(index, gltf, { target: BufferTargetEnum.ELEMENT_ARRAY_BUFFER, context })
                 .then(arrayInfo => {
                     if (!(arrayInfo.typedArray instanceof Uint8Array || arrayInfo.typedArray instanceof Uint16Array || arrayInfo.typedArray instanceof Uint32Array)) {
                         console.error("index data type not Uint16Array or Uint32Array!");
@@ -103,7 +103,7 @@ export class ParseMeshNode {
         }
         return Promise.all(taskAtts)
             .then(() => {
-                let mesh = new SubMesh();
+                const mesh = new SubMesh();
                 mesh.vertexArray = new VertexArray(vaoOptions);
                 return mesh;
             });

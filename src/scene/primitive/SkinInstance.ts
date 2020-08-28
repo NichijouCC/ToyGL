@@ -10,7 +10,7 @@ import { Skin } from "../asset/Skin";
 import { UniformState } from "../UniformState";
 
 namespace Private {
-    export let offsetMatrix: Mat4 = Mat4.create();
+    export const offsetMatrix: Mat4 = Mat4.create();
 }
 
 export class SkinInstance {
@@ -36,12 +36,12 @@ export class SkinInstance {
     // }
     private beInit: boolean = false;
     private init(device: GraphicsDevice) {
-        let { skin, attachEntity } = this;
+        const { skin, attachEntity } = this;
         this._boneInverses = [];
         let searchRoot: Entity;
         this.rootBone = attachEntity.find(item => item.name == skin.rootBoneName);
 
-        let bones = skin.boneNames.map((boneName, i) => {
+        const bones = skin.boneNames.map((boneName, i) => {
             let bone = attachEntity.find(item => item.name == boneName);
             if (bone == null) {
                 if (skin.potentialSearchRoot != null && searchRoot == null) {
@@ -81,18 +81,17 @@ export class SkinInstance {
 
         this.bones.forEach((item, index) => {
             this._boneMatricesViews[index] = this._boneMatrices.subarray(index * 16, index * 16 + 16);
-        })
-
+        });
     }
     // get boneTexture() { this.recomputeBoneData(); return this._boneTexture }
     // get boneMatrices() { this.recomputeBoneData(); return this._boneMatrices }
 
     update(device: GraphicsDevice, state: UniformState) {
         if (!this.beInit) { this.init(device); this.beInit = true; }
-        let { bones, rootBone } = this;
+        const { bones, rootBone } = this;
         const { offsetMatrix } = Private;
-        let mat = rootBone.worldTolocalMatrix;
-        if (rootBone.beDirty) {//root dirty 全部重新计算
+        const mat = rootBone.worldTolocalMatrix;
+        if (rootBone.beDirty) { // root dirty 全部重新计算
             for (let i = 0; i < bones.length; i++) {
                 const matrix = bones[i] ? bones[i].worldMatrix : Mat4.IDENTITY;
                 Mat4.multiply(matrix, this._boneInverses[i], offsetMatrix);
@@ -102,11 +101,9 @@ export class SkinInstance {
             if (this._boneTexture) {
                 this._boneTexture.markDirty();
             }
-
-        } else {// 哪个bone dirty了对应matrix就重新计算
+        } else { // 哪个bone dirty了对应matrix就重新计算
             let beNeedUpdate = false;
             for (let i = 0; i < bones.length; i++) {
-
                 if (bones[i].beDirty) {
                     beNeedUpdate = true;
                     const matrix = bones[i] ? bones[i].worldMatrix : Mat4.IDENTITY;

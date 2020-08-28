@@ -2,6 +2,7 @@ export class Rect extends Float32Array {
     get x() {
         return this[0];
     }
+
     set x(value: number) {
         this[0] = value;
     }
@@ -9,6 +10,7 @@ export class Rect extends Float32Array {
     get y() {
         return this[1];
     }
+
     set y(value: number) {
         this[1] = value;
     }
@@ -16,6 +18,7 @@ export class Rect extends Float32Array {
     get z() {
         return this[2];
     }
+
     set z(value: number) {
         this[2] = value;
     }
@@ -27,9 +30,11 @@ export class Rect extends Float32Array {
     get height() {
         return this[3] - this[1];
     }
+
     get w() {
         return this[3];
     }
+
     set w(value: number) {
         this[3] = value;
     }
@@ -46,27 +51,29 @@ export class Rect extends Float32Array {
     private static Recycle: Rect[] = [];
     public static create(x: number = 0, y: number = 0, w: number = 0, h: number = 0): Rect {
         if (Rect.Recycle && Rect.Recycle.length > 0) {
-            let item = Rect.Recycle.pop();
+            const item = Rect.Recycle.pop();
             item[0] = x;
             item[1] = y;
             item[2] = w;
             item[3] = h;
             return item;
         } else {
-            let item = new Rect(x, y, w, h);
+            const item = new Rect(x, y, w, h);
             return item;
         }
     }
+
     public static clone(from: Rect): Rect {
         if (Rect.Recycle.length > 0) {
-            let item = Rect.Recycle.pop();
+            const item = Rect.Recycle.pop();
             Rect.copy(from, item);
             return item;
         } else {
-            let item = new Rect(from[0], from[1], from[2], from[3]);
+            const item = new Rect(from[0], from[1], from[2], from[3]);
             return item;
         }
     }
+
     public static recycle(item: Rect) {
         Rect.Recycle.push(item);
     }

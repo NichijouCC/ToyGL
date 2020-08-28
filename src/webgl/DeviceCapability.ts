@@ -1,10 +1,7 @@
 import { GraphicsDevice } from "./GraphicsDevice";
 import { GlConstants } from "./GLconstant";
 
-/* eslint-disable @typescript-eslint/class-name-casing */
-/* eslint-disable @typescript-eslint/camelcase */
-export class DeviceCapability
-{
+export class DeviceCapability {
     /** Maximum textures units per fragment shader */
     public maxTexturesImageUnits: number;
     /** Maximum texture units per vertex shader */
@@ -30,13 +27,13 @@ export class DeviceCapability
     /** Defines if s3tc texture compression is supported */
     public s3tc: WEBGL_compressed_texture_s3tc;
     /** Defines if pvrtc texture compression is supported */
-    public pvrtc: any; //WEBGL_compressed_texture_pvrtc;
+    public pvrtc: any; // WEBGL_compressed_texture_pvrtc;
     /** Defines if etc1 texture compression is supported */
-    public etc1: any; //WEBGL_compressed_texture_etc1;
+    public etc1: any; // WEBGL_compressed_texture_etc1;
     /** Defines if etc2 texture compression is supported */
-    public etc2: any; //WEBGL_compressed_texture_etc;
+    public etc2: any; // WEBGL_compressed_texture_etc;
     /** Defines if astc texture compression is supported */
-    public astc: any; //WEBGL_compressed_texture_astc;
+    public astc: any; // WEBGL_compressed_texture_astc;
     /** Defines if float textures are supported */
     public textureFloat: boolean;
     /** Defines if vertex array objects are supported */
@@ -53,13 +50,13 @@ export class DeviceCapability
     public highPrecisionShaderSupported: boolean;
     /** Defines if depth reading in the fragment shader is supported */
     public fragmentDepthSupported: boolean;
-    /** Defines if float texture linear filtering is supported*/
+    /** Defines if float texture linear filtering is supported */
     public textureFloatLinearFiltering: boolean;
     /** Defines if rendering to float textures is supported */
     public textureFloatRender: boolean;
-    /** Defines if half float textures are supported*/
+    /** Defines if half float textures are supported */
     public textureHalfFloat: boolean;
-    /** Defines if half float texture linear filtering is supported*/
+    /** Defines if half float texture linear filtering is supported */
     public textureHalfFloatLinearFiltering: boolean;
     /** Defines if rendering to half float textures is supported */
     public textureHalfFloatRender: boolean;
@@ -81,13 +78,13 @@ export class DeviceCapability
     public parallelShaderCompile: {
         COMPLETION_STATUS_KHR: number;
     };
+
     /** Max number of texture samples for MSAA */
     public maxMSAASamples = 1;
 
-    constructor(context: GraphicsDevice)
-    {
-        let _gl = context.gl;
-        let _webGLVersion = context.webGLVersion;
+    constructor(context: GraphicsDevice) {
+        const _gl = context.gl;
+        const _webGLVersion = context.webGLVersion;
         // Extensions
         this.standardDerivatives = _webGLVersion > 1 || _gl.getExtension("OES_standard_derivatives") !== null;
         this.astc =
@@ -119,10 +116,8 @@ export class DeviceCapability
         this.highPrecisionShaderSupported = false;
         this.timerQuery =
             _gl.getExtension("EXT_disjoint_timer_query_webgl2") || _gl.getExtension("EXT_disjoint_timer_query");
-        if (this.timerQuery)
-        {
-            if (_webGLVersion === 1)
-            {
+        if (this.timerQuery) {
+            if (_webGLVersion === 1) {
                 _gl.getQuery = (this.timerQuery as any).getQueryEXT.bind(this.timerQuery);
             }
             this.canUseTimestampForTimerQuery =
@@ -132,21 +127,19 @@ export class DeviceCapability
         // Checks if some of the format renders first to allow the use of webgl inspector.
         this.colorBufferFloat = _webGLVersion > 1 && _gl.getExtension("EXT_color_buffer_float");
 
-        this.textureFloat = _webGLVersion > 1 || _gl.getExtension("OES_texture_float") ? true : false;
+        this.textureFloat = !!(_webGLVersion > 1 || _gl.getExtension("OES_texture_float"));
         this.textureFloatLinearFiltering =
-            this.textureFloat && _gl.getExtension("OES_texture_float_linear") ? true : false;
+            !!(this.textureFloat && _gl.getExtension("OES_texture_float_linear"));
         this.textureFloatRender =
-            this.textureFloat && this._canRenderToFloatFramebuffer(_gl, _webGLVersion) ? true : false;
+            !!(this.textureFloat && this._canRenderToFloatFramebuffer(_gl, _webGLVersion));
 
-        this.textureHalfFloat = _webGLVersion > 1 || _gl.getExtension("OES_texture_half_float") ? true : false;
+        this.textureHalfFloat = !!(_webGLVersion > 1 || _gl.getExtension("OES_texture_half_float"));
         this.textureHalfFloatLinearFiltering =
-            _webGLVersion > 1 || (this.textureHalfFloat && _gl.getExtension("OES_texture_half_float_linear"))
-                ? true
-                : false;
+            !!(_webGLVersion > 1 || (this.textureHalfFloat && _gl.getExtension("OES_texture_half_float_linear")));
         this.textureHalfFloatRender =
             this.textureHalfFloat && this._canRenderToHalfFloatFramebuffer(_gl, _webGLVersion);
 
-        this.textureLOD = _webGLVersion > 1 || _gl.getExtension("EXT_shader_texture_lod") ? true : false;
+        this.textureLOD = !!(_webGLVersion > 1 || _gl.getExtension("EXT_shader_texture_lod"));
 
         this.multiview = _gl.getExtension("OVR_multiview2");
 
@@ -154,77 +147,63 @@ export class DeviceCapability
         this.parallelShaderCompile = _gl.getExtension("KHR_parallel_shader_compile");
 
         // Depth Texture
-        if (_webGLVersion > 1)
-        {
+        if (_webGLVersion > 1) {
             this.depthTexture = true;
-        } else
-        {
+        } else {
             var depthTextureExtension = _gl.getExtension("WEBGL_depth_texture");
 
-            if (depthTextureExtension != null)
-            {
+            if (depthTextureExtension != null) {
                 this.depthTexture = true;
                 // _gl.UNSIGNED_INT_24_8 = depthTextureExtension.UNSIGNED_INT_24_8_WEBGL;
             }
         }
 
         // Vertex array object
-        if (_webGLVersion > 1)
-        {
+        if (_webGLVersion > 1) {
             this.vertexArrayObject = true;
-        } else
-        {
+        } else {
             var vertexArrayObjectExtension = _gl.getExtension("OES_vertex_array_object");
 
-            if (vertexArrayObjectExtension != null)
-            {
+            if (vertexArrayObjectExtension != null) {
                 this.vertexArrayObject = true;
                 _gl.createVertexArray = vertexArrayObjectExtension.createVertexArrayOES.bind(
-                    vertexArrayObjectExtension,
+                    vertexArrayObjectExtension
                 );
                 _gl.bindVertexArray = vertexArrayObjectExtension.bindVertexArrayOES.bind(vertexArrayObjectExtension);
                 _gl.deleteVertexArray = vertexArrayObjectExtension.deleteVertexArrayOES.bind(
-                    vertexArrayObjectExtension,
+                    vertexArrayObjectExtension
                 );
-            } else
-            {
+            } else {
                 this.vertexArrayObject = false;
             }
         }
 
         // Instances count
-        if (_webGLVersion > 1)
-        {
+        if (_webGLVersion > 1) {
             this.instancedArrays = true;
-        } else
-        {
+        } else {
             var instanceExtension = _gl.getExtension("ANGLE_instanced_arrays");
 
-            if (instanceExtension != null)
-            {
+            if (instanceExtension != null) {
                 this.instancedArrays = true;
                 _gl.drawArraysInstanced = instanceExtension.drawArraysInstancedANGLE.bind(instanceExtension);
                 _gl.drawElementsInstanced = instanceExtension.drawElementsInstancedANGLE.bind(instanceExtension);
                 _gl.vertexAttribDivisor = instanceExtension.vertexAttribDivisorANGLE.bind(instanceExtension);
-            } else
-            {
+            } else {
                 this.instancedArrays = false;
             }
         }
     }
 
-    private _canRenderToFloatFramebuffer(_gl: WebGLRenderingContext, _webGLVersion: number): boolean
-    {
-        if (_webGLVersion > 1)
-        {
+    private _canRenderToFloatFramebuffer(_gl: WebGLRenderingContext, _webGLVersion: number): boolean {
+        if (_webGLVersion > 1) {
             return this.colorBufferFloat;
         }
         return CheckCanRenderToFrameBuffer(_gl, GlConstants.FLOAT);
     }
-    private _canRenderToHalfFloatFramebuffer(_gl: WebGLRenderingContext, _webGLVersion: number): boolean
-    {
-        if (_webGLVersion > 1)
-        {
+
+    private _canRenderToHalfFloatFramebuffer(_gl: WebGLRenderingContext, _webGLVersion: number): boolean {
+        if (_webGLVersion > 1) {
             return this.colorBufferFloat;
         }
         return CheckCanRenderToFrameBuffer(_gl, GlConstants.HALF_FLOAT);
@@ -233,54 +212,51 @@ export class DeviceCapability
 
 export function CheckCanRenderToFrameBuffer(
     gl: WebGLRenderingContext,
-    texType: GlConstants.FLOAT | GlConstants.HALF_FLOAT,
-)
-{
+    texType: GlConstants.FLOAT | GlConstants.HALF_FLOAT
+) {
     while (gl.getError() !== gl.NO_ERROR) { }
 
     let successful = true;
 
-    let texture = gl.createTexture();
+    const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
-    let interFromat = texType === GlConstants.FLOAT ? GlConstants.RGBA32F : GlConstants.RGBA16F;
+    const interFromat = texType === GlConstants.FLOAT ? GlConstants.RGBA32F : GlConstants.RGBA16F;
     gl.texImage2D(gl.TEXTURE_2D, 0, interFromat, 1, 1, 0, gl.RGBA, texType, null);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
-    let fb = gl.createFramebuffer();
+    const fb = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
-    let status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+    const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
 
     successful = successful && status === gl.FRAMEBUFFER_COMPLETE;
     successful = successful && gl.getError() === gl.NO_ERROR;
 
-    //try render by clearing frame buffer's color buffer
-    if (successful)
-    {
+    // try render by clearing frame buffer's color buffer
+    if (successful) {
         gl.clear(gl.COLOR_BUFFER_BIT);
         successful = successful && gl.getError() === gl.NO_ERROR;
     }
 
-    //try reading from frame to ensure render occurs (just creating the FBO is not sufficient to determine if rendering is supported)
-    if (successful)
-    {
-        //in practice it's sufficient to just read from the backbuffer rather than handle potentially issues reading from the texture
+    // try reading from frame to ensure render occurs (just creating the FBO is not sufficient to determine if rendering is supported)
+    if (successful) {
+        // in practice it's sufficient to just read from the backbuffer rather than handle potentially issues reading from the texture
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        let readFormat = gl.RGBA;
-        let readType = gl.UNSIGNED_BYTE;
-        let buffer = new Uint8Array(4);
+        const readFormat = gl.RGBA;
+        const readType = gl.UNSIGNED_BYTE;
+        const buffer = new Uint8Array(4);
         gl.readPixels(0, 0, 1, 1, readFormat, readType, buffer);
         successful = successful && gl.getError() === gl.NO_ERROR;
     }
 
-    //clean up
+    // clean up
     gl.deleteTexture(texture);
     gl.deleteFramebuffer(fb);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-    //clear accumulated errors
-    while (!successful && gl.getError() !== gl.NO_ERROR) { }
+    // clear accumulated errors
+    // while (!successful && gl.getError() !== gl.NO_ERROR) { }
 
     return successful;
 }

@@ -2,8 +2,7 @@ import { Quat } from "./quat";
 
 import { EPSILON } from "./common";
 
-export class Vec3 extends Float32Array
-{
+export class Vec3 extends Float32Array {
     public static readonly UP = Vec3.create(0, 1, 0);
     public static readonly DOWN = Vec3.create(0, -1, 0);
 
@@ -16,87 +15,79 @@ export class Vec3 extends Float32Array
     public static readonly ONE = Vec3.create(1, 1, 1);
     public static readonly ZERO = Vec3.create(0, 0, 0);
 
-    public get x()
-    {
+    public get x() {
         return this[0];
     }
-    public set x(value: number)
-    {
+
+    public set x(value: number) {
         this[0] = value;
     }
 
-    get y()
-    {
+    get y() {
         return this[1];
     }
-    set y(value: number)
-    {
+
+    set y(value: number) {
         this[1] = value;
     }
 
-    get z()
-    {
+    get z() {
         return this[2];
     }
-    set z(value: number)
-    {
+
+    set z(value: number) {
         this[2] = value;
     }
 
     private static Recycle: Vec3[] = [];
-    public static create(x: number = 0, y: number = 0, z: number = 0)
-    {
-        if (Vec3.Recycle && Vec3.Recycle.length > 0)
-        {
-            let item = Vec3.Recycle.pop() as Vec3;
+    public static create(x: number = 0, y: number = 0, z: number = 0) {
+        if (Vec3.Recycle && Vec3.Recycle.length > 0) {
+            const item = Vec3.Recycle.pop() as Vec3;
             item[0] = x;
             item[1] = y;
             item[2] = z;
             return item;
-        } else
-        {
+        } else {
             // let item=new Float32Array(3);
             // item[0]=x;
             // item[1]=y;
             // item[2]=z;
-            let item = new Vec3(x, y, z);
+            const item = new Vec3(x, y, z);
             return item;
         }
     }
-    public static clone(from: Vec3): Vec3
-    {
-        if (Vec3.Recycle.length > 0)
-        {
-            let item = Vec3.Recycle.pop() as Vec3;
+
+    public static clone(from: Vec3): Vec3 {
+        if (Vec3.Recycle.length > 0) {
+            const item = Vec3.Recycle.pop() as Vec3;
 
             Vec3.copy(from, item);
             return item;
-        } else
-        {
-            //let item=new Float32Array(3);
-            let item = new Vec3(from[0], from[1], from[2]);
+        } else {
+            // let item=new Float32Array(3);
+            const item = new Vec3(from[0], from[1], from[2]);
             // item[0]=from[0];
             // item[1]=from[1];
             // item[2]=from[2];
             return item;
         }
     }
-    public static recycle(item: Vec3)
-    {
+
+    public static recycle(item: Vec3) {
         Vec3.Recycle.push(item);
     }
-    public static disposeRecycledItems()
-    {
+
+    public static disposeRecycledItems() {
         Vec3.Recycle.length = 0;
     }
 
-    constructor(x: number = 0, y: number = 0, z: number = 0)
-    {
+    constructor(x: number = 0, y: number = 0, z: number = 0) {
         super(3);
         this[0] = x;
         this[1] = y;
         this[2] = z;
     }
+
     /**
      * Copy the values from one vec3 to another
      *
@@ -104,8 +95,7 @@ export class Vec3 extends Float32Array
      * @param src the source vector
      * @returns out
      */
-    public static copy(from: Vec3 | number[], out: Vec3 = Vec3.create()): Vec3
-    {
+    public static copy(from: Vec3 | number[], out: Vec3 = Vec3.create()): Vec3 {
         out[0] = from[0];
         out[1] = from[1];
         out[2] = from[2];
@@ -120,16 +110,14 @@ export class Vec3 extends Float32Array
      * @param rhs the second operand
      * @returns out
      */
-    public static add(lhs: Vec3, rhs: Vec3, out: Vec3 = Vec3.create()): Vec3
-    {
+    public static add(lhs: Vec3, rhs: Vec3, out: Vec3 = Vec3.create()): Vec3 {
         out[0] = lhs[0] + rhs[0];
         out[1] = lhs[1] + rhs[1];
         out[2] = lhs[2] + rhs[2];
         return out;
     }
 
-    public static toZero(a: Vec3)
-    {
+    public static toZero(a: Vec3) {
         a[0] = a[1] = a[2] = 0;
     }
 
@@ -141,13 +129,13 @@ export class Vec3 extends Float32Array
      * @param rhs the second operand
      * @returns out
      */
-    public static subtract(lhs: Vec3, rhs: Vec3, out: Vec3 = Vec3.create()): Vec3
-    {
+    public static subtract(lhs: Vec3, rhs: Vec3, out: Vec3 = Vec3.create()): Vec3 {
         out[0] = lhs[0] - rhs[0];
         out[1] = lhs[1] - rhs[1];
         out[2] = lhs[2] - rhs[2];
         return out;
     }
+
     /**
      * Multiplies two vec3's
      *
@@ -156,16 +144,14 @@ export class Vec3 extends Float32Array
      * @param b the second operand
      * @returns out
      */
-    public static multiply(a: Vec3, b: Vec3, out: Vec3 = Vec3.create()): Vec3
-    {
+    public static multiply(a: Vec3, b: Vec3, out: Vec3 = Vec3.create()): Vec3 {
         out[0] = a[0] * b[0];
         out[1] = a[1] * b[1];
         out[2] = a[2] * b[2];
         return out;
     }
 
-    public static center(a: Vec3, b: Vec3, out: Vec3 = Vec3.create())
-    {
+    public static center(a: Vec3, b: Vec3, out: Vec3 = Vec3.create()) {
         this.add(a, b, out);
         this.scale(out, 0.5, out);
         return out;
@@ -179,8 +165,7 @@ export class Vec3 extends Float32Array
      * @param b the second operand
      * @returns out
      */
-    public static divide(a: Vec3, b: Vec3, out: Vec3 = Vec3.create()): Vec3
-    {
+    public static divide(a: Vec3, b: Vec3, out: Vec3 = Vec3.create()): Vec3 {
         out[0] = a[0] / b[0];
         out[1] = a[1] / b[1];
         out[2] = a[2] / b[2];
@@ -194,8 +179,7 @@ export class Vec3 extends Float32Array
      * @param {Vec3} a vector to ceil
      * @returns {Vec3} out
      */
-    public static ceil(out: Vec3 = Vec3.create(), a: Vec3): Vec3
-    {
+    public static ceil(out: Vec3 = Vec3.create(), a: Vec3): Vec3 {
         out[0] = Math.ceil(a[0]);
         out[1] = Math.ceil(a[1]);
         out[2] = Math.ceil(a[2]);
@@ -209,8 +193,7 @@ export class Vec3 extends Float32Array
      * @param {Vec3} a vector to floor
      * @returns {Vec3} out
      */
-    public static floor(out: Vec3 = Vec3.create(), a: Vec3): Vec3
-    {
+    public static floor(out: Vec3 = Vec3.create(), a: Vec3): Vec3 {
         out[0] = Math.floor(a[0]);
         out[1] = Math.floor(a[1]);
         out[2] = Math.floor(a[2]);
@@ -225,8 +208,7 @@ export class Vec3 extends Float32Array
      * @param b the second operand
      * @returns out
      */
-    public static min(a: Vec3, b: Vec3, out: Vec3 = Vec3.create()): Vec3
-    {
+    public static min(a: Vec3, b: Vec3, out: Vec3 = Vec3.create()): Vec3 {
         out[0] = Math.min(a[0], b[0]);
         out[1] = Math.min(a[1], b[1]);
         out[2] = Math.min(a[2], b[2]);
@@ -241,8 +223,7 @@ export class Vec3 extends Float32Array
      * @param b the second operand
      * @returns out
      */
-    public static max(out: Vec3 = Vec3.create(), a: Vec3, b: Vec3): Vec3
-    {
+    public static max(out: Vec3 = Vec3.create(), a: Vec3, b: Vec3): Vec3 {
         out[0] = Math.max(a[0], b[0]);
         out[1] = Math.max(a[1], b[1]);
         out[2] = Math.max(a[2], b[2]);
@@ -256,8 +237,7 @@ export class Vec3 extends Float32Array
      * @param {Vec3} a vector to round
      * @returns {Vec3} out
      */
-    public static round(out: Vec3 = Vec3.create(), a: Vec3): Vec3
-    {
+    public static round(out: Vec3 = Vec3.create(), a: Vec3): Vec3 {
         out[0] = Math.round(a[0]);
         out[1] = Math.round(a[1]);
         out[2] = Math.round(a[2]);
@@ -272,8 +252,7 @@ export class Vec3 extends Float32Array
      * @param b amount to scale the vector by
      * @returns out
      */
-    public static scale(a: Vec3, b: number, out: Vec3 = Vec3.create()): Vec3
-    {
+    public static scale(a: Vec3, b: number, out: Vec3 = Vec3.create()): Vec3 {
         out[0] = a[0] * b;
         out[1] = a[1] * b;
         out[2] = a[2] * b;
@@ -289,8 +268,7 @@ export class Vec3 extends Float32Array
      * @param scale the amount to scale b by before adding
      * @returns out
      */
-    public static AddscaledVec(lhs: Vec3, rhs: Vec3, scale: number, out: Vec3 = Vec3.create()): Vec3
-    {
+    public static AddscaledVec(lhs: Vec3, rhs: Vec3, scale: number, out: Vec3 = Vec3.create()): Vec3 {
         out[0] = lhs[0] + rhs[0] * scale;
         out[1] = lhs[1] + rhs[1] * scale;
         out[2] = lhs[2] + rhs[2] * scale;
@@ -304,11 +282,10 @@ export class Vec3 extends Float32Array
      * @param b the second operand
      * @returns distance between a and b
      */
-    public static distance(a: Vec3, b: Vec3): number
-    {
-        let x = b[0] - a[0];
-        let y = b[1] - a[1];
-        let z = b[2] - a[2];
+    public static distance(a: Vec3, b: Vec3): number {
+        const x = b[0] - a[0];
+        const y = b[1] - a[1];
+        const z = b[2] - a[2];
         return Math.sqrt(x * x + y * y + z * z);
     }
 
@@ -319,11 +296,10 @@ export class Vec3 extends Float32Array
      * @param b the second operand
      * @returns squared distance between a and b
      */
-    public static squaredDistance(a: Vec3, b: Vec3): number
-    {
-        let x = b[0] - a[0];
-        let y = b[1] - a[1];
-        let z = b[2] - a[2];
+    public static squaredDistance(a: Vec3, b: Vec3): number {
+        const x = b[0] - a[0];
+        const y = b[1] - a[1];
+        const z = b[2] - a[2];
         return x * x + y * y + z * z;
     }
 
@@ -333,11 +309,10 @@ export class Vec3 extends Float32Array
      * @param a vector to calculate length of
      * @returns length of a
      */
-    public static magnitude(a: Vec3): number
-    {
-        let x = a[0];
-        let y = a[1];
-        let z = a[2];
+    public static magnitude(a: Vec3): number {
+        const x = a[0];
+        const y = a[1];
+        const z = a[2];
         return Math.sqrt(x * x + y * y + z * z);
     }
 
@@ -347,11 +322,10 @@ export class Vec3 extends Float32Array
      * @param a vector to calculate squared length of
      * @returns squared length of a
      */
-    public static squaredLength(a: Vec3): number
-    {
-        let x = a[0];
-        let y = a[1];
-        let z = a[2];
+    public static squaredLength(a: Vec3): number {
+        const x = a[0];
+        const y = a[1];
+        const z = a[2];
         return x * x + y * y + z * z;
     }
 
@@ -362,8 +336,7 @@ export class Vec3 extends Float32Array
      * @param a vector to negate
      * @returns out
      */
-    public static negate(a: Vec3, out: Vec3 = Vec3.create()): Vec3
-    {
+    public static negate(a: Vec3, out: Vec3 = Vec3.create()): Vec3 {
         out[0] = -a[0];
         out[1] = -a[1];
         out[2] = -a[2];
@@ -377,8 +350,7 @@ export class Vec3 extends Float32Array
      * @param a vector to invert
      * @returns out
      */
-    public static inverse(a: Vec3, out: Vec3 = Vec3.create()): Vec3
-    {
+    public static inverse(a: Vec3, out: Vec3 = Vec3.create()): Vec3 {
         out[0] = 1.0 / a[0];
         out[1] = 1.0 / a[1];
         out[2] = 1.0 / a[2];
@@ -392,15 +364,13 @@ export class Vec3 extends Float32Array
      * @param src vector to normalize
      * @returns out
      */
-    public static normalize(src: Vec3, out: Vec3 = Vec3.create()): Vec3
-    {
-        let x = src[0];
-        let y = src[1];
-        let z = src[2];
+    public static normalize(src: Vec3, out: Vec3 = Vec3.create()): Vec3 {
+        const x = src[0];
+        const y = src[1];
+        const z = src[2];
         let len = x * x + y * y + z * z;
-        if (len > 0)
-        {
-            //TODO: evaluate use of glm_invsqrt here?
+        if (len > 0) {
+            // TODO: evaluate use of glm_invsqrt here?
             len = 1 / Math.sqrt(len);
             out[0] = src[0] * len;
             out[1] = src[1] * len;
@@ -416,8 +386,7 @@ export class Vec3 extends Float32Array
      * @param b the second operand
      * @returns dot product of a and b
      */
-    public static dot(a: Vec3, b: Vec3): number
-    {
+    public static dot(a: Vec3, b: Vec3): number {
         return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
     }
 
@@ -429,14 +398,13 @@ export class Vec3 extends Float32Array
      * @param rhs the second operand
      * @returns out
      */
-    public static cross(lhs: Vec3, rhs: Vec3, out: Vec3 = Vec3.create()): Vec3
-    {
-        let ax = lhs[0],
-            ay = lhs[1],
-            az = lhs[2];
-        let bx = rhs[0],
-            by = rhs[1],
-            bz = rhs[2];
+    public static cross(lhs: Vec3, rhs: Vec3, out: Vec3 = Vec3.create()): Vec3 {
+        const ax = lhs[0];
+        const ay = lhs[1];
+        const az = lhs[2];
+        const bx = rhs[0];
+        const by = rhs[1];
+        const bz = rhs[2];
 
         out[0] = ay * bz - az * by;
         out[1] = az * bx - ax * bz;
@@ -453,11 +421,10 @@ export class Vec3 extends Float32Array
      * @param lerp interpolation amount between the two inputs
      * @returns out
      */
-    public static lerp(lhs: Vec3, rhs: Vec3, lerp: number, out: Vec3 = Vec3.create()): Vec3
-    {
-        let ax = lhs[0];
-        let ay = lhs[1];
-        let az = lhs[2];
+    public static lerp(lhs: Vec3, rhs: Vec3, lerp: number, out: Vec3 = Vec3.create()): Vec3 {
+        const ax = lhs[0];
+        const ay = lhs[1];
+        const az = lhs[2];
         out[0] = ax + lerp * (rhs[0] - ax);
         out[1] = ay + lerp * (rhs[1] - ay);
         out[2] = az + lerp * (rhs[2] - az);
@@ -475,13 +442,12 @@ export class Vec3 extends Float32Array
      * @param {number} t interpolation amount between the two inputs
      * @returns {Vec3} out
      */
-    public static hermite(a: Vec3, b: Vec3, c: Vec3, d: Vec3, t: number, out: Vec3 = Vec3.create()): Vec3
-    {
-        let factorTimes2 = t * t;
-        let factor1 = factorTimes2 * (2 * t - 3) + 1;
-        let factor2 = factorTimes2 * (t - 2) + t;
-        let factor3 = factorTimes2 * (t - 1);
-        let factor4 = factorTimes2 * (3 - 2 * t);
+    public static hermite(a: Vec3, b: Vec3, c: Vec3, d: Vec3, t: number, out: Vec3 = Vec3.create()): Vec3 {
+        const factorTimes2 = t * t;
+        const factor1 = factorTimes2 * (2 * t - 3) + 1;
+        const factor2 = factorTimes2 * (t - 2) + t;
+        const factor3 = factorTimes2 * (t - 1);
+        const factor4 = factorTimes2 * (3 - 2 * t);
 
         out[0] = a[0] * factor1 + b[0] * factor2 + c[0] * factor3 + d[0] * factor4;
         out[1] = a[1] * factor1 + b[1] * factor2 + c[1] * factor3 + d[1] * factor4;
@@ -501,15 +467,14 @@ export class Vec3 extends Float32Array
      * @param {number} t interpolation amount between the two inputs
      * @returns {Vec3} out
      */
-    public static bezier(a: Vec3, b: Vec3, c: Vec3, d: Vec3, t: number, out: Vec3 = Vec3.create()): Vec3
-    {
-        let inverseFactor = 1 - t;
-        let inverseFactorTimesTwo = inverseFactor * inverseFactor;
-        let factorTimes2 = t * t;
-        let factor1 = inverseFactorTimesTwo * inverseFactor;
-        let factor2 = 3 * t * inverseFactorTimesTwo;
-        let factor3 = 3 * factorTimes2 * inverseFactor;
-        let factor4 = factorTimes2 * t;
+    public static bezier(a: Vec3, b: Vec3, c: Vec3, d: Vec3, t: number, out: Vec3 = Vec3.create()): Vec3 {
+        const inverseFactor = 1 - t;
+        const inverseFactorTimesTwo = inverseFactor * inverseFactor;
+        const factorTimes2 = t * t;
+        const factor1 = inverseFactorTimesTwo * inverseFactor;
+        const factor2 = 3 * t * inverseFactorTimesTwo;
+        const factor3 = 3 * factorTimes2 * inverseFactor;
+        const factor4 = factorTimes2 * t;
 
         out[0] = a[0] * factor1 + b[0] * factor2 + c[0] * factor3 + d[0] * factor4;
         out[1] = a[1] * factor1 + b[1] * factor2 + c[1] * factor3 + d[1] * factor4;
@@ -525,13 +490,12 @@ export class Vec3 extends Float32Array
      * @param [scale] Length of the resulting vector. If omitted, a unit vector will be returned
      * @returns out
      */
-    public static random(scale: number = 1, out: Vec3 = Vec3.create()): Vec3
-    {
+    public static random(scale: number = 1, out: Vec3 = Vec3.create()): Vec3 {
         scale = scale || 1.0;
 
-        let r = Math.random() * 2.0 * Math.PI;
-        let z = Math.random() * 2.0 - 1.0;
-        let zScale = Math.sqrt(1.0 - z * z) * scale;
+        const r = Math.random() * 2.0 * Math.PI;
+        const z = Math.random() * 2.0 - 1.0;
+        const zScale = Math.sqrt(1.0 - z * z) * scale;
 
         out[0] = Math.cos(r) * zScale;
         out[1] = Math.sin(r) * zScale;
@@ -587,23 +551,22 @@ export class Vec3 extends Float32Array
      * @param q Quaternion to transform with
      * @returns out
      */
-    public static transformQuat(a: Vec3, q: Quat, out: Vec3 = Vec3.create()): Vec3
-    {
+    public static transformQuat(a: Vec3, q: Quat, out: Vec3 = Vec3.create()): Vec3 {
         // benchmarks: http://jsperf.com/Quaternion-transform-vec3-implementations
 
-        let x = a[0],
-            y = a[1],
-            z = a[2];
-        let qx = q[0],
-            qy = q[1],
-            qz = q[2],
-            qw = q[3];
+        const x = a[0];
+        const y = a[1];
+        const z = a[2];
+        const qx = q[0];
+        const qy = q[1];
+        const qz = q[2];
+        const qw = q[3];
 
         // calculate Quat * vec
-        let ix = qw * x + qy * z - qz * y;
-        let iy = qw * y + qz * x - qx * z;
-        let iz = qw * z + qx * y - qy * x;
-        let iw = -qx * x - qy * y - qz * z;
+        const ix = qw * x + qy * z - qz * y;
+        const iy = qw * y + qz * x - qx * z;
+        const iz = qw * z + qx * y - qy * x;
+        const iw = -qx * x - qy * y - qz * z;
 
         // calculate result * inverse Quat
         out[0] = ix * qw + iw * -qx + iy * -qz - iz * -qy;
@@ -620,21 +583,20 @@ export class Vec3 extends Float32Array
      * @param c The angle of rotation
      * @returns out
      */
-    public static rotateX(a: Vec3, b: Vec3, c: number, out: Vec3 = Vec3.create()): Vec3
-    {
-        let p = [],
-            r = [];
-        //Translate point to the origin
+    public static rotateX(a: Vec3, b: Vec3, c: number, out: Vec3 = Vec3.create()): Vec3 {
+        const p = [];
+        const r = [];
+        // Translate point to the origin
         p[0] = a[0] - b[0];
         p[1] = a[1] - b[1];
         p[2] = a[2] - b[2];
 
-        //perform rotation
+        // perform rotation
         r[0] = p[0];
         r[1] = p[1] * Math.cos(c) - p[2] * Math.sin(c);
         r[2] = p[1] * Math.sin(c) + p[2] * Math.cos(c);
 
-        //translate to correct position
+        // translate to correct position
         out[0] = r[0] + b[0];
         out[1] = r[1] + b[1];
         out[2] = r[2] + b[2];
@@ -650,21 +612,20 @@ export class Vec3 extends Float32Array
      * @param c The angle of rotation
      * @returns out
      */
-    public static rotateY(a: Vec3, b: Vec3, c: number, out: Vec3 = Vec3.create()): Vec3
-    {
-        let p = [],
-            r = [];
-        //Translate point to the origin
+    public static rotateY(a: Vec3, b: Vec3, c: number, out: Vec3 = Vec3.create()): Vec3 {
+        const p = [];
+        const r = [];
+        // Translate point to the origin
         p[0] = a[0] - b[0];
         p[1] = a[1] - b[1];
         p[2] = a[2] - b[2];
 
-        //perform rotation
+        // perform rotation
         r[0] = p[2] * Math.sin(c) + p[0] * Math.cos(c);
         r[1] = p[1];
         r[2] = p[2] * Math.cos(c) - p[0] * Math.sin(c);
 
-        //translate to correct position
+        // translate to correct position
         out[0] = r[0] + b[0];
         out[1] = r[1] + b[1];
         out[2] = r[2] + b[2];
@@ -680,21 +641,20 @@ export class Vec3 extends Float32Array
      * @param c The angle of rotation
      * @returns out
      */
-    public static rotateZ(a: Vec3, b: Vec3, c: number, out: Vec3 = Vec3.create()): Vec3
-    {
-        let p = [],
-            r = [];
-        //Translate point to the origin
+    public static rotateZ(a: Vec3, b: Vec3, c: number, out: Vec3 = Vec3.create()): Vec3 {
+        const p = [];
+        const r = [];
+        // Translate point to the origin
         p[0] = a[0] - b[0];
         p[1] = a[1] - b[1];
         p[2] = a[2] - b[2];
 
-        //perform rotation
+        // perform rotation
         r[0] = p[0] * Math.cos(c) - p[1] * Math.sin(c);
         r[1] = p[0] * Math.sin(c) + p[1] * Math.cos(c);
         r[2] = p[2];
 
-        //translate to correct position
+        // translate to correct position
         out[0] = r[0] + b[0];
         out[1] = r[1] + b[1];
         out[2] = r[2] + b[2];
@@ -737,26 +697,22 @@ export class Vec3 extends Float32Array
      * @param b The second operand
      * @returns The angle in radians
      */
-    public static angle(a: Vec3, b: Vec3): number
-    {
-        let tempA = Vec3.clone(a);
-        let tempB = Vec3.clone(b);
+    public static angle(a: Vec3, b: Vec3): number {
+        const tempA = Vec3.clone(a);
+        const tempB = Vec3.clone(b);
         // let tempA = vec3.fromValues(a[0], a[1], a[2]);
         // let tempB = vec3.fromValues(b[0], b[1], b[2]);
 
         Vec3.normalize(tempA, tempA);
         Vec3.normalize(tempB, tempB);
 
-        let cosine = Vec3.dot(tempA, tempB);
+        const cosine = Vec3.dot(tempA, tempB);
 
-        if (cosine > 1.0)
-        {
+        if (cosine > 1.0) {
             return 0;
-        } else if (cosine < -1.0)
-        {
+        } else if (cosine < -1.0) {
             return Math.PI;
-        } else
-        {
+        } else {
             return Math.acos(cosine);
         }
     }
@@ -767,8 +723,7 @@ export class Vec3 extends Float32Array
      * @param a vector to represent as a string
      * @returns string representation of the vector
      */
-    public static str(a: Vec3): string
-    {
+    public static str(a: Vec3): string {
         return "vec3(" + a[0] + ", " + a[1] + ", " + a[2] + ")";
     }
 
@@ -779,8 +734,7 @@ export class Vec3 extends Float32Array
      * @param {Vec3} b The second vector.
      * @returns {boolean} True if the vectors are equal, false otherwise.
      */
-    public static exactEquals(a: Vec3, b: Vec3): boolean
-    {
+    public static exactEquals(a: Vec3, b: Vec3): boolean {
         return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
     }
 
@@ -791,14 +745,13 @@ export class Vec3 extends Float32Array
      * @param {Vec3} b The second vector.
      * @returns {boolean} True if the vectors are equal, false otherwise.
      */
-    public static equals(a: Vec3, b: Vec3): boolean
-    {
-        let a0 = a[0],
-            a1 = a[1],
-            a2 = a[2];
-        let b0 = b[0],
-            b1 = b[1],
-            b2 = b[2];
+    public static equals(a: Vec3, b: Vec3): boolean {
+        const a0 = a[0];
+        const a1 = a[1];
+        const a2 = a[2];
+        const b0 = b[0];
+        const b1 = b[1];
+        const b2 = b[2];
         return Math.abs(a0 - b0) <= EPSILON && Math.abs(a1 - b1) <= EPSILON && Math.abs(a2 - b2) <= EPSILON;
     }
 }

@@ -16,7 +16,7 @@ export function lerp(from: number, to: number, lerp: number): number {
 }
 
 export function random(min: number = 0, max: number = 1) {
-    let bund = max - min;
+    const bund = max - min;
     return min + bund * Math.random();
 }
 
@@ -31,7 +31,7 @@ export function arrayEqual(a: number[] | Float32Array, b: number[] | Float32Arra
     }
     return true;
 }
-//row：图片行数//column:图片列数//index：第几张图片（index从0开始计数）
+// row：图片行数//column:图片列数//index：第几张图片（index从0开始计数）
 export function spriteAnimation(row: number, column: number, index: number, out: Vec4) {
     var width = 1.0 / column;
     var height = 1.0 / row;
@@ -60,7 +60,6 @@ export function numberLerp(fromV: number, toV: number, v: number) {
 //     vec3.disposeRecycledItems();
 //     vec4.disposeRecycledItems();
 // }
-
 
 /**
  * Find the next highest power of two.
@@ -131,4 +130,3 @@ export function canWrapReapeat(width: number, height: number, webGLVersion: numb
 //     }
 //     return gl.LINEAR;
 // }
-

@@ -14,14 +14,17 @@ import { ShaderInstance } from "../asset/material/ShaderInstance";
 import { LayerComposition } from "../LayerComposition";
 import { Irenderable } from "./Irenderable";
 
-
-namespace Private {
-    export let preMaterial: Material;
-    export let preBuketID: number;
-    export let preRenderState: RenderState;
-    export let temptSphere: BoundingSphere = new BoundingSphere();
-}
-
+const Private: {
+    preMaterial: Material,
+    preBuketID: number,
+    preRenderState: RenderState,
+    temptSphere: BoundingSphere
+} = {
+    preMaterial: null,
+    preBuketID: null,
+    preRenderState: null,
+    temptSphere: new BoundingSphere()
+};
 export class ForwardRender {
     private device: GraphicsDevice;
     uniformState = new UniformState();
@@ -41,29 +44,29 @@ export class ForwardRender {
 
     private camerRenderLayers = new Map<Camera, LayerComposition>();
 
-    render(cameras: Camera[], renderArr: Irenderable[], lights?: any, ) {
+    render(cameras: Camera[], renderArr: Irenderable[], lights?: any) {
         cameras = cameras.sort(item => item.priority);
         let cam: Camera, layercomps: LayerComposition, renderItem: Irenderable;
 
-        //---------------clear preFrame Data
+        // ---------------clear preFrame Data
         for (let k = 0; k < cameras.length; k++) {
             cam = cameras[k];
             if (!this.camerRenderLayers.has(cam)) {
                 layercomps = new LayerComposition();
                 this.camerRenderLayers.set(cam, layercomps);
             } else {
-                layercomps = this.camerRenderLayers.get(cam)
+                layercomps = this.camerRenderLayers.get(cam);
                 layercomps.clear();
             }
         }
 
-        //----------------collect render Ins
+        // ----------------collect render Ins
         for (let i = 0; i < renderArr.length; i++) {
             renderItem = renderArr[i];
             if (!renderItem.bevisible || renderItem.geometry == null || renderItem.material?.shader == null) continue;
             for (let k = 0; k < cameras.length; k++) {
                 cam = cameras[k];
-                let { cullingMask, frustum } = cam;
+                const { cullingMask, frustum } = cam;
                 layercomps = this.camerRenderLayers.get(cam);
 
                 if (renderItem.cullingMask != null && ((renderItem.cullingMask & cullingMask) == 0)) continue;
@@ -77,22 +80,21 @@ export class ForwardRender {
             }
         }
 
-        //------------------------render per camera
+        // ------------------------render per camera
         for (let k = 0; k < cameras.length; k++) {
             cam = cameras[k];
             this.setCamera(cam);
             layercomps = this.camerRenderLayers.get(cam);
             layercomps.getlayers().forEach(layer => {
                 if (layer.insCount == 0) return;
-                let renderInsArr = layer.getSortedinsArr(cam);
+                const renderInsArr = layer.getSortedinsArr(cam);
                 this.renderList(cam, renderInsArr);
-            })
+            });
         }
-
     }
 
     private renderList(cam: Camera, renderInsArr: Irenderable[]) {
-        let renderItem: Irenderable, material: Material, uniforms, renderState, vertexArray, shaderIns: ShaderInstance, uniformValue
+        let renderItem: Irenderable, material: Material, uniforms, renderState, vertexArray, shaderIns: ShaderInstance, uniformValue;
         for (let i = 0; i < renderInsArr.length; i++) {
             renderItem = renderInsArr[i];
 
@@ -106,7 +108,7 @@ export class ForwardRender {
 
             material = renderItem.material;
             uniforms = material.uniformParameters;
-            if (uniforms["MainTex"]) {
+            if (uniforms.MainTex) {
                 bucketId = bucketId | ShaderBucket.DIFFUSEMAP;
             }
 
@@ -119,7 +121,7 @@ export class ForwardRender {
                 renderState = material.renderState;
 
                 shaderIns.bind(this.device);
-                shaderIns.bindAutoUniforms(this.device, this.uniformState);//auto unfiorm
+                shaderIns.bindAutoUniforms(this.device, this.uniformState);// auto unfiorm
                 shaderIns.bindManulUniforms(this.device, uniforms);
 
                 if (Private.preRenderState != renderState) {
@@ -134,7 +136,7 @@ export class ForwardRender {
                         renderState.blend.enableSeparateBlend,
                         renderState.blend.blendAlphaEquation,
                         renderState.blend.blendSrcAlpha,
-                        renderState.blend.blendDstAlpha,
+                        renderState.blend.blendDstAlpha
                     );
                     this.device.setStencilState(
                         renderState.stencilTest.enabled,
@@ -150,15 +152,15 @@ export class ForwardRender {
                         renderState.stencilTest.stencilMaskBack,
                         renderState.stencilTest.stencilFailBack,
                         renderState.stencilTest.stencilFaileZpassBack,
-                        renderState.stencilTest.stencilPassZfailBack,
+                        renderState.stencilTest.stencilPassZfailBack
                     );
                 }
             } else {
-                shaderIns = material.shader.getInstance(bucketId)
-                shaderIns.bindAutoUniforms(this.device, this.uniformState);//auto unfiorm
+                shaderIns = material.shader.getInstance(bucketId);
+                shaderIns.bindAutoUniforms(this.device, this.uniformState);// auto unfiorm
             }
             renderItem.geometry.bind(this.device);
-            this.device.draw(renderItem.geometry.graphicAsset, renderItem.instanceCount)
+            this.device.draw(renderItem.geometry.graphicAsset, renderItem.instanceCount);
         }
     }
 

@@ -3,5 +3,39 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
-  "author": "nichijouCC"
+  "author": "nichijouCC",
+  "devDependencies": {
+    "@babel/core": "^7.6.3",
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/plugin-proposal-decorators": "^7.7.4",
+    "@babel/polyfill": "^7.6.0",
+    "@babel/preset-env": "^7.6.3",
+    "@babel/preset-typescript": "^7.7.4",
+    "@types/node": "^12.11.5",
+    "babel-loader": "^8.0.6",
+    "clean-webpack-plugin": "^3.0.0",
+    "compression-webpack-plugin": "^3.0.0",
+    "copy-webpack-plugin": "^5.0.4",
+    "core-js": "^3.4.8",
+    "cross-env": "^6.0.3",
+    "css-loader": "^3.2.0",
+    "eslint": "^4.1.1",
+    "file-loader": "^4.2.0",
+    "html-loader": "^0.5.5",
+    "html-webpack-plugin": "^3.2.0",
+    "ora": "^4.0.4",
+    "terser-webpack-plugin": "^2.1.2",
+    "typescript": "^3.8.3",
+    "url-loader": "^2.2.0",
+    "webpack": "^4.41.0",
+    "webpack-bundle-analyzer": "^3.6.1",
+    "webpack-cli": "^3.3.9",
+    "webpack-dev-middleware": "~1.6.1",
+    "webpack-dev-server": "^3.8.2",
+    "webpack-hot-middleware": "~2.12.1"
+  },
+  "scripts": {
+    "start": "cross-env NODE_ENV=development webpack-dev-server --config ./config/webpack.dev.js --env=dev",
+    "build": "cross-env NODE_ENV=production node config/build.js"
+  }
 }

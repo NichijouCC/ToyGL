@@ -32,7 +32,6 @@ export class ClickEvent {
     movementY: number;
 }
 
-
 namespace Private {
     export const keyDic: { [key: number]: MouseKeyEnum } = {
         0: MouseKeyEnum.Left,
@@ -43,7 +42,7 @@ namespace Private {
 
 export class Mouse extends EventCompositedHandler {
     private _position: Vec2 = Vec2.create();
-    get position() { return this._position };
+    get position() { return this._position; };
     constructor(canvas: HTMLCanvasElement) {
         super();
         /**
@@ -54,38 +53,38 @@ export class Mouse extends EventCompositedHandler {
         };
 
         canvas.addEventListener("mousedown", (ev: MouseEvent) => {
-            let key = ev.button;
-            let keyEnum = Private.keyDic[key];
+            const key = ev.button;
+            const keyEnum = Private.keyDic[key];
 
-            let event = this.getClickEventByMouseEvent(ev);
+            const event = this.getClickEventByMouseEvent(ev);
             this.fire(MouseEventEnum.Down, event);
             this.fire([keyEnum, MouseEventEnum.Down], event);
         });
 
         canvas.addEventListener("mouseup", (ev: MouseEvent) => {
-            let key = ev.button;
-            let keyEnum = Private.keyDic[key];
+            const key = ev.button;
+            const keyEnum = Private.keyDic[key];
 
-            let event = this.getClickEventByMouseEvent(ev);
+            const event = this.getClickEventByMouseEvent(ev);
             this.fire(MouseEventEnum.Up, event);
             this.fire([keyEnum, MouseEventEnum.Down], event);
         });
 
         canvas.addEventListener("mousemove", (ev: MouseEvent) => {
-            let event = this.getClickEventByMouseEvent(ev);
+            const event = this.getClickEventByMouseEvent(ev);
             this.fire(MouseEventEnum.Move, event);
         });
 
         canvas.addEventListener("mousewheel", (ev: any) => {
-            let event = this.getClickEventByMouseEvent(ev);
+            const event = this.getClickEventByMouseEvent(ev);
             this.fire(MouseEventEnum.Rotate, event);
         });
     }
 
     private getClickEventByMouseEvent(ev: any): ClickEvent {
-        let event = new ClickEvent();
-        event.pointx = ev.offsetX; //鼠标指针相对于目标节点内边位置的X坐标
-        event.pointy = ev.offsetY; //鼠标指针相对于目标节点内边位置的Y坐标
+        const event = new ClickEvent();
+        event.pointx = ev.offsetX; // 鼠标指针相对于目标节点内边位置的X坐标
+        event.pointy = ev.offsetY; // 鼠标指针相对于目标节点内边位置的Y坐标
 
         this._position.x = ev.offsetX;
         this._position.y = ev.offsetY;

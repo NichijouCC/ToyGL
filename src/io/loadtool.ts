@@ -1,4 +1,4 @@
-﻿export enum ResponseTypeEnum {
+export enum ResponseTypeEnum {
     text = "text",
     json = "json",
     blob = "blob",
@@ -35,10 +35,10 @@ interface IdownloadInfo {
 function httpRequeset(
     url: string,
     type: requestType,
-    onProgress: (info: IdownloadInfo) => void = null,
+    onProgress: (info: IdownloadInfo) => void = null
 ): Promise<any> {
     return new Promise<any>((resolve, reject) => {
-        let req = new XMLHttpRequest();
+        const req = new XMLHttpRequest();
         req.open("GET", url);
         req.responseType = type;
 
@@ -79,9 +79,9 @@ export function loadImg(url: string, onProgress: (info: IdownloadInfo) => void =
     return new Promise<HTMLImageElement>((resolve, reject) => {
         loadArrayBuffer(url, onProgress)
             .then(res => {
-                let blob = new Blob([res], { type: "image/jpeg" });
-                let imageUrl = window.URL.createObjectURL(blob);
-                let img = new Image();
+                const blob = new Blob([res], { type: "image/jpeg" });
+                const imageUrl = window.URL.createObjectURL(blob);
+                const img = new Image();
                 img.src = imageUrl;
                 img.onerror = error => {
                     reject(error);
@@ -90,15 +90,15 @@ export function loadImg(url: string, onProgress: (info: IdownloadInfo) => void =
                     URL.revokeObjectURL(img.src);
                     resolve(img);
                 };
-            })
-    })
+            });
+    });
 }
 export function arraybufferToImge(data: ArrayBuffer): Promise<HTMLImageElement> {
     return new Promise<HTMLImageElement>((resolve, reject) => {
         var arrayBufferView = new Uint8Array(data);
         var blob = new Blob([arrayBufferView], { type: "image/jpeg" });
         var imageUrl = window.URL.createObjectURL(blob);
-        let img = new Image();
+        const img = new Image();
         img.src = imageUrl;
         img.onerror = error => {
             reject(error);

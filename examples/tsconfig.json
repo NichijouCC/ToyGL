@@ -24,7 +24,7 @@
         "src/*"
       ],
       "TOYGL": [
-        "../src/index.ts"
+        "../src/Index.ts"
       ]
     }
   },
@@ -32,7 +32,7 @@
     "../src/*.d.ts",
     "./*.ts",
     "src/bass.ts",
-    "src/main.ts",
+    "src/index.ts",
     "src/loadGltf.ts"
   ],
 }

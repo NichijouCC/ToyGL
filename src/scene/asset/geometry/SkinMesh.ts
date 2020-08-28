@@ -1,7 +1,6 @@
 import { Entity } from "../../../core/Entity";
 import { StaticMesh } from "./StaticMesh";
 
-
 export interface Iskin {
     rootBone: Entity;
     bones: Entity[];

@@ -5,20 +5,20 @@ export namespace graphicSettings {
     export const maxShadowDistance = 100;
 
     export const shadowCascadeEdges = (() => {
-        return [maxShadowDistance * .1, maxShadowDistance * .25, maxShadowDistance];
+        return [maxShadowDistance * 0.1, maxShadowDistance * 0.25, maxShadowDistance];
     })();
 }
 
 namespace Private {
     export function getSections(glsl: string) {
-        let qualifierMatches = glsl.match(/precision[' ']+(highp|mediump|lowp)[' ']+(float|int)[' ']*;/g);
-        let qualifiers = qualifierMatches ? qualifierMatches.join("\n") : "";
-        let closingBracketIndex = glsl.lastIndexOf("}");
+        const qualifierMatches = glsl.match(/precision[' ']+(highp|mediump|lowp)[' ']+(float|int)[' ']*;/g);
+        const qualifiers = qualifierMatches ? qualifierMatches.join("\n") : "";
+        const closingBracketIndex = glsl.lastIndexOf("}");
         if (closingBracketIndex >= 0) {
             let coreMeat = glsl;
             if (qualifierMatches && qualifierMatches.length > 0) {
-                let lastQualifier = qualifierMatches[qualifierMatches.length - 1];
-                let lastQualifierIndex = glsl.indexOf(lastQualifier);
+                const lastQualifier = qualifierMatches[qualifierMatches.length - 1];
+                const lastQualifierIndex = glsl.indexOf(lastQualifier);
                 coreMeat = glsl.substring(lastQualifierIndex + lastQualifier.length, closingBracketIndex);
             } else {
                 coreMeat = glsl.substring(0, closingBracketIndex);
@@ -28,7 +28,7 @@ namespace Private {
                 coreMeat: coreMeat
             };
         } else {
-            console.error(`Invalid fragment shader syntax - could not locate closing bracket of entry block`);
+            console.error("Invalid fragment shader syntax - could not locate closing bracket of entry block");
             return null;
         }
     }
@@ -43,8 +43,8 @@ export class ShaderCodeInjector {
         useVertexColor?: boolean
     ) {
         let directives = "";
-        let definitions = "";
-        let statements = "";
+        const definitions = "";
+        const statements = "";
         let needInjection = false;
 
         if (useSkinning === true) {
@@ -72,7 +72,7 @@ export class ShaderCodeInjector {
         }
 
         if (needInjection) {
-            let sections = Private.getSections(vertexCode);
+            const sections = Private.getSections(vertexCode);
             if (sections) {
                 return `${directives}
                     ${sections.qualifiers}
@@ -94,8 +94,8 @@ export class ShaderCodeInjector {
         useDirectionalLights?: boolean
     ) {
         let directives = "";
-        let definitions = "";
-        let postProcess = "";
+        const definitions = "";
+        const postProcess = "";
         let needInjection = false;
 
         if (useDirectionalLights) {
@@ -126,7 +126,7 @@ export class ShaderCodeInjector {
         }
 
         if (needInjection) {
-            let sections = Private.getSections(fragmentCode);
+            const sections = Private.getSections(fragmentCode);
             if (sections) {
                 return `${sections.qualifiers}
 ${directives}

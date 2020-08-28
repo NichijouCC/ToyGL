@@ -2,23 +2,22 @@ import { Asset, IgraphicAsset } from "../Asset";
 import { VertexArray } from "../../../webgl/VertextArray";
 import { GraphicsDevice } from "../../../webgl/GraphicsDevice";
 import { BoundingSphere } from "../../Bounds";
-import { EventHandler } from "../../../core/Event";
+import { EventTarget } from "../../../core/EventTarget";
 
-export abstract class BaseGeometry extends Asset implements Igeometry {
+export abstract class GeometryAsset extends Asset implements Igeometry {
     graphicAsset: VertexArray;
     protected beNeedRefreshGraphicAsset: boolean = false;
     protected abstract create(device: GraphicsDevice): VertexArray
     protected abstract updateDirtyAtts(device: GraphicsDevice): void
 
     protected _bounding: BoundingSphere;
-    get bounding() { return this._bounding }
-    set bounding(aabb: BoundingSphere) { this._bounding = aabb }
+    get bounding() { return this._bounding; }
+    set bounding(aabb: BoundingSphere) { this._bounding = aabb; }
 
     bind(device: GraphicsDevice) {
         if (this.graphicAsset == null) {
             this.graphicAsset = this.create(device);
             this.onCreated.raiseEvent();
-            this.beNeedRefreshGraphicAsset = false;
         }
         if (this.beNeedRefreshGraphicAsset) {
             this.updateDirtyAtts(device);
@@ -26,6 +25,7 @@ export abstract class BaseGeometry extends Asset implements Igeometry {
         }
         this.graphicAsset?.bind();
     }
+
     unbind() {
         this.graphicAsset.unbind();
     }
@@ -40,7 +40,7 @@ export abstract class BaseGeometry extends Asset implements Igeometry {
 }
 
 export interface Igeometry {
-    onDirty: EventHandler<void>;
+    onDirty: EventTarget;
     graphicAsset: VertexArray;
     bounding: BoundingSphere;
     bind(device: GraphicsDevice): void;

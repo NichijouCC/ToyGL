@@ -18,15 +18,17 @@ export class Bounds {
         Vec3.center(this.min, this.max, this._center);
         return this._center;
     }
+
     setMaxPoint(pos: Vec3) {
         Vec3.copy(pos, this.max);
     }
+
     setMinPoint(pos: Vec3) {
         Vec3.copy(pos, this.min);
     }
 
     setFromPoints(pos: Vec3[]): Bounds {
-        for (let key in pos) {
+        for (const key in pos) {
             Vec3.min(this.min, pos[key], this.min);
             Vec3.max(this.max, pos[key], this.max);
         }
@@ -67,7 +69,7 @@ export class Bounds {
                 bb.max.z = z;
             }
         }
-        return bb
+        return bb;
     }
 
     addAABB(box: Bounds) {
@@ -97,8 +99,8 @@ export class Bounds {
     }
 
     intersect(box: Bounds): boolean {
-        let interMin = box.min;
-        let interMax = box.max;
+        const interMin = box.min;
+        const interMax = box.max;
 
         if (this.min[0] > interMax[0]) return false;
         if (this.min[1] > interMax[1]) return false;
@@ -112,8 +114,8 @@ export class Bounds {
 
     applyMatrix(mat: Mat4) {
         if (this.beEmpty()) return;
-        let min = Vec3.create();
-        let max = Vec3.create();
+        const min = Vec3.create();
+        const max = Vec3.create();
         min[0] += mat[12];
         max[0] += mat[12];
         min[1] += mat[13];
@@ -147,15 +149,16 @@ export class BoundingSphere {
         Mat4.transformPoint(this.center, mat, this.center);
         this.radius = this.radius * Mat4.getMaxScaleOnAxis(mat);
     }
+
     setFromPoints(points: Vec3[], center: Vec3 = null) {
         if (center != null) {
             Vec3.copy(center, this.center);
         } else {
-            let center = new Bounds().setFromPoints(points).centerPoint;
+            const center = new Bounds().setFromPoints(points).centerPoint;
             Vec3.copy(center, this.center);
         }
         for (let i = 0; i < points.length; i++) {
-            let dis = Vec3.distance(points[i], this.center);
+            const dis = Vec3.distance(points[i], this.center);
             if (dis > this.radius) {
                 this.radius = dis;
             }
@@ -175,7 +178,7 @@ export class BoundingSphere {
             center = Bounds.fromTypedArray(positions).centerPoint;
             Vec3.copy(center, bb.center);
         }
-        let x, y, z, xx, yy, zz, dis
+        let x, y, z, xx, yy, zz, dis;
         for (let i = 0; i < positions.length; i += 3) {
             x = positions[i];
             y = positions[i + 1];
@@ -197,10 +200,11 @@ export class BoundingSphere {
     }
 
     clone(): BoundingSphere {
-        let newSphere = BoundingSphere.create();
+        const newSphere = BoundingSphere.create();
         this.copyTo(newSphere);
         return newSphere;
     }
+
     private static pool: BoundingSphere[] = [];
     static create() {
         if (this.pool.length > 0) {
@@ -209,6 +213,7 @@ export class BoundingSphere {
             return new BoundingSphere();
         }
     }
+
     static recycle(item: BoundingSphere) {
         this.pool.push(item);
     }
@@ -232,6 +237,7 @@ export class BoundingBox {
             return new BoundingBox();
         }
     }
+
     static recycle(item: BoundingBox) {
         this.pool.push(item);
     }

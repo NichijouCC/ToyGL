@@ -1,15 +1,13 @@
-export class SerializableObject
-{
-    serialize()
-    {
+export class SerializableObject {
+    serialize() {
 
     }
-    deserialize()
-    {
+
+    deserialize() {
 
     }
-    clone()
-    {
+
+    clone() {
 
     }
 }
@@ -27,21 +25,16 @@ export interface SerializedObject
     properties: { [propertyName: string]: SerializedProperty };
 }
 
-export class Serializer
-{
-
+export class Serializer {
     private static _ins: Serializer;
-    static get ins()
-    {
-        if (this._ins == null)
-        {
+    static get ins() {
+        if (this._ins == null) {
             this._ins = new Serializer();
         }
         return this._ins;
     }
 
-    serializeObject(obj: SerializableObject): SerializedObject
-    {
+    serializeObject(obj: SerializableObject): SerializedObject {
         const json: SerializedObject = {
             typeName: obj.constructor.name,
             properties: {}
@@ -50,27 +43,23 @@ export class Serializer
         return json;
     }
 
-    deserializeObject(obj: SerializableObject, json: SerializedObject): SerializableObject
-    {
+    deserializeObject(obj: SerializableObject, json: SerializedObject): SerializableObject {
         return null;
     }
 
     private serializerFactory: { [tyep: string]: (obj: object) => SerializedObject } = {};
     private deserializerFactory: { [tyep: string]: (obj: SerializedObject) => object } = {};
 
-    registe(typename: string, serializer: (obj: object) => SerializedObject, deserializer: (obj: SerializedObject) => object)
-    {
+    registe(typename: string, serializer: (obj: object) => SerializedObject, deserializer: (obj: SerializedObject) => object) {
         this.serializerFactory[typename] = serializer;
         this.deserializerFactory[typename] = deserializer;
     }
 
-    getTypeFactory(type: string)
-    {
+    getTypeFactory(type: string) {
         return this.serializerFactory[type];
     }
 
-    private static serializeObject = (obj: SerializableObject) =>
-    {
+    private static serializeObject = (obj: SerializableObject) => {
         const json: SerializedObject = {
             typeName: obj.constructor.name,
             properties: {}
@@ -78,79 +67,64 @@ export class Serializer
         Serializer.serializeProperties(obj, json);
     }
 
-    private static serializeProperties = (obj: SerializableObject, json: SerializedObject) =>
-    {
-        for (const key of Object.keys(obj))
-        {
-            let unserializable = Attribute.meta_unserialize(obj, key);
-            if (unserializable)
-            {
+    private static serializeProperties = (obj: SerializableObject, json: SerializedObject) => {
+        for (const key of Object.keys(obj)) {
+            const unserializable = Attribute.meta_unserialize(obj, key);
+            if (unserializable) {
                 continue;
             }
-            let property = Reflect.get(obj, key);
-            if (typeof (property) === "function" || property === undefined || property === null)
-            {
+            const property = Reflect.get(obj, key);
+            if (typeof (property) === "function" || property === undefined || property === null) {
                 continue;
             }
-            let typeName = Serializer.getPropertyTypeName(property);
+            const typeName = Serializer.getPropertyTypeName(property);
 
             const serializedData = Serializer.serializeProperty(property, typeName);
             json.properties[key] = serializedData;
         }
     }
 
-    private static serializeProperty(data: any, _typeName?: string): SerializedProperty
-    {
+    private static serializeProperty(data: any, _typeName?: string): SerializedProperty {
         const typeName = _typeName || Serializer.getPropertyTypeName(data);
-        let factory = Serializer.ins.getTypeFactory(typeName);
-        if (factory != null)
-        {
+        const factory = Serializer.ins.getTypeFactory(typeName);
+        if (factory != null) {
             // TODO will it be necessary to apply ID transforms to low level properties??
             // I don't see another use case other than preserving asset references for now.
-            return { typeName: typeName, data: factory(data) }
-        } else
-        {
+            return { typeName: typeName, data: factory(data) };
+        } else {
             console.log(`Cannot serialize property of type '${typeName}'`);
             return null;
         }
     }
-    private static getPropertyTypeName(property: any)
-    {
+
+    private static getPropertyTypeName(property: any) {
         let typeName = `${typeof (property)}`;
-        if (typeName === "object")
-        {
+        if (typeName === "object") {
             return property.constructor.name as string;
-        } else
-        {
+        } else {
             typeName = typeName[0].toUpperCase() + typeName.substring(1);
             return typeName;
         }
     }
-
 }
 
-export class Attribute
-{
-    static unserialize(target: Function, att: string, descriptor: any)
-    {
+export class Attribute {
+    static unserialize(target: Function, att: string, descriptor: any) {
         setMetadata(target, att, "unserialize", true);
     }
 
-    static meta_unserialize(target: object, att: string): boolean
-    {
+    static meta_unserialize(target: object, att: string): boolean {
         return getMetadata("unserialize", target, att);
     }
 }
 
-export function setMetadata(target: Function, att: string, metaType: string, value: any)
-{
+export function setMetadata(target: Function, att: string, metaType: string, value: any) {
     if (target.prototype.metadata == null) target.prototype.metadata = {};
     if (target.prototype.metadata.att == null) target.prototype.metadata.att = {};
     target.prototype.metadata.att.metaType = value;
 }
-export function getMetadata(metaType: string, target: object, att: string, )
-{
-    return (Reflect.getPrototypeOf(target) as ImetaObject).metadata?.att?.metaType
+export function getMetadata(metaType: string, target: object, att: string) {
+    return (Reflect.getPrototypeOf(target) as ImetaObject).metadata?.att?.metaType;
 }
 
 export interface ImetaObject

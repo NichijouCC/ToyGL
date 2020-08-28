@@ -20,9 +20,9 @@ export class Buffer implements IglElement {
     protected target: BufferTargetEnum;
     readonly usage: BufferUsageEnum;
     protected _typedArray: TypedArray;
-    get typedArray() { return this._typedArray };
+    get typedArray() { return this._typedArray; };
     protected _sizeInBytes: number;
-    get sizeInbytes() { return this._sizeInBytes };
+    get sizeInbytes() { return this._sizeInBytes; };
     protected _buffer: WebGLBuffer;
     private device: GraphicsDevice;
     private _gl: WebGLRenderingContext;
@@ -37,33 +37,33 @@ export class Buffer implements IglElement {
             this._sizeInBytes = this._typedArray.byteLength;
         }
 
-        let gl = options.context.gl;
-        let buffer = gl.createBuffer();
+        const gl = options.context.gl;
+        const buffer = gl.createBuffer();
         gl.bindBuffer(this.target, buffer);
         gl.bufferData(this.target, this._typedArray ?? this._sizeInBytes as any, this.usage);
         gl.bindBuffer(this.target, null);
 
         this.bind = () => {
             gl.bindBuffer(this.target, buffer);
-        }
+        };
         this.unbind = () => {
             gl.bindBuffer(this.target, null);
-        }
+        };
 
         this.update = (sizeInBytesOrTypedArray: TypedArray | number) => {
             gl.bindBuffer(this.target, buffer);
             gl.bufferData(this.target, sizeInBytesOrTypedArray as any, this.usage);
             if (typeof sizeInBytesOrTypedArray == "number") {
-                this._sizeInBytes = sizeInBytesOrTypedArray
+                this._sizeInBytes = sizeInBytesOrTypedArray;
             } else {
                 this._typedArray = sizeInBytesOrTypedArray;
             }
             // gl.bindBuffer(this.target, null);
-        }
+        };
 
         this.destroy = () => {
             gl.deleteBuffer(buffer);
-        }
+        };
     }
 
     bind() { }
@@ -87,16 +87,16 @@ export class BufferConfig {
     static vertexAttributeSetter: { [size: number]: (index: number, value: any) => any } = {};
     static init(context: GraphicsDevice) {
         this.vertexAttributeSetter[1] = (index, value) => {
-            context.gl.vertexAttrib1f(index, value)
-        }
+            context.gl.vertexAttrib1f(index, value);
+        };
         this.vertexAttributeSetter[2] = (index, value) => {
-            context.gl.vertexAttrib2fv(index, value)
-        }
+            context.gl.vertexAttrib2fv(index, value);
+        };
         this.vertexAttributeSetter[3] = (index, value) => {
-            context.gl.vertexAttrib3fv(index, value)
-        }
+            context.gl.vertexAttrib3fv(index, value);
+        };
         this.vertexAttributeSetter[4] = (index, value) => {
-            context.gl.vertexAttrib4fv(index, value)
-        }
+            context.gl.vertexAttrib4fv(index, value);
+        };
     }
 }

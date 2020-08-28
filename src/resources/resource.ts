@@ -11,11 +11,13 @@ export class Resource {
         console.warn("loader type:", extral);
         this.resLoaderDic[extral] = factory;
     }
+
     getAssetLoader(url: string): IassetLoader {
-        let extralType = getAssetExtralName(url);
-        let factory = this.resLoaderDic[extralType];
+        const extralType = getAssetExtralName(url);
+        const factory = this.resLoaderDic[extralType];
         return factory;
     }
+
     /**
      * 调用load方法就会塞到这里面来
      */
@@ -28,11 +30,11 @@ export class Resource {
      */
     load(url: string): Promise<Asset> {
         if (this.loadMap[url]) {
-            return this.loadMap[url]
+            return this.loadMap[url];
         } else {
-            let loader = this.getAssetLoader(url);
+            const loader = this.getAssetLoader(url);
             if (loader == null) {
-                let errorMsg = "ERROR: load Asset error. INfo: not have Load Func to handle (" + getAssetExtralName(url) + ") type File.  load URL:" + url;
+                const errorMsg = "ERROR: load Asset error. INfo: not have Load Func to handle (" + getAssetExtralName(url) + ") type File.  load URL:" + url;
                 return Promise.reject(errorMsg);
             } else {
                 this.loadMap[url] = loader.load(url);

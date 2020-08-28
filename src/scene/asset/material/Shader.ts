@@ -5,12 +5,8 @@ import { VertexAttEnum } from "../../../webgl/VertexAttEnum";
 import { ShaderInstance } from "./ShaderInstance";
 import { ShaderBucket } from "./ShaderBucket";
 
-namespace Private {
-    export let sortId: number = 0;
-}
-
+export let sortId: number = 0;
 export class Shader extends Asset {
-
     private _shader: ShaderProgram;
     private _instances: Map<number, ShaderInstance> = new Map();
 
@@ -19,14 +15,15 @@ export class Shader extends Asset {
 
     private _layerIndex: number;
     setLayerIndex(layer: RenderLayerEnum, queue: number = 0) {
-        let layerIndex = layer + queue;
+        const layerIndex = layer + queue;
         if (this._layerIndex != layerIndex) {
             this._layer = layer;
             this._layerIndex = layerIndex;
             this.onDirty.raiseEvent();
         }
     }
-    get layerIndex() { return this._layerIndex };
+
+    get layerIndex() { return this._layerIndex; };
 
     private vsStr: string;
     private fsStr: string;
@@ -34,7 +31,7 @@ export class Shader extends Asset {
     readonly sortId: number;
     constructor(options: IshaderOption) {
         super();
-        this.sortId = Private.sortId++;
+        this.sortId = sortId++;
 
         this.vsStr = options.vsStr;
         this.fsStr = options.fsStr;
@@ -43,7 +40,7 @@ export class Shader extends Asset {
 
     getInstance(bucketId: number) {
         if (!this._instances.has(bucketId)) {
-            let packStr = ShaderBucket.packShaderStr(bucketId);
+            const packStr = ShaderBucket.packShaderStr(bucketId);
             this._instances.set(bucketId, new ShaderInstance(
                 packStr + this.vsStr,
                 packStr + this.fsStr,
@@ -61,7 +58,6 @@ export class Shader extends Asset {
     }
 }
 
-
 export interface IshaderOption {
     attributes: { [attName: string]: VertexAttEnum };
     vsStr: string;
@@ -72,4 +68,3 @@ export interface IlayerIndexEvent {
     layer: RenderLayerEnum;
     layerIndex: number
 }
-

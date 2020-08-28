@@ -8,9 +8,9 @@ export class LoadTextureSample implements IassetLoader {
     load(
         url: string,
         onFinish: (asset: Iasset, state: IassetLoadInfo) => void,
-        onProgress: (progress: number) => void,
+        onProgress: (progress: number) => void
     ): Iasset {
-        let name = getFileName(url);
+        const name = getFileName(url);
         let texture: Texture = new Texture({ name: name, URL: url });
         loadImg(url)
             .then(img => {
@@ -21,7 +21,7 @@ export class LoadTextureSample implements IassetLoader {
                 }
             })
             .catch(err => {
-                let errorMsg = "ERROR: Load Image Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
+                const errorMsg = "ERROR: Load Image Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
                 if (onFinish) {
                     onFinish(texture, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
                 }
@@ -37,17 +37,17 @@ export class LoadTextureDes implements IassetLoader {
     load(
         url: string,
         onFinish: (asset: Iasset, state: IassetLoadInfo) => void,
-        onProgress: (progress: number) => void,
+        onProgress: (progress: number) => void
     ): Iasset {
-        let name = getFileName(url);
+        const name = getFileName(url);
         let texture: Texture = new Texture({ name: name, URL: url });
-        //-------------load image des
+        // -------------load image des
         loadJson(url)
             .then(desjson => {
-                let imgName = (desjson as any).texture;
-                let desname = getFileName(url);
+                const imgName = (desjson as any).texture;
+                const desname = getFileName(url);
 
-                let imgurl = url.replace(desname, imgName);
+                const imgurl = url.replace(desname, imgName);
                 loadImg(imgurl)
                     .then(img => {
                         texture = Texture.fromImageSource(img, null, texture);
@@ -57,7 +57,7 @@ export class LoadTextureDes implements IassetLoader {
                         }
                     })
                     .catch(err => {
-                        let errorMsg =
+                        const errorMsg =
                             "ERROR: Load Image Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
                         if (onFinish) {
                             onFinish(texture, { url: url, loadState: LoadEnum.Failed, err: new Error(errorMsg) });
@@ -65,7 +65,7 @@ export class LoadTextureDes implements IassetLoader {
                     });
             })
             .catch(err => {
-                let errorMsg = "ERROR: Load Image Des Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
+                const errorMsg = "ERROR: Load Image Des Error!\n Info: LOAD URL: " + url + "  LOAD MSG:" + err.message;
             });
         return texture;
     }

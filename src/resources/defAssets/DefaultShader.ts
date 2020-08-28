@@ -1,7 +1,7 @@
 import { Shader } from "../../scene/asset/material/Shader";
 import { VertexAttEnum } from "../../webgl/VertexAttEnum";
-import baseVs from '../../shaders/Unlit.vert.glsl';
-import baseFs from '../../shaders/Unlit.vert.glsl';
+import baseVs from "../../shaders/Unlit.vert.glsl";
+import baseFs from "../../shaders/Unlit.frag.glsl";
 
 namespace Private {
     export const color_2d = new Shader({
@@ -46,7 +46,7 @@ namespace Private {
     export const color_3d = new Shader({
         attributes: {
             POSITION: VertexAttEnum.POSITION,
-            TEXCOORD_0: VertexAttEnum.TEXCOORD_0,
+            TEXCOORD_0: VertexAttEnum.TEXCOORD_0
         },
         vsStr: `attribute vec3 POSITION;
         uniform highp mat4 czm_modelViewp;
@@ -64,7 +64,7 @@ namespace Private {
     export const tex_3d = new Shader({
         attributes: {
             POSITION: VertexAttEnum.POSITION,
-            TEXCOORD_0: VertexAttEnum.TEXCOORD_0,
+            TEXCOORD_0: VertexAttEnum.TEXCOORD_0
         },
         vsStr: `attribute vec3 POSITION;
         attribute vec3 TEXCOORD_0;
@@ -88,16 +88,16 @@ namespace Private {
     export const unlit_3d = new Shader({
         attributes: {
             POSITION: VertexAttEnum.POSITION,
-            TEXCOORD_0: VertexAttEnum.TEXCOORD_0,
+            TEXCOORD_0: VertexAttEnum.TEXCOORD_0
         },
         vsStr: baseVs,
         fsStr: baseFs
     });
 }
 export class DefaultShader {
-    static get color_2d() { return Private.color_2d };
-    static get color_3d() { return Private.color_3d };
-    static get tex_2d() { return Private.tex_2d };
-    static get tex_3d() { return Private.tex_3d };
-    static get unlit_3d() { return Private.unlit_3d };
+    static get color_2d() { return Private.color_2d; };
+    static get color_3d() { return Private.color_3d; };
+    static get tex_2d() { return Private.tex_2d; };
+    static get tex_3d() { return Private.tex_3d; };
+    static get unlit_3d() { return Private.unlit_3d; };
 }

@@ -11,7 +11,7 @@ export namespace Private {
                     -1.0, 0, 1.0,
                     1.0, 0, 1.0,
                     1.0, 0, -1.0,
-                    -1.0, 0, -1.0,
+                    -1.0, 0, -1.0
                 ]
             },
             {
@@ -21,7 +21,7 @@ export namespace Private {
                     0.0, 0.0,
                     1.0, 0.0,
                     1.0, 1.0,
-                    0.0, 1.0,
+                    0.0, 1.0
                 ]
             },
             {
@@ -35,7 +35,7 @@ export namespace Private {
                 ]
             }
         ],
-        indices: [0, 1, 2, 0, 2, 3],
+        indices: [0, 1, 2, 0, 2, 3]
     });
 
     export const quad = new Geometry({
@@ -47,7 +47,7 @@ export namespace Private {
                     -1.0, -1.0, 0,
                     1.0, -1.0, 0,
                     1.0, 1.0, 0,
-                    -1.0, 1.0, 0,
+                    -1.0, 1.0, 0
                 ]
             },
             {
@@ -57,7 +57,7 @@ export namespace Private {
                     0.0, 0.0,
                     1.0, 0.0,
                     1.0, 1.0,
-                    0.0, 1.0,
+                    0.0, 1.0
                 ]
             },
             {
@@ -71,7 +71,7 @@ export namespace Private {
                 ]
             }
         ],
-        indices: [0, 1, 2, 0, 3, 2],
+        indices: [0, 1, 2, 0, 3, 2]
     });
 
     export const quad2d = new Geometry({
@@ -85,7 +85,7 @@ export namespace Private {
                     1.0, 1.0,
                     1.0, 1.0,
                     -1.0, 1.0,
-                    -1.0, -1.0,
+                    -1.0, -1.0
                 ]
             },
             {
@@ -97,12 +97,11 @@ export namespace Private {
                     1.0, 1.0,
                     1.0, 1.0,
                     0.0, 1.0,
-                    0.0, 0.0,
+                    0.0, 0.0
                 ]
-            },
-        ],
+            }
+        ]
     });
-
 
     export const cube = new Geometry({
         attributes: [
@@ -226,22 +225,20 @@ export namespace Private {
             }
         ],
         indices: [
-            0, 1, 2, 0, 2, 3,    // front
-            4, 5, 6, 4, 6, 7,    // back
-            8, 9, 10, 8, 10, 11,   // top
-            12, 13, 14, 12, 14, 15,   // bottom
-            16, 17, 18, 16, 18, 19,   // right
-            20, 21, 22, 20, 22, 23    // left
-        ],
+            0, 1, 2, 0, 2, 3, // front
+            4, 5, 6, 4, 6, 7, // back
+            8, 9, 10, 8, 10, 11, // top
+            12, 13, 14, 12, 14, 15, // bottom
+            16, 17, 18, 16, 18, 19, // right
+            20, 21, 22, 20, 22, 23 // left
+        ]
     });
 }
 
 export class DefaultGeometry {
     // static get ins() { return new DefaultGeometry() }
-    static get quad2d() { return Private.quad2d }
-    static get quad() { return Private.quad }
-    static get cube() { return Private.cube }
-    static get plan() { return Private.plan }
+    static get quad2d() { return Private.quad2d; }
+    static get quad() { return Private.quad; }
+    static get cube() { return Private.cube; }
+    static get plan() { return Private.plan; }
 }
-
-

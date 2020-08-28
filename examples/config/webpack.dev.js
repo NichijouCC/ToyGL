@@ -21,9 +21,6 @@ module.exports = {
     },
     plugins: [
         new webpack.HotModuleReplacementPlugin(),
-        new CopyWebpackPlugin([
-            { from: path.resolve(__dirname, "../node_modules/cesium/Build/CesiumUnminified"), ignore: ['Cesium.js'] }
-        ]),
         ...baseConfig.plugins,
     ],
     devServer: {

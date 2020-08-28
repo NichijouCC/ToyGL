@@ -1,6 +1,6 @@
-//每个组件占据一个二级制位Bitkey, 每个system都有关联的component，组成一个UniteBitkey,每个entity的components同样会组成一个UniteBitkey;
+// 每个组件占据一个二级制位Bitkey, 每个system都有关联的component，组成一个UniteBitkey,每个entity的components同样会组成一个UniteBitkey;
 // 通过UniteBitkey 二进制比对来快速检验 entity是否含有system所关心的组件;
-//enity addcomponent时候将检查 相关system是否要管理此组件,关心的话就add到system中,这样就避免system的query过程.
+// enity addcomponent时候将检查 相关system是否要管理此组件,关心的话就add到system中,这样就避免system的query过程.
 
 export interface Icomponent {
     entity: Ientity;
@@ -23,25 +23,26 @@ export interface Isystem {
 export class Ecs {
     private static registedcomps: { [name: string]: { ctr: any, bitKey: Bitkey, relatedSystem: Isystem[] } } = {};
     static registeComp = (comp: Function) => {
-        let target = comp.prototype;
-        let compName = target.constructor.name as string;
+        const target = comp.prototype;
+        const compName = target.constructor.name as string;
         if (Ecs.registedcomps[compName] == null) {
-            Ecs.registedcomps[compName] = { ctr: target.constructor, bitKey: Bitkey.create(), relatedSystem: [] }
+            Ecs.registedcomps[compName] = { ctr: target.constructor, bitKey: Bitkey.create(), relatedSystem: [] };
         } else {
             throw new Error("重复注册组件: " + compName);
         }
     }
 
     static addComp(entity: Ientity, comp: string): Icomponent {
-        let compInfo = this.registedcomps[comp];
+        const compInfo = this.registedcomps[comp];
         if (compInfo == null) return;
 
-        let newcomp = new compInfo.ctr() as Icomponent;
+        // eslint-disable-next-line new-cap
+        const newcomp = new compInfo.ctr() as Icomponent;
         newcomp.entity = entity;
         (entity as any)[comp] = newcomp;
         entity._uniteBitkey.addBitKey(compInfo.bitKey);
 
-        let relatedSystem = compInfo.relatedSystem;
+        const relatedSystem = compInfo.relatedSystem;
         relatedSystem.forEach(item => {
             if (entity._uniteBitkey.containe(item.uniteBitkey)) {
                 item.tryAddEntity(entity);
@@ -51,13 +52,12 @@ export class Ecs {
     }
 
     static removeComp(entity: Ientity, comp: string) {
-        let component = (entity as any)[comp];
+        const component = (entity as any)[comp];
         if (component != null) {
-            let relatedSystem = this.registedcomps[comp].relatedSystem;
+            const relatedSystem = this.registedcomps[comp].relatedSystem;
             relatedSystem.forEach(item => {
                 item.tryRemoveEntity(entity);
-
-            })
+            });
         }
     }
 
@@ -65,17 +65,16 @@ export class Ecs {
     static addSystem(system: Isystem) {
         this.systems.push(system);
         system.caredComps.forEach(item => {
-            let info = this.registedcomps[item];
+            const info = this.registedcomps[item];
             system.uniteBitkey.addBitKey(info.bitKey);
             info.relatedSystem.push(system);
         });
     }
 
     static update(deltaTime: number) {
-        this.systems.forEach(item => item.update(deltaTime))
+        this.systems.forEach(item => item.update(deltaTime));
     }
 }
-
 
 // 每个组件占一个二进制位，50个二进制位作为一个group，如果component数量超过50的话。
 // Reference:https://stackoverflow.com/questions/2802957/number-of-bits-in-javascript-numbers
@@ -91,8 +90,9 @@ export class Bitkey {
         this.itemIndex = itemIndex;
         this.value = 1 << itemIndex;
     }
+
     static create() {
-        let newKey = this.currentItemIndex++;
+        const newKey = this.currentItemIndex++;
         if (newKey > 50) {
             this.currentGroupIndex++;
             this.currentItemIndex = 0;
@@ -104,22 +104,23 @@ export class Bitkey {
 export class UniteBitkey {
     private keysMap: { [groupKey: number]: number } = {};
     addBitKey(key: Bitkey) {
-        let groupKey = key.groupIndex;
+        const groupKey = key.groupIndex;
         if (this.keysMap[groupKey] == null) {
             this.keysMap[groupKey] = 0;
         }
-        let currentValue = this.keysMap[groupKey];
+        const currentValue = this.keysMap[groupKey];
         this.keysMap[groupKey] = currentValue | key.value;
     }
+
     removeBitKey(key: Bitkey) {
-        let groupKey = key.groupIndex;
-        let currentValue = this.keysMap[groupKey];
+        const groupKey = key.groupIndex;
+        const currentValue = this.keysMap[groupKey];
         this.keysMap[groupKey] = currentValue & ~key.value;
     }
 
     containe(otherKey: UniteBitkey) {
-        let keys = Object.keys(otherKey.keysMap);
-        let key, otherValue, thisValue, becontained
+        const keys = Object.keys(otherKey.keysMap);
+        let key, otherValue, thisValue, becontained;
         for (let i = 0; i < keys.length; i++) {
             key = keys[i] as any;
             otherValue = otherKey.keysMap[key];

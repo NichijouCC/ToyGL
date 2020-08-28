@@ -1,5 +1,5 @@
 import { IndicesArray, IndexBuffer } from "../../../webgl/IndexBuffer";
-import { BaseGeometry } from "./BaseGeometry";
+import { GeometryAsset } from "./BaseGeometry";
 import { GeometryAttribute, IgeometryAttributeOptions } from "./GeometryAttribute";
 import { PrimitiveTypeEnum } from "../../../webgl/PrimitiveTypeEnum";
 import { BoundingSphere } from "../../Bounds";
@@ -33,7 +33,7 @@ import { BufferUsageEnum } from "../../../webgl/Buffer";
  * });
  * ```
  */
-export class Geometry extends BaseGeometry {
+export class Geometry extends GeometryAsset {
     attributes: { [keyName: string]: GeometryAttribute } = {};
     indices?: IndicesArray;
     primitiveType: PrimitiveTypeEnum;
@@ -43,13 +43,14 @@ export class Geometry extends BaseGeometry {
         // this.attributes = option.attributes;
         option.attributes.forEach(item => {
             this.addAttribute(item.type, item);
-        })
+        });
         this.indices = option.indices instanceof Array ? new Uint16Array(option.indices) : option.indices;
         this.primitiveType = option.primitiveType != null ? option.primitiveType : GlConstants.TRIANGLES;
         this.boundingSphere = option.boundingSphere;
     }
+
     private _vertexCount: number;
-    get vertexCount() { return this._vertexCount };
+    get vertexCount() { return this._vertexCount; };
     get bounding() {
         if (this.boundingSphere == null) {
             this.boundingSphere = BoundingSphere.fromTypedArray(this.attributes[VertexAttEnum.POSITION]?.values);
@@ -57,34 +58,39 @@ export class Geometry extends BaseGeometry {
         return this.boundingSphere;
     }
 
-    private dirtyAtt: { [name: string]: GeometryAttribute } = {};
-    addAttribute(attributeType: VertexAttEnum, options: IgeometryAttributeOptions) {
-        let geAtt = new GeometryAttribute({ ...options, type: attributeType });
+    private newAtts: { [name: string]: GeometryAttribute } = {};
+    private dirtyAtt: { [name: string]: TypedArray } = {};
+    addAttribute(attributeType: VertexAttEnum, options: Omit<IgeometryAttributeOptions, "type">) {
+        const geAtt = new GeometryAttribute({ ...options, type: attributeType });
         this.attributes[attributeType] = geAtt;
         if (attributeType === VertexAttEnum.POSITION) {
             this._vertexCount = geAtt.values.length / geAtt.componentsPerAttribute;
         }
         if (this.graphicAsset != null) {
             this.beNeedRefreshGraphicAsset = true;
-            this.dirtyAtt[attributeType] = geAtt;
+            this.newAtts[attributeType] = geAtt;
         }
     }
 
     updateAttributeData(attributeType: VertexAttEnum, data: TypedArray) {
-        this.beNeedRefreshGraphicAsset = true;
-        this.attributes[attributeType].values = data;
-        this.dirtyAtt[attributeType] = this.attributes[attributeType];
+        if (this.attributes[attributeType]) {
+            this.beNeedRefreshGraphicAsset = true;
+            this.attributes[attributeType].values = data;
+            this.dirtyAtt[attributeType] = data;
+        } else {
+            console.warn("updateAttributeData failed");
+        }
     }
 
     protected create(device: GraphicsDevice): VertexArray {
-        let geAtts = this.attributes;
-        let vertexAtts = Object.keys(geAtts).map(attName => {
-            let geAtt = geAtts[attName] as GeometryAttribute;
-            let att: IvertexAttributeOption = {
+        const geAtts = this.attributes;
+        const vertexAtts = Object.keys(geAtts).map(attName => {
+            const geAtt = geAtts[attName] as GeometryAttribute;
+            const att: IvertexAttributeOption = {
                 type: geAtt.type,
                 componentDatatype: geAtt.componentDatatype,
                 componentsPerAttribute: geAtt.componentsPerAttribute,
-                normalize: geAtt.normalize,
+                normalize: geAtt.normalize
             };
 
             if (geAtt.values) {
@@ -94,17 +100,17 @@ export class Geometry extends BaseGeometry {
                     typedArray: geAtt.values
                 });
             } else {
-                att.value = geAtt.value
+                att.value = geAtt.value;
             }
             return att;
-        })
+        });
 
         let indexBuffer;
         if (this.indices) {
             indexBuffer = new IndexBuffer({
                 context: device,
-                typedArray: this.indices,
-            })
+                typedArray: this.indices
+            });
         }
         return new VertexArray({
             context: device,
@@ -114,28 +120,27 @@ export class Geometry extends BaseGeometry {
     }
 
     protected updateDirtyAtts(device: GraphicsDevice): void {
-        for (let key in this.dirtyAtt) {
-            if (this.graphicAsset.hasAttribute(key)) {
-                this.graphicAsset.updateAttributesData([{ att: key, values: this.dirtyAtt[key].values } as any]);
-            } else {
-                let geAtt = this.dirtyAtt[key];
-                let att: IvertexAttributeOption = {
-                    type: geAtt.type,
-                    componentDatatype: geAtt.componentDatatype,
-                    componentsPerAttribute: geAtt.componentsPerAttribute,
-                    normalize: geAtt.normalize,
-                };
-                att.vertexBuffer = new VertexBuffer({
-                    context: device,
-                    usage: geAtt.beDynamic ? BufferUsageEnum.DYNAMIC_DRAW : BufferUsageEnum.STATIC_DRAW,
-                    typedArray: geAtt.values
-                });
-                this.graphicAsset.addNewAttribute(att);
-            }
-        }
+        Object.values(this.newAtts).forEach(geAtt => {
+            // let geAtt = this.dirtyAtt[key];
+            const att: IvertexAttributeOption = {
+                type: geAtt.type,
+                componentDatatype: geAtt.componentDatatype,
+                componentsPerAttribute: geAtt.componentsPerAttribute,
+                normalize: geAtt.normalize
+            };
+            att.vertexBuffer = new VertexBuffer({
+                context: device,
+                usage: geAtt.beDynamic ? BufferUsageEnum.DYNAMIC_DRAW : BufferUsageEnum.STATIC_DRAW,
+                typedArray: geAtt.values
+            });
+            this.graphicAsset.addNewAttribute(att);
+        });
+        this.newAtts = {};
+
+        const newDatas = Object.entries(this.dirtyAtt).map(item => { return { att: item[0], values: item[1] }; }) as any;
+        this.graphicAsset.updateAttributesData(newDatas);
         this.dirtyAtt = {};
     }
-
 }
 
 export interface IgeometryOptions {

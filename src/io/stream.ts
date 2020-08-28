@@ -1,4 +1,4 @@
-﻿export class BinReader {
+export class BinReader {
     private _data: DataView;
     private _arrayBuffer: ArrayBuffer;
     constructor(buf: ArrayBuffer, seek: number = 0) {
@@ -6,28 +6,35 @@
         this._byteOffset = seek;
         this._data = new DataView(buf, seek);
     }
+
     private _byteOffset: number;
 
     seek(seek: number) {
         this._byteOffset = seek;
     }
+
     peek(): number {
         return this._byteOffset;
     }
+
     getPosition(): number {
         return this._byteOffset;
     }
+
     getLength(): number {
         return this._data.byteLength;
     }
+
     canread(): number {
         return this._data.byteLength - this._byteOffset;
     }
+
     skipBytes(len: number) {
         this._byteOffset += len;
     }
+
     readString(): string {
-        let slen = this._data.getUint8(this._byteOffset);
+        const slen = this._data.getUint8(this._byteOffset);
         this._byteOffset++;
         let bs = "";
         for (let i = 0; i < slen; i++) {
@@ -36,10 +43,12 @@
         }
         return bs;
     }
+
     readStrLenAndContent(): string {
-        let leng = this.readByte();
+        const leng = this.readByte();
         return this.readUint8ArrToString(leng);
     }
+
     private static _decodeBufferToText(buffer: Uint8Array): string {
         let result = "";
         const length = buffer.byteLength;
@@ -52,7 +61,7 @@
     }
 
     static utf8ArrayToString(array: Uint8Array | number[]): string {
-        let ret: string[] = [];
+        const ret: string[] = [];
         for (let i = 0; i < array.length; i++) {
             let cc = array[i];
             if (cc == 0) break;
@@ -79,60 +88,61 @@
     }
 
     readUint8ArrToString(length: number): string {
-        let arr = this.readUint8Array(length);
+        const arr = this.readUint8Array(length);
         return BinReader._decodeBufferToText(arr);
     }
 
     readSingle(): number {
-        let num = this._data.getFloat32(this._byteOffset, true);
+        const num = this._data.getFloat32(this._byteOffset, true);
         this._byteOffset += 4;
         return num;
     }
 
     readDouble(): number {
-        let num = this._data.getFloat64(this._byteOffset, true);
+        const num = this._data.getFloat64(this._byteOffset, true);
         this._byteOffset += 8;
         return num;
     }
 
     readInt8(): number {
-        let num = this._data.getInt8(this._byteOffset);
+        const num = this._data.getInt8(this._byteOffset);
         this._byteOffset += 1;
         return num;
     }
 
     readUInt8(): number {
-        //LogManager.Warn(this._data.byteLength + "  @@@@@@@@@@@@@@@@@  " + this._seek);
-        let num = this._data.getUint8(this._byteOffset);
+        // LogManager.Warn(this._data.byteLength + "  @@@@@@@@@@@@@@@@@  " + this._seek);
+        const num = this._data.getUint8(this._byteOffset);
         this._byteOffset += 1;
         return num;
     }
 
     readInt16(): number {
-        //LogManager.Log(this._seek + "   " + this.length());
-        let num = this._data.getInt16(this._byteOffset, true);
+        // LogManager.Log(this._seek + "   " + this.length());
+        const num = this._data.getInt16(this._byteOffset, true);
         this._byteOffset += 2;
         return num;
     }
 
     readUInt16(): number {
-        let num = this._data.getUint16(this._byteOffset, true);
+        const num = this._data.getUint16(this._byteOffset, true);
         this._byteOffset += 2;
-        //LogManager.Warn("readUInt16 " + this._seek);
+        // LogManager.Warn("readUInt16 " + this._seek);
         return num;
     }
 
     readInt32(): number {
-        let num = this._data.getInt32(this._byteOffset, true);
+        const num = this._data.getInt32(this._byteOffset, true);
         this._byteOffset += 4;
         return num;
     }
 
     readUint32(): number {
-        let num = this._data.getUint32(this._byteOffset, true);
+        const num = this._data.getUint32(this._byteOffset, true);
         this._byteOffset += 4;
         return num;
     }
+
     readUint8Array(length: number): Uint8Array {
         const value = new Uint8Array(this._arrayBuffer, this._byteOffset, length);
         this._byteOffset += length;
@@ -151,6 +161,7 @@
     public set position(value: number) {
         this.seek(value);
     }
+
     public get position(): number {
         return this.peek();
     }
@@ -158,6 +169,7 @@
     readBoolean(): boolean {
         return this.readUInt8() > 0;
     }
+
     readByte(): number {
         return this.readUInt8();
     }
@@ -193,19 +205,20 @@ export class BinWriter {
     private _seek: number;
 
     constructor() {
-        let buf = new ArrayBuffer(1024);
+        const buf = new ArrayBuffer(1024);
         this._length = 0;
         this._buf = new Uint8Array(buf);
         this._data = new DataView(this._buf.buffer);
         this._seek = 0;
     }
+
     private sureData(addlen: number): void {
         let nextlen = this._buf.byteLength;
         while (nextlen < this._length + addlen) {
             nextlen += 1024;
         }
         if (nextlen != this._buf.byteLength) {
-            let newbuf = new Uint8Array(nextlen);
+            const newbuf = new Uint8Array(nextlen);
             for (let i = 0; i < this._length; i++) {
                 newbuf[i] = this._buf[i];
             }
@@ -214,60 +227,73 @@ export class BinWriter {
         }
         this._length += addlen;
     }
+
     getLength(): number {
         return length;
     }
+
     getBuffer(): ArrayBuffer {
         return this._buf.buffer.slice(0, this._length);
     }
+
     seek(seek: number) {
         this._seek = seek;
     }
+
     peek(): number {
         return this._seek;
     }
+
     writeInt8(num: number): void {
         this.sureData(1);
         this._data.setInt8(this._seek, num);
         this._seek++;
     }
+
     writeUInt8(num: number): void {
         this.sureData(1);
         this._data.setUint8(this._seek, num);
         this._seek++;
     }
+
     writeInt16(num: number): void {
         this.sureData(2);
         this._data.setInt16(this._seek, num, true);
         this._seek += 2;
     }
+
     writeUInt16(num: number): void {
         this.sureData(2);
         this._data.setUint16(this._seek, num, true);
         this._seek += 2;
     }
+
     writeInt32(num: number): void {
         this.sureData(4);
         this._data.setInt32(this._seek, num, true);
         this._seek += 4;
     }
+
     writeUInt32(num: number): void {
         this.sureData(4);
         this._data.setUint32(this._seek, num, true);
         this._seek += 4;
     }
+
     writeSingle(num: number): void {
         this.sureData(4);
         this._data.setFloat32(this._seek, num, true);
         this._seek += 4;
     }
+
     writeDouble(num: number): void {
         this.sureData(8);
         this._data.setFloat64(this._seek, num, true);
         this._seek += 8;
     }
+
     writeStringAnsi(str: string): void {
-        let slen = str.length;
+        const slen = str.length;
         this.sureData(slen + 1);
         this._data.setUint8(this._seek, slen);
         this._seek++;
@@ -276,28 +302,30 @@ export class BinWriter {
             this._seek++;
         }
     }
+
     writeStringUtf8(str: string) {
-        let bstr = BinWriter.stringToUtf8Array(str);
+        const bstr = BinWriter.stringToUtf8Array(str);
         this.writeUInt8(bstr.length);
         this.writeUint8Array(bstr);
     }
+
     static stringToUtf8Array(str: string): number[] {
-        let bstr: number[] = [];
+        const bstr: number[] = [];
         for (let i = 0; i < str.length; i++) {
-            let c = str.charAt(i);
-            let cc = c.charCodeAt(0);
+            const c = str.charAt(i);
+            const cc = c.charCodeAt(0);
             if (cc > 0xffff) {
                 throw new Error("InvalidCharacterError");
             }
             if (cc > 0x80) {
                 if (cc < 0x07ff) {
-                    let c1 = (cc >>> 6) | 0xc0;
-                    let c2 = (cc & 0x3f) | 0x80;
+                    const c1 = (cc >>> 6) | 0xc0;
+                    const c2 = (cc & 0x3f) | 0x80;
                     bstr.push(c1, c2);
                 } else {
-                    let c1 = (cc >>> 12) | 0xe0;
-                    let c2 = ((cc >>> 6) & 0x3f) | 0x80;
-                    let c3 = (cc & 0x3f) | 0x80;
+                    const c1 = (cc >>> 12) | 0xe0;
+                    const c2 = ((cc >>> 6) & 0x3f) | 0x80;
+                    const c3 = (cc & 0x3f) | 0x80;
                     bstr.push(c1, c2, c3);
                 }
             } else {
@@ -306,10 +334,12 @@ export class BinWriter {
         }
         return bstr;
     }
+
     writeStringUtf8DataOnly(str: string) {
-        let bstr = BinWriter.stringToUtf8Array(str);
+        const bstr = BinWriter.stringToUtf8Array(str);
         this.writeUint8Array(bstr);
     }
+
     writeUint8Array(array: Uint8Array | number[], offset: number = 0, length: number = -1) {
         if (length < 0) length = array.length;
         this.sureData(length);
@@ -344,7 +374,7 @@ export class BinWriter {
     }
 
     writeUTFBytes(str: string): void {
-        let strArray = BinWriter.stringToUtf8Array(str);
+        const strArray = BinWriter.stringToUtf8Array(str);
         this.writeUint8Array(strArray);
     }
 

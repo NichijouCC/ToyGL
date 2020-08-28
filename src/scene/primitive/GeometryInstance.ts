@@ -1,7 +1,6 @@
 import { Geometry } from "../asset/geometry/Geometry";
 import { TypedArray } from "../../core/TypedArray";
 
-
 /**
  * @example
  * // Create geometry for a box, and two instances that refer to it.
@@ -27,13 +26,11 @@ import { TypedArray } from "../../core/TypedArray";
  * }); 
  *
  */
-export class GeometryInstance
-{
+export class GeometryInstance {
     readonly geometry: Geometry;
     attributes: { [keyName: string]: TypedArray };
     readonly id: number;
-    constructor(options: IgeometryInstanceOption)
-    {
+    constructor(options: IgeometryInstanceOption) {
         this.geometry = options.geometry;
         this.attributes = options.attributes;
         this.id = options.id;

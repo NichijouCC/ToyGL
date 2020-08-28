@@ -1,28 +1,33 @@
-import { LayerComposition } from "./LayerComposition";
-import { MeshInstance } from "./primitive/MeshInstance";
 import { ForwardRender } from "./render/ForwardRender";
 import { Camera } from "./Camera";
 import { Entity } from "../core/Entity";
-import { EventHandler } from "../core/Event";
-import { UniformState } from "./UniformState";
+import { ToyScreen } from "../core/ToyScreen";
 
 export class InterScene {
-
     private _cameras: Map<string, Camera> = new Map();
     tryAddCamera(cam: Camera) {
         if (!this._cameras.has(cam.id)) {
-            this._cameras.set(cam.id, cam)
+            this._cameras.set(cam.id, cam);
         }
     }
-    get cameras() { return this._cameras }
+
+    get cameras() { return this._cameras; }
 
     private render: ForwardRender;
-    constructor(render: ForwardRender) {
+    private screen: ToyScreen;
+    constructor(render: ForwardRender, screen: ToyScreen) {
         this.render = render;
+        this.screen = screen;
+        screen.onresize.addEventListener((ev) => {
+            this._cameras.forEach(item => {
+                item.aspect = ev.width / ev.height;
+            });
+        });
     }
+
     private root: Entity = new Entity();
     createChild(): Entity {
-        let trans = new Entity();
+        const trans = new Entity();
         this.root.addChild(trans);
         return trans;
     }
@@ -32,7 +37,7 @@ export class InterScene {
     }
 
     createCamera() {
-        let cam = new Camera();
+        const cam = new Camera();
         cam.node = this.createChild();
         this.tryAddCamera(cam);
         return cam;

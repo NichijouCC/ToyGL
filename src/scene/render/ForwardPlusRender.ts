@@ -4,14 +4,13 @@ import { Material } from "../asset/material/Material";
 import { GraphicsDevice } from "../../webgl/GraphicsDevice";
 import { GlConstants } from "../../webgl/GLconstant";
 
-import depthPrepass_vs from './glsl/depthPrepass.vert.glsl';
-import depthPrepass_fs from './glsl/depthPrepass.frag.glsl';
+import depthPrepass_vs from "./glsl/depthPrepass.vert.glsl";
+import depthPrepass_fs from "./glsl/depthPrepass.frag.glsl";
 import { VertexAttEnum } from "../../webgl/VertexAttEnum";
 
-import lightCull_vs from './glsl/lightCulling.vert.glsl';
-import lightCull_fs from './glsl/lightCulling.frag.glsl';
+import lightCull_vs from "./glsl/lightCulling.vert.glsl";
+import lightCull_fs from "./glsl/lightCulling.frag.glsl";
 import { UniformState } from "../UniformState";
-
 
 export class ForwardPlusRender {
     private device: GraphicsDevice;
@@ -19,6 +18,7 @@ export class ForwardPlusRender {
     constructor(device: GraphicsDevice) {
         this.device = device;
     }
+
     private depthPrepass = {
         frameBuffer: new FrameBuffer({
             context: this.device,
@@ -66,10 +66,7 @@ export class ForwardPlusRender {
     private lightAccumulattionPass = {
 
     }
-
-
 }
-
 
 export interface Ipass {
     frameBuffer: FrameBuffer;

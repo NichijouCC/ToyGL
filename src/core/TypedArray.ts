@@ -1,3 +1,4 @@
+/* eslint-disable no-throw-literal */
 /* DataType */
 const BYTE = 0x1400;
 const UNSIGNED_BYTE = 0x1401;
@@ -83,14 +84,14 @@ export function getByteSizeFromGLtype(glType: number) {
 }
 
 export function getTypedArray(data: number | number[] | TypedArray, gltype: number, byteOffset: number = 0): TypedArray {
-    let typeArrayCtr = getTypeArrCtorFromGLtype(gltype);
+    const TypeArrayCtr = getTypeArrCtorFromGLtype(gltype);
     if (typeof data == "number") {
-        return new typeArrayCtr(data as number);
+        return new TypeArrayCtr(data as number);
     } else if (data instanceof Array) {
-        return new typeArrayCtr(data);
+        return new TypeArrayCtr(data);
     } else {
-        let typedArray = data as TypedArray;
-        return new typeArrayCtr(typedArray.buffer, typedArray.byteOffset + byteOffset, typedArray.byteLength / typeArrayCtr.BYTES_PER_ELEMENT);
+        const typedArray = data as TypedArray;
+        return new TypeArrayCtr(typedArray.buffer, typedArray.byteOffset + byteOffset, typedArray.byteLength / TypeArrayCtr.BYTES_PER_ELEMENT);
     }
 }
 
@@ -102,8 +103,8 @@ export type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int
 
 export namespace TypedArray {
     export function fromGlType(gltType: number, count: number | Array<number>) {
-        let ctor = glTypeToTypedArrayCtor[gltType];
-        return new ctor(count);
+        const Ctor = glTypeToTypedArrayCtor[gltType];
+        return new Ctor(count);
     }
 
     export function bytesPerElement(type: TypedArray) {

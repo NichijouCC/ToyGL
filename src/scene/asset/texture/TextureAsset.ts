@@ -20,6 +20,7 @@ export abstract class BaseTexture extends Asset {
         }
         this.graphicAsset?.bind(unit);
     }
+
     unbind() {
         this.graphicAsset.unbind();
     }

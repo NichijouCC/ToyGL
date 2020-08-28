@@ -14,19 +14,21 @@ export class Texture2D extends BaseTexture {
                 pixelFormat: this._pixelFormat,
                 pixelDatatype: this._pixelDatatype,
                 sampler: this.sampler
-            })
+            });
         }
         return null;
     }
+
     protected refresh(device: GraphicsDevice): void {
         throw new Error("Method not implemented.");
     }
+
     private _source: TexImageSource;
     set textureSource(source: TexImageSource) { this._source = source; }
     private _pixelFormat: PixelFormatEnum;
-    set pixelFormat(format: PixelFormatEnum) { this._pixelFormat = format };
+    set pixelFormat(format: PixelFormatEnum) { this._pixelFormat = format; };
     private _pixelDatatype: PixelDatatypeEnum;
-    set pixelDatatype(type: PixelDatatypeEnum) { this._pixelDatatype = type };
+    set pixelDatatype(type: PixelDatatypeEnum) { this._pixelDatatype = type; };
     private _preMultiplyAlpha: boolean;
     set preMultiplyAlpha(value: boolean) { this._preMultiplyAlpha = value; }
     private _flipY: boolean;
@@ -37,7 +39,7 @@ export class Texture2D extends BaseTexture {
         super();
         this._source = options?.image;
         this._pixelFormat = options?.pixelFormat || PixelFormatEnum.RGBA;
-        this._pixelDatatype = options?.pixelDatatype || PixelDatatypeEnum.UNSIGNED_BYTE
+        this._pixelDatatype = options?.pixelDatatype || PixelDatatypeEnum.UNSIGNED_BYTE;
         this._preMultiplyAlpha = options?.preMultiplyAlpha || this.pixelFormat === PixelFormatEnum.RGB || this.pixelFormat === PixelFormatEnum.LUMINANCE;
         this._flipY = options?.flipY ?? true;
         this.sampler = new Sampler(options?.sampler);

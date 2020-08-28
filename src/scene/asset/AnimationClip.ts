@@ -17,14 +17,14 @@ export class AnimationClip extends Asset {
 }
 
 export class AnimationChannel {
-    targetName: string;//find transform(bone) by TargetName;
+    targetName: string;// find transform(bone) by TargetName;
     propertyName: AnimationChannelTargetPath;
     keyframes: number[] = [];
     values: any[] = [];
     interPolation: AnimationSamplerInterpolation;
 
-    get startFrame() { return this.keyframes[0] };
-    get endFrame() { return this.keyframes[this.keyframes.length - 1] };
+    get startFrame() { return this.keyframes[0]; };
+    get endFrame() { return this.keyframes[this.keyframes.length - 1]; };
 }
 
 export enum AnimationSamplerInterpolation {

@@ -39,12 +39,12 @@ export class Keyboard extends EventCompositedHandler {
     constructor() {
         super();
         document.onkeydown = (ev: KeyboardEvent) => {
-            let keystr = ev.key.toUpperCase(); //safari浏览器不支持keypress事件中的key属性
+            const keystr = ev.key.toUpperCase(); // safari浏览器不支持keypress事件中的key属性
             this.fire(KeyCodeEventEnum.Down, ev);
             this.fire([keystr, KeyCodeEventEnum.Down], ev);
         };
         document.onkeyup = (ev: KeyboardEvent) => {
-            let keystr = ev.key.toUpperCase(); //safari浏览器不支持keypress事件中的key属性
+            const keystr = ev.key.toUpperCase(); // safari浏览器不支持keypress事件中的key属性
             this.fire(KeyCodeEventEnum.Up, ev);
             this.fire([keystr, KeyCodeEventEnum.Up], ev);
         };

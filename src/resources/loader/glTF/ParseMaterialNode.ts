@@ -3,10 +3,9 @@ import { IgltfJson } from "../LoadglTF";
 import { ParseTextureNode } from "./ParseTextureNode";
 import { Vec3 } from "../../../mathD/vec3";
 import { Color } from "../../../mathD/color";
-import { Material } from '../../../scene/asset/material/Material';
+import { Material } from "../../../scene/asset/material/Material";
 import { VertexAttEnum } from "../../../webgl/VertexAttEnum";
 import { DefaultMaterial } from "../../defAssets/DefaultMaterial";
-
 
 namespace Private {
     export const defmat = new Material({
@@ -16,7 +15,7 @@ namespace Private {
         shaderOption: {
             attributes: {
                 POSITION: VertexAttEnum.POSITION,
-                TEXCOORD_0: VertexAttEnum.TEXCOORD_0,
+                TEXCOORD_0: VertexAttEnum.TEXCOORD_0
             },
             vsStr: `precision highp float;
             attribute vec3 TEXCOORD_0;
@@ -72,10 +71,10 @@ export class ParseMaterialNode {
             // {
             //     return Promise.resolve(null);
             // }
-            let node = gltf.materials[index];
+            const node = gltf.materials[index];
 
             if (node.pbrMetallicRoughness?.baseColorTexture != null) {
-                let mat = new Material();
+                const mat = new Material();
                 mat.setUniformParameter("MainColor", Color.create(1.0, 1.0, 1.0, 1));
                 mat.shader = Private.defmat.shader;
                 return ParseTextureNode.parse(node.pbrMetallicRoughness?.baseColorTexture.index, gltf)
@@ -84,10 +83,9 @@ export class ParseMaterialNode {
                         return mat;
                     });
             } else {
-                let mat = DefaultMaterial.color_3d;
+                const mat = DefaultMaterial.color_3d;
                 return Promise.resolve(mat);
             }
-
 
             //     let baseVs =
             //     "\

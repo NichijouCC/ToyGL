@@ -13,35 +13,31 @@ export enum PixelDatatypeEnum
 }
 export namespace PixelDatatypeEnum
 {
-    export function isPacked(pixelDatatype: PixelDatatypeEnum)
-    {
+    export function isPacked(pixelDatatype: PixelDatatypeEnum) {
         return pixelDatatype === PixelDatatypeEnum.UNSIGNED_INT_24_8 ||
             pixelDatatype === PixelDatatypeEnum.UNSIGNED_SHORT_4_4_4_4 ||
             pixelDatatype === PixelDatatypeEnum.UNSIGNED_SHORT_5_5_5_1 ||
             pixelDatatype === PixelDatatypeEnum.UNSIGNED_SHORT_5_6_5;
     }
     ;
-    export function sizeInBytes(pixelDatatype: PixelDatatypeEnum)
-    {
-        switch (pixelDatatype)
-        {
-            case PixelDatatypeEnum.UNSIGNED_BYTE:
-                return 1;
-            case PixelDatatypeEnum.UNSIGNED_SHORT:
-            case PixelDatatypeEnum.UNSIGNED_SHORT_4_4_4_4:
-            case PixelDatatypeEnum.UNSIGNED_SHORT_5_5_5_1:
-            case PixelDatatypeEnum.UNSIGNED_SHORT_5_6_5:
-            case PixelDatatypeEnum.HALF_FLOAT:
-                return 2;
-            case PixelDatatypeEnum.UNSIGNED_INT:
-            case PixelDatatypeEnum.FLOAT:
-            case PixelDatatypeEnum.UNSIGNED_INT_24_8:
-                return 4;
+    export function sizeInBytes(pixelDatatype: PixelDatatypeEnum) {
+        switch (pixelDatatype) {
+        case PixelDatatypeEnum.UNSIGNED_BYTE:
+            return 1;
+        case PixelDatatypeEnum.UNSIGNED_SHORT:
+        case PixelDatatypeEnum.UNSIGNED_SHORT_4_4_4_4:
+        case PixelDatatypeEnum.UNSIGNED_SHORT_5_5_5_1:
+        case PixelDatatypeEnum.UNSIGNED_SHORT_5_6_5:
+        case PixelDatatypeEnum.HALF_FLOAT:
+            return 2;
+        case PixelDatatypeEnum.UNSIGNED_INT:
+        case PixelDatatypeEnum.FLOAT:
+        case PixelDatatypeEnum.UNSIGNED_INT_24_8:
+            return 4;
         }
     }
     ;
-    export function validate(pixelDatatype: PixelDatatypeEnum)
-    {
+    export function validate(pixelDatatype: PixelDatatypeEnum) {
         return ((pixelDatatype === PixelDatatypeEnum.UNSIGNED_BYTE) ||
             (pixelDatatype === PixelDatatypeEnum.UNSIGNED_SHORT) ||
             (pixelDatatype === PixelDatatypeEnum.UNSIGNED_INT) ||

@@ -13,7 +13,6 @@ export interface IengineOption {
 }
 
 export class GraphicsDevice {
-
     gl: WebGLRenderingContext;
     readonly webGLVersion: number;
     readonly caps: DeviceCapability;
@@ -27,8 +26,8 @@ export class GraphicsDevice {
 
     bindingVao: WebGLVertexArrayObject = null;
     // beCreatingVao = false;
-    get width() { return this.gl.drawingBufferWidth };
-    get height() { return this.gl.drawingBufferHeight };
+    get width() { return this.gl.drawingBufferWidth; };
+    get height() { return this.gl.drawingBufferHeight; };
     constructor(canvasOrContext: HTMLCanvasElement | WebGLRenderingContext, option?: IengineOption) {
         if (canvasOrContext == null) return;
         option = option || {};
@@ -58,10 +57,10 @@ export class GraphicsDevice {
         this.caps = new DeviceCapability(this);
         this.limit = new DeviceLimit(this);
 
-        //-------------config init
+        // -------------config init
         BufferConfig.init(this);
 
-        //------------------------uniform 
+        // ------------------------uniform 
         var scopeX, scopeY, scopeZ, scopeW;
         var uniformValue;
         this.uniformSetter[UniformTypeEnum.BOOL] = (uniform: IuniformInfo, value) => {
@@ -173,38 +172,38 @@ export class GraphicsDevice {
         this.uniformSamplerSetter[UniformTypeEnum.SAMPLER_2D] = (uniform: IuniformInfo, value, unit: number) => {
             value.bind(this, unit);
             gl.uniform1i(uniform.location, unit);
-        }
+        };
 
-
-        //------------------buffer
+        // ------------------buffer
         this.bufferTargetToGLNumber[BufferTargetEnum.ARRAY_BUFFER] = gl.ARRAY_BUFFER;
         this.bufferTargetToGLNumber[BufferTargetEnum.ELEMENT_ARRAY_BUFFER] = gl.ELEMENT_ARRAY_BUFFER;
 
         this.bufferUsageToGLNumber[BufferUsageEnum.STATIC_DRAW] = gl.STATIC_DRAW;
         this.bufferUsageToGLNumber[BufferUsageEnum.DYNAMIC_DRAW] = gl.DYNAMIC_DRAW;
 
-        //------------------attribute
+        // ------------------attribute
         this.vertexAttributeSetter[1] = (index, value) => {
-            this.gl.vertexAttrib1f(index, value)
-        }
+            this.gl.vertexAttrib1f(index, value);
+        };
         this.vertexAttributeSetter[2] = (index, value) => {
-            this.gl.vertexAttrib2fv(index, value)
-        }
+            this.gl.vertexAttrib2fv(index, value);
+        };
         this.vertexAttributeSetter[3] = (index, value) => {
-            this.gl.vertexAttrib3fv(index, value)
-        }
+            this.gl.vertexAttrib3fv(index, value);
+        };
         this.vertexAttributeSetter[4] = (index, value) => {
-            this.gl.vertexAttrib4fv(index, value)
-        }
+            this.gl.vertexAttrib4fv(index, value);
+        };
     }
 
     handleContextLost = () => {
         throw new Error("Method not implemented.");
     }
-    //--------------------------------------uniform
+
+    // --------------------------------------uniform
     private getUniformTypeFromGLtype(gltype: number, beArray?: boolean) {
-        let gl = this.gl;
-        let type = UniformTypeEnum.fromGlType(gltype, beArray);
+        const gl = this.gl;
+        const type = UniformTypeEnum.fromGlType(gltype, beArray);
         if (type == null) {
             console.error("unhandle uniform GLtype:", gltype);
         }
@@ -216,49 +215,49 @@ export class GraphicsDevice {
      * @param definition 
      */
     complileAndLinkShader(definition: IshaderProgramOption) {
-        let gl = this.gl;
-        let vsshader = this.compileShaderSource(gl, definition.vsStr, true);
-        let fsshader = this.compileShaderSource(gl, definition.fsStr, false);
+        const gl = this.gl;
+        const vsshader = this.compileShaderSource(gl, definition.vsStr, true);
+        const fsshader = this.compileShaderSource(gl, definition.fsStr, false);
 
         if (vsshader && fsshader) {
-            let shader = gl.createProgram();
+            const shader = gl.createProgram();
             gl.attachShader(shader, vsshader);
             gl.attachShader(shader, fsshader);
             gl.linkProgram(shader);
-            let check = gl.getProgramParameter(shader, gl.LINK_STATUS);
+            const check = gl.getProgramParameter(shader, gl.LINK_STATUS);
             if (check == false) {
-                let debguInfo = "ERROR: compile program Error! \n" + gl.getProgramInfoLog(shader);
+                const debguInfo = "ERROR: compile program Error! \n" + gl.getProgramInfoLog(shader);
                 console.error(debguInfo);
                 gl.deleteProgram(shader);
                 return null;
             } else {
-                let attributes = this.preSetAttributeLocation(gl, shader, definition.attributes);
+                const attributes = this.preSetAttributeLocation(gl, shader, definition.attributes);
                 gl.linkProgram(shader);
-                let uniformDic = this.getUniformsInfo(gl, shader);
-                //TODO :SMAPLES
-                let samples = {};
-                return { shader, attributes, uniforms: uniformDic }
+                const uniformDic = this.getUniformsInfo(gl, shader);
+                // TODO :SMAPLES
+                const samples = {};
+                return { shader, attributes, uniforms: uniformDic };
             }
         }
     }
 
     setUniform(uniform: IuniformInfo, value: any) {
-        this.uniformSetter[uniform.type](uniform, value)
+        this.uniformSetter[uniform.type](uniform, value);
     }
 
     private compileShaderSource(gl: WebGLRenderingContext, source: string, beVertex: boolean) {
-        let target = beVertex ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER;
-        let item = gl.createShader(target);
+        const target = beVertex ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER;
+        const item = gl.createShader(target);
         gl.shaderSource(item, source);
         gl.compileShader(item);
-        let check = gl.getShaderParameter(item, gl.COMPILE_STATUS);
+        const check = gl.getShaderParameter(item, gl.COMPILE_STATUS);
         if (check == false) {
             let debug = beVertex ? "ERROR: compile  VS Shader Error! VS:" : "ERROR: compile FS Shader Error! FS:";
             debug = debug + name + ".\n";
             console.error(debug + gl.getShaderInfoLog(item));
             gl.deleteShader(item);
         } else {
-            return item
+            return item;
         }
     }
 
@@ -267,39 +266,38 @@ export class GraphicsDevice {
         program: WebGLProgram,
         attInfo: { [attName: string]: VertexAttEnum }
     ): { [attName: string]: IattributeInfo } {
-        let attdic: { [attName: string]: IattributeInfo } = {};
-        let numAttribs = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
+        const attdic: { [attName: string]: IattributeInfo } = {};
+        const numAttribs = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
         for (let i = 0; i < numAttribs; i++) {
-            let attribInfo = gl.getActiveAttrib(program, i);
+            const attribInfo = gl.getActiveAttrib(program, i);
             if (!attribInfo) break;
-            let attName = attribInfo.name;
-            let type = attInfo[attName] ?? VertexAttEnum.fromShaderAttName(attName);
+            const attName = attribInfo.name;
+            const type = attInfo[attName] ?? VertexAttEnum.fromShaderAttName(attName);
             if (type == null) {
                 console.error(`cannot get Vertex Attribute type from shader defination or deduced from shader attname! Info: attname In shader [${attName}]`);
             } else {
-                let location = VertexAttEnum.toShaderLocation(type);
+                const location = VertexAttEnum.toShaderLocation(type);
                 gl.bindAttribLocation(program, location, attName);
                 // let attlocation = gl.getAttribLocation(program, attName);
                 attdic[type] = { name: attName, type, location: location };
             }
-
         }
         return attdic;
     }
 
     private getUniformsInfo(gl: WebGLRenderingContext, program: WebGLProgram) {
-        let uniformDic: { [name: string]: IuniformInfo } = {};
+        const uniformDic: { [name: string]: IuniformInfo } = {};
         // let sampleDic: { [name: string]: IuniformInfo } = {};
 
-        let numUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
-        let sampleArr: IuniformInfo[] = [];
+        const numUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+        const sampleArr: IuniformInfo[] = [];
         for (let i = 0; i < numUniforms; i++) {
-            let uniformInfo = gl.getActiveUniform(program, i);
+            const uniformInfo = gl.getActiveUniform(program, i);
             if (!uniformInfo) break;
 
             let name = uniformInfo.name;
-            let type = uniformInfo.type;
-            let location = gl.getUniformLocation(program, name);
+            const type = uniformInfo.type;
+            const location = gl.getUniformLocation(program, name);
 
             let beArray = false;
             // remove the array suffix.
@@ -309,11 +307,11 @@ export class GraphicsDevice {
             }
             if (location == null) continue;
 
-            let uniformtype = this.getUniformTypeFromGLtype(type, beArray);
-            let newUniformElemt: IuniformInfo = {
+            const uniformtype = this.getUniformTypeFromGLtype(type, beArray);
+            const newUniformElemt: IuniformInfo = {
                 name: name,
                 location: location,
-                type: uniformtype,
+                type: uniformtype
             } as any;
             uniformDic[name] = newUniformElemt;
 
@@ -331,12 +329,12 @@ export class GraphicsDevice {
         }
 
         sampleArr.forEach((item, index) => {
-            item.setter = (info: IuniformInfo, value: any) => { this.uniformSamplerSetter[item.type](info, value, index) }
-        })
+            item.setter = (info: IuniformInfo, value: any) => { this.uniformSamplerSetter[item.type](info, value, index); };
+        });
         return uniformDic;
     }
 
-    //-----------------------------gl state
+    // -----------------------------gl state
     private _cachedClearDepth: number;
     private _cachedclearColor: Float32Array = new Float32Array(4);
     setClear(clearDepth: number | null, clearColor: Float32Array | null, clearStencil: number | null) {
@@ -407,6 +405,7 @@ export class GraphicsDevice {
             this._cacheColorMaskA = maskA;
         }
     }
+
     _cachedEnableCullFace: boolean;
     _cachedCullFace: boolean;
     setCullFaceState(enableCullFace: boolean = true, cullBack: boolean = true, force = false) {
@@ -429,6 +428,7 @@ export class GraphicsDevice {
             }
         }
     }
+
     private _cachedDepthWrite: boolean;
     private _cachedDepthTest: boolean;
     private _cachedDepthFunction: number;
@@ -471,7 +471,7 @@ export class GraphicsDevice {
         blendAlphaEquation: BlendEquationEnum,
         blendSrcAlpha: BlendParamEnum,
         blendDstAlpha: BlendParamEnum,
-        force = false,
+        force = false
     ) {
         if (force || this._cachedEnableBlend != enabled) {
             this._cachedEnableBlend = enabled;
@@ -541,7 +541,7 @@ export class GraphicsDevice {
         stencilMaskBack: number = 0xff,
         stencilFailBack: number = this.gl.KEEP,
         stencilFaileZpassBack: number = this.gl.KEEP,
-        stencilPassZfailBack: number = this.gl.REPLACE,
+        stencilPassZfailBack: number = this.gl.REPLACE
     ) {
         if (this._cachedEnableStencilTest != enableStencilTest) {
             this._cachedEnableStencilTest = enableStencilTest;
@@ -611,10 +611,10 @@ export class GraphicsDevice {
                 this.gl.disable(this.gl.STENCIL_TEST);
             }
         }
-
     }
+
     draw(vertexArray: VertexArray, instanceCount: number = 0) {
-        let indexBuffer = vertexArray.indexBuffer;
+        const indexBuffer = vertexArray.indexBuffer;
         if (indexBuffer) {
             if (instanceCount != 0) {
                 this.gl.drawElementsInstanced(vertexArray.primitiveType, vertexArray.primitveCount, indexBuffer.indexDatatype, vertexArray.primitiveByteOffset, instanceCount);
@@ -675,5 +675,3 @@ declare global {
         getQuery(target: number, pname: number): any;
     }
 }
-
-
