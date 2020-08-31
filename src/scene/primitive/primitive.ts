@@ -1,7 +1,7 @@
 import { GeometryInstance } from "./geometryInstance";
 import { Geometry } from "../asset/geometry/geometry";
 import { Mat4 } from "../../mathD/mat4";
-import { VertexArray } from "../../webgl/VertextArray";
+import { VertexArray } from "../../webgl/vertextArray";
 import { Irenderable } from "../render/irenderable";
 
 /**

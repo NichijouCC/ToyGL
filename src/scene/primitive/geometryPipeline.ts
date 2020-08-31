@@ -1,6 +1,6 @@
 import { GeometryInstance } from "./geometryInstance";
 import { Mat4 } from "../../mathD/mat4";
-import { VertexAttEnum } from "../../webgl/VertexAttEnum";
+import { VertexAttEnum } from "../../webgl/vertexAttEnum";
 import { Geometry } from "../asset/geometry/geometry";
 import { TypedArray } from "../../core/typedArray";
 

@@ -1,5 +1,5 @@
 import { GraphicsDevice } from "./graphicsDevice";
-import { BufferUsageEnum, Buffer, BufferTargetEnum } from "./Buffer";
+import { BufferUsageEnum, Buffer, BufferTargetEnum } from "./buffer";
 import { GlConstants } from "./glconstant";
 import { TypedArray, getByteSizeFromGLtype } from "../core/typedArray";
 export type IndicesArray = Uint8Array | Uint16Array | Uint32Array;

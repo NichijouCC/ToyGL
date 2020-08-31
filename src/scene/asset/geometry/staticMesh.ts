@@ -1,5 +1,5 @@
-import { VertexArray } from "../../../webgl/VertextArray";
-import { GraphicsDevice } from "../../../webgl/GraphicsDevice";
+import { VertexArray } from "../../../webgl/vertextArray";
+import { GraphicsDevice } from "../../../webgl/graphicsDevice";
 import { GeometryAsset } from "./baseGeometry";
 import { Asset } from "../asset";
 export class StaticMesh extends Asset {

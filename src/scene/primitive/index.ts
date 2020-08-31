@@ -1,1 +1,1 @@
-export * from "./MeshInstance";
+export * from "./meshInstance";

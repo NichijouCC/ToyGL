@@ -1,6 +1,6 @@
 import { Asset } from "../asset";
-import { Texture } from "../../../webgl/Texture";
-import { GraphicsDevice } from "../../../webgl/GraphicsDevice";
+import { Texture } from "../../../webgl/texture";
+import { GraphicsDevice } from "../../../webgl/graphicsDevice";
 
 export abstract class BaseTexture extends Asset {
     protected graphicAsset: Texture;

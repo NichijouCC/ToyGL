@@ -1,7 +1,7 @@
 import { SortTypeEnum } from "./render/sortTypeEnum";
-import { Irenderable } from "./render/Irenderable";
+import { Irenderable } from "./render/irenderable";
 import { Camera } from "./camera";
-import { RenderLayerEnum } from "./RenderLayer";
+import { RenderLayerEnum } from "./renderLayer";
 namespace Private {
     export const sortByMatLayerIndex = (drawa: Irenderable, drawb: Irenderable): number => {
         return drawa.material.layerIndex - drawb.material.layerIndex;

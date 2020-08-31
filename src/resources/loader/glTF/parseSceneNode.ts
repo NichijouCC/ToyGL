@@ -1,7 +1,7 @@
 import { IgltfJson } from "../loadglTF";
 import { ParseNode } from "./parseNode";
-import { GraphicsDevice } from "../../../webgl/GraphicsDevice";
-import { MeshInstance } from "../../../scene/primitive/MeshInstance";
+import { GraphicsDevice } from "../../../webgl/graphicsDevice";
+import { MeshInstance } from "../../../scene/primitive/meshInstance";
 import { Entity } from "../../../core/entity";
 
 export class ParseSceneNode {

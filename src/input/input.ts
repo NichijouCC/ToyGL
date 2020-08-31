@@ -1,4 +1,3 @@
-import { Vec2 } from "../mathD/vec2";
 import { Mouse, MouseKeyEnum, MouseEventEnum, ClickEvent } from "./mouse";
 import { Keyboard, KeyCodeEnum, KeyCodeEventEnum } from "./keyboard";
 
@@ -12,6 +11,14 @@ export class Input {
     get position() { return this._mouse.position; }
     constructor(canvas: HTMLCanvasElement) {
         this._mouse = new Mouse(canvas);
-        this._keyBoard = new Keyboard();
+        this._keyBoard = new Keyboard(canvas);
+    }
+
+    getKeyDown(key:KeyCodeEnum) {
+        return this._keyBoard.getKeyState(key);
+    }
+
+    getMouseDown(key:MouseKeyEnum) {
+        return this._mouse.getKeyState(key);
     }
 }

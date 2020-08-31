@@ -3,7 +3,7 @@ import { IgltfJson } from "../loadglTF";
 import { ParseBufferViewNode } from "./parseBufferViewNode";
 import { BufferTargetEnum, Buffer, BufferUsageEnum } from "../../../webgl/Buffer";
 import { getTypedArray, getTypeArrCtorFromGLtype, getByteSizeFromGLtype, TypedArray } from "../../../core/typedArray";
-import { GraphicsDevice } from "../../../webgl/GraphicsDevice";
+import { GraphicsDevice } from "../../../webgl/graphicsDevice";
 import { IndexBuffer } from "../../../webgl/IndexBuffer";
 import { VertexBuffer } from "../../../webgl/VertexBuffer";
 

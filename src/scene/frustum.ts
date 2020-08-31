@@ -1,6 +1,6 @@
-import { Plane } from "./Plane";
+import { Plane } from "./plane";
 import { Mat4 } from "../mathD/mat4";
-import { BoundingSphere } from "./Bounds";
+import { BoundingSphere } from "./bounds";
 
 export class Frustum {
     planes: Plane[] = [];

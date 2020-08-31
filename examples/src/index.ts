@@ -1,6 +1,6 @@
-import { ToyGL } from "../../src/toygl";
-import { Base } from "./bass";
 import { LoadGltf } from "./loadGltf";
+import { ToyGL, Input } from "TOYGL";
+import { InputTest } from "./input";
 
 window.onload = () => {
     const toy = ToyGL.create(document.getElementById("canvas") as HTMLCanvasElement);
@@ -15,4 +15,6 @@ window.onload = () => {
     //     // DepthTexutreDemo.done(toy);
     //     // SSAO.done(toy);
     // });
+
+    InputTest.start(toy);
 };

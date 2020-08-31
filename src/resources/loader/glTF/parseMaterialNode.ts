@@ -4,7 +4,7 @@ import { ParseTextureNode } from "./parseTextureNode";
 import { Vec3 } from "../../../mathD/vec3";
 import { Color } from "../../../mathD/color";
 import { Material } from "../../../scene/asset/material/material";
-import { VertexAttEnum } from "../../../webgl/VertexAttEnum";
+import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
 import { DefaultMaterial } from "../../defAssets/defaultMaterial";
 
 namespace Private {

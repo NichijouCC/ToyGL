@@ -1,23 +1,22 @@
 import { ModelComponent } from "./modelComponent";
 import { InterScene } from "../scene/Scene";
-import { BassCompSystem, CompSymEventEnum } from "./bassCompSystem";
-import { LayerComposition } from "../scene/LayerComposition";
+import { BassCompSystem } from "./bassCompSystem";
 import { ForwardRender } from "../scene/render/ForwardRender";
 import { Irenderable } from "../scene/render/Irenderable";
 
-export class ModelSystem extends BassCompSystem {
-    caredComps: string[] = [ModelComponent.name];
+export class ModelSystem extends BassCompSystem<ModelComponent> {
     // private layers: LayerComposition = new LayerComposition();
     private scene: InterScene;
     private render: ForwardRender;
     constructor(scene: InterScene, render: ForwardRender) {
         super();
+        this.careCompCtors = [ModelComponent];
         this.scene = scene;
         this.render = render;
     }
 
     update(deltaTime: number): void {
-        const comps: ModelComponent[] = Array.from(this.comps.values()).map(item => item[0] as any);
+        const comps = Array.from(this.comps.values()).map(item => item[0]);
 
         const renderArr: Irenderable[] = [];
         comps.forEach(item => {

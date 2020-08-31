@@ -1,7 +1,7 @@
 import { Icomponent, Ecs } from "../core/ecs";
 import { Entity } from "../core/entity";
 import { AnimationClip } from "../scene/asset/animationClip";
-import { ClipInstance, ClipInsOptions } from "../scene/primitive/ClipInstance";
+import { ClipInstance, ClipInsOptions } from "../scene/primitive/clipInstance";
 
 @Ecs.registeComp
 export class Animation implements Icomponent {

@@ -18,7 +18,7 @@
     "emitDecoratorMetadata": true,
     // "declarationDir": "../exampesDist/types",
     "outDir": "../exampesDist",
-    "baseUrl": "./",
+    "baseUrl": ".",
     "paths": {
       "@/*": [
         "src/*"
@@ -27,12 +27,5 @@
         "../src/index.ts"
       ]
     }
-  },
-  "include": [
-    "../src/*.d.ts",
-    "./*.ts",
-    "src/bass.ts",
-    "src/index.ts",
-    "src/loadGltf.ts"
-  ],
+  }
 }

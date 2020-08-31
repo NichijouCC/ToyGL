@@ -1,5 +1,5 @@
-import { ComponentDatatypeEnum } from "../../../webgl/ComponentDatatypeEnum";
-import { VertexAttEnum } from "../../../webgl/VertexAttEnum";
+import { ComponentDatatypeEnum } from "../../../webgl/componentDatatypeEnum";
+import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
 import { TypedArray } from "../../../core/typedArray";
 /**
  * 

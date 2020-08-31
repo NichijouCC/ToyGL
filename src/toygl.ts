@@ -1,12 +1,12 @@
 import { Input } from "./input/input";
 import { Timer } from "./core/timer";
-import { InterScene } from "./scene/Scene";
-import { GraphicsDevice } from "./webgl/GraphicsDevice";
+import { InterScene } from "./scene/scene";
+import { GraphicsDevice } from "./webgl/graphicsDevice";
 import { Resource } from "./resources/resource";
 import { LoadGlTF } from "./resources/loader/loadglTF";
 import { Ecs } from "./core/ecs";
 import { ModelSystem } from "./components/modelSystem";
-import { ForwardRender } from "./scene/render/ForwardRender";
+import { ForwardRender } from "./scene/render/forwardRender";
 import { EventTarget } from "./core/eventTarget";
 import { AnimationSystem } from "./components/animationSystem";
 import { ToyScreen } from "./core/toyScreen";

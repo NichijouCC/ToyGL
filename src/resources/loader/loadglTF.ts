@@ -4,7 +4,7 @@ import { BinReader } from "../../io/stream";
 import { Igltf, Iproperty } from "./glTF/gltfJsonStruct";
 import { ParseSceneNode } from "./glTF/parseSceneNode";
 import { Material } from "../../scene/asset/material/material";
-import { GraphicsDevice } from "../../webgl/GraphicsDevice";
+import { GraphicsDevice } from "../../webgl/graphicsDevice";
 import { StaticMesh, SubMesh } from "../../scene/asset/geometry/staticMesh";
 import { IassetLoader } from "../resource";
 import { Prefab } from "../../scene/asset/prefab";

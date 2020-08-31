@@ -1,4 +1,4 @@
-import { EventCompositedHandler } from "../core/eventCompositedHandler";
+import { EventEmitter } from "../core/eventEmitter";
 
 export enum KeyCodeEnum {
     A = "A",
@@ -30,23 +30,52 @@ export enum KeyCodeEnum {
     SPACE = " ",
     ESC = "ESC",
 }
+
 export enum KeyCodeEventEnum {
-    Up = "KeyUp",
-    Down = "KeyDown",
+    keyup = "keyup",
+    keydown = "keydown",
 }
 
-export class Keyboard extends EventCompositedHandler {
-    constructor() {
+interface KeyboardEventMap{
+    "keydown":KeyboardEvent,
+    "keyup":KeyboardEvent
+}
+
+export class Keyboard extends EventEmitter<KeyboardEventMap> {
+    private _pressed:{[key:string]:boolean}={};
+    constructor(canvas:HTMLCanvasElement) {
         super();
         document.onkeydown = (ev: KeyboardEvent) => {
             const keystr = ev.key.toUpperCase(); // safari浏览器不支持keypress事件中的key属性
-            this.fire(KeyCodeEventEnum.Down, ev);
-            this.fire([keystr, KeyCodeEventEnum.Down], ev);
+
+            if (Object.values(KeyCodeEnum).indexOf(keystr as any)>=0) {
+                this._pressed[keystr] = true;
+                this.fire("keydown", ev);
+                this.fire([keystr, "keydown"].join("-") as any, ev);
+            } else {
+                this._pressed = {};
+            }
         };
         document.onkeyup = (ev: KeyboardEvent) => {
             const keystr = ev.key.toUpperCase(); // safari浏览器不支持keypress事件中的key属性
-            this.fire(KeyCodeEventEnum.Up, ev);
-            this.fire([keystr, KeyCodeEventEnum.Up], ev);
+            this._pressed[keystr] = false;
+            this.fire("keyup", ev);
+            this.fire([keystr, "keyup"].join("-") as any, ev);
         };
+        document.onblur = () => {
+            this._pressed = {};
+        };
+    }
+
+    onKeyBoard=(key:KeyCodeEnum, type:KeyCodeEventEnum, cb:()=>void) => {
+        this.on([key, type].join("-") as any, cb);
+    }
+    
+    offKeyBoard=(key:KeyCodeEnum, type:KeyCodeEventEnum, cb:()=>void) => {
+        this.off([key, type].join("-") as any, cb);
+    }
+
+    getKeyState(key:KeyCodeEnum) {
+        return this._pressed[key] ?? false;
     }
 }

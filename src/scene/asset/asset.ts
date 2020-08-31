@@ -1,7 +1,7 @@
 import { UniqueObject } from "../../core/uniqueObject";
-import { GraphicsDevice } from "../../webgl/GraphicsDevice";
+import { GraphicsDevice } from "../../webgl/graphicsDevice";
 import { EventTarget } from "../../core/eventTarget";
-import { Texture } from "../../webgl/Texture";
+import { Texture } from "../../webgl/texture";
 
 export abstract class Asset extends UniqueObject {
     name: string;

@@ -1,7 +1,7 @@
 import { Rect } from "../mathD/rect";
 import { Mat4 } from "../mathD/mat4";
 import { Texture2D } from "./asset/texture/texture2d";
-import { Camera } from "./Camera";
+import { Camera } from "./camera";
 import { Light } from "./light/light";
 import { MemoryTexture } from "./asset/texture/memoryTexture";
 

@@ -1,8 +1,8 @@
 import { Shader, IlayerIndexEvent, IshaderOption } from "./shader";
-import { RenderLayerEnum } from "../../RenderLayer";
-import { RenderState } from "../../RenderState";
+import { RenderLayerEnum } from "../../renderLayer";
+import { RenderState } from "../../renderState";
 import { Asset } from "../asset";
-import { AssetReference } from "../../AssetReference";
+import { AssetReference } from "../../assetReference";
 
 export class Material extends Asset {
     static IdCount: number = 0;

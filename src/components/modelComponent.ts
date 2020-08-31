@@ -1,9 +1,9 @@
 import { Icomponent, Ientity, Ecs } from "../core/ecs";
-import { MeshInstance } from "../scene/primitive/MeshInstance";
+import { MeshInstance } from "../scene/primitive/meshInstance";
 import { Entity } from "../core/entity";
-import { AssetReferenceArray } from "../scene/AssetReferenceArray";
+import { AssetReferenceArray } from "../scene/assetReferenceArray";
 import { EventTarget } from "../core/eventTarget";
-import { AssetReference } from "../scene/AssetReference";
+import { AssetReference } from "../scene/assetReference";
 import { StaticMesh } from "../scene/asset/geometry/staticMesh";
 import { Material } from "../scene/asset/material/material";
 import { SkinInstance } from "../scene/primitive/SkinInstance";

@@ -1,16 +1,16 @@
 import { FrameBuffer } from "../../webgl/framebuffer";
 import { Shader } from "../asset/material/shader";
 import { Material } from "../asset/material/material";
-import { GraphicsDevice } from "../../webgl/GraphicsDevice";
-import { GlConstants } from "../../webgl/GLconstant";
+import { GraphicsDevice } from "../../webgl/graphicsDevice";
+import { GlConstants } from "../../webgl/glconstant";
 
 import depthPrepass_vs from "./glsl/depthPrepass.vert.glsl";
 import depthPrepass_fs from "./glsl/depthPrepass.frag.glsl";
-import { VertexAttEnum } from "../../webgl/VertexAttEnum";
+import { VertexAttEnum } from "../../webgl/vertexAttEnum";
 
 import lightCull_vs from "./glsl/lightCulling.vert.glsl";
 import lightCull_fs from "./glsl/lightCulling.frag.glsl";
-import { UniformState } from "../UniformState";
+import { UniformState } from "../uniformState";
 
 export class ForwardPlusRender {
     private device: GraphicsDevice;

@@ -1,4 +1,4 @@
-import { ForwardRender } from "./render/ForwardRender";
+import { ForwardRender } from "./render/forwardRender";
 import { Camera } from "./camera";
 import { Entity } from "../core/entity";
 import { ToyScreen } from "../core/toyScreen";

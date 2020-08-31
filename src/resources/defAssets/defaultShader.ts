@@ -1,5 +1,5 @@
 import { Shader } from "../../scene/asset/material/shader";
-import { VertexAttEnum } from "../../webgl/VertexAttEnum";
+import { VertexAttEnum } from "../../webgl/vertexAttEnum";
 import baseVs from "../../shaders/Unlit.vert.glsl";
 import baseFs from "../../shaders/Unlit.frag.glsl";
 

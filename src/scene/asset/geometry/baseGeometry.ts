@@ -1,7 +1,7 @@
 import { Asset, IgraphicAsset } from "../asset";
-import { VertexArray } from "../../../webgl/VertextArray";
-import { GraphicsDevice } from "../../../webgl/GraphicsDevice";
-import { BoundingSphere } from "../../Bounds";
+import { VertexArray } from "../../../webgl/vertextArray";
+import { GraphicsDevice } from "../../../webgl/graphicsDevice";
+import { BoundingSphere } from "../../bounds";
 import { EventTarget } from "../../../core/eventTarget";
 
 export abstract class GeometryAsset extends Asset implements Igeometry {

@@ -11,8 +11,8 @@ export interface Ientity {
     addComponent(comp: string): Icomponent;
     removeComponent(comp: string): void;
 }
-export interface Isystem {
-    readonly caredComps: string[];
+export interface Isystem{
+    readonly careComps: string[];
     readonly uniteBitkey: UniteBitkey;
     // entities: Ientity[];
     tryAddEntity(entity: Ientity): void;
@@ -64,7 +64,7 @@ export class Ecs {
     private static systems: Isystem[] = [];
     static addSystem(system: Isystem) {
         this.systems.push(system);
-        system.caredComps.forEach(item => {
+        system.careComps.forEach(item => {
             const info = this.registedcomps[item];
             system.uniteBitkey.addBitKey(info.bitKey);
             info.relatedSystem.push(system);

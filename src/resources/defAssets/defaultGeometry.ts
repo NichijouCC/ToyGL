@@ -1,4 +1,4 @@
-import { VertexAttEnum } from "../../webgl/VertexAttEnum";
+import { VertexAttEnum } from "../../webgl/vertexAttEnum";
 import { Geometry } from "../../scene/asset/geometry/geometry";
 
 export namespace Private {

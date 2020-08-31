@@ -1,8 +1,8 @@
-import { ShaderProgram } from "../../../webgl/ShaderProgam";
-import { VertexAttEnum } from "../../../webgl/VertexAttEnum";
-import { GraphicsDevice } from "../../../webgl/GraphicsDevice";
-import { AutoUniforms } from "../../AutoUniform";
-import { UniformState } from "../../UniformState";
+import { ShaderProgram } from "../../../webgl/shaderProgam";
+import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
+import { GraphicsDevice } from "../../../webgl/graphicsDevice";
+import { AutoUniforms } from "../../autoUniform";
+import { UniformState } from "../../uniformState";
 export class ShaderInstance {
     program: ShaderProgram;
     autouniforms: string[];

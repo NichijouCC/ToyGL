@@ -2,12 +2,12 @@ import { Iskin } from "../asset/geometry/skinMesh";
 import { Entity } from "../../core/entity";
 import { Mat4 } from "../../mathD/mat4";
 import { MemoryTexture } from "../asset/texture/memoryTexture";
-import { GraphicsDevice } from "../../webgl/GraphicsDevice";
+import { GraphicsDevice } from "../../webgl/graphicsDevice";
 import { CeilingPOT, ceilPowerOfTwo } from "../../mathD/common";
-import { PixelFormatEnum } from "../../webgl/PixelFormatEnum";
-import { PixelDatatypeEnum } from "../../webgl/PixelDatatype";
+import { PixelFormatEnum } from "../../webgl/pixelFormatEnum";
+import { PixelDatatypeEnum } from "../../webgl/pixelDatatype";
 import { Skin } from "../asset/Skin";
-import { UniformState } from "../UniformState";
+import { UniformState } from "../uniformState";
 
 namespace Private {
     export const offsetMatrix: Mat4 = Mat4.create();

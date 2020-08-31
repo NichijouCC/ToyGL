@@ -1,8 +1,8 @@
 import { Material } from "../asset/material/material";
-import { BoundingSphere } from "../Bounds";
+import { BoundingSphere } from "../bounds";
 import { Igeometry } from "../asset/geometry/baseGeometry";
 import { Mat4 } from "../../mathD/mat4";
-import { SkinInstance } from "../primitive/SkinInstance";
+import { SkinInstance } from "../primitive/skinInstance";
 export interface Irenderable {
     bevisible?: boolean;
     cullingMask?: number;

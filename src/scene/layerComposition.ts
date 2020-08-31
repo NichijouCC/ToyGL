@@ -1,5 +1,5 @@
-import { MeshInstance } from "./primitive/MeshInstance";
-import { RenderLayerEnum } from "./RenderLayer";
+import { MeshInstance } from "./primitive/meshInstance";
+import { RenderLayerEnum } from "./renderLayer";
 import { LayerCollection } from "./layerCollection";
 import { SortTypeEnum } from "./render/sortTypeEnum";
 import { Irenderable } from "./render/irenderable";

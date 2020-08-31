@@ -1,7 +1,7 @@
-import { ShaderProgram, IshaderProgramOption } from "../../../webgl/ShaderProgam";
-import { RenderLayerEnum } from "../../RenderLayer";
+import { ShaderProgram, IshaderProgramOption } from "../../../webgl/shaderProgam";
+import { RenderLayerEnum } from "../../renderLayer";
 import { Asset, IgraphicAsset } from "../asset";
-import { VertexAttEnum } from "../../../webgl/VertexAttEnum";
+import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
 import { ShaderInstance } from "./shaderInstance";
 import { ShaderBucket } from "./shaderBucket";
 

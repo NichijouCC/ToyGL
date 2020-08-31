@@ -1,5 +1,5 @@
 import { Asset } from "./asset/asset";
-import { AssetReference } from "./AssetReference";
+import { AssetReference } from "./assetReference";
 import { EventTarget } from "../core/eventTarget";
 import { DebuffAction } from "../core/debuffAction";
 import { RefData } from "../core/refData";

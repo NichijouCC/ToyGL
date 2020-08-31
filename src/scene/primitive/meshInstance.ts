@@ -1,5 +1,5 @@
 import { CullingMask } from "../camera";
-import { AssetReference } from "../AssetReference";
+import { AssetReference } from "../assetReference";
 import { Igeometry } from "../asset/geometry/baseGeometry";
 import { Material } from "../asset/material/material";
 import { EventTarget } from "../../core/eventTarget";

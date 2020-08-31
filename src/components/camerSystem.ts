@@ -1,16 +1,14 @@
-import { ModelComponent } from "./modelComponent";
 import { InterScene } from "../scene/Scene";
-import { BassCompSystem, CompSymEventEnum } from "./bassCompSystem";
-import { Irenderable } from "../scene/render/Irenderable";
+import { BassCompSystem } from "./bassCompSystem";
 import { CameraComponent } from "./camerComponent";
 import { ToyScreen } from "../scene/Index";
 
-export class CamerSystem extends BassCompSystem {
-    caredComps: string[] = [CameraComponent.name];
+export class CamerSystem extends BassCompSystem<CameraComponent> {
     private scene: InterScene;
     private screen: ToyScreen;
     constructor(scene: InterScene, screen: ToyScreen) {
         super();
+        this.careCompCtors = [CameraComponent];
         this.scene = scene;
         this.screen = screen;
     }

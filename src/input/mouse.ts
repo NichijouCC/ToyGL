@@ -1,17 +1,17 @@
-import { EventCompositedHandler } from "../core/eventCompositedHandler";
+import { EventEmitter } from "../core/eventEmitter";
 import { Vec2 } from "../mathD/vec2";
 
 export enum MouseKeyEnum {
-    Left = "MouseLeft",
-    Middle = "MouseMiddle",
-    Right = "MouseRight", //
-    None = "MouseNone",
+    Left = "Left",
+    Middle = "Middle",
+    Right = "Right", //
+    None = "None",
 }
 export enum MouseEventEnum {
-    Up = "mouseUp",
-    Down = "mouseDown",
-    Move = "mouseMove",
-    Rotate = "mouseRotate",
+    MouseUp = "MouseUp",
+    MouseDown = "MouseDown",
+    MouseMove = "MouseMove",
+    MouseWheel = "MouseWheel",
 }
 
 export class ClickEvent {
@@ -40,9 +40,17 @@ namespace Private {
     };
 }
 
-export class Mouse extends EventCompositedHandler {
+interface MyMouseEvent{
+    "mouseup":ClickEvent,
+    "mousedown":ClickEvent,
+    "mousemove":ClickEvent,
+    "mousewheel":ClickEvent
+}
+
+export class Mouse extends EventEmitter<MyMouseEvent> {
     private _position: Vec2 = Vec2.create();
     get position() { return this._position; };
+    private _pressed:{[key:string]:boolean}={};
     constructor(canvas: HTMLCanvasElement) {
         super();
         /**
@@ -54,31 +62,35 @@ export class Mouse extends EventCompositedHandler {
 
         canvas.addEventListener("mousedown", (ev: MouseEvent) => {
             const key = ev.button;
-            const keyEnum = Private.keyDic[key];
-
+            this._pressed[Private.keyDic[key]] = true;
             const event = this.getClickEventByMouseEvent(ev);
-            this.fire(MouseEventEnum.Down, event);
-            this.fire([keyEnum, MouseEventEnum.Down], event);
+            this.fire("mousedown", event);
         });
 
         canvas.addEventListener("mouseup", (ev: MouseEvent) => {
             const key = ev.button;
-            const keyEnum = Private.keyDic[key];
-
+            this._pressed[Private.keyDic[key]] = false;
             const event = this.getClickEventByMouseEvent(ev);
-            this.fire(MouseEventEnum.Up, event);
-            this.fire([keyEnum, MouseEventEnum.Down], event);
+            this.fire("mouseup", event);
         });
 
         canvas.addEventListener("mousemove", (ev: MouseEvent) => {
             const event = this.getClickEventByMouseEvent(ev);
-            this.fire(MouseEventEnum.Move, event);
+            this.fire("mousemove", event);
         });
 
         canvas.addEventListener("mousewheel", (ev: any) => {
             const event = this.getClickEventByMouseEvent(ev);
-            this.fire(MouseEventEnum.Rotate, event);
+            this.fire("mousewheel", event);
         });
+
+        canvas.onblur = () => {
+            this._pressed = {};
+        };
+    }
+
+    getKeyState(key:MouseKeyEnum) {
+        return this._pressed[key] ?? false;
     }
 
     private getClickEventByMouseEvent(ev: any): ClickEvent {
