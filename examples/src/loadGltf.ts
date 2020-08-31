@@ -1,5 +1,5 @@
-import { ToyGL } from "../../src/Toygl";
-import { Prefab } from "../../src/scene/asset/Prefab";
+import { ToyGL } from "../../src/toygl";
+import { Prefab } from "../../src/scene/asset/prefab";
 import { Quat } from "../../src/mathD/quat";
 export class LoadGltf {
     static start(toy: ToyGL) {

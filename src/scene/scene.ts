@@ -1,7 +1,7 @@
 import { ForwardRender } from "./render/ForwardRender";
-import { Camera } from "./Camera";
-import { Entity } from "../core/Entity";
-import { ToyScreen } from "../core/ToyScreen";
+import { Camera } from "./camera";
+import { Entity } from "../core/entity";
+import { ToyScreen } from "../core/toyScreen";
 
 export class InterScene {
     private _cameras: Map<string, Camera> = new Map();

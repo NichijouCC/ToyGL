@@ -1,7 +1,7 @@
 import { IassetLoader, IassetLoadInfo, Iasset } from "../type";
-import { getFileName } from "../Util";
+import { getFileName } from "../util";
 import { Texture } from "../assets/texture";
-import { loadImg, loadText, loadJson } from "../../io/Loadtool";
+import { loadImg, loadText, loadJson } from "../../io/loadtool";
 import { LoadEnum } from "../base/loadEnum";
 
 export class LoadTextureSample implements IassetLoader {

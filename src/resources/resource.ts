@@ -1,5 +1,5 @@
-import { getAssetExtralName } from "./Util";
-import { Asset } from "../scene/asset/Asset";
+import { getAssetExtralName } from "./util";
+import { Asset } from "../scene/asset/asset";
 
 export interface IassetLoader {
     load(url: string): Promise<Asset>

@@ -1,4 +1,4 @@
-import { IgltfJson } from "../LoadglTF";
+import { IgltfJson } from "../loadglTF";
 
 export namespace GlTF {
     export function getNodeName(index: number, gltf: IgltfJson) {

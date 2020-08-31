@@ -1,7 +1,7 @@
-import { GraphicsDevice } from "./GraphicsDevice";
-import { IglElement } from "../core/IglElement";
-import { TypedArray } from "../core/TypedArray";
-import { GlConstants } from "./GLconstant";
+import { GraphicsDevice } from "./graphicsDevice";
+import { IglElement } from "../core/iglElement";
+import { TypedArray } from "../core/typedArray";
+import { GlConstants } from "./glconstant";
 
 export type bufferOption =
     | {

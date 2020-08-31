@@ -1,12 +1,12 @@
-import { BufferUsageEnum, Buffer } from "./Buffer";
-import { IndexBuffer, IndicesArray } from "./IndexBuffer";
-import { GraphicsDevice } from "./GraphicsDevice";
-import { VertexBuffer } from "./VertexBuffer";
-import { IvertexAttributeOption, VertexAttribute } from "./VertexAttribute";
-import { IglElement } from "../core/IglElement";
-import { VertexAttEnum } from "./VertexAttEnum";
-import { TypedArray } from "../core/TypedArray";
-import { PrimitiveTypeEnum } from "./PrimitiveTypeEnum";
+import { BufferUsageEnum, Buffer } from "./buffer";
+import { IndexBuffer, IndicesArray } from "./indexBuffer";
+import { GraphicsDevice } from "./graphicsDevice";
+import { VertexBuffer } from "./vertexBuffer";
+import { IvertexAttributeOption, VertexAttribute } from "./vertexAttribute";
+import { IglElement } from "../core/iglElement";
+import { VertexAttEnum } from "./vertexAttEnum";
+import { TypedArray } from "../core/typedArray";
+import { PrimitiveTypeEnum } from "./primitiveTypeEnum";
 
 /**
  * @example

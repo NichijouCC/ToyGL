@@ -1,16 +1,16 @@
-import { Input } from "./input/Input";
-import { Timer } from "./core/Timer";
+import { Input } from "./input/input";
+import { Timer } from "./core/timer";
 import { InterScene } from "./scene/Scene";
 import { GraphicsDevice } from "./webgl/GraphicsDevice";
-import { Resource } from "./resources/Resource";
-import { LoadGlTF } from "./resources/loader/LoadglTF";
-import { Ecs } from "./core/Ecs";
-import { ModelSystem } from "./components/ModelSystem";
+import { Resource } from "./resources/resource";
+import { LoadGlTF } from "./resources/loader/loadglTF";
+import { Ecs } from "./core/ecs";
+import { ModelSystem } from "./components/modelSystem";
 import { ForwardRender } from "./scene/render/ForwardRender";
-import { EventTarget } from "./core/EventTarget";
-import { AnimationSystem } from "./components/AnimationSystem";
-import { ToyScreen } from "./core/ToyScreen";
-import { CamerSystem } from "./components/CamerSystem";
+import { EventTarget } from "./core/eventTarget";
+import { AnimationSystem } from "./components/animationSystem";
+import { ToyScreen } from "./core/toyScreen";
+import { CamerSystem } from "./components/camerSystem";
 
 export class ToyGL {
     onresize = new EventTarget<{ width: number, height: number }>();

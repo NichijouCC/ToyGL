@@ -1,8 +1,8 @@
 import { Vec3 } from "../mathD/vec3";
 import { Mat4 } from "../mathD/mat4";
-import { VertexAttEnum } from "../webgl/VertexAttEnum";
-import { VertexArray } from "../webgl/VertextArray";
-import { TypedArray } from "../core/TypedArray";
+import { VertexAttEnum } from "../webgl/vertexAttEnum";
+import { VertexArray } from "../webgl/vertextArray";
+import { TypedArray } from "../core/typedArray";
 
 namespace Private {
     export const min = Vec3.create(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);

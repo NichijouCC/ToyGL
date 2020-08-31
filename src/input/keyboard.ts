@@ -1,4 +1,4 @@
-import { EventCompositedHandler } from "../core/EventCompositedHandler";
+import { EventCompositedHandler } from "../core/eventCompositedHandler";
 
 export enum KeyCodeEnum {
     A = "A",

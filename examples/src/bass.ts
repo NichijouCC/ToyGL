@@ -1,4 +1,4 @@
-import { ToyGL } from "../../src/Toygl";
+import { ToyGL } from "../../src/toygl";
 import { Material, DefaultGeometry, DefaultTexture, Color, VertexAttEnum, Texture2D, Camera, MeshInstance } from "../src/Index";
 
 export class Base {

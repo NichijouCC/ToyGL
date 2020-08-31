@@ -24,7 +24,7 @@
         "src/*"
       ],
       "TOYGL": [
-        "../src/Index.ts"
+        "../src/index.ts"
       ]
     }
   },
