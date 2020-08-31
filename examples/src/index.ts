@@ -1,4 +1,4 @@
-import { ToyGL } from "../../src/Toygl";
+import { ToyGL } from "../../src/toygl";
 import { Base } from "./bass";
 import { LoadGltf } from "./loadGltf";
 
