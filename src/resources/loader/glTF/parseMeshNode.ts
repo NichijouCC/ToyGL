@@ -9,9 +9,9 @@ import { GraphicsDevice } from "../../../webgl/graphicsDevice";
 import { VertexArray, IvaoOptions } from "../../../webgl/vertextArray";
 import { Material } from "../../../scene/asset/material/material";
 import { StaticMesh, SubMesh } from "../../../scene/asset/geometry/staticMesh";
-import { IndexBuffer, IndicesArray } from "../../../webgl/IndexBuffer";
-import { VertexBuffer } from "../../../webgl/VertexBuffer";
-import { BufferTargetEnum } from "../../../webgl/Buffer";
+import { IndexBuffer, IndicesArray } from "../../../webgl/indexBuffer";
+import { VertexBuffer } from "../../../webgl/vertexBuffer";
+import { BufferTargetEnum } from "../../../webgl/buffer";
 
 const MapGltfAttributeToToyAtt: { [name: string]: VertexAttEnum } = {
     POSITION: VertexAttEnum.POSITION,

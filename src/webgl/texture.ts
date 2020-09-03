@@ -59,12 +59,12 @@ export class Texture {
             }
             if (pixelDatatype === PixelDatatypeEnum.FLOAT) {
                 switch (pixelFormat) {
-                case PixelFormatEnum.RGBA:
-                    internalFormat = GlConstants.RGBA32F;
-                    break;
-                case PixelFormatEnum.RGB:
-                    internalFormat = GlConstants.RGB32F;
-                    break;
+                    case PixelFormatEnum.RGBA:
+                        internalFormat = GlConstants.RGBA32F;
+                        break;
+                    case PixelFormatEnum.RGB:
+                        internalFormat = GlConstants.RGB32F;
+                        break;
                     // case PixelFormatEnum.RG:
                     //     internalFormat = GlConstants.RG32F;
                     //     break;
@@ -74,18 +74,18 @@ export class Texture {
                 }
             } else if (pixelDatatype === PixelDatatypeEnum.HALF_FLOAT) {
                 switch (pixelFormat) {
-                case PixelFormatEnum.RGBA:
-                    internalFormat = GlConstants.RGBA16F;
-                    break;
-                case PixelFormatEnum.RGB:
-                    internalFormat = GlConstants.RGB16F;
-                    break;
-                // case PixelFormatEnum.RG:
-                //     internalFormat = GlConstants.RG16F;
-                //     break;
-                // case PixelFormatEnum.R:
-                //     internalFormat = GlConstants.R16F;
-                //     break;
+                    case PixelFormatEnum.RGBA:
+                        internalFormat = GlConstants.RGBA16F;
+                        break;
+                    case PixelFormatEnum.RGB:
+                        internalFormat = GlConstants.RGB16F;
+                        break;
+                    // case PixelFormatEnum.RG:
+                    //     internalFormat = GlConstants.RG16F;
+                    //     break;
+                    // case PixelFormatEnum.R:
+                    //     internalFormat = GlConstants.R16F;
+                    //     break;
                 }
             }
         }

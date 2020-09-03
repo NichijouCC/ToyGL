@@ -88,6 +88,10 @@ export class Vec3 extends Float32Array {
         this[2] = z;
     }
 
+    static randomDir() {
+        return Vec3.normalize(new Vec3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5));
+    }
+
     /**
      * Copy the values from one vec3 to another
      *

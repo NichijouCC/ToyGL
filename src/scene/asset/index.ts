@@ -14,6 +14,7 @@ export * from "./material/shader";
 export * from "./material/shaderInstance";
 export * from "./material/shaderBucket";
 
-export * from "./texture/textureAsset";
+export * from "./texture/baseTexture";
+export * from "./texture/texture";
 export * from "./texture/texture2d";
 export * from "./texture/memoryTexture";

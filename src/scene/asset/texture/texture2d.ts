@@ -3,7 +3,7 @@ import { Texture, IsamplerOptions, Sampler } from "../../../webgl/texture";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
 import { PixelFormatEnum } from "../../../webgl/pixelFormatEnum";
 import { PixelDatatypeEnum } from "../../../webgl/pixelDatatype";
-import { BaseTexture } from "./textureAsset";
+import { BaseTexture } from "./baseTexture";
 
 export class Texture2D extends BaseTexture {
     protected create(device: GraphicsDevice): Texture {
@@ -35,7 +35,7 @@ export class Texture2D extends BaseTexture {
     set flipY(value: boolean) { this._flipY = value; }
     private sampler: Sampler;
 
-    constructor(options?: Texture2dOption) {
+    constructor(options?: Itexture2dOption) {
         super();
         this._source = options?.image;
         this._pixelFormat = options?.pixelFormat || PixelFormatEnum.RGBA;
@@ -46,7 +46,7 @@ export class Texture2D extends BaseTexture {
     }
 }
 
-export interface Texture2dOption {
+export interface Itexture2dOption {
     image: TexImageSource;
 
     pixelFormat?: PixelFormatEnum;

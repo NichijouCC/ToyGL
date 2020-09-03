@@ -11,7 +11,7 @@ export interface Ientity {
     addComponent(comp: string): Icomponent;
     removeComponent(comp: string): void;
 }
-export interface Isystem{
+export interface Isystem {
     readonly careComps: string[];
     readonly uniteBitkey: UniteBitkey;
     // entities: Ientity[];
@@ -61,18 +61,20 @@ export class Ecs {
         }
     }
 
-    private static systems: Isystem[] = [];
-    static addSystem(system: Isystem) {
-        this.systems.push(system);
+    private static systems: { system: Isystem, priority: number }[] = [];
+    static addSystem(system: Isystem, priority?: number) {
+        this.systems.push({ system, priority: priority ?? this.systems.length });
         system.careComps.forEach(item => {
             const info = this.registedcomps[item];
             system.uniteBitkey.addBitKey(info.bitKey);
             info.relatedSystem.push(system);
         });
+
+        this.systems.sort((a, b) => a.priority - b.priority);
     }
 
     static update(deltaTime: number) {
-        this.systems.forEach(item => item.update(deltaTime));
+        this.systems.forEach(item => item.system.update(deltaTime));
     }
 }
 

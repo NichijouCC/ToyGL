@@ -1,11 +1,21 @@
 import { ForwardRender } from "./render/forwardRender";
 import { Camera } from "./camera";
 import { Entity } from "../core/entity";
-import { ToyScreen } from "../core/toyScreen";
+import { EventTarget } from "../core/eventTarget";
+import { Ecs } from "../core/ecs";
+import { Irenderable } from "./render/irenderable";
 
 export class InterScene {
     private _cameras: Map<string, Camera> = new Map();
-    tryAddCamera(cam: Camera) {
+
+    createCamera() {
+        const cam = new Camera();
+        cam.node = this.createChild();
+        this.addCamera(cam);
+        return cam;
+    }
+
+    addCamera(cam: Camera) {
         if (!this._cameras.has(cam.id)) {
             this._cameras.set(cam.id, cam);
         }
@@ -14,15 +24,8 @@ export class InterScene {
     get cameras() { return this._cameras; }
 
     private render: ForwardRender;
-    private screen: ToyScreen;
-    constructor(render: ForwardRender, screen: ToyScreen) {
+    constructor(render: ForwardRender) {
         this.render = render;
-        this.screen = screen;
-        screen.onresize.addEventListener((ev) => {
-            this._cameras.forEach(item => {
-                item.aspect = ev.width / ev.height;
-            });
-        });
     }
 
     private root: Entity = new Entity();
@@ -36,10 +39,34 @@ export class InterScene {
         this.root.addChild(item);
     }
 
-    createCamera() {
-        const cam = new Camera();
-        cam.node = this.createChild();
-        this.tryAddCamera(cam);
-        return cam;
+    preupdate = new EventTarget<number>();
+    tick = (deltaTime: number) => {
+        this.preupdate.raiseEvent(deltaTime);
+        Ecs.update(deltaTime);
+
+        this.tickRender();
+    }
+
+    private _renderCollection: Irenderable[] = [];
+    addRenderItem(item: Irenderable) {
+        this._renderCollection.push(item);
+
+        return item;
+    }
+
+    private _frameTemptRenders: Irenderable[] = [];
+    _addRender(render: Irenderable) {
+        this._frameTemptRenders.push(render);
+    }
+
+    prerender = new EventTarget();
+    private tickRender = () => {
+        this.prerender.raiseEvent();
+
+        const { cameras, _frameTemptRenders, _renderCollection } = this;
+        const allRenders = _frameTemptRenders.concat(_renderCollection);
+        this._frameTemptRenders = [];
+
+        this.render.render(Array.from(cameras.values()), allRenders);
     }
 }

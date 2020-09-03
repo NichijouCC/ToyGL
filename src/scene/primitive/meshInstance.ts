@@ -58,4 +58,13 @@ export class MeshInstance implements Irenderable {
     onDirty = new EventTarget<MeshInstance>();
     ondispose = new EventTarget<MeshInstance>();
     beforeRender = new EventTarget<MeshInstance>();
+
+    static create(options: { geometry: Igeometry, material: Material, node: Entity, skin?: Skin }) {
+        const ins = new MeshInstance();
+        ins.geometry = options.geometry;
+        ins.material = options.material;
+        ins.node = options.node;
+        if (options.skin) ins.skin = options.skin;
+        return ins;
+    }
 }

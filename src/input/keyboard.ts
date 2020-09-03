@@ -36,19 +36,19 @@ export enum KeyCodeEventEnum {
     keydown = "keydown",
 }
 
-interface KeyboardEventMap{
-    "keydown":KeyboardEvent,
-    "keyup":KeyboardEvent
+interface KeyboardEventMap {
+    "keydown": KeyboardEvent,
+    "keyup": KeyboardEvent
 }
 
 export class Keyboard extends EventEmitter<KeyboardEventMap> {
-    private _pressed:{[key:string]:boolean}={};
-    constructor(canvas:HTMLCanvasElement) {
+    private _pressed: { [key: string]: boolean } = {};
+    constructor(canvas: HTMLCanvasElement) {
         super();
         document.onkeydown = (ev: KeyboardEvent) => {
             const keystr = ev.key.toUpperCase(); // safari浏览器不支持keypress事件中的key属性
 
-            if (Object.values(KeyCodeEnum).indexOf(keystr as any)>=0) {
+            if (Object.values(KeyCodeEnum).indexOf(keystr as any) >= 0) {
                 this._pressed[keystr] = true;
                 this.fire("keydown", ev);
                 this.fire([keystr, "keydown"].join("-") as any, ev);
@@ -67,15 +67,15 @@ export class Keyboard extends EventEmitter<KeyboardEventMap> {
         };
     }
 
-    onKeyBoard=(key:KeyCodeEnum, type:KeyCodeEventEnum, cb:()=>void) => {
+    onKeyBoard = (key: KeyCodeEnum, type: KeyCodeEventEnum, cb: () => void) => {
         this.on([key, type].join("-") as any, cb);
     }
-    
-    offKeyBoard=(key:KeyCodeEnum, type:KeyCodeEventEnum, cb:()=>void) => {
+
+    offKeyBoard = (key: KeyCodeEnum, type: KeyCodeEventEnum, cb: () => void) => {
         this.off([key, type].join("-") as any, cb);
     }
 
-    getKeyState(key:KeyCodeEnum) {
+    getKeyState(key: KeyCodeEnum) {
         return this._pressed[key] ?? false;
     }
 }

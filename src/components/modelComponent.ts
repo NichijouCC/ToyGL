@@ -6,7 +6,7 @@ import { EventTarget } from "../core/eventTarget";
 import { AssetReference } from "../scene/assetReference";
 import { StaticMesh } from "../scene/asset/geometry/staticMesh";
 import { Material } from "../scene/asset/material/material";
-import { SkinInstance } from "../scene/primitive/SkinInstance";
+import { SkinInstance } from "../scene/primitive/skinInstance";
 import { Skin } from "../scene/asset/Skin";
 import { Irenderable } from "../scene/render/Irenderable";
 

@@ -1,11 +1,11 @@
 import { AccessorComponentType } from "./gltfJsonStruct";
 import { IgltfJson } from "../loadglTF";
 import { ParseBufferViewNode } from "./parseBufferViewNode";
-import { BufferTargetEnum, Buffer, BufferUsageEnum } from "../../../webgl/Buffer";
+import { BufferTargetEnum, Buffer, BufferUsageEnum } from "../../../webgl/buffer";
 import { getTypedArray, getTypeArrCtorFromGLtype, getByteSizeFromGLtype, TypedArray } from "../../../core/typedArray";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
-import { IndexBuffer } from "../../../webgl/IndexBuffer";
-import { VertexBuffer } from "../../../webgl/VertexBuffer";
+import { IndexBuffer } from "../../../webgl/indexBuffer";
+import { VertexBuffer } from "../../../webgl/vertexBuffer";
 
 export interface IaccessorData {
     componentSize: number;
@@ -88,38 +88,38 @@ export class ParseAccessorNode {
                         const context = bufferOptions.context;
                         const target = bufferOptions.target || value.target;
                         switch (target) {
-                        case BufferTargetEnum.ARRAY_BUFFER:
-                            if (canUseCache) {
-                                var newVertexBuffer = gltf.cache.vertexBufferCache[viewindex];
-                                if (newVertexBuffer == null) {
-                                    newVertexBuffer = new VertexBuffer({ context, typedArray });
-                                    gltf.cache.vertexBufferCache[viewindex] = newVertexBuffer;
+                            case BufferTargetEnum.ARRAY_BUFFER:
+                                if (canUseCache) {
+                                    var newVertexBuffer = gltf.cache.vertexBufferCache[viewindex];
+                                    if (newVertexBuffer == null) {
+                                        newVertexBuffer = new VertexBuffer({ context, typedArray });
+                                        gltf.cache.vertexBufferCache[viewindex] = newVertexBuffer;
+                                    } else {
+                                        console.warn("命中！！");
+                                    }
+                                    arrayInfo.buffer = newVertexBuffer;
                                 } else {
-                                    console.warn("命中！！");
+                                    arrayInfo.buffer = new VertexBuffer({ context, typedArray });
                                 }
-                                arrayInfo.buffer = newVertexBuffer;
-                            } else {
-                                arrayInfo.buffer = new VertexBuffer({ context, typedArray });
-                            }
-                            break;
-                        case BufferTargetEnum.ELEMENT_ARRAY_BUFFER:
-                            if (canUseCache) {
-                                let newIndexBuffer = gltf.cache.indexBufferCache[viewindex];
-                                if (newIndexBuffer == null) {
-                                    newIndexBuffer = new IndexBuffer({ context, typedArray });
-                                    gltf.cache.indexBufferCache[viewindex] = newIndexBuffer;
+                                break;
+                            case BufferTargetEnum.ELEMENT_ARRAY_BUFFER:
+                                if (canUseCache) {
+                                    let newIndexBuffer = gltf.cache.indexBufferCache[viewindex];
+                                    if (newIndexBuffer == null) {
+                                        newIndexBuffer = new IndexBuffer({ context, typedArray });
+                                        gltf.cache.indexBufferCache[viewindex] = newIndexBuffer;
+                                    } else {
+                                        console.warn("命中！！");
+                                    }
+                                    arrayInfo.buffer = newIndexBuffer;
                                 } else {
-                                    console.warn("命中！！");
+                                    arrayInfo.buffer = new IndexBuffer({ context, typedArray });
                                 }
-                                arrayInfo.buffer = newIndexBuffer;
-                            } else {
-                                arrayInfo.buffer = new IndexBuffer({ context, typedArray });
-                            }
 
-                            break;
-                        default:
-                            console.error("why ！！");
-                            break;
+                                break;
+                            default:
+                                console.error("why ！！");
+                                break;
                         }
                     }
                     return arrayInfo;
@@ -131,19 +131,19 @@ export class ParseAccessorNode {
 
     private static getComponentSize(type: string): number {
         switch (type) {
-        case "SCALAR":
-            return 1;
-        case "VEC2":
-            return 2;
-        case "VEC3":
-            return 3;
-        case "VEC4":
-        case "MAT2":
-            return 4;
-        case "MAT3":
-            return 9;
-        case "MAT4":
-            return 16;
+            case "SCALAR":
+                return 1;
+            case "VEC2":
+                return 2;
+            case "VEC3":
+                return 3;
+            case "VEC4":
+            case "MAT2":
+                return 4;
+            case "MAT3":
+                return 9;
+            case "MAT4":
+                return 16;
         }
     }
 }

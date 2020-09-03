@@ -92,17 +92,17 @@ export namespace PixelFormatEnum {
      */
     export function componentsLength(pixelFormat: PixelFormatEnum) {
         switch (pixelFormat) {
-        case PixelFormatEnum.RGB:
-            return 3;
-        case PixelFormatEnum.RGBA:
-            return 4;
-        case PixelFormatEnum.LUMINANCE_ALPHA:
-            return 2;
-        case PixelFormatEnum.ALPHA:
-        case PixelFormatEnum.LUMINANCE:
-            return 1;
-        default:
-            return 1;
+            case PixelFormatEnum.RGB:
+                return 3;
+            case PixelFormatEnum.RGBA:
+                return 4;
+            case PixelFormatEnum.LUMINANCE_ALPHA:
+                return 2;
+            case PixelFormatEnum.ALPHA:
+            case PixelFormatEnum.LUMINANCE:
+                return 1;
+            default:
+                return 1;
         }
     }
     export function validate(pixelFormat: PixelFormatEnum) {
@@ -163,21 +163,21 @@ export namespace PixelFormatEnum {
     ;
     export function compressedTextureSizeInBytes(pixelFormat: PixelFormatEnum, width: number, height: number) {
         switch (pixelFormat) {
-        case PixelFormatEnum.RGB_DXT1:
-        case PixelFormatEnum.RGBA_DXT1:
-        case PixelFormatEnum.RGB_ETC1:
-            return Math.floor((width + 3) / 4) * Math.floor((height + 3) / 4) * 8;
-        case PixelFormatEnum.RGBA_DXT3:
-        case PixelFormatEnum.RGBA_DXT5:
-            return Math.floor((width + 3) / 4) * Math.floor((height + 3) / 4) * 16;
-        case PixelFormatEnum.RGB_PVRTC_4BPPV1:
-        case PixelFormatEnum.RGBA_PVRTC_4BPPV1:
-            return Math.floor((Math.max(width, 8) * Math.max(height, 8) * 4 + 7) / 8);
-        case PixelFormatEnum.RGB_PVRTC_2BPPV1:
-        case PixelFormatEnum.RGBA_PVRTC_2BPPV1:
-            return Math.floor((Math.max(width, 16) * Math.max(height, 8) * 2 + 7) / 8);
-        default:
-            return 0;
+            case PixelFormatEnum.RGB_DXT1:
+            case PixelFormatEnum.RGBA_DXT1:
+            case PixelFormatEnum.RGB_ETC1:
+                return Math.floor((width + 3) / 4) * Math.floor((height + 3) / 4) * 8;
+            case PixelFormatEnum.RGBA_DXT3:
+            case PixelFormatEnum.RGBA_DXT5:
+                return Math.floor((width + 3) / 4) * Math.floor((height + 3) / 4) * 16;
+            case PixelFormatEnum.RGB_PVRTC_4BPPV1:
+            case PixelFormatEnum.RGBA_PVRTC_4BPPV1:
+                return Math.floor((Math.max(width, 8) * Math.max(height, 8) * 4 + 7) / 8);
+            case PixelFormatEnum.RGB_PVRTC_2BPPV1:
+            case PixelFormatEnum.RGBA_PVRTC_2BPPV1:
+                return Math.floor((Math.max(width, 16) * Math.max(height, 8) * 2 + 7) / 8);
+            default:
+                return 0;
         }
     }
     export function textureSizeInBytes(pixelFormat: PixelFormatEnum, pixelDatatype: PixelDatatypeEnum, width: number, height: number) {

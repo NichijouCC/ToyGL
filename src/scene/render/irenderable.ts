@@ -11,7 +11,7 @@ export interface Irenderable {
     material: Material;
     geometry: Igeometry;
     worldMat: Mat4;
-    bounding: BoundingSphere;
+    bounding?: BoundingSphere;
     zdist?: number;
     skinIns?: SkinInstance;
 }

@@ -1,16 +1,16 @@
-import { IndicesArray, IndexBuffer } from "../../../webgl/IndexBuffer";
+import { IndicesArray, IndexBuffer } from "../../../webgl/indexBuffer";
 import { GeometryAsset } from "./baseGeometry";
 import { GeometryAttribute, IgeometryAttributeOptions } from "./geometryAttribute";
 import { PrimitiveTypeEnum } from "../../../webgl/PrimitiveTypeEnum";
 import { BoundingSphere } from "../../bounds";
-import { GlConstants } from "../../../webgl/GLconstant";
+import { GlConstants } from "../../../webgl/glconstant";
 import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
 import { TypedArray } from "../../../core/typedArray";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
 import { VertexArray } from "../../../webgl/vertextArray";
 import { IvertexAttributeOption, VertexAttribute } from "../../../webgl/vertexAttribute";
-import { VertexBuffer } from "../../../webgl/VertexBuffer";
-import { BufferUsageEnum } from "../../../webgl/Buffer";
+import { VertexBuffer } from "../../../webgl/vertexBuffer";
+import { BufferUsageEnum } from "../../../webgl/buffer";
 
 /**
  * 

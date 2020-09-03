@@ -137,16 +137,16 @@ export class DracoCompression {
                     try {
                         const type = decoder.GetEncodedGeometryType(buffer);
                         switch (type) {
-                        case module.TRIANGULAR_MESH:
-                            geometry = new module.Mesh();
-                            status = decoder.DecodeBufferToMesh(buffer, geometry);
-                            break;
-                        case module.POINT_CLOUD:
-                            geometry = new module.PointCloud();
-                            status = decoder.DecodeBufferToPointCloud(buffer, geometry);
-                            break;
-                        default:
-                            throw new Error(`Invalid geometry type ${type}`);
+                            case module.TRIANGULAR_MESH:
+                                geometry = new module.Mesh();
+                                status = decoder.DecodeBufferToMesh(buffer, geometry);
+                                break;
+                            case module.POINT_CLOUD:
+                                geometry = new module.PointCloud();
+                                status = decoder.DecodeBufferToPointCloud(buffer, geometry);
+                                break;
+                            default:
+                                throw new Error(`Invalid geometry type ${type}`);
                         }
     
                         if (!status.ok() || !geometry.ptr) {

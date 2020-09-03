@@ -24,17 +24,13 @@ export class ToyGL {
         const device = new GraphicsDevice(canvas);
         const render = new ForwardRender(device);
         const resource = new Resource();
-        const scene = new InterScene(render, screen);
+        const scene = new InterScene(render);
         resource.registerAssetLoader(".gltf", new LoadGlTF(device));
         Ecs.addSystem(new CamerSystem(scene, screen));
         Ecs.addSystem(new AnimationSystem());
         Ecs.addSystem(new ModelSystem(scene, render));
 
-        timer.onTick.addEventListener((deltaTime) => {
-            toy.preUpdate.raiseEvent(deltaTime);
-            Ecs.update(deltaTime);
-            // scene.frameUpdate(deltaTime);
-        });
+        timer.onTick.addEventListener(scene.tick);
 
         toy._timer = timer;
         toy._input = input;
@@ -43,8 +39,6 @@ export class ToyGL {
         toy._resource = resource;
         return toy;
     }
-
-    preUpdate = new EventTarget<number>();
 
     private _input: Input;
     get input() { return this._input; }

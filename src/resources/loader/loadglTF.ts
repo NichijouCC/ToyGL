@@ -9,8 +9,8 @@ import { StaticMesh, SubMesh } from "../../scene/asset/geometry/staticMesh";
 import { IassetLoader } from "../resource";
 import { Prefab } from "../../scene/asset/prefab";
 import { Texture2D } from "../../scene/asset/texture/texture2d";
-import { VertexBuffer } from "../../webgl/VertexBuffer";
-import { IndexBuffer } from "../../webgl/IndexBuffer";
+import { VertexBuffer } from "../../webgl/vertexBuffer";
+import { IndexBuffer } from "../../webgl/indexBuffer";
 import { ParseAnimationNode } from "./glTF/parseAnimationNode";
 import { Animation } from "../../components/animation";
 
@@ -54,7 +54,7 @@ export class LoadGlTF implements IassetLoader {
 
     load(url: string): Promise<Prefab> {
         return this.loadAsync(url)
-            .then(async(gltfJson) => {
+            .then(async (gltfJson) => {
                 const scene = gltfJson.scene != null ? gltfJson.scene : 0;
                 const sceneRoot = await ParseSceneNode.parse(scene, gltfJson, this.context);
 
@@ -147,15 +147,15 @@ export class LoadGlTF implements IassetLoader {
                 const chunkLength = breader.readUint32();
                 const chunkFormat = breader.readUint32();
                 switch (chunkFormat) {
-                case ChunkFormat.JSON:
-                    throw new Error("Unexpected JSON chunk");
-                case ChunkFormat.BIN:
-                    _chunkbin.push(breader.readUint8Array(chunkLength));
-                    break;
-                default:
-                    // ignore unrecognized chunkFormat
-                    breader.skipBytes(chunkLength);
-                    break;
+                    case ChunkFormat.JSON:
+                        throw new Error("Unexpected JSON chunk");
+                    case ChunkFormat.BIN:
+                        _chunkbin.push(breader.readUint8Array(chunkLength));
+                        break;
+                    default:
+                        // ignore unrecognized chunkFormat
+                        breader.skipBytes(chunkLength);
+                        break;
                 }
             }
             return { json: _json, chunkbin: _chunkbin };

@@ -63,7 +63,7 @@ export class ForwardRender {
         // ----------------collect render Ins
         for (let i = 0; i < renderArr.length; i++) {
             renderItem = renderArr[i];
-            if (!renderItem.bevisible || renderItem.geometry == null || renderItem.material?.shader == null) continue;
+            if (renderItem.bevisible == false || renderItem.geometry == null || renderItem.material?.shader == null) continue;
             for (let k = 0; k < cameras.length; k++) {
                 cam = cameras[k];
                 const { cullingMask, frustum } = cam;
@@ -165,10 +165,6 @@ export class ForwardRender {
     }
 
     private frustumCull(frustum: Frustum, drawcall: Irenderable) {
-        return frustum.containSphere(drawcall.bounding, drawcall.worldMat);
-    }
-
-    drawMesh(options: { mesh: StaticMesh, mat: Material }) {
-
+        return frustum.containSphere(drawcall.bounding ?? drawcall.geometry.bounding, drawcall.worldMat);
     }
 }

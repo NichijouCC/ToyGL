@@ -1,6 +1,6 @@
 import { Icomponent, Ecs } from "../core/ecs";
 import { Entity } from "../core/entity";
-import { Camera } from "../scene/Camera";
+import { Camera } from "../scene/camera";
 
 @Ecs.registeComp
 export class CameraComponent extends Camera implements Icomponent {

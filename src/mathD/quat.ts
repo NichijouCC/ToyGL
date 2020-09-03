@@ -1,5 +1,5 @@
 import { Vec3 } from "./vec3";
-import { Mat3 } from "./Mat3";
+import { Mat3 } from "./mat3";
 import { clamp, EPSILON } from "./common";
 
 export class Quat extends Float32Array {

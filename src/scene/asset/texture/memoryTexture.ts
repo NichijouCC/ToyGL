@@ -4,7 +4,7 @@ import { TypedArray } from "../../../core/typedArray";
 import { PixelFormatEnum } from "../../../webgl/pixelFormatEnum";
 import { PixelDatatypeEnum } from "../../../webgl/pixelDatatype";
 import { IsamplerOptions, Sampler, Texture } from "../../../webgl/texture";
-import { BaseTexture } from "./textureAsset";
+import { BaseTexture } from "./baseTexture";
 
 export class MemoryTexture extends BaseTexture {
     protected create(device: GraphicsDevice): Texture {

@@ -13,7 +13,7 @@ module.exports = {
         "@typescript-eslint"
     ],
     rules: {
-        indent: ["error", 4], // 缩进4空格
+        indent: ["error", 4, { SwitchCase: 1 }], // 缩进4空格
         semi: ["error", "always"], // 结尾;号
         quotes: ["error", "double"], // 双引号
         "no-unused-vars": "off",
@@ -22,10 +22,11 @@ module.exports = {
         "no-trailing-spaces": "off",
         eqeqeq: "off",
         "no-use-before-define": "off",
-        "space-before-function-paren": ["error", "never"], // 方法体前面无空格
+        // "space-before-function-paren": ["error", "never"], // 方法体前面无空格
         "no-redeclare": "off",
         camelcase: "off", // 驼峰
         "no-void": "off",
-        "no-inner-declarations": "off"
+        "no-inner-declarations": "off",
+        "space-before-function-paren": ["error", { anonymous: "always", named: "never", asyncArrow: "always" }]
     }
 };
