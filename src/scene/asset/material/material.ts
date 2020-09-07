@@ -24,11 +24,11 @@ export class Material extends Asset {
         if (options?.uniformParameters) {
             this.uniformParameters = { ...options.uniformParameters };
         }
-        this.onDirty.addEventListener(() => { this.beDirty = true; });
+        this.onDirty.addEventListener(() => { this.bedirty = true; });
         this.shaderRef.onDirty.addEventListener(() => { this.onDirty.raiseEvent(); });
     }
 
-    beDirty: boolean = false;
+    bedirty: boolean = false;
     private shaderRef = new AssetReference<Shader>();
     get shader() { return this.shaderRef.current; };
     set shader(value: Shader) { this.shaderRef.current = value; };
@@ -51,11 +51,23 @@ export class Material extends Asset {
 
     setUniformParameter(uniformKey: string, value: any) {
         this.uniformParameters[uniformKey] = value;
-        this.beDirty = true;
+        this.bedirty = true;
     }
 
     destroy(): void {
         throw new Error("Method not implemented.");
+    }
+
+    clone() {
+        const mat = new Material();
+        mat.shader = this.shader;
+        mat.setLayerIndex(this._layer, this._layerIndex);
+        mat.renderState = JSON.parse(JSON.stringify(this.renderState));
+        for (const key in this.uniformParameters) {
+            mat.uniformParameters[key] = this.uniformParameters[key];
+        }
+        mat.bedirty = true;
+        return mat;
     }
 }
 

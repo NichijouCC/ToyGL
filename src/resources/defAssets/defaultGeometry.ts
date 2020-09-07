@@ -71,7 +71,7 @@ export namespace Private {
                 ]
             }
         ],
-        indices: [0, 1, 2, 0, 3, 2]
+        indices: [0, 1, 2, 0, 2, 3]
     });
 
     export const quad2d = new Geometry({

@@ -106,19 +106,14 @@ export class Camera extends UniqueObject {
 
     private _viewProjectMatrix: Mat4 = Mat4.create();
     get viewProjectMatrix(): Mat4 {
-        if (this.projectMatBedirty || this.node.worldMatrixBedirty) {
-            Mat4.multiply(this.projectMatrix, this.viewMatrix, this._viewProjectMatrix);
-        }
+        Mat4.multiply(this.projectMatrix, this.viewMatrix, this._viewProjectMatrix);
         return this._viewProjectMatrix;
     }
 
     private _viewMatrix: Mat4 = Mat4.create();
     get viewMatrix(): Mat4 {
-        if (this.node.worldMatrixBedirty) {
-            const camworld = this.node.worldMatrix;
-            // 视矩阵刚好是摄像机世界矩阵的逆
-            Mat4.invert(camworld, this._viewMatrix);
-        }
+        const camworld = this.node.worldMatrix;
+        Mat4.invert(camworld, this._viewMatrix);
         return this._viewMatrix;
     }
 
@@ -131,6 +126,7 @@ export class Camera extends UniqueObject {
     get frustum() { return this._frustum; }
 
     get worldPos() { return this.node.worldPosition; }
+    get worldMatrix() { return this.node.worldMatrix; }
 
     private _forward: Vec3 = Vec3.create();
     get forwardInword() {

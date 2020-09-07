@@ -16,7 +16,8 @@ export class MemoryTexture extends BaseTexture {
                 arrayBufferView: this.arrayBufferView,
                 pixelFormat: this._pixelFormat,
                 pixelDatatype: this._pixelDatatype,
-                sampler: this.sampler
+                sampler: this.sampler,
+                flipY: this._flipY
             });
         }
         return null;

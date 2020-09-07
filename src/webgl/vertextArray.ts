@@ -104,8 +104,8 @@ export class VertexArray implements IglElement {
     private _primitiveCount: number;
     private _primitiveByteOffset: number = 0;
 
-    private dirtyMeta: { [att: string]: { newData: TypedArray | number, beDirty: boolean } } = {};
-    private indiceDirtyMeta: { newData: TypedArray | number, beDirty: boolean } = null;
+    private dirtyMeta: { [att: string]: { newData: TypedArray | number, bedirty: boolean } } = {};
+    private indiceDirtyMeta: { newData: TypedArray | number, bedirty: boolean } = null;
 
     get vertexAttributes() { return this._vertexAttributes; }
     get vertexcount() {
@@ -127,17 +127,17 @@ export class VertexArray implements IglElement {
 
     updateAttributesData(data: { att: VertexAttEnum, value: TypedArray | number }[]) {
         data.forEach(({ att, value }) => {
-            this.dirtyMeta[att] = { beDirty: true, newData: value };
+            this.dirtyMeta[att] = { bedirty: true, newData: value };
         });
     }
 
     updateindiceData(data: TypedArray | number) {
-        this.indiceDirtyMeta = { beDirty: true, newData: data };
+        this.indiceDirtyMeta = { bedirty: true, newData: data };
     }
 
     addNewAttribute(att: IvertexAttributeOption) {
         this._vertexAttributes[att.type] = new VertexAttribute(this._context, att);
-        this.dirtyMeta[att.type] = { beDirty: true, newData: null };
+        this.dirtyMeta[att.type] = { bedirty: true, newData: null };
     }
 
     constructor(options: IvaoOptions) {
@@ -162,8 +162,8 @@ export class VertexArray implements IglElement {
                     const dirtyAtts = Object.keys(this.dirtyMeta);
                     if (dirtyAtts.length > 0) {
                         for (const key in this.dirtyMeta) {
-                            const { beDirty, newData } = this.dirtyMeta[key];
-                            if (beDirty) {
+                            const { bedirty, newData } = this.dirtyMeta[key];
+                            if (bedirty) {
                                 if (newData) {
                                     this._vertexAttributes[key].vertexBuffer.update(newData);
                                 } else {
@@ -174,8 +174,8 @@ export class VertexArray implements IglElement {
                         this.dirtyMeta = {};
                     }
                     if (this.indiceDirtyMeta != null) {
-                        const { newData, beDirty } = this.indiceDirtyMeta;
-                        if (beDirty) {
+                        const { newData, bedirty } = this.indiceDirtyMeta;
+                        if (bedirty) {
                             if (newData) {
                                 this.indexBuffer.update(this.indiceDirtyMeta.newData);
                             } else {

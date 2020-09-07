@@ -5,12 +5,12 @@ import { ForwardRender } from "../scene/render/ForwardRender";
 import { Irenderable } from "../scene/render/Irenderable";
 
 export class ModelSystem extends BassCompSystem<ModelComponent> {
+    careCompCtors: (new () => ModelComponent)[] = [ModelComponent]
     // private layers: LayerComposition = new LayerComposition();
     private scene: InterScene;
     private render: ForwardRender;
     constructor(scene: InterScene, render: ForwardRender) {
         super();
-        this.careCompCtors = [ModelComponent];
         this.scene = scene;
         this.render = render;
     }

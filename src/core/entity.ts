@@ -20,9 +20,9 @@ export class Entity extends Transform implements Ientity {
     }
 
     _uniteBitkey: UniteBitkey = new UniteBitkey();
-    addComponent(comp: string): Icomponent {
+    addComponent<T extends Icomponent>(comp: string): T {
         const newComp = Ecs.addComp(this, comp);
-        return newComp;
+        return newComp as T;
     }
 
     getComponent(comp: string) { return (this as any)[comp]; }

@@ -7,15 +7,20 @@ import { Irenderable } from "./render/irenderable";
 
 export class InterScene {
     private _cameras: Map<string, Camera> = new Map();
-
-    createCamera() {
+    private _maincam: Camera
+    get mainCamera() { return this._maincam; }
+    set mainCamera(cam: Camera) { this._maincam = cam; }
+    addNewCamera() {
         const cam = new Camera();
-        cam.node = this.createChild();
+        cam.node = this.addNewChild();
         this.addCamera(cam);
         return cam;
     }
 
     addCamera(cam: Camera) {
+        if (this._cameras.size == 0) {
+            this._maincam = cam;
+        }
         if (!this._cameras.has(cam.id)) {
             this._cameras.set(cam.id, cam);
         }
@@ -29,7 +34,7 @@ export class InterScene {
     }
 
     private root: Entity = new Entity();
-    createChild(): Entity {
+    addNewChild(): Entity {
         const trans = new Entity();
         this.root.addChild(trans);
         return trans;

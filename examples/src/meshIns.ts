@@ -1,8 +1,9 @@
 import { ToyGL, Material, DefaultGeometry, DefaultTexture, Color, VertexAttEnum, Texture2D, Camera, MeshInstance, Quat, TextureAsset } from "TOYGL";
 
-export class meshInsDemo {
+export class MeshInsDemo {
     static start(toy: ToyGL) {
         let { scene } = toy;
+
         const geometry = DefaultGeometry.quad2d;
         const material = new Material({
             uniformParameters: {
@@ -41,11 +42,11 @@ export class meshInsDemo {
         const ins = MeshInstance.create({
             geometry,
             material,
-            node: scene.createChild()
+            node: scene.addNewChild()
         })
         toy.scene.addRenderItem(ins);
 
-        let cam = toy.scene.createCamera();
+        let cam = toy.scene.addNewCamera();
         cam.node.localPosition.z = 5;
 
         let roty = 0;

@@ -91,7 +91,7 @@ export class SkinInstance {
         const { bones, rootBone } = this;
         const { offsetMatrix } = Private;
         const mat = rootBone.worldTolocalMatrix;
-        if (rootBone.beDirty) { // root dirty 全部重新计算
+        if (rootBone.bedirty) { // root dirty 全部重新计算
             for (let i = 0; i < bones.length; i++) {
                 const matrix = bones[i] ? bones[i].worldMatrix : Mat4.IDENTITY;
                 Mat4.multiply(matrix, this._boneInverses[i], offsetMatrix);
@@ -104,7 +104,7 @@ export class SkinInstance {
         } else { // 哪个bone dirty了对应matrix就重新计算
             let beNeedUpdate = false;
             for (let i = 0; i < bones.length; i++) {
-                if (bones[i].beDirty) {
+                if (bones[i].bedirty) {
                     beNeedUpdate = true;
                     const matrix = bones[i] ? bones[i].worldMatrix : Mat4.IDENTITY;
                     Mat4.multiply(matrix, this._boneInverses[i], offsetMatrix);

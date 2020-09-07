@@ -13,7 +13,8 @@ export class Texture2D extends BaseTexture {
                 image: this._source,
                 pixelFormat: this._pixelFormat,
                 pixelDatatype: this._pixelDatatype,
-                sampler: this.sampler
+                sampler: this.sampler,
+                flipY: this._flipY
             });
         }
         return null;
@@ -41,7 +42,7 @@ export class Texture2D extends BaseTexture {
         this._pixelFormat = options?.pixelFormat || PixelFormatEnum.RGBA;
         this._pixelDatatype = options?.pixelDatatype || PixelDatatypeEnum.UNSIGNED_BYTE;
         this._preMultiplyAlpha = options?.preMultiplyAlpha || this.pixelFormat === PixelFormatEnum.RGB || this.pixelFormat === PixelFormatEnum.LUMINANCE;
-        this._flipY = options?.flipY ?? true;
+        this._flipY = options?.flipY ?? false;
         this.sampler = new Sampler(options?.sampler);
     }
 }

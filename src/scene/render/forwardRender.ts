@@ -112,10 +112,10 @@ export class ForwardRender {
                 bucketId = bucketId | ShaderBucket.DIFFUSEMAP;
             }
 
-            if (material != Private.preMaterial || material.beDirty || Private.preBuketID != bucketId) {
+            if (material != Private.preMaterial || material.bedirty || Private.preBuketID != bucketId) {
                 Private.preMaterial = material;
                 Private.preBuketID = bucketId;
-                material.beDirty = false;
+                material.bedirty = false;
 
                 shaderIns = material.shader.getInstance(bucketId);
                 renderState = material.renderState;

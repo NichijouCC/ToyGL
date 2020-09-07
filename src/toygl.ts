@@ -54,4 +54,8 @@ export class ToyGL {
 
     private _resource: Resource;
     get resource() { return this._resource; }
+
+    get canvas() { return this._screen.canvas; }
+
+    addSystem = Ecs.addSystem.bind(Ecs);
 }

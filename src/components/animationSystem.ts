@@ -2,10 +2,7 @@ import { BassCompSystem } from "./bassCompSystem";
 import { Animation } from "./animation";
 
 export class AnimationSystem extends BassCompSystem<Animation> {
-    constructor() {
-        super();
-        this.careCompCtors = [Animation];
-    }
+    careCompCtors: (new () => Animation)[] = [Animation];
 
     update(deltaTime: number) {
         this.comps.forEach(item => {

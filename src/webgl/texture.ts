@@ -298,6 +298,7 @@ export class Texture {
         pixelFormat?: PixelFormatEnum;
         pixelDatatype?: PixelDatatypeEnum;
         sampler?: IsamplerOptions;
+        flipY?: boolean;
     }) {
         return new Texture({ ...options, source: { arrayBufferView: options.arrayBufferView } });
     }
@@ -312,6 +313,7 @@ export class Texture {
         pixelFormat?: PixelFormatEnum;
         pixelDatatype?: PixelDatatypeEnum;
         sampler?: IsamplerOptions;
+        flipY?: boolean;
     }) {
         return new Texture({ ...options, source: options.image });
     }
@@ -326,6 +328,7 @@ export class Texture {
         pixelFormat?: PixelFormatEnum;
         pixelDatatype?: PixelDatatypeEnum;
         sampler?: IsamplerOptions;
+        flipY?: boolean;
     }) {
         return new Texture({ ...options, source: { framebuffer: options.framebuffer, xOffset: options.xOffset, yOffset: options.yOffset } });
     }

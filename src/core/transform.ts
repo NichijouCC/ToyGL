@@ -16,7 +16,7 @@ export class Transform {
     parent: Transform;
     children: Transform[] = [];
     private dirtyFlag: number = 0;
-    get beDirty() { return this.dirtyFlag != 0; }
+    get bedirty() { return this.dirtyFlag != 0; }
     name: string;
     constructor(name?: string) {
         this.name = name;

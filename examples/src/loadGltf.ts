@@ -16,7 +16,7 @@ export class LoadGltf {
                 toy.scene.addChild(newasset);
             });
 
-        const cam = toy.scene.createCamera();
+        const cam = toy.scene.addNewCamera();
         cam.node.localPosition.z = 10;
     }
 }
