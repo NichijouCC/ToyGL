@@ -1,45 +1,44 @@
 import { Icomponent, Ecs } from "../core/ecs";
 import { Entity } from "../core/entity";
 import { AnimationClip } from "../scene/asset/animationClip";
-import { ClipInstance, ClipInsOptions } from "../scene/primitive/clipInstance";
+import { ClipInstance, ClipOptions } from "../scene/primitive/clipInstance";
 
 @Ecs.registeComp
 export class Animation implements Icomponent {
     readonly entity: Entity;
-
-    private _clipsMap: Map<string, { ins: ClipInstance, clip: AnimationClip }> = new Map();
+    private _clipsMap: Map<string, ClipInstance> = new Map();
     private _clips: AnimationClip[] = [];
+    beAutoPlay: boolean = true;
+    private _currentClip: ClipInstance;
+
     get clips() { return this._clips; }
-    addAnimationClip(clip: AnimationClip, options?: ClipInsOptions) {
+    get currentClip() { return this._currentClip; }
+    get beplaying() { return this._currentClip?.beplaying ?? false; }
+
+    addAnimationClip(clip: AnimationClip, options?: ClipOptions) {
         if (!this._clipsMap.has(clip.name)) {
-            const clipIns = new ClipInstance(clip, { animator: this.entity, ...options });
-            this._clipsMap.set(clip.name, { ins: clipIns, clip: clip });
+            const newClip = new ClipInstance(clip, { animator: () => { return this.entity; }, ...options });
+            this._clipsMap.set(clip.name, newClip);
             this._clips.push(clip);
-            return clipIns;
+            return newClip;
         } else {
-            return this._clipsMap.get(clip.name).ins;
+            console.warn(`animation already have an AnimationClip be named ${clip.name}`);
+            return this._clipsMap.get(clip.name);
         }
     }
 
-    beAutoPlay: boolean = true;
-    private _currentClip: ClipInstance;
-    get currentClip() { return this._currentClip; }
-
     play(clip: AnimationClip | string) {
+        if (typeof clip == "string") {
+            this._currentClip = this._clipsMap.get(clip);
+        } else {
+            const playClip = this.addAnimationClip(clip);
+            this._currentClip = playClip;
+        }
+    }
+
+    crossFade(clip: AnimationClip | string) {
         if (this._currentClip != null) {
             // TODO
-        }
-        let playClip: ClipInstance;
-        if (typeof clip == "string") {
-            playClip = this._clipsMap.get(clip).ins;
-        } else {
-            playClip = this.addAnimationClip(clip);
-        }
-        if (playClip != null) {
-            this._currentClip = playClip;
-            playClip.active();
-        } else {
-            console.warn("failed to play clip!", clip);
         }
     }
 }

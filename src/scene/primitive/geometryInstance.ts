@@ -3,9 +3,6 @@ import { TypedArray } from "../../core/typedArray";
 
 /**
  * @example
- * // Create geometry for a box, and two instances that refer to it.
- * // One instance positions the box on the bottom and colored aqua.
- * // The other instance positions the box on the top and color white.
  * var geometry = BoxGeometry.fromDimensions({
  *   vertexFormat : VertexFormat.POSITION_AND_NORMAL,
  *   dimensions : new Cartesian3(1000000.0, 1000000.0, 500000.0)
@@ -37,8 +34,7 @@ export class GeometryInstance {
     }
 }
 
-export interface IgeometryInstanceOption
-{
+export interface IgeometryInstanceOption {
     geometry: Geometry;
     attributes?: { [keyName: string]: TypedArray };
     id: number;
