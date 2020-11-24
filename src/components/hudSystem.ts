@@ -67,7 +67,7 @@ export class HudSystem extends BassCompSystem<Hud> {
                 hud.entity.localScale = Vec3.clone(hud.size);
             }
             if (_mat && _text2d) {
-                this._scene._addRender({
+                this._scene.addRenderIns({
                     geometry: DefaultGeometry.quad,
                     material: _mat,
                     worldMat: Mat4.RTS(entity.worldPosition, entity.worldScale, rot, new Mat4())

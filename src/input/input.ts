@@ -1,5 +1,5 @@
-import { Mouse, MouseKeyEnum, MouseEventEnum, ClickEvent } from "./mouse";
-import { Keyboard, KeyCodeEnum, KeyCodeEventEnum } from "./keyboard";
+import { Mouse, MouseKeyEnum } from "./mouse";
+import { Keyboard, KeyCodeEnum } from "./keyboard";
 
 export class Input {
     private _mouse: Mouse;
@@ -14,11 +14,11 @@ export class Input {
         this._keyBoard = new Keyboard(canvas);
     }
 
-    getKeyDown(key:KeyCodeEnum) {
+    getKeyDown(key: KeyCodeEnum) {
         return this._keyBoard.getKeyState(key);
     }
 
-    getMouseDown(key:MouseKeyEnum) {
+    getMouseDown(key: MouseKeyEnum) {
         return this._mouse.getKeyState(key);
     }
 }

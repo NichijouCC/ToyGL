@@ -1,4 +1,4 @@
-import { EventEmitter } from "../core/eventEmitter";
+import { EventEmitter } from "@mtgoo/ctool";
 import { Vec2 } from "../mathD/vec2";
 
 export enum MouseKeyEnum {
@@ -40,17 +40,17 @@ namespace Private {
     };
 }
 
-interface MyMouseEvent{
-    "mouseup":ClickEvent,
-    "mousedown":ClickEvent,
-    "mousemove":ClickEvent,
-    "mousewheel":ClickEvent
+interface MyMouseEvent {
+    "mouseup": ClickEvent,
+    "mousedown": ClickEvent,
+    "mousemove": ClickEvent,
+    "mousewheel": ClickEvent
 }
 
 export class Mouse extends EventEmitter<MyMouseEvent> {
     private _position: Vec2 = Vec2.create();
     get position() { return this._position; };
-    private _pressed:{[key:string]:boolean}={};
+    private _pressed: { [key: string]: boolean } = {};
     constructor(canvas: HTMLCanvasElement) {
         super();
         /**
@@ -64,24 +64,24 @@ export class Mouse extends EventEmitter<MyMouseEvent> {
             const key = ev.button;
             this._pressed[Private.keyDic[key]] = true;
             const event = this.getClickEventByMouseEvent(ev);
-            this.fire("mousedown", event);
+            this.emit("mousedown", event);
         });
 
         canvas.addEventListener("mouseup", (ev: MouseEvent) => {
             const key = ev.button;
             this._pressed[Private.keyDic[key]] = false;
             const event = this.getClickEventByMouseEvent(ev);
-            this.fire("mouseup", event);
+            this.emit("mouseup", event);
         });
 
         canvas.addEventListener("mousemove", (ev: MouseEvent) => {
             const event = this.getClickEventByMouseEvent(ev);
-            this.fire("mousemove", event);
+            this.emit("mousemove", event);
         });
 
         canvas.addEventListener("mousewheel", (ev: any) => {
             const event = this.getClickEventByMouseEvent(ev);
-            this.fire("mousewheel", event);
+            this.emit("mousewheel", event);
         });
 
         canvas.onblur = () => {
@@ -89,7 +89,7 @@ export class Mouse extends EventEmitter<MyMouseEvent> {
         };
     }
 
-    getKeyState(key:MouseKeyEnum) {
+    getKeyState(key: MouseKeyEnum) {
         return this._pressed[key] ?? false;
     }
 

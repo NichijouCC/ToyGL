@@ -1,30 +1,19 @@
 const webpack = require('webpack');
 const path = require('path');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
 const baseConfig = require('./webpack.base');
+
+const config = require("./config");
 
 module.exports = {
     ...baseConfig,
     mode: 'development',
     devtool: "source-map",
-    stats: {
-        colors: true,
-        children: false,
-        chunks: false,
-        chunkModules: false,
-        modules: false,
-        builtAt: false,
-        entrypoints: false,
-        assets: false,
-        version: false,
-        errorDetails: true,
-    },
     plugins: [
         new webpack.HotModuleReplacementPlugin(),
         ...baseConfig.plugins,
     ],
     devServer: {
-        port: 8383,
+        port: config.devServerPort,
         host: 'localhost',
         contentBase: path.join(__dirname, '../public'),
         watchContentBase: true,

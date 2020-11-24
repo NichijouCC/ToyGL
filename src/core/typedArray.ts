@@ -102,9 +102,16 @@ export function float4Equal(lhs: Float32Array, rhs: Float32Array): boolean {
 export type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array;
 
 export namespace TypedArray {
-    export function fromGlType(gltType: number, count: number | Array<number>) {
-        const Ctor = glTypeToTypedArrayCtor[gltType];
-        return new Ctor(count);
+    export function fromGlType(gltype: number, data: number | Array<number> | TypedArray, byteOffset: number = 0): TypedArray {
+        const TypeArrayCtr = getTypeArrCtorFromGLtype(gltype);
+        if (typeof data == "number") {
+            return new TypeArrayCtr(data as number);
+        } else if (data instanceof Array) {
+            return new TypeArrayCtr(data);
+        } else {
+            const typedArray = data as TypedArray;
+            return new TypeArrayCtr(typedArray.buffer, typedArray.byteOffset + byteOffset, typedArray.byteLength / TypeArrayCtr.BYTES_PER_ELEMENT);
+        }
     }
 
     export function bytesPerElement(type: TypedArray) {

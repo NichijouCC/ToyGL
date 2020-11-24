@@ -1,16 +1,11 @@
 const path = require('path');
 
-const buildPath = path.resolve(__dirname, '../build');
-const publicPath = "./";
-const appPath = path.resolve(__dirname, '../src');
-const node_modules_path = path.resolve(__dirname, "../node_modules");
-const indexHtmlPath = path.resolve(__dirname, "../public/index.html");
-
 module.exports = {
-    buildPath: buildPath,
-    publicPath: publicPath,
-    appPath: appPath,
-    enterPath: path.resolve(appPath, "index.tsx"),
-    node_modules_path: node_modules_path,
-    indexHtmlPath: indexHtmlPath
+    buildPath: path.resolve(__dirname, '../build'),
+    publicPath: "/",
+    appPath: path.resolve(__dirname, '../src'),
+    node_modules_path: path.resolve(__dirname, "../node_modules"),
+    indexHtmlPath: path.resolve(__dirname, "../public/index.html"),
+    devServerPort: 8383
+
 }

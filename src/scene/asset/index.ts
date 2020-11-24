@@ -5,7 +5,7 @@ export * from "./Skin";
 
 export * from "./geometry/geometry";
 export * from "./geometry/geometryAttribute";
-export * from "./geometry/baseGeometry";
+export * from "./geometry/abstractGeometryAsset";
 export * from "./geometry/skinMesh";
 export * from "./geometry/staticMesh";
 

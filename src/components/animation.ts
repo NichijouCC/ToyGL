@@ -37,8 +37,6 @@ export class Animation implements Icomponent {
     }
 
     crossFade(clip: AnimationClip | string) {
-        if (this._currentClip != null) {
-            // TODO
-        }
+
     }
 }

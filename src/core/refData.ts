@@ -1,4 +1,4 @@
-import { EventTarget } from "./eventTarget";
+import { EventTarget } from "@mtgoo/ctool";
 
 export class RefData<T> {
     protected _current: T;
@@ -16,9 +16,9 @@ export class RefData<T> {
         this._current = data;
     }
 
-    destroy() {
+    dispose() {
         this._current = undefined;
-        this.onDataChange.destroy();
+        this.onDataChange.dispose();
         this.onDataChange = undefined;
     }
 }

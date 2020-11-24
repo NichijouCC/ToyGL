@@ -4,15 +4,13 @@ import { GraphicsDevice } from "../../webgl/graphicsDevice";
 import { RenderState } from "../renderState";
 import { Frustum } from "../frustum";
 import { BoundingSphere } from "../bounds";
-import { MeshInstance } from "../primitive/meshInstance";
 import { UniformState } from "../uniformState";
-import { Entity } from "../../core/entity";
-import { StaticMesh } from "../asset/geometry/staticMesh";
-import { AutoUniforms } from "../autoUniform";
+import { AutoUniforms } from "./autoUniform";
 import { ShaderBucket } from "../asset/material/shaderBucket";
-import { ShaderInstance } from "../asset/material/shaderInstance";
 import { LayerComposition } from "../layerComposition";
 import { Irenderable } from "./irenderable";
+import { FrameState } from "../frameState";
+import { ShaderProgram } from "../../webgl";
 
 const Private: {
     preMaterial: Material,
@@ -32,6 +30,28 @@ export class ForwardRender {
         this.device = device;
     }
 
+    private bindShaderUniforms(shaderIns: ShaderProgram, uniformValues: { [name: string]: any }) {
+        let values = { ...uniformValues };
+        let uniforms = shaderIns.uniforms;
+        for (let key in uniforms) {
+            if (AutoUniforms.containAuto(key)) {
+                values[key] = AutoUniforms.getAutoUniformValue(key, this.uniformState);
+            }
+        }
+        shaderIns.bindUniforms(this.device, values);
+    }
+
+    private bindShaderAutoUniforms(shaderIns: ShaderProgram) {
+        let values: { [key: string]: any } = {};
+        let uniforms = shaderIns.uniforms;
+        for (let key in uniforms) {
+            if (AutoUniforms.containAuto(key)) {
+                values[key] = AutoUniforms.getAutoUniformValue(key, this.uniformState);
+            }
+        }
+        shaderIns.bindUniforms(this.device, values);
+    }
+
     private setCamera(camera: Camera) {
         this.uniformState.curCamera = camera;
         this.device.setViewPort(camera.viewport.x, camera.viewport.y, camera.viewport.width * this.device.width, camera.viewport.height * this.device.height);
@@ -44,7 +64,7 @@ export class ForwardRender {
 
     private camerRenderLayers = new Map<Camera, LayerComposition>();
 
-    render(cameras: Camera[], renderArr: Irenderable[], lights?: any) {
+    render(cameras: Camera[], frameState: FrameState) {
         cameras = cameras.sort(item => item.priority);
         let cam: Camera, layercomps: LayerComposition, renderItem: Irenderable;
 
@@ -61,6 +81,7 @@ export class ForwardRender {
         }
 
         // ----------------collect render Ins
+        let renderArr = frameState.renders;
         for (let i = 0; i < renderArr.length; i++) {
             renderItem = renderArr[i];
             if (renderItem.bevisible == false || renderItem.geometry == null || renderItem.material?.shader == null) continue;
@@ -88,20 +109,20 @@ export class ForwardRender {
             layercomps.getlayers().forEach(layer => {
                 if (layer.insCount == 0) return;
                 const renderInsArr = layer.getSortedinsArr(cam);
-                this.renderList(cam, renderInsArr);
+                this.renderList(cam, renderInsArr, frameState);
             });
         }
     }
 
-    private renderList(cam: Camera, renderInsArr: Irenderable[]) {
-        let renderItem: Irenderable, material: Material, uniforms, renderState, vertexArray, shaderIns: ShaderInstance, uniformValue;
+    private renderList(cam: Camera, renderInsArr: Irenderable[], frameState: FrameState) {
+        let renderItem: Irenderable, material: Material, uniforms, renderState, vertexArray, shaderIns: ShaderProgram, uniformValue;
         for (let i = 0; i < renderInsArr.length; i++) {
             renderItem = renderInsArr[i];
 
             let bucketId = 0;
             if (renderItem.skinIns) {
                 bucketId = bucketId | ShaderBucket.SKIN;
-                renderItem.skinIns.update(this.device, this.uniformState);
+                renderItem.skinIns.update(this.device, this.uniformState, frameState);
             } else {
                 this.uniformState.matrixModel = renderItem.worldMat;
             }
@@ -112,53 +133,52 @@ export class ForwardRender {
                 bucketId = bucketId | ShaderBucket.DIFFUSEMAP;
             }
 
-            if (material != Private.preMaterial || material.bedirty || Private.preBuketID != bucketId) {
+            shaderIns = material.shader.getInstance(bucketId, this.device);
+            let shaderChanged = shaderIns.bind();
+
+            if (shaderChanged || material != Private.preMaterial || material.bedirty || Private.preBuketID != bucketId) {
                 Private.preMaterial = material;
                 Private.preBuketID = bucketId;
                 material.bedirty = false;
-
-                shaderIns = material.shader.getInstance(bucketId);
-                renderState = material.renderState;
-
-                shaderIns.bind(this.device);
-                shaderIns.bindAutoUniforms(this.device, this.uniformState);// auto unfiorm
-                shaderIns.bindManulUniforms(this.device, uniforms);
-
-                if (Private.preRenderState != renderState) {
-                    this.device.setCullFaceState(renderState.cull.enabled, renderState.cull.cullBack);
-                    this.device.setDepthState(renderState.depthWrite, renderState.depthTest.enabled, renderState.depthTest.depthFunc);
-                    this.device.setColorMask(renderState.colorWrite.red, renderState.colorWrite.green, renderState.colorWrite.blue, renderState.colorWrite.alpha);
-                    this.device.setBlendState(
-                        renderState.blend.enabled,
-                        renderState.blend.blendEquation,
-                        renderState.blend.blendSrc,
-                        renderState.blend.blendDst,
-                        renderState.blend.enableSeparateBlend,
-                        renderState.blend.blendAlphaEquation,
-                        renderState.blend.blendSrcAlpha,
-                        renderState.blend.blendDstAlpha
-                    );
-                    this.device.setStencilState(
-                        renderState.stencilTest.enabled,
-                        renderState.stencilTest.stencilFunction,
-                        renderState.stencilTest.stencilRefValue,
-                        renderState.stencilTest.stencilMask,
-                        renderState.stencilTest.stencilFail,
-                        renderState.stencilTest.stencilFaileZpass,
-                        renderState.stencilTest.stencilPassZfail,
-                        renderState.stencilTest.enableSeparateStencil,
-                        renderState.stencilTest.stencilFunctionBack,
-                        renderState.stencilTest.stencilRefValueBack,
-                        renderState.stencilTest.stencilMaskBack,
-                        renderState.stencilTest.stencilFailBack,
-                        renderState.stencilTest.stencilFaileZpassBack,
-                        renderState.stencilTest.stencilPassZfailBack
-                    );
-                }
+                this.bindShaderUniforms(shaderIns, uniforms);
             } else {
-                shaderIns = material.shader.getInstance(bucketId);
-                shaderIns.bindAutoUniforms(this.device, this.uniformState);// auto unfiorm
+                this.bindShaderAutoUniforms(shaderIns);
             }
+
+            renderState = material.renderState;
+            if (Private.preRenderState != renderState) {
+                Private.preRenderState = renderState;
+                this.device.setCullFaceState(renderState.cull.enabled, renderState.cull.cullBack);
+                this.device.setDepthState(renderState.depthWrite, renderState.depthTest.enabled, renderState.depthTest.depthFunc);
+                this.device.setColorMask(renderState.colorWrite.red, renderState.colorWrite.green, renderState.colorWrite.blue, renderState.colorWrite.alpha);
+                this.device.setBlendState(
+                    renderState.blend.enabled,
+                    renderState.blend.blendEquation,
+                    renderState.blend.blendSrc,
+                    renderState.blend.blendDst,
+                    renderState.blend.enableSeparateBlend,
+                    renderState.blend.blendAlphaEquation,
+                    renderState.blend.blendSrcAlpha,
+                    renderState.blend.blendDstAlpha
+                );
+                this.device.setStencilState(
+                    renderState.stencilTest.enabled,
+                    renderState.stencilTest.stencilFunction,
+                    renderState.stencilTest.stencilRefValue,
+                    renderState.stencilTest.stencilMask,
+                    renderState.stencilTest.stencilFail,
+                    renderState.stencilTest.stencilFaileZpass,
+                    renderState.stencilTest.stencilPassZfail,
+                    renderState.stencilTest.enableSeparateStencil,
+                    renderState.stencilTest.stencilFunctionBack,
+                    renderState.stencilTest.stencilRefValueBack,
+                    renderState.stencilTest.stencilMaskBack,
+                    renderState.stencilTest.stencilFailBack,
+                    renderState.stencilTest.stencilFaileZpassBack,
+                    renderState.stencilTest.stencilPassZfailBack
+                );
+            }
+
             renderItem.geometry.bind(this.device);
             this.device.draw(renderItem.geometry.graphicAsset, renderItem.instanceCount);
         }

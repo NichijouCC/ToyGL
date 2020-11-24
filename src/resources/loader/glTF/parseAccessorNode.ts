@@ -1,8 +1,7 @@
-import { AccessorComponentType } from "./gltfJsonStruct";
 import { IgltfJson } from "../loadglTF";
 import { ParseBufferViewNode } from "./parseBufferViewNode";
 import { BufferTargetEnum, Buffer, BufferUsageEnum } from "../../../webgl/buffer";
-import { getTypedArray, getTypeArrCtorFromGLtype, getByteSizeFromGLtype, TypedArray } from "../../../core/typedArray";
+import { TypedArray } from "../../../core/typedArray";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
 import { IndexBuffer } from "../../../webgl/indexBuffer";
 import { VertexBuffer } from "../../../webgl/vertexBuffer";
@@ -53,7 +52,9 @@ export class ParseAccessorNode {
             return ParseBufferViewNode.parse(viewindex, gltf)
                 .then(value => {
                     let canUseCache = true;
-                    let typedArray = getTypedArray(value.viewBuffer, accessor.componentType) as any;
+                    // let typedArray = getTypedArray(value.viewBuffer, accessor.componentType) as any;
+                    let typedArray = TypedArray.fromGlType(accessor.componentType, value.viewBuffer);
+
 
                     arrayInfo.bytesOffset = accessor.byteOffset ?? 0;
                     arrayInfo.bytesStride = value.byteStride;
@@ -71,8 +72,11 @@ export class ParseAccessorNode {
                             ParseBufferViewNode.parse(indicesInfo.bufferView, gltf),
                             ParseBufferViewNode.parse(valuesInfo.bufferView, gltf)
                         ]).then(arr => {
-                            const indicesArr = getTypedArray(arr[0].viewBuffer, indicesInfo.componentType, indicesInfo.byteOffset);
-                            const sparseValueArr = getTypedArray(arr[1].viewBuffer, accessor.componentType, valuesInfo.byteOffset);
+                            // const indicesArr = getTypedArray(arr[0].viewBuffer, indicesInfo.componentType, indicesInfo.byteOffset);
+                            // const sparseValueArr = getTypedArray(arr[1].viewBuffer, accessor.componentType, valuesInfo.byteOffset);
+
+                            let indicesArr = TypedArray.fromGlType(indicesInfo.componentType, arr[0].viewBuffer, indicesInfo.byteOffset);
+                            let sparseValueArr = TypedArray.fromGlType(accessor.componentType, arr[1].viewBuffer, valuesInfo.byteOffset);
 
                             const componentNumber = this.getComponentSize(accessor.type);
                             for (let i = 0; i < count; i++) {
@@ -106,14 +110,14 @@ export class ParseAccessorNode {
                                 if (canUseCache) {
                                     let newIndexBuffer = gltf.cache.indexBufferCache[viewindex];
                                     if (newIndexBuffer == null) {
-                                        newIndexBuffer = new IndexBuffer({ context, typedArray });
+                                        newIndexBuffer = new IndexBuffer({ context, typedArray: typedArray as any });
                                         gltf.cache.indexBufferCache[viewindex] = newIndexBuffer;
                                     } else {
                                         console.warn("命中！！");
                                     }
                                     arrayInfo.buffer = newIndexBuffer;
                                 } else {
-                                    arrayInfo.buffer = new IndexBuffer({ context, typedArray });
+                                    arrayInfo.buffer = new IndexBuffer({ context, typedArray: typedArray as any });
                                 }
 
                                 break;

@@ -1,8 +1,8 @@
 import { CullingMask } from "../camera";
 import { AssetReference } from "../assetReference";
-import { Igeometry } from "../asset/geometry/baseGeometry";
+import { Igeometry } from "../asset/geometry/abstractGeometryAsset";
 import { Material } from "../asset/material/material";
-import { EventTarget } from "../../core/eventTarget";
+import { EventTarget } from "@mtgoo/ctool";
 import { Skin } from "../asset/Skin";
 import { SkinInstance } from "./skinInstance";
 import { Entity } from "../../core/entity";
@@ -39,12 +39,12 @@ export class MeshInstance implements Irenderable {
 
     private geometryRef = new AssetReference<Igeometry>();
     get geometry() { return this.geometryRef.current; }
-    set geometry(value: Igeometry) { this.geometryRef.current = value; this.onDirty.raiseEvent(this); }
+    set geometry(value: Igeometry) { this.geometryRef.current = value; }
     get bounding() { return this.geometryRef.current.bounding; }
 
     private materialRef = new AssetReference<Material>();
     get material(): Material { return this.materialRef.current; }
-    set material(mat: Material) { this.materialRef.current = mat; this.onDirty.raiseEvent(this); }
+    set material(mat: Material) { this.materialRef.current = mat; }
 
     private skinRef = new AssetReference<Skin>();
     set skin(skin: Skin) { this.skinRef.current = skin; };

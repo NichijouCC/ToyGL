@@ -8,6 +8,7 @@ import { PixelFormatEnum } from "../../webgl/pixelFormatEnum";
 import { PixelDatatypeEnum } from "../../webgl/pixelDatatype";
 import { Skin } from "../asset/Skin";
 import { UniformState } from "../uniformState";
+import { FrameState } from "../frameState";
 
 namespace Private {
     export const offsetMatrix: Mat4 = Mat4.create();
@@ -86,12 +87,12 @@ export class SkinInstance {
     // get boneTexture() { this.recomputeBoneData(); return this._boneTexture }
     // get boneMatrices() { this.recomputeBoneData(); return this._boneMatrices }
 
-    update(device: GraphicsDevice, state: UniformState) {
+    update(device: GraphicsDevice, state: UniformState, frameState: FrameState) {
         if (!this.beInit) { this.init(device); this.beInit = true; }
         const { bones, rootBone } = this;
         const { offsetMatrix } = Private;
         const mat = rootBone.worldTolocalMatrix;
-        if (rootBone.bedirty) { // root dirty 全部重新计算
+        if (frameState.dirtyNode.has(rootBone)) { // root dirty 全部重新计算
             for (let i = 0; i < bones.length; i++) {
                 const matrix = bones[i] ? bones[i].worldMatrix : Mat4.IDENTITY;
                 Mat4.multiply(matrix, this._boneInverses[i], offsetMatrix);
@@ -104,7 +105,7 @@ export class SkinInstance {
         } else { // 哪个bone dirty了对应matrix就重新计算
             let beNeedUpdate = false;
             for (let i = 0; i < bones.length; i++) {
-                if (bones[i].bedirty) {
+                if (frameState.dirtyNode.has(bones[i])) {
                     beNeedUpdate = true;
                     const matrix = bones[i] ? bones[i].worldMatrix : Mat4.IDENTITY;
                     Mat4.multiply(matrix, this._boneInverses[i], offsetMatrix);

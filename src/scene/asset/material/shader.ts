@@ -4,11 +4,12 @@ import { Asset, IgraphicAsset } from "../asset";
 import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
 import { ShaderInstance } from "./shaderInstance";
 import { ShaderBucket } from "./shaderBucket";
+import { GraphicsDevice } from "../../../webgl";
 
 export let sortId: number = 0;
 export class Shader extends Asset {
     private _shader: ShaderProgram;
-    private _instances: Map<number, ShaderInstance> = new Map();
+    private _instances: Map<number, ShaderProgram> = new Map();
 
     private _layer: RenderLayerEnum;
     get layer() { return this._layer; }
@@ -38,13 +39,21 @@ export class Shader extends Asset {
         this.attributes = options.attributes;
     }
 
-    getInstance(bucketId: number) {
+    getInstance(bucketId: number, device: GraphicsDevice) {
         if (!this._instances.has(bucketId)) {
             const packStr = ShaderBucket.packShaderStr(bucketId);
-            this._instances.set(bucketId, new ShaderInstance(
-                packStr + this.vsStr,
-                packStr + this.fsStr,
-                this.attributes));
+            const program = new ShaderProgram({
+                context: device,
+                attributes: this.attributes,
+                vsStr: packStr + this.vsStr,
+                fsStr: packStr + this.fsStr
+            });
+
+            this._instances.set(bucketId, program);
+            // this._instances.set(bucketId, new ShaderInstance(
+            //     packStr + this.vsStr,
+            //     packStr + this.fsStr,
+            //     this.attributes));
         }
         return this._instances.get(bucketId);
     }

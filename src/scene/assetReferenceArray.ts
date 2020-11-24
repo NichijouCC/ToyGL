@@ -1,8 +1,6 @@
 import { Asset } from "./asset/asset";
 import { AssetReference } from "./assetReference";
-import { EventTarget } from "../core/eventTarget";
-import { DebuffAction } from "../core/debuffAction";
-import { RefData } from "../core/refData";
+import { EventTarget } from "@mtgoo/ctool";
 
 export class AssetReferenceArray<T extends Asset> {
     protected _current: AssetReference<T>[];
@@ -45,49 +43,7 @@ export class AssetReferenceArray<T extends Asset> {
 
     destroy() {
         this._current = undefined;
-        this.onDataChange.destroy();
+        this.onDataChange.dispose();
         this.onDataChange = undefined;
     }
 }
-
-// export class AssetReferenceArray<T extends Asset>
-// {
-//     assets: AssetReference<T>[] = [];
-//     setValue(asset: T, index = 0) {
-//         if (this.assets[index] == null) {
-//             let newRef = new AssetReference<T>();
-//             this.assets[index] = newRef;
-//             this.attachToItemAssetChangeAction[index] = DebuffAction.create(() => {
-//                 let func = (event: AssetChangedEvent<T>) => {
-//                     this.onAssetChange.raiseEvent({ ...event, index: index });
-//                 }
-//                 newRef.onDataChange.addEventListener(func);
-//                 return () => {
-//                     newRef.onDataChange.removeEventListener(func)
-//                 }
-//             })
-
-//         }
-//         this.assets[index].current = asset;
-//     }
-//     setValues(assets: T[]) {
-//         assets.forEach((item, index) => this.setValue(item, index))
-//     }
-
-//     getValue(index = 0) {
-//         return this.assets[index]
-//     }
-//     delectItem(index: number) {
-//         this.assets.splice(index, 1);
-//         this.attachToItemAssetChangeAction[index]?.dispose();
-//         this.onItemDelect.raiseEvent(index);
-//     }
-//     private attachToItemAssetChangeAction: DebuffAction[] = [];
-//     onAssetChange: EventTarget<ArrayAssetChangeEvent<T>> = new EventTarget();
-//     onItemDelect: EventTarget<number> = new EventTarget();
-// }
-
-// export class ArrayAssetChangeEvent<T extends Asset> extends AssetChangedEvent<T>
-// {
-//     index: number;
-// }

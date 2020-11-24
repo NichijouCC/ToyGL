@@ -20,6 +20,7 @@ export class ClipInstance {
         this.curFrame = 0;
         this.speed = options.speed ?? 1;
         this.beloop = options.beLoop ?? true;
+
         this._options = options;
     }
 
@@ -118,11 +119,19 @@ export class ClipInstance {
             this._excecute(deltaTime);
         }
     }
+
+    private beCrossfade: boolean;
+    private fadeTime: number;
+    crossFade() {
+
+    }
 }
 
 export interface ClipOptions {
     speed?: number,
-    beLoop?: boolean
+    beLoop?: boolean,
+    crossFade?: boolean,
+    fadeTime?: number,
 }
 
 export enum AnimationChannelTargetPath {

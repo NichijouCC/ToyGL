@@ -1,22 +1,12 @@
 import { Icomponent, Ecs, Ientity, UniteBitkey } from "./ecs";
 import { Transform } from "./transform";
-import { EventTarget } from "./eventTarget";
-import { RefData } from "./refData";
 
 export class Entity extends Transform implements Ientity {
-    static IdCount = 0;
     name: string;
-    ref_beActive = new RefData<boolean>(true);
-    get beActive() { return this.ref_beActive.current; };
-    set beActive(value: boolean) {
-        this.ref_beActive.current = value;
-    }
-
-    readonly id: number;
+    beActive: boolean = true;
     constructor(name?: string) {
         super();
         this.name = name;
-        this.id = Entity.IdCount++;
     }
 
     _uniteBitkey: UniteBitkey = new UniteBitkey();

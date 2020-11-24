@@ -1,5 +1,5 @@
-import { excuteDebuffAction, IdebuffeAction } from "./debuffAction";
-import { EventTarget } from "./eventTarget";
+import { EventTarget } from "@mtgoo/ctool";
+import { DebuffAction } from '@mtgoo/ctool'
 
 export class Timer implements Itimer {
     private beActive: boolean = true;
@@ -22,7 +22,7 @@ export class Timer implements Itimer {
     }
 
     timeScale: number = 1.0;
-    private intervalLoop: IdebuffeAction;
+    private intervalLoop: DebuffAction;
     private update() {
         const now = Date.now();
         this._deltaTime = this._lastTime ? (now - this._lastTime) * this.timeScale * 0.001 : 0;
@@ -48,7 +48,7 @@ export class Timer implements Itimer {
             this._lastFPS = this.FPS;
 
             if (this.intervalLoop) { this.intervalLoop.dispose(); }
-            this.intervalLoop = excuteDebuffAction(() => {
+            this.intervalLoop = DebuffAction.create(() => {
                 const loop = setInterval(() => {
                     this.tickUpdate();
                 }, 1000 / this.FPS);

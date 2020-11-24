@@ -1,13 +1,13 @@
 import { InterScene } from "../scene/Scene";
 import { BassCompSystem } from "./bassCompSystem";
 import { CameraComponent } from "./camerComponent";
-import { ToyScreen } from "../scene/Index";
+import { Screen } from "../scene/Index";
 
 export class CamerSystem extends BassCompSystem<CameraComponent> {
     careCompCtors: (new () => CameraComponent)[] = [CameraComponent];
     private scene: InterScene;
-    private screen: ToyScreen;
-    constructor(scene: InterScene, screen: ToyScreen) {
+    private screen: Screen;
+    constructor(scene: InterScene, screen: Screen) {
         super();
         this.scene = scene;
         this.screen = screen;

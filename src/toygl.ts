@@ -7,16 +7,16 @@ import { LoadGlTF } from "./resources/loader/loadglTF";
 import { Ecs } from "./core/ecs";
 import { ModelSystem } from "./components/modelSystem";
 import { ForwardRender } from "./scene/render/forwardRender";
-import { EventTarget } from "./core/eventTarget";
+import { EventTarget } from "@mtgoo/ctool";
 import { AnimationSystem } from "./components/animationSystem";
-import { ToyScreen } from "./core/toyScreen";
+import { Screen } from "./core/toyScreen";
 import { CamerSystem } from "./components/camerSystem";
 
 export class ToyGL {
     onresize = new EventTarget<{ width: number, height: number }>();
     static create(element: HTMLDivElement | HTMLCanvasElement, options?: { autoAdaptScreenSize?: boolean }): ToyGL {
         const toy = new ToyGL();
-        const screen = ToyScreen.create(element, options);
+        const screen = Screen.create(element, options);
         const canvas = screen.canvas;
 
         const timer = new Timer();
@@ -30,7 +30,7 @@ export class ToyGL {
         Ecs.addSystem(new AnimationSystem());
         Ecs.addSystem(new ModelSystem(scene, render));
 
-        timer.onTick.addEventListener(scene.tick);
+        timer.onTick.addEventListener(scene._tick);
 
         toy._timer = timer;
         toy._input = input;
@@ -43,7 +43,7 @@ export class ToyGL {
     private _input: Input;
     get input() { return this._input; }
 
-    private _screen: ToyScreen;
+    private _screen: Screen;
     get screen() { return this._screen; }
 
     private _timer: Timer;

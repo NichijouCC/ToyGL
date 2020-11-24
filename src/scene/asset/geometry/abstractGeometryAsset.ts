@@ -2,9 +2,9 @@ import { Asset, IgraphicAsset } from "../asset";
 import { VertexArray } from "../../../webgl/vertextArray";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
 import { BoundingSphere } from "../../bounds";
-import { EventTarget } from "../../../core/eventTarget";
+import { EventTarget } from "@mtgoo/ctool";
 
-export abstract class GeometryAsset extends Asset implements Igeometry {
+export abstract class AbstractGeometryAsset extends Asset implements Igeometry {
     graphicAsset: VertexArray;
     protected beNeedRefreshGraphicAsset: boolean = false;
     protected abstract create(device: GraphicsDevice): VertexArray

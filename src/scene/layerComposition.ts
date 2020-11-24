@@ -3,7 +3,6 @@ import { RenderLayerEnum } from "./renderLayer";
 import { LayerCollection } from "./layerCollection";
 import { SortTypeEnum } from "./render/sortTypeEnum";
 import { Irenderable } from "./render/irenderable";
-import { EventTarget } from "../core/eventTarget";
 export class LayerComposition {
     private layers: Map<number, LayerCollection> = new Map();
     // private nolayers: LayerCollection = new LayerCollection("nolayer" as any);

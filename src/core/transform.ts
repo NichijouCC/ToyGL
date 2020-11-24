@@ -1,7 +1,7 @@
 import { Vec3 } from "../mathD/vec3";
 import { Quat } from "../mathD/quat";
 import { Mat4 } from "../mathD/mat4";
-import { EventTarget } from "./eventTarget";
+import { EventTarget } from "@mtgoo/ctool";
 
 enum DirtyFlagEnum {
     WWORLD_POS = 0b000100,
@@ -12,13 +12,15 @@ enum DirtyFlagEnum {
 }
 
 export class Transform {
-    // refScene: Scene;
     parent: Transform;
     children: Transform[] = [];
     private dirtyFlag: number = 0;
-    get bedirty() { return this.dirtyFlag != 0; }
+    // private bedirty() { return this.dirtyFlag != 0; }
     name: string;
+    readonly id: number;
+    static IdCount = 0;
     constructor(name?: string) {
+        this.id = Transform.IdCount++;
         this.name = name;
         // --------attach to dirty-------
         Object.defineProperty(this._localPosition, "x", {
@@ -257,12 +259,14 @@ export class Transform {
     //     }
     // }
 
+    static onDirty = new EventTarget<Transform>();
     /**
      * 修改local属性后，标记dirty
      */
     private markDirty() {
         this.dirtyFlag = this.dirtyFlag | DirtyFlagEnum.LOCALMAT | DirtyFlagEnum.WORLDMAT;
         Transform.NotifyChildSelfDirty(this);
+        Transform.onDirty.raiseEvent(this);
     }
 
     /// ------------------------------------------父子结构

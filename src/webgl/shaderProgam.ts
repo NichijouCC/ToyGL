@@ -54,10 +54,12 @@ export class ShaderProgram implements IshaderProgram {
 
         const gl = options.context.gl;
         this.bind = () => {
-            if (this.program != ShaderProgram._cachedProgram) {
+            let bechanged = this.program != ShaderProgram._cachedProgram;
+            if (bechanged) {
                 gl.useProgram(this.program);
                 ShaderProgram._cachedProgram = this.program;
             }
+            return bechanged;
         };
         this.unbind = () => {
             gl.useProgram(null);
@@ -86,7 +88,7 @@ export class ShaderProgram implements IshaderProgram {
         }
     }
 
-    bind() { }
+    bind(): boolean { return true; }
     unbind() { }
 
     destroy() { }

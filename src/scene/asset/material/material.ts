@@ -27,7 +27,9 @@ export class Material extends Asset {
         this.onDirty.addEventListener(() => { this.bedirty = true; });
         this.shaderRef.onDirty.addEventListener(() => { this.onDirty.raiseEvent(); });
     }
-
+    /**
+     * shader修改;uniform修改
+     */
     bedirty: boolean = false;
     private shaderRef = new AssetReference<Shader>();
     get shader() { return this.shaderRef.current; };

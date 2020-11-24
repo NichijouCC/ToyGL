@@ -1,9 +1,10 @@
+import { EventTarget } from "@mtgoo/ctool";
 import { ForwardRender } from "./render/forwardRender";
 import { Camera } from "./camera";
 import { Entity } from "../core/entity";
-import { EventTarget } from "../core/eventTarget";
 import { Ecs } from "../core/ecs";
 import { Irenderable } from "./render/irenderable";
+import { FrameState } from "./frameState";
 
 export class InterScene {
     private _cameras: Map<string, Camera> = new Map();
@@ -27,13 +28,16 @@ export class InterScene {
     }
 
     get cameras() { return this._cameras; }
-
+    private root: Entity;
     private render: ForwardRender;
     constructor(render: ForwardRender) {
         this.render = render;
+        this.root = new Entity();
+        Entity.onDirty.addEventListener((node) => {
+            this.frameState.dirtyNode.add(node as Entity);
+        });
     }
 
-    private root: Entity = new Entity();
     addNewChild(): Entity {
         const trans = new Entity();
         this.root.addChild(trans);
@@ -45,33 +49,23 @@ export class InterScene {
     }
 
     preupdate = new EventTarget<number>();
-    tick = (deltaTime: number) => {
+    frameState: FrameState = new FrameState();
+    _tick = (deltaTime: number) => {
         this.preupdate.raiseEvent(deltaTime);
         Ecs.update(deltaTime);
-
-        this.tickRender();
+        this.tickRender(this.frameState);
+        this.frameState = new FrameState();
     }
 
-    private _renderCollection: Irenderable[] = [];
-    addRenderItem(item: Irenderable) {
-        this._renderCollection.push(item);
-
-        return item;
-    }
-
-    private _frameTemptRenders: Irenderable[] = [];
-    _addRender(render: Irenderable) {
-        this._frameTemptRenders.push(render);
+    addRenderIns(render: Irenderable) {
+        this.frameState.renders.push(render);
+        return render;
     }
 
     prerender = new EventTarget();
-    private tickRender = () => {
+    private tickRender = (state: FrameState) => {
         this.prerender.raiseEvent();
-
-        const { cameras, _frameTemptRenders, _renderCollection } = this;
-        const allRenders = _frameTemptRenders.concat(_renderCollection);
-        this._frameTemptRenders = [];
-
-        this.render.render(Array.from(cameras.values()), allRenders);
+        const { cameras } = this;
+        this.render.render(Array.from(cameras.values()), state);
     }
 }

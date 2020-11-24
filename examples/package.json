@@ -25,6 +25,8 @@
     "html-webpack-plugin": "^3.2.0",
     "ora": "^4.0.4",
     "terser-webpack-plugin": "^2.1.2",
+    "ts-node": "^9.0.0",
+    "tsconfig-paths-webpack-plugin": "^3.3.0",
     "typescript": "^3.8.3",
     "url-loader": "^2.2.0",
     "webpack": "^4.41.0",
@@ -35,7 +37,7 @@
     "webpack-hot-middleware": "~2.12.1"
   },
   "scripts": {
-    "start": "cross-env NODE_ENV=development webpack-dev-server --config ./config/webpack.dev.js --env=dev",
-    "build": "cross-env NODE_ENV=production node config/build.js"
+    "start": "cross-env NODE_ENV=development node ./config/run.js",
+    "build": "cross-env NODE_ENV=production node ./config/run.js"
   }
 }

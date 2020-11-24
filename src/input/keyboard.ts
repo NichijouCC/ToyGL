@@ -1,4 +1,4 @@
-import { EventEmitter } from "../core/eventEmitter";
+import { EventEmitter } from "@mtgoo/ctool";
 
 export enum KeyCodeEnum {
     A = "A",
@@ -50,8 +50,8 @@ export class Keyboard extends EventEmitter<KeyboardEventMap> {
 
             if (Object.values(KeyCodeEnum).indexOf(keystr as any) >= 0) {
                 this._pressed[keystr] = true;
-                this.fire("keydown", ev);
-                this.fire([keystr, "keydown"].join("-") as any, ev);
+                this.emit("keydown", ev);
+                this.emit([keystr, "keydown"].join("-") as any, ev);
             } else {
                 this._pressed = {};
             }
@@ -59,8 +59,8 @@ export class Keyboard extends EventEmitter<KeyboardEventMap> {
         document.onkeyup = (ev: KeyboardEvent) => {
             const keystr = ev.key.toUpperCase(); // safari浏览器不支持keypress事件中的key属性
             this._pressed[keystr] = false;
-            this.fire("keyup", ev);
-            this.fire([keystr, "keyup"].join("-") as any, ev);
+            this.emit("keyup", ev);
+            this.emit([keystr, "keyup"].join("-") as any, ev);
         };
         document.onblur = () => {
             this._pressed = {};

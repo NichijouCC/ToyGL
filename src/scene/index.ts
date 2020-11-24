@@ -1,6 +1,6 @@
 export * from "./assetReference";
 export * from "./assetReferenceArray";
-export * from "./autoUniform";
+export * from "./render/autoUniform";
 export * from "./bounds";
 export * from "./camera";
 export * from "./drawCommand";

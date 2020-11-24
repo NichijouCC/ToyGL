@@ -1,6 +1,6 @@
 import { VertexArray } from "../../../webgl/vertextArray";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
-import { GeometryAsset } from "./baseGeometry";
+import { AbstractGeometryAsset } from "./abstractGeometryAsset";
 import { Asset } from "../asset";
 export class StaticMesh extends Asset {
     sbuMeshs: SubMesh[] = [];
@@ -9,7 +9,7 @@ export class StaticMesh extends Asset {
     }
 }
 
-export class SubMesh extends GeometryAsset {
+export class SubMesh extends AbstractGeometryAsset {
     protected create(device: GraphicsDevice): VertexArray {
         throw new Error("Method not implemented.");
     }

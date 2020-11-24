@@ -1,5 +1,5 @@
-import { EventTarget } from "./eventTarget";
-export class ToyScreen {
+import { EventTarget } from "@mtgoo/ctool";
+export class Screen {
     onresize = new EventTarget<ResizeEvent>();
 
     /**
@@ -59,7 +59,7 @@ export class ToyScreen {
                 };
             }
         }
-        const screen = new ToyScreen(canvas);
+        const screen = new Screen(canvas);
         return screen;
     }
 }

@@ -1,7 +1,7 @@
 import { ShaderProgram } from "../../../webgl/shaderProgam";
 import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
-import { AutoUniforms } from "../../autoUniform";
+import { AutoUniforms } from "../../render/autoUniform";
 import { UniformState } from "../../uniformState";
 export class ShaderInstance {
     program: ShaderProgram;
@@ -23,26 +23,26 @@ export class ShaderInstance {
     }
 
     private create = (device: GraphicsDevice) => { };
-    bind(device: GraphicsDevice) {
+    bind(device: GraphicsDevice): boolean {
         if (this.program == null) {
             this.create(device);
         }
-        this.program.bind();
+        return this.program.bind();
     }
 
-    bindManulUniforms(device: GraphicsDevice, uniforms: {
-        [name: string]: any;
-    }) {
-        this.program.bindUniforms(device, uniforms);
-    }
+    // bindManulUniforms(device: GraphicsDevice, uniforms: {
+    //     [name: string]: any;
+    // }) {
+    //     this.program.bindUniforms(device, uniforms);
+    // }
 
-    bindAutoUniforms(device: GraphicsDevice, uniformState: UniformState) {
-        const uniforms: {
-            [name: string]: any;
-        } = {};
-        this.autouniforms.forEach(item => {
-            uniforms[item] = AutoUniforms.getAutoUniformValue(item, uniformState);
-        });
-        this.program.bindUniforms(device, uniforms);
-    }
+    // bindAutoUniforms(device: GraphicsDevice, uniformState: UniformState) {
+    //     const uniforms: {
+    //         [name: string]: any;
+    //     } = {};
+    //     this.autouniforms.forEach(item => {
+    //         uniforms[item] = AutoUniforms.getAutoUniformValue(item, uniformState);
+    //     });
+    //     this.program.bindUniforms(device, uniforms);
+    // }
 }

@@ -1,14 +1,15 @@
 const path = require('path');
-const webpack = require('webpack');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 
 const pathsMap = require("./config");
+const htmlPath = path.resolve(__dirname, "../src/index.html");
 
 module.exports = {
     entry: {
-        app: path.resolve(pathsMap.appPath, "index.ts"),
+        app: path.resolve(pathsMap.appPath, "index.tsx"),
     },
     output: {
         filename: 'js/[name].bundle.js',
@@ -30,15 +31,17 @@ module.exports = {
                         loader: 'html-loader'
                     },
                     {
-                        test: /\.css$/,
-                        use: ["style-loader", "css-loader"]// 将 Sass 编译成 CSS-》将 CSS 转化成 CommonJS 模块-》将 JS 字符串生成为 style 节点
+                        test: /\.(scss|css)$/,
+                        use: ["style-loader", "css-loader", "sass-loader"]// 将 Sass 编译成 CSS-》将 CSS 转化成 CommonJS 模块-》将 JS 字符串生成为 style 节点
                     },
                     {
                         test: /\.(svg|jpg|jpeg|bmp|png|webp|gif|ico|ttf)$/,
                         loader: 'url-loader',
                         options: {
-                            limit: 8 * 1024, // 小于这个大小的图片，会自动base64编码后插入到代码中
+                            //limit: 8 * 1024, // 小于这个大小的图片，会自动base64编码后插入到代码中
                             name: 'img/[name].[hash:8].[ext]',
+                            outputPath: pathsMap.buildPath,
+                            publicPath: pathsMap.publicPath
                         }
                     },
                     {
@@ -60,14 +63,18 @@ module.exports = {
     resolve: {
         extensions: ['.js', '.json', '.jsx', '.ts', '.tsx'], // 自动判断后缀名，引入时可以不带后缀
         alias: {
-            '@': path.resolve(__dirname, '../src/'), // 以 @ 表示src目录
-            '@public': path.resolve(__dirname, '../public/'), // 以 @ 表示src目录
-            'TOYGL': path.resolve(__dirname, "../../src/index.ts")
-        }
+            // '@': path.resolve(__dirname, '../src/'), // 以 @ 表示src目录
+            // '@public': path.resolve(__dirname, '../public/'), // 以 @ 表示src目录
+        },
+        plugins: [
+            new TsconfigPathsPlugin({
+                extensions: [".ts", ".tsx", ".js"]
+            }),
+        ]
     },
     plugins: [
         new CopyWebpackPlugin([
-            { from: 'public', ignore: ['index.html', '3dtiles/**/*', 'kml/**/*'] },
+            { from: 'public', ignore: ['index.html'] },
         ]),
         new HtmlWebpackPlugin({
             template: pathsMap.indexHtmlPath,
@@ -91,9 +98,5 @@ module.exports = {
         }),
         new CleanWebpackPlugin(),
         // Copy Cesium Assets, Widgets, and Workers to a static directory
-        new webpack.DefinePlugin({
-            // Define relative base path in cesium for loading assets
-            'VERSION': new Date().toLocaleString()
-        })
     ]
 }
