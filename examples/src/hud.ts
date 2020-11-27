@@ -1,4 +1,4 @@
-import { ToyGL, HudSystem, Hud, Rect, Vec3, Vec2, loadImg, Prefab, Quat } from "TOYGL";
+import { ToyGL, HudSystem, Hud, Rect, vec3, vec2, loadImg, Prefab, quat } from "TOYGL";
 import { initToy } from "./util";
 
 (async function () {
@@ -9,13 +9,13 @@ import { initToy } from "./util";
     const cesiumMan = "../resources/glTF/CesiumMan/glTF/CesiumMan.gltf";
     let asset = await toy.resource.load(cesiumMan);
     const newasset = Prefab.instance(asset as Prefab);
-    newasset.localRotation = Quat.FromEuler(0, -90, 0);
+    newasset.localRotation = quat.fromEuler(quat.create(), 0, -90, 0);
     toy.scene.addChild(newasset);
 
     let child = scene.addNewChild();
     let comp = child.addComponent<Hud>(Hud.name);
     newasset.addChild(child);
-    child.localPosition.y = 2;
+    child.localPosition[1] = 2;
 
     Promise.all(["./images/blood.png", "./images/girl.png"].map(item => loadImg(item)))
         .then(([bg, head]) => {
@@ -36,6 +36,6 @@ import { initToy } from "./util";
             });
         })
     scene.preupdate.addEventListener((delta) => {
-        newasset.localRotation = Quat.multiply(newasset.localRotation, Quat.FromEuler(0, delta * 100, 0));
+        newasset.localRotation = quat.multiply(quat.create(), newasset.localRotation, quat.fromEuler(quat.create(), 0, delta * 100, 0));
     })
 })()

@@ -1,4 +1,4 @@
-import { Vec4 } from "./vec4";
+import { vec4 } from './index'
 export const EPSILON = 0.000001;
 
 export function clamp(v: number, min: number = 0, max: number = 1): number {
@@ -32,16 +32,16 @@ export function arrayEqual(a: number[] | Float32Array, b: number[] | Float32Arra
     return true;
 }
 // row：图片行数//column:图片列数//index：第几张图片（index从0开始计数）
-export function spriteAnimation(row: number, column: number, index: number, out: Vec4) {
+export function spriteAnimation(row: number, column: number, index: number, out: vec4) {
     var width = 1.0 / column;
     var height = 1.0 / row;
     var offsetx = width * (index % column);
     var offsety = height * row - height * (Math.floor(index / column) + 1);
 
-    out.x = width;
-    out.y = height;
-    out.z = offsetx;
-    out.w = offsety;
+    out[0] = width;
+    out[1] = height;
+    out[2] = offsetx;
+    out[3] = offsety;
     // var uvOffset=new gd3d.math.vector4(width,height,offsetx,offsety);
     // return  uvOffset;
 }

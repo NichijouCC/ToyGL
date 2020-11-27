@@ -35,6 +35,10 @@ export class Texture {
     private _gl: WebGLRenderingContext;
     private constructor(options: ItextureOptions) {
         let { context, width, height, source, pixelFormat = PixelFormatEnum.RGBA, pixelDatatype = PixelDatatypeEnum.UNSIGNED_BYTE } = options;
+        this._context = context;
+        this._textureFilterAnisotropic = context.caps.textureAnisotropicFilterExtension;
+        const gl = context.gl;
+        this._gl = gl;
         if (source != null) {
             if (width == null) {
                 width = source.videoWidth ?? source.width;
@@ -138,7 +142,7 @@ export class Texture {
         const flipY = options.flipY ?? false;
         const preMultiplyAlpha = options.preMultiplyAlpha || pixelFormat === PixelFormatEnum.RGB || pixelFormat === PixelFormatEnum.LUMINANCE;
 
-        const gl = context.gl;
+
         const target = gl.TEXTURE_2D;
         const texture = gl.createTexture();
         gl.activeTexture(gl.TEXTURE0);
@@ -265,9 +269,7 @@ export class Texture {
         this.preMultiplyAlpha = preMultiplyAlpha;
         this.flipY = flipY;
         this.initialized = initialized;
-        this._context = context;
-        this._textureFilterAnisotropic = context.caps.textureAnisotropicFilterExtension;
-        this._gl = gl;
+
     }
 
     bind(unit: number = 0) {

@@ -1,5 +1,7 @@
 import { Asset } from "./asset";
-import { AnimationChannelTargetPath } from "../primitive/clipInstance";
+import { AnimationChannelTargetPath } from "../primitive/animtion/clipInstance";
+import { UUID } from "@mtgoo/ctool";
+import { Entity } from "../../core/entity";
 
 export class AnimationClip extends Asset {
     channels: AnimationChannel[] = [];
@@ -8,7 +10,7 @@ export class AnimationClip extends Asset {
 
     constructor(name?: string) {
         super();
-        this.name = name;
+        this.name = name ?? "clip_" + UUID.create_v4();
     }
 
     destroy(): void {

@@ -1,5 +1,5 @@
 import { EventEmitter } from "@mtgoo/ctool";
-import { Vec2 } from "../mathD/vec2";
+import { vec2 } from '../mathD/index';
 
 export enum MouseKeyEnum {
     Left = "Left",
@@ -48,7 +48,7 @@ interface MyMouseEvent {
 }
 
 export class Mouse extends EventEmitter<MyMouseEvent> {
-    private _position: Vec2 = Vec2.create();
+    private _position: vec2 = vec2.create();
     get position() { return this._position; };
     private _pressed: { [key: string]: boolean } = {};
     constructor(canvas: HTMLCanvasElement) {
@@ -98,8 +98,8 @@ export class Mouse extends EventEmitter<MyMouseEvent> {
         event.pointx = ev.offsetX; // 鼠标指针相对于目标节点内边位置的X坐标
         event.pointy = ev.offsetY; // 鼠标指针相对于目标节点内边位置的Y坐标
 
-        this._position.x = ev.offsetX;
-        this._position.y = ev.offsetY;
+        this._position[0] = ev.offsetX;
+        this._position[1] = ev.offsetY;
 
         event.movementX = ev.movementX;
         event.movementY = ev.movementY;

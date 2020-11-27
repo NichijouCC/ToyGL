@@ -26,6 +26,7 @@ export class ToyGL {
         const resource = new Resource();
         const scene = new InterScene(render);
         resource.registerAssetLoader(".gltf", new LoadGlTF(device));
+        resource.registerAssetLoader(".glb", new LoadGlTF(device));
         Ecs.addSystem(new CamerSystem(scene, screen));
         Ecs.addSystem(new AnimationSystem());
         Ecs.addSystem(new ModelSystem(scene, render));

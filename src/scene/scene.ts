@@ -57,7 +57,12 @@ export class InterScene {
         this.frameState = new FrameState();
     }
 
+    private _renders: Irenderable[] = [];
     addRenderIns(render: Irenderable) {
+        this._renders.push(render);
+    }
+
+    _addRenderIns(render: Irenderable) {
         this.frameState.renders.push(render);
         return render;
     }
@@ -65,6 +70,7 @@ export class InterScene {
     prerender = new EventTarget();
     private tickRender = (state: FrameState) => {
         this.prerender.raiseEvent();
+        state.renders = state.renders.concat(this._renders);
         const { cameras } = this;
         this.render.render(Array.from(cameras.values()), state);
     }

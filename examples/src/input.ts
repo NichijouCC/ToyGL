@@ -1,33 +1,35 @@
-import { Input, ToyGL, KeyCodeEnum, MouseKeyEnum, DefaultMesh, DefaultGeometry, DefaultMaterial, Mat4, Vec3 } from "TOYGL";
+import { Input, ToyGL, KeyCodeEnum, MouseKeyEnum, DefaultMesh, DefaultGeometry, DefaultMaterial, mat4, vec3 } from "TOYGL";
 import { initToy } from "./util";
 
 const toy = initToy();
 const { scene, input } = toy;
-const ins = scene.addRenderIns({
+const ins = scene._addRenderIns({
     geometry: DefaultGeometry.cube,
     material: DefaultMaterial.color_3d,
-    worldMat: Mat4.IDENTITY
+    worldMat: mat4.create()
 });
 
-let rotDir = Vec3.randomDir();
+let rotDir = vec3.random(vec3.create());
+rotDir = vec3.normalize(rotDir, rotDir);
 setInterval(() => {
-    rotDir = Vec3.randomDir();
+    rotDir = vec3.random(vec3.create());
+    rotDir = vec3.normalize(rotDir, rotDir);
 }, 5000);
 
 scene.preupdate.addEventListener(() => {
     if (input.getKeyDown(KeyCodeEnum.A)) {
-        ins.worldMat = Mat4.translate(ins.worldMat, new Vec3(-1, 0, 0));
+        ins.worldMat = mat4.fromTranslation(ins.worldMat, vec3.fromValues(-1, 0, 0));
     }
 
     if (input.getKeyDown(KeyCodeEnum.D)) {
-        ins.worldMat = Mat4.translate(ins.worldMat, new Vec3(1, 0, 0));
+        ins.worldMat = mat4.fromTranslation(ins.worldMat, vec3.fromValues(1, 0, 0));
     }
 
     if (input.getMouseDown(MouseKeyEnum.Left)) {
-        ins.worldMat = Mat4.rotate(ins.worldMat, 0.05, rotDir);
+        ins.worldMat = mat4.fromRotation(ins.worldMat, 0.05, rotDir);
     }
 
     if (input.getKeyDown(KeyCodeEnum.R)) {
-        ins.worldMat = Mat4.IDENTITY;
+        ins.worldMat = mat4.create();
     }
 });

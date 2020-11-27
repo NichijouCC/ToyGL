@@ -1,7 +1,5 @@
-import { Vec4 } from "../../../mathD/vec4";
 import { IgltfJson } from "../loadglTF";
 import { ParseTextureNode } from "./parseTextureNode";
-import { Vec3 } from "../../../mathD/vec3";
 import { Color } from "../../../mathD/color";
 import { Material } from "../../../scene/asset/material/material";
 import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
@@ -24,7 +22,7 @@ namespace Private {
             #ifdef SKIN
             attribute vec4 skinIndex;
             attribute vec4 skinWeight;
-            uniform mat4 czm_boneMatrices[40];
+            uniform mat4 czm_boneMatrices[44];
             vec4 calcVertex(vec4 srcVertex,vec4 blendIndex,vec4 blendWeight)
             {
                 int i = int(blendIndex.x);  
@@ -81,7 +79,7 @@ export class ParseMaterialNode {
                     .then(tex => {
                         mat.setUniformParameter("MainTex", tex);
                         return mat;
-                    });
+                    })
             } else {
                 const mat = DefaultMaterial.color_3d;
                 return Promise.resolve(mat);
@@ -114,8 +112,8 @@ export class ParseMaterialNode {
             //     let nodeMR = node.pbrMetallicRoughness;
             //     if (nodeMR.baseColorFactor)
             //     {
-            //         let baseColorFactor = Vec4.create();
-            //         Vec4.copy(nodeMR.baseColorFactor, baseColorFactor);
+            //         let baseColorFactor = vec4.create();
+            //         vec4.copy(nodeMR.baseColorFactor, baseColorFactor);
             //         mat.setUniformParameter("u_BaseColorFactor", baseColorFactor);
             //     }
             //     if (nodeMR.metallicFactor != null)
@@ -166,8 +164,8 @@ export class ParseMaterialNode {
             // }
             // if (node.emissiveFactor)
             // {
-            //     let ve3 = Vec3.create();
-            //     Vec3.copy(node.emissiveFactor, ve3);
+            //     let ve3 = vec3.create();
+            //     vec3.copy(node.emissiveFactor, ve3);
             //     mat.setUniformParameter("u_EmissiveFactor", ve3);
             // }
             // if (node.occlusionTexture)

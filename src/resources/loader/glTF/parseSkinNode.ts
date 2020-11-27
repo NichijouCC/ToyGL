@@ -3,7 +3,6 @@ import { IgltfJson } from "../loadglTF";
 import { ParseAccessorNode, Accessor } from "./parseAccessorNode";
 import { GlTF } from "./util";
 import { Entity } from "../../../core/entity";
-import { Mat4 } from "../../../mathD/mat4";
 
 export class ParseSkinNode {
     static parse(index: number, nodeName: string, root: Entity, gltf: IgltfJson): Promise<Skin> {
@@ -17,7 +16,7 @@ export class ParseSkinNode {
         return ParseAccessorNode.parse(skinData.inverseBindMatrices, gltf)
             .then((res) => {
                 // skin.inverseBindMatrices = skinData.joints.map((item, index) => {
-                //     let boneMat = Mat4.fromArray(res.typedArray as any, index);
+                //     let boneMat = mat4.fromArray(res.typedArray as any, index);
                 //     if (boneMat == null) {
                 //         console.error("cannot get bone inverse mat data!");
                 //     }

@@ -1,6 +1,6 @@
 import { Iskin } from "../asset/geometry/skinMesh";
 import { Entity } from "../../core/entity";
-import { Mat4 } from "../../mathD/mat4";
+import { mat4 } from "../../mathD";
 import { MemoryTexture } from "../asset/texture/memoryTexture";
 import { GraphicsDevice } from "../../webgl/graphicsDevice";
 import { CeilingPOT, ceilPowerOfTwo } from "../../mathD/common";
@@ -11,16 +11,16 @@ import { UniformState } from "../uniformState";
 import { FrameState } from "../frameState";
 
 namespace Private {
-    export const offsetMatrix: Mat4 = Mat4.create();
+    export const offsetMatrix: mat4 = mat4.create();
 }
 
 export class SkinInstance {
     private skin: Skin;
     private bones: Entity[] = [];
     private rootBone: Entity;
-    private _boneInverses!: Mat4[];
+    private _boneInverses!: mat4[];
     private _boneMatrices!: Float32Array;
-    private _boneMatricesViews: Mat4[] = [];
+    private _boneMatricesViews: mat4[] = [];
     private _boneTexture: MemoryTexture;
     private attachEntity: Entity;
 
@@ -94,10 +94,10 @@ export class SkinInstance {
         const mat = rootBone.worldTolocalMatrix;
         if (frameState.dirtyNode.has(rootBone)) { // root dirty 全部重新计算
             for (let i = 0; i < bones.length; i++) {
-                const matrix = bones[i] ? bones[i].worldMatrix : Mat4.IDENTITY;
-                Mat4.multiply(matrix, this._boneInverses[i], offsetMatrix);
-                Mat4.multiply(mat, offsetMatrix, offsetMatrix);
-                Mat4.toArray(offsetMatrix, this._boneMatrices, i * 16);
+                const matrix = bones[i] ? bones[i].worldMatrix : mat4.IDENTITY;
+                mat4.multiply(offsetMatrix, matrix, this._boneInverses[i]);
+                mat4.multiply(offsetMatrix, mat, offsetMatrix);
+                mat4.toArray(this._boneMatrices, offsetMatrix, i * 16);
             }
             if (this._boneTexture) {
                 this._boneTexture.markDirty();
@@ -107,10 +107,10 @@ export class SkinInstance {
             for (let i = 0; i < bones.length; i++) {
                 if (frameState.dirtyNode.has(bones[i])) {
                     beNeedUpdate = true;
-                    const matrix = bones[i] ? bones[i].worldMatrix : Mat4.IDENTITY;
-                    Mat4.multiply(matrix, this._boneInverses[i], offsetMatrix);
-                    Mat4.multiply(mat, offsetMatrix, offsetMatrix);
-                    Mat4.toArray(offsetMatrix, this._boneMatrices, i * 16);
+                    const matrix = bones[i] ? bones[i].worldMatrix : mat4.IDENTITY;
+                    mat4.multiply(offsetMatrix, matrix, this._boneInverses[i]);
+                    mat4.multiply(offsetMatrix, mat, offsetMatrix);
+                    mat4.toArray(this._boneMatrices, offsetMatrix, i * 16);
                 }
             }
             if (beNeedUpdate && this._boneTexture) {
@@ -123,4 +123,9 @@ export class SkinInstance {
     }
 
     destroy() { }
+}
+
+
+function saveBoneMatrixToArray(mat: mat4, array: Float32Array) {
+
 }

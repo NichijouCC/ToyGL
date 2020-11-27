@@ -33,9 +33,9 @@ namespace Private {
 }
 
 export class DefaultMaterial {
-    static get color_2d() { return Private.color_2d; };
-    static get color_3d() { return Private.color_3d; };
-    static get tex_2d() { return Private.tex_2d; };
-    static get tex_3d() { return Private.tex_3d; };
-    static get unlit_3d() { return Private.unlit_3d; };
+    static get color_2d() { return Private.color_2d.clone(); };
+    static get color_3d() { return Private.color_3d.clone(); };
+    static get tex_2d() { return Private.tex_2d.clone(); };
+    static get tex_3d() { return Private.tex_3d.clone(); };
+    static get unlit_3d() { return Private.unlit_3d.clone(); };
 }

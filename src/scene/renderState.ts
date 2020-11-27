@@ -31,15 +31,15 @@ export class RenderState {
         blendDstAlpha: BlendParamEnum,
         blendAlphaEquation: BlendEquationEnum,
     } = {
-        enabled: false,
-        blendSrc: BlendParamEnum.SRC_ALPHA,
-        blendDst: BlendParamEnum.ONE,
-        blendEquation: BlendEquationEnum.FUNC_ADD,
-        enableSeparateBlend: false,
-        blendSrcAlpha: BlendParamEnum.SRC_ALPHA,
-        blendDstAlpha: BlendParamEnum.ONE,
-        blendAlphaEquation: BlendEquationEnum.FUNC_ADD
-    };
+            enabled: false,
+            blendSrc: BlendParamEnum.SRC_ALPHA,
+            blendDst: BlendParamEnum.ONE,
+            blendEquation: BlendEquationEnum.FUNC_ADD,
+            enableSeparateBlend: false,
+            blendSrcAlpha: BlendParamEnum.SRC_ALPHA,
+            blendDstAlpha: BlendParamEnum.ONE,
+            blendAlphaEquation: BlendEquationEnum.FUNC_ADD
+        };
 
     stencilTest: {
         enabled: boolean,
@@ -58,34 +58,33 @@ export class RenderState {
         stencilPassZfailBack: number,
         stencilFaileZpassBack: number,
     } = {
-        enabled: false,
-        stencilFunction: StencilFuncEnum.ALWAYS,
-        stencilRefValue: 1,
-        stencilMask: 0xff,
-        stencilFail: GlConstants.KEEP,
-        stencilPassZfail: GlConstants.REPLACE,
-        stencilFaileZpass: GlConstants.KEEP,
+            enabled: false,
+            stencilFunction: StencilFuncEnum.ALWAYS,
+            stencilRefValue: 1,
+            stencilMask: 0xff,
+            stencilFail: GlConstants.KEEP,
+            stencilPassZfail: GlConstants.REPLACE,
+            stencilFaileZpass: GlConstants.KEEP,
 
-        enableSeparateStencil: false,
-        stencilFunctionBack: StencilFuncEnum.ALWAYS,
-        stencilRefValueBack: 1,
-        stencilMaskBack: 0xff,
-        stencilFailBack: GlConstants.KEEP,
-        stencilPassZfailBack: GlConstants.REPLACE,
-        stencilFaileZpassBack: GlConstants.KEEP
-    };
+            enableSeparateStencil: false,
+            stencilFunctionBack: StencilFuncEnum.ALWAYS,
+            stencilRefValueBack: 1,
+            stencilMaskBack: 0xff,
+            stencilFailBack: GlConstants.KEEP,
+            stencilPassZfailBack: GlConstants.REPLACE,
+            stencilFaileZpassBack: GlConstants.KEEP
+        };
 
     scissorTest: {
         enabled: boolean,
         rectangle: Rect,
     } = {
-        enabled: false,
-        rectangle: Rect.create()
-    }
+            enabled: false,
+            rectangle: Rect.create()
+        }
 }
 
-export enum DepthFuncEnum
-{
+export enum DepthFuncEnum {
     NEVER = GlConstants.NEVER,
     LESS = GlConstants.LESS,
     EQUAL = GlConstants.EQUAL,
@@ -95,8 +94,7 @@ export enum DepthFuncEnum
     GEQUAL = GlConstants.GEQUAL,
     ALWAYS = GlConstants.ALWAYS,
 }
-export enum BlendEquationEnum
-{
+export enum BlendEquationEnum {
     /**
      * 源+目的地
      */
@@ -111,15 +109,13 @@ export enum BlendEquationEnum
     FUNC_REVERSE_SUBTRACT = GlConstants.FUNC_REVERSE_SUBTRACT,
 }
 
-export enum BlendParamEnum
-{
+export enum BlendParamEnum {
     ONE = GlConstants.ONE,
     SRC_ALPHA = GlConstants.SRC_ALPHA,
     ONE_MINUS_SRC_ALPHA = GlConstants.ONE_MINUS_SRC_ALPHA,
 }
 
-export enum StencilFuncEnum
-{
+export enum StencilFuncEnum {
     /**
      * Never pass
      */
@@ -154,8 +150,7 @@ export enum StencilFuncEnum
     ALWAYS = GlConstants.ALWAYS,
 }
 
-export enum StencilOperationEnum
-{
+export enum StencilOperationEnum {
     KEEP = GlConstants.KEEP,
     REPLACE = GlConstants.REPLACE,
 }

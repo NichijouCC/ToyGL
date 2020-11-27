@@ -20,26 +20,28 @@ namespace Private {
     };
 
     export const sortTypeInfo: { [type: string]: IsortInfo } = {}; {
-    sortTypeInfo[SortTypeEnum.MatLayerIndex] = { sortFunc: sortByMatLayerIndex };
-    sortTypeInfo[SortTypeEnum.ShaderId] = { sortFunc: sortByMatSortId };
-    sortTypeInfo[SortTypeEnum.Zdist_FrontToBack] = {
-        sortFunc: sortByZdist_FrontToBack,
-        beforeSort: (ins: Irenderable[], cam: Camera) => {
-            const camPos = cam.worldPos;
-            const camFwd = cam.forwardInword;
-            let i, drawCall, meshPos;
-            let tempx, tempy, tempz;
-            for (i = 0; i < ins.length; i++) {
-                drawCall = ins[i];
-                meshPos = drawCall.bounding.center;
-                tempx = meshPos.x - camPos.x;
-                tempy = meshPos.y - camPos.y;
-                tempz = meshPos.z - camPos.z;
-                drawCall.zdist = tempx * camFwd.x + tempy * camFwd.y + tempz * camFwd.z;
+        sortTypeInfo[SortTypeEnum.MatLayerIndex] = { sortFunc: sortByMatLayerIndex };
+        sortTypeInfo[SortTypeEnum.ShaderId] = { sortFunc: sortByMatSortId };
+        sortTypeInfo[SortTypeEnum.Zdist_FrontToBack] = {
+            sortFunc: sortByZdist_FrontToBack,
+            beforeSort: (ins: Irenderable[], cam: Camera) => {
+                const camPos = cam.worldPos;
+                const camFwd = cam.forwardInword;
+                let i, drawCall, meshPos;
+                let tempx, tempy, tempz;
+                for (i = 0; i < ins.length; i++) {
+                    drawCall = ins[i];
+                    meshPos = drawCall.bounding.center;
+                    tempx = meshPos[0] - camPos[0];
+                    tempy = meshPos[1] - camPos[1];
+                    tempz = meshPos[2] - camPos[2];
+
+
+                    drawCall.zdist = tempx * camFwd[0] + tempy * camFwd[1] + tempz * camFwd[2];
+                }
             }
-        }
-    };
-}
+        };
+    }
 
     export interface IsortInfo {
         sortFunc: (drawa: Irenderable, drawb: Irenderable) => number,

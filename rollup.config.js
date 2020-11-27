@@ -4,6 +4,7 @@ import sourceMaps from "rollup-plugin-sourcemaps";
 // import camelCase from 'lodash.camelcase'
 import typescript from "rollup-plugin-typescript2";
 import json from "rollup-plugin-json";
+import glslify from 'rollup-plugin-glslify';
 
 const pkg = require("./package.json");
 
@@ -21,12 +22,15 @@ export default {
         include: "src/**"
     },
     plugins: [
+        glslify(),
         // Allow json resolution
         json(),
         // Compile TypeScript files
-        typescript({ tsconfig: "src/tsconfig.json", useTsconfigDeclarationDir: true }),
+        typescript({ tsconfig: "./tsconfig.json", useTsconfigDeclarationDir: true }),
         // Allow bundling cjs modules (unlike webpack, rollup doesn't understand cjs)
-        commonjs(),
+        commonjs({
+            esmExternals: true
+        }),
         // Allow node_modules resolution, so you can use 'external' to control
         // which external modules to include in the bundle
         // https://github.com/rollup/rollup-plugin-node-resolve#usage

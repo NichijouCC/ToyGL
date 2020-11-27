@@ -1,10 +1,11 @@
 import { Rect } from "../mathD/rect";
 import { Color } from "../mathD/color";
-import { Mat4 } from "../mathD/mat4";
 import { Frustum } from "./frustum";
 import { Transform } from "../core/transform";
-import { Vec3 } from "../mathD/vec3";
 import { UniqueObject } from "../core/uniqueObject";
+
+import { vec3, mat4 } from '../mathD';
+import { Entity } from "../core/entity";
 
 export enum ProjectionEnum {
     PERSPECTIVE,
@@ -79,41 +80,31 @@ export class Camera extends UniqueObject {
     /**
      * 计算相机投影矩阵
      */
-    private _Projectmatrix: Mat4 = Mat4.create();
-    get projectMatrix(): Mat4 {
+    private _Projectmatrix: mat4 = mat4.create();
+    get projectMatrix(): mat4 {
         if (this.projectMatBedirty) {
             if (this._projectionType == ProjectionEnum.PERSPECTIVE) {
-                Mat4.projectPerspectiveLH(
-                    this._fov,
-                    (this._aspect * this._viewport.width) / this._viewport.height,
-                    this.near,
-                    this.far,
-                    this._Projectmatrix
-                );
+                mat4.perspective(this._Projectmatrix, this._fov, (this._aspect * this._viewport.width) / this._viewport.height, this.near, this.far);
             } else {
-                Mat4.projectOrthoLH(
-                    (this._size * (this._aspect * this._viewport.width)) / this._viewport.height,
-                    this._size,
-                    this.near,
-                    this.far,
-                    this._Projectmatrix
-                );
+                let width = 0.5 * (this._size * (this._aspect * this._viewport.width)) / this._viewport.height;
+                let height = 0.5 * this._size;
+                mat4.ortho(this._Projectmatrix, -width, width, -height, height, this.near, this.far)
             }
             this.projectMatBedirty = false;
         }
         return this._Projectmatrix;
     }
 
-    private _viewProjectMatrix: Mat4 = Mat4.create();
-    get viewProjectMatrix(): Mat4 {
-        Mat4.multiply(this.projectMatrix, this.viewMatrix, this._viewProjectMatrix);
+    private _viewProjectMatrix: mat4 = mat4.create();
+    get viewProjectMatrix(): mat4 {
+        mat4.multiply(this._viewProjectMatrix, this.projectMatrix, this.viewMatrix);
         return this._viewProjectMatrix;
     }
 
-    private _viewMatrix: Mat4 = Mat4.create();
-    get viewMatrix(): Mat4 {
+    private _viewMatrix: mat4 = mat4.create();
+    get viewMatrix(): mat4 {
         const camworld = this.node.worldMatrix;
-        Mat4.invert(camworld, this._viewMatrix);
+        mat4.invert(this._viewMatrix, camworld);
         return this._viewMatrix;
     }
 
@@ -128,7 +119,7 @@ export class Camera extends UniqueObject {
     get worldPos() { return this.node.worldPosition; }
     get worldMatrix() { return this.node.worldMatrix; }
 
-    private _forward: Vec3 = Vec3.create();
+    private _forward: vec3 = vec3.create();
     get forwardInword() {
         return this.node.getForwardInWorld(this._forward);
     }
@@ -151,6 +142,14 @@ export class Camera extends UniqueObject {
             get: () => { return this._viewport[3]; },
             set: (value: number) => { this._viewport[3] = value; this.projectMatBedirty = true; }
         });
+    }
+
+    lookAtPoint(point: vec3) {
+        this.node?.lookAtPoint(point);
+    }
+
+    lookAt(node: Entity) {
+        this.node?.lookAt(node);
     }
 }
 

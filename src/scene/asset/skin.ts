@@ -1,8 +1,8 @@
 import { Asset } from "./asset";
-import { Mat4 } from "../../mathD/mat4";
+import { mat4 } from "../../mathD";
 
 export class Skin extends Asset {
-    inverseBindMatrices!: Mat4[];
+    inverseBindMatrices!: mat4[];
     boneNames!: string[];
     rootBoneName!: string;
     potentialSearchRoot?: string;

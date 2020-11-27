@@ -104,7 +104,6 @@ export class ForwardRender {
         // ------------------------render per camera
         for (let k = 0; k < cameras.length; k++) {
             cam = cameras[k];
-            this.setCamera(cam);
             layercomps = this.camerRenderLayers.get(cam);
             layercomps.getlayers().forEach(layer => {
                 if (layer.insCount == 0) return;
@@ -115,6 +114,7 @@ export class ForwardRender {
     }
 
     private renderList(cam: Camera, renderInsArr: Irenderable[], frameState: FrameState) {
+        this.setCamera(cam);
         let renderItem: Irenderable, material: Material, uniforms, renderState, vertexArray, shaderIns: ShaderProgram, uniformValue;
         for (let i = 0; i < renderInsArr.length; i++) {
             renderItem = renderInsArr[i];

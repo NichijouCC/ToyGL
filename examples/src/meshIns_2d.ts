@@ -1,4 +1,4 @@
-import { ToyGL, Material, DefaultGeometry, DefaultTexture, Color, VertexAttEnum, Texture2D, Camera, MeshInstance, Quat, TextureAsset } from "TOYGL";
+import { ToyGL, Material, DefaultGeometry, DefaultTexture, Color, VertexAttEnum, Texture2D, Camera, MeshInstance, quat, TextureAsset } from "TOYGL";
 import { initToy } from "./util";
 
 const toy = initToy();
@@ -43,17 +43,17 @@ const ins = MeshInstance.create({
     material,
     node: scene.addNewChild()
 })
-toy.scene.addRenderIns(ins);
+toy.scene._addRenderIns(ins);
 
 let cam = toy.scene.addNewCamera();
-cam.node.localPosition.z = 5;
+cam.node.localPosition[2] = 5;
 
 let roty = 0;
 let totalTime = 0;
 toy.scene.preupdate.addEventListener((delta) => {
     roty += delta * 15;
     totalTime += delta;
-    Quat.FromEuler(0, roty, 0, ins.node.localRotation);
+    ins.node.localRotation = quat.fromEuler(ins.node.localRotation, 0, roty, 0);
     material.setUniformParameter("timer", totalTime);
 });
 

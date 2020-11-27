@@ -1,5 +1,5 @@
 import { Plane } from "./plane";
-import { Mat4 } from "../mathD/mat4";
+import { mat4 } from '../mathD';
 import { BoundingSphere } from "./bounds";
 
 export class Frustum {
@@ -30,7 +30,7 @@ export class Frustum {
         this.planes[5].copy(p5);
     }
 
-    setFromMatrix(me: Mat4): Frustum {
+    setFromMatrix(me: mat4): Frustum {
         const planes = this.planes;
         const me0 = me[0];
         const me1 = me[1];
@@ -64,7 +64,7 @@ export class Frustum {
      * @param sphere 包围球
      * @param mat 用于变换包围球
      */
-    containSphere(sphere: BoundingSphere, mat: Mat4 = null): boolean {
+    containSphere(sphere: BoundingSphere, mat: mat4 = null): boolean {
         const planes = this.planes;
         if (mat != null) {
             const clonesphere = sphere.clone();

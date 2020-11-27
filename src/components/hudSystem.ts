@@ -2,11 +2,10 @@ import { BassCompSystem } from "./bassCompSystem";
 import { Hud } from "./hud";
 import { InterScene } from "../scene/scene";
 import { DefaultGeometry, DefaultMaterial } from "../resources/index";
-import { Mat4 } from "../mathD/mat4";
-import { Quat } from "../mathD/quat";
+import { mat4, quat, vec3 } from '../mathD';
 import { TextureAsset } from "../scene/index";
-import { Vec3 } from "../mathD/vec3";
 import { TextureFilterEnum, TextureWrapEnum } from "../webgl/index";
+
 
 export class HudSystem extends BassCompSystem<Hud> {
     careCompCtors: (new () => Hud)[] = [Hud];
@@ -34,7 +33,7 @@ export class HudSystem extends BassCompSystem<Hud> {
 
     update(deltaTime: number) {
         const { mainCamera } = this._scene;
-        const rot = Mat4.getRotation(mainCamera.worldMatrix, new Quat());
+        const rot = mat4.getRotation(quat.create(), mainCamera.worldMatrix);
 
         this.comps.forEach(([hud]) => {
             let { commond, rect, entity, _mat, _text2d } = hud;
@@ -64,13 +63,13 @@ export class HudSystem extends BassCompSystem<Hud> {
                     _mat.renderState.blend.enabled = true;
                 }
                 _mat.setUniformParameter("MainTex", _text2d);
-                hud.entity.localScale = Vec3.clone(hud.size);
+                hud.entity.localScale = vec3.clone(hud.size);
             }
             if (_mat && _text2d) {
-                this._scene.addRenderIns({
+                this._scene._addRenderIns({
                     geometry: DefaultGeometry.quad,
                     material: _mat,
-                    worldMat: Mat4.RTS(entity.worldPosition, entity.worldScale, rot, new Mat4())
+                    worldMat: mat4.fromRotationTranslationScale(mat4.create(), rot, entity.worldPosition, entity.worldScale)
                 });
             }
         });

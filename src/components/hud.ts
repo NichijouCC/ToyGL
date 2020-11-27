@@ -2,14 +2,14 @@ import { Icomponent, Ecs } from "../core/ecs";
 import { Entity } from "../core/entity";
 import { Rect } from "../mathD/rect";
 import { Material, Texture2D } from "../scene/Index";
-import { Vec3 } from "../mathD/vec3";
+import { vec3 } from '../mathD/index';
 
 @Ecs.registeComp
 export class Hud implements Icomponent {
     entity: Entity;
     private _rect: Rect = new Rect(0, 0, 1, 1);
     private _command: (context: CanvasRenderingContext2D) => void;
-    private _size: Vec3 = new Vec3();
+    private _size: vec3 = vec3.create();
 
     get rect() { return this._rect; }
     get commond() { return this._command; }
@@ -23,6 +23,6 @@ export class Hud implements Icomponent {
         this._contentDirty = true;
         this._rect = rect;
         this._command = command;
-        this._size = new Vec3(width3d, width3d * rect.height / rect.width, 1.0);
+        this._size = vec3.fromValues(width3d, width3d * rect.height / rect.width, 1.0);
     }
 }

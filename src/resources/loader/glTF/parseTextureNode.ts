@@ -1,9 +1,8 @@
 import { loadImg } from "../../../io/loadtool";
-import { LoadTextureSample } from "../loadTexture";
 import { ParseBufferViewNode } from "./parseBufferViewNode";
 import { IgltfJson } from "../loadglTF";
 import { Texture2D } from "../../../scene/asset/texture/texture2d";
-import { Primitive } from "../../../scene/primitive/Primitive";
+import { retryFn } from "@mtgoo/ctool";
 
 export class ParseTextureNode {
     static parse(index: number, gltf: IgltfJson): Promise<Texture2D | null> {
@@ -18,26 +17,31 @@ export class ParseTextureNode {
             if (imageNode.uri != null) {
                 const imagUrl = gltf.rootURL + "/" + imageNode.uri;
 
-                const task = loadImg(imagUrl).then(img => {
-                    const texOp = {} as any;
-                    if (node.sampler != null) {
-                        const samplerinfo = gltf.samplers[node.sampler];
-                        if (samplerinfo.wrapS != null) {
-                            texOp.wrapS = samplerinfo.wrapS;
+                const task = loadImg(imagUrl)
+                    .then(img => {
+                        const texOp = {} as any;
+                        if (node.sampler != null) {
+                            const samplerinfo = gltf.samplers[node.sampler];
+                            if (samplerinfo.wrapS != null) {
+                                texOp.wrapS = samplerinfo.wrapS;
+                            }
+                            if (samplerinfo.wrapT) {
+                                texOp.wrapT = samplerinfo.wrapT;
+                            }
+                            if (samplerinfo.magFilter) {
+                                texOp.filterMax = samplerinfo.magFilter;
+                            }
+                            if (samplerinfo.minFilter) {
+                                texOp.filterMin = samplerinfo.minFilter;
+                            }
                         }
-                        if (samplerinfo.wrapT) {
-                            texOp.wrapT = samplerinfo.wrapT;
-                        }
-                        if (samplerinfo.magFilter) {
-                            texOp.filterMax = samplerinfo.magFilter;
-                        }
-                        if (samplerinfo.minFilter) {
-                            texOp.filterMin = samplerinfo.minFilter;
-                        }
-                    }
-                    const texture: Texture2D = new Texture2D({ image: img });
-                    return texture;
-                });
+                        const texture: Texture2D = new Texture2D({ image: img });
+                        return texture;
+                    })
+                    .catch(err => {
+                        console.error("ParseTextureNode->img error", err);
+                        return Promise.reject(err);
+                    })
                 gltf.cache.textrueNodeCache[index] = task;
                 return task;
             } else {
@@ -64,6 +68,7 @@ export class ParseTextureNode {
                             var blob = new Blob([viewnode.viewBuffer], { type: imageNode.mimeType });
                             var imageUrl = window.URL.createObjectURL(blob);
                             const img: HTMLImageElement = new Image();
+                            img.crossOrigin = "";
                             img.src = imageUrl;
                             img.onerror = error => {
                                 reject(error);
@@ -76,7 +81,11 @@ export class ParseTextureNode {
                             const texture = new Texture2D({ image: img });
                             return texture;
                         });
-                    });
+                    })
+                    .catch(err => {
+                        console.error("ParseTextureNode->bufferView error", err);
+                        return Promise.reject(err);
+                    })
                 gltf.cache.textrueNodeCache[index] = task;
                 return task;
             }

@@ -38,7 +38,11 @@ export class ParseMeshNode {
                     dataArr.push(data);
                 }
             }
-            const task = Promise.all(dataArr);
+            const task = Promise.all(dataArr)
+                .catch(err => {
+                    console.error("ParseMeshNode error", err);
+                    return Promise.reject(err);
+                });
             gltf.cache.meshNodeCache[index] = task;
             return task;
         }
@@ -106,6 +110,9 @@ export class ParseMeshNode {
                 const mesh = new SubMesh();
                 mesh.vertexArray = new VertexArray(vaoOptions);
                 return mesh;
-            });
+            }).catch(err => {
+                console.error("ParseMeshNode->parseMesh error", err);
+                return Promise.reject(err);
+            })
     }
 }

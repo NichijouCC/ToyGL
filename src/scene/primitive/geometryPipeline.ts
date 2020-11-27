@@ -1,12 +1,12 @@
 import { GeometryInstance } from "./geometryInstance";
-import { Mat4 } from "../../mathD/mat4";
+import { mat4 } from "../../mathD";
 import { VertexAttEnum } from "../../webgl/vertexAttEnum";
 import { Geometry } from "../asset/geometry/geometry";
 import { TypedArray } from "../../core/typedArray";
 
 export class GeometryPipeline {
-    static transformToWorldCoordinates(instance: GeometryInstance, modelMatrix: Mat4) {
-        if (Mat4.equals(modelMatrix, Mat4.IDENTITY)) {
+    static transformToWorldCoordinates(instance: GeometryInstance, modelMatrix: mat4) {
+        if (mat4.equals(modelMatrix, mat4.IDENTITY)) {
             return instance;
         }
         const attributes = instance.geometry.attributes;
@@ -31,7 +31,7 @@ export class GeometryPipeline {
     }
 }
 
-function transformPoint(mat: Mat4, valueArray: TypedArray) {
+function transformPoint(mat: mat4, valueArray: TypedArray) {
     for (let i = 0; i < valueArray.length; i += 3) {
         // ------------------------- mat4.transfomPoint
 
@@ -46,7 +46,7 @@ function transformPoint(mat: Mat4, valueArray: TypedArray) {
     }
 }
 
-function transformVector(mat: Mat4, valueArray: TypedArray) {
+function transformVector(mat: mat4, valueArray: TypedArray) {
     for (let i = 0; i < valueArray.length; i += 3) {
         // ------------------------- mat4.transformVector
 

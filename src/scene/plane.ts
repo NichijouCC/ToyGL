@@ -1,16 +1,16 @@
-import { Vec3 } from "../mathD/vec3";
+import { vec3 } from 'gl-matrix';
 
 export class Plane {
     // ax+by+cz+d=0;
-    normal: Vec3 = Vec3.create(0, 1, 0);
+    normal: vec3 = vec3.fromValues(0, 1, 0);
     constant: number = 0;
 
-    distanceToPoint(point: Vec3): number {
-        return Vec3.dot(point, this.normal) + this.constant;
+    distanceToPoint(point: vec3): number {
+        return vec3.dot(point, this.normal) + this.constant;
     }
 
     copy(to: Plane) {
-        Vec3.copy(this.normal, to.normal);
+        vec3.copy(to.normal, this.normal);
         to.constant = this.constant;
     }
 
@@ -18,8 +18,8 @@ export class Plane {
         this.normal[0] = nx;
         this.normal[1] = ny;
         this.normal[2] = nz;
-        const inverseNormalLength = 1.0 / Vec3.magnitude(this.normal);
-        Vec3.scale(this.normal, inverseNormalLength, this.normal);
+        const inverseNormalLength = 1.0 / vec3.len(this.normal);
+        vec3.scale(this.normal, this.normal, inverseNormalLength);
         this.constant = ds * inverseNormalLength;
     }
 }

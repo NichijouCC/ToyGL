@@ -2,7 +2,7 @@ import { VertexAttEnum } from "../../webgl/vertexAttEnum";
 import { Geometry } from "../../scene/asset/geometry/geometry";
 
 export namespace Private {
-    export const plan = new Geometry({
+    export const plan = () => new Geometry({
         attributes: [
             {
                 type: VertexAttEnum.POSITION,
@@ -38,7 +38,7 @@ export namespace Private {
         indices: [0, 1, 2, 0, 2, 3]
     });
 
-    export const quad = new Geometry({
+    export const quad = () => new Geometry({
         attributes: [
             {
                 type: VertexAttEnum.POSITION,
@@ -74,7 +74,7 @@ export namespace Private {
         indices: [0, 1, 2, 0, 2, 3]
     });
 
-    export const quad2d = new Geometry({
+    export const quad2d = () => new Geometry({
         attributes: [
             {
                 type: VertexAttEnum.POSITION,
@@ -103,7 +103,7 @@ export namespace Private {
         ]
     });
 
-    export const cube = new Geometry({
+    export const cube = () => new Geometry({
         attributes: [
             {
                 type: VertexAttEnum.POSITION,
@@ -236,9 +236,36 @@ export namespace Private {
 }
 
 export class DefaultGeometry {
-    // static get ins() { return new DefaultGeometry() }
-    static get quad2d() { return Private.quad2d; }
-    static get quad() { return Private.quad; }
-    static get cube() { return Private.cube; }
-    static get plan() { return Private.plan; }
+
+    private static _quad2d: Geometry;
+    static get quad2d() {
+        if (this._quad2d == null) {
+            this._quad2d = Private.quad2d();
+        }
+        return this._quad2d;
+    }
+
+    private static _quad: Geometry;
+    static get quad() {
+        if (this._quad == null) {
+            this._quad = Private.quad();
+        }
+        return this._quad;
+    }
+
+    private static _cube: Geometry;
+    static get cube() {
+        if (this._cube == null) {
+            this._cube = Private.cube();
+        }
+        return this._cube;
+    }
+
+    private static _plan: Geometry;
+    static get plan() {
+        if (this._plan == null) {
+            this._plan = Private.plan();
+        }
+        return this._plan;
+    }
 }

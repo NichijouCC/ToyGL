@@ -1,6 +1,6 @@
 import { Light } from "./light";
-import { Vec3 } from "../../mathD/vec3";
+import { vec3 } from "../../mathD";
 
 export class DirectionLight extends Light {
-    direction: Vec3 = Vec3.create();
+    direction: vec3 = vec3.create();
 }

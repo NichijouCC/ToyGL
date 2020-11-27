@@ -1,48 +1,50 @@
 import { Rect } from "../mathD/rect";
-import { Mat4 } from "../mathD/mat4";
+import { mat4 } from '../mathD';
 import { Texture2D } from "./asset/texture/texture2d";
 import { Camera } from "./camera";
 import { Light } from "./light/light";
 import { MemoryTexture } from "./asset/texture/memoryTexture";
 
+
+
 export class UniformState {
     viewPortPixel: Rect = new Rect(0, 0, 0, 0); // 像素的viewport
     // campos: vec3;
 
-    matrixModel: Mat4;
-    private _matrixNormalToworld: Mat4 = Mat4.create();
-    get matrixNormalToworld(): Mat4 {
-        Mat4.invert(this.matrixModel, this._matrixNormalToworld);
-        Mat4.transpose(this._matrixNormalToworld, this._matrixNormalToworld);
+    matrixModel: mat4;
+    private _matrixNormalToworld: mat4 = mat4.create();
+    get matrixNormalToworld(): mat4 {
+        mat4.invert(this._matrixNormalToworld, this.matrixModel);
+        mat4.transpose(this._matrixNormalToworld, this._matrixNormalToworld);
         return this._matrixNormalToworld;
     }
 
-    private _matrixNormalToView: Mat4 = Mat4.create();
-    get matrixNormalToView(): Mat4 {
-        Mat4.invert(this.matrixModelView, this._matrixNormalToView);
-        Mat4.transpose(this._matrixNormalToView, this._matrixNormalToView);
+    private _matrixNormalToView: mat4 = mat4.create();
+    get matrixNormalToView(): mat4 {
+        mat4.invert(this._matrixNormalToView, this.matrixModelView);
+        mat4.transpose(this._matrixNormalToView, this._matrixNormalToView);
         return this._matrixNormalToView;
     }
 
-    private _matrixMV: Mat4 = Mat4.create();
-    get matrixModelView(): Mat4 {
-        return Mat4.multiply(this.curCamera.viewMatrix, this.matrixModel, this._matrixMV);
+    private _matrixMV: mat4 = mat4.create();
+    get matrixModelView(): mat4 {
+        return mat4.multiply(this._matrixMV, this.curCamera.viewMatrix, this.matrixModel);
     }
 
-    private _matMVP: Mat4 = Mat4.create();
-    get matrixModelViewProject(): Mat4 {
-        return Mat4.multiply(this.curCamera.viewProjectMatrix, this.matrixModel, this._matMVP);
+    private _matMVP: mat4 = mat4.create();
+    get matrixModelViewProject(): mat4 {
+        return mat4.multiply(this._matMVP, this.curCamera.viewProjectMatrix, this.matrixModel,);
     }
 
-    get matrixView(): Mat4 {
+    get matrixView(): mat4 {
         return this.curCamera.viewMatrix;
     }
 
-    get matrixProject(): Mat4 {
+    get matrixProject(): mat4 {
         return this.curCamera.projectMatrix;
     }
 
-    get matrixViewProject(): Mat4 {
+    get matrixViewProject(): mat4 {
         return this.curCamera.viewProjectMatrix;
     }
 

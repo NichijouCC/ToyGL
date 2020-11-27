@@ -1,6 +1,6 @@
 import { GeometryInstance } from "./geometryInstance";
 import { Geometry } from "../asset/geometry/geometry";
-import { Mat4 } from "../../mathD/mat4";
+import { mat4 } from "../../mathD";
 import { VertexArray } from "../../webgl/vertextArray";
 import { Irenderable } from "../render/irenderable";
 
@@ -94,7 +94,7 @@ export class Primitive {
         this._appearance = value;
     }
 
-    modelMatrix: Mat4;
+    modelMatrix: mat4;
 
     show: boolean;
     interleave: boolean;
@@ -105,7 +105,7 @@ export class Primitive {
     constructor(option: Primitive) {
         this.geometryInstances = option.geometryInstances;
         this.appearance = option.appearance;
-        this.modelMatrix = option.modelMatrix || Mat4.identity();
+        this.modelMatrix = option.modelMatrix || mat4.create();
         this.show = option.show ?? true;
         this.interleave = option.interleave ?? false;
         this.vertexCacheOptimize = option.vertexCacheOptimize ?? false;
@@ -158,7 +158,7 @@ function batchPrimitive(primitive: Primitive) {
 export interface IprimitiveOption {
     geometryInstances: GeometryInstance | GeometryInstance[];
     appearance?: any;
-    modelMatrix?: Mat4;
+    modelMatrix?: mat4;
 
     show?: boolean;
     interleave?: boolean;

@@ -31,7 +31,7 @@ export interface IgltfBufferview {
 export class GltfNodeCache {
     meshNodeCache: { [index: number]: Promise<IgltfPrimitive[]> } = {};
     bufferviewNodeCache: { [index: number]: Promise<IgltfBufferview> } = {};
-    bufferNodeCache: { [index: number]: Promise<ArrayBuffer> } = {};
+    bufferNodeCache: { [index: number]: Promise<Uint8Array> } = {};
     materialNodeCache: { [index: number]: Promise<Material> } = {};
     textrueNodeCache: { [index: number]: Promise<Texture2D> } = {};
     vertexBufferCache: { [index: number]: VertexBuffer } = {};
@@ -103,7 +103,7 @@ export class LoadGlTF implements IassetLoader {
                     gltfJson.rootURL = getAssetDirectory(url);
 
                     for (let i = 0; i < value.chunkbin.length; i++) {
-                        gltfJson.cache.bufferNodeCache[i] = Promise.resolve(value.chunkbin[i].buffer);
+                        gltfJson.cache.bufferNodeCache[i] = Promise.resolve(value.chunkbin[i]);
                     }
                     return gltfJson;
                 });

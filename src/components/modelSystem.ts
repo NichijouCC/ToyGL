@@ -26,7 +26,7 @@ export class ModelSystem extends BassCompSystem<ModelComponent> {
                 renderIns.worldMat = item.entity.worldMatrix;
                 renderIns.bevisible = item.entity.beActive;
 
-                this.scene.addRenderIns(renderIns);
+                this.scene._addRenderIns(renderIns);
             });
         });
     }

@@ -130,11 +130,11 @@ export class AutoUniforms {
         if (node == null) {
             return null;
         }
-        let declaration = "uniform " + Private.datatypeToGlsl[node.datatype] + " " + name;
+        let declaration = "uniform " + Private.datatypeToGlsl[node.datatype];
         if (node.size === 1) {
-            declaration += ";";
+            declaration += ` ${unfiorm};`;
         } else {
-            declaration += "[" + node.size.toString() + "];";
+            declaration += `[${node.size.toString()}] ${unfiorm};`;
         }
         return declaration;
     }

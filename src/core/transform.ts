@@ -1,8 +1,5 @@
-import { Vec3 } from "../mathD/vec3";
-import { Quat } from "../mathD/quat";
-import { Mat4 } from "../mathD/mat4";
+import { vec3, mat4, quat } from '../mathD/index';
 import { EventTarget } from "@mtgoo/ctool";
-
 enum DirtyFlagEnum {
     WWORLD_POS = 0b000100,
     WORLD_ROTATION = 0b001000,
@@ -23,84 +20,72 @@ export class Transform {
         this.id = Transform.IdCount++;
         this.name = name;
         // --------attach to dirty-------
-        Object.defineProperty(this._localPosition, "x", {
-            get: () => { return this._localPosition[0]; },
-            set: value => { this._localPosition[0] = value; this.markDirty(); }
+
+        let _this = this;
+        this._localPosition = new Proxy(vec3.create(), {
+            set: function (target, property, value, receiver) {
+                target[property as any] = value;
+                _this.markDirty();
+                return true;
+            }
         });
-        Object.defineProperty(this._localPosition, "y", {
-            get: () => { return this._localPosition[1]; },
-            set: value => { this._localPosition[1] = value; this.markDirty(); }
-        });
-        Object.defineProperty(this._localPosition, "z", {
-            get: () => { return this._localPosition[2]; },
-            set: value => { this._localPosition[2] = value; this.markDirty(); }
-        });
-        Object.defineProperty(this._localRotation, "x", {
-            get: () => { return this._localRotation[0]; },
-            set: value => { this._localRotation[0] = value; this.markDirty(); }
-        });
-        Object.defineProperty(this._localRotation, "y", {
-            get: () => { return this._localRotation[1]; },
-            set: value => { this._localRotation[1] = value; this.markDirty(); }
-        });
-        Object.defineProperty(this._localRotation, "z", {
-            get: () => { return this._localRotation[2]; },
-            set: value => { this._localRotation[2] = value; this.markDirty(); }
-        });
-        Object.defineProperty(this._localRotation, "w", {
-            get: () => { return this._localRotation[3]; },
-            set: value => { this._localRotation[3] = value; this.markDirty(); }
-        });
-        Object.defineProperty(this._localScale, "x", {
-            get: () => { return this._localScale[0]; },
-            set: value => { this._localScale[0] = value; this.markDirty(); }
-        });
-        Object.defineProperty(this._localScale, "y", {
-            get: () => { return this._localScale[1]; },
-            set: value => { this._localScale[1] = value; this.markDirty(); }
-        });
-        Object.defineProperty(this._localScale, "z", {
-            get: () => { return this._localScale[2]; },
-            set: value => { this._localScale[2] = value; this.markDirty(); }
-        });
+
+        this._localRotation = new Proxy(quat.create(), {
+            set: function (target, property, value, receiver) {
+                target[property as any] = value;
+                _this.markDirty();
+                return true;
+            }
+        })
+
+        this._localScale = new Proxy(vec3.fromValues(1, 1, 1), {
+            set: function (target, property, value, receiver) {
+                target[property as any] = value;
+                _this.markDirty();
+                return true;
+            }
+        })
     }
 
-    private _localPosition: Vec3 = Vec3.create();
-    private _localRotation: Quat = Quat.create();
-    private _localScale: Vec3 = Vec3.create(1, 1, 1);
+    private _localPosition: vec3;
+    private _localRotation: quat;
+    private _localScale: vec3;
 
-    set localPosition(value: Vec3) {
-        Vec3.copy(value, this._localPosition);
+    set localPosition(value: vec3) {
+        vec3.copy(this._localPosition, value);
         this.markDirty();
     }
 
-    get localPosition(): Vec3 {
+    get localPosition(): vec3 {
         return this._localPosition;
     }
 
-    set localRotation(value: Quat) {
-        Quat.copy(value, this._localRotation);
+    set localRotation(value: quat) {
+        quat.copy(this._localRotation, value);
         this.markDirty();
     }
 
-    get localRotation(): Quat {
+    get localRotation(): quat {
         return this._localRotation;
     }
 
-    set localScale(value: Vec3) {
-        Vec3.copy(value, this._localScale);
+    set localScale(value: vec3) {
+        vec3.copy(this._localScale, value);
         // this._localScale = value;
         this.markDirty();
     }
 
-    get localScale(): Vec3 {
+    get localScale(): vec3 {
         return this._localScale;
     }
 
-    private _localMatrix: Mat4 = Mat4.create();
-    set localMatrix(value: Mat4) {
+    private _localMatrix: mat4 = mat4.create();
+    set localMatrix(value: mat4) {
         this._localMatrix = value;
-        Mat4.decompose(this._localMatrix, this._localScale, this._localRotation, this._localPosition);
+        // mat4.decompose(this._localMatrix, this._localScale, this._localRotation, this._localPosition);
+        mat4.getScaling(this._localScale, this._localMatrix);
+        mat4.getTranslation(this._localPosition, this._localMatrix);
+        mat4.getRotation(this._localRotation, this._localMatrix);
         this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.LOCALMAT;
         this.dirtyFlag = this.dirtyFlag | DirtyFlagEnum.WORLDMAT;
 
@@ -109,7 +94,7 @@ export class Transform {
 
     get localMatrix() {
         if (this.dirtyFlag & DirtyFlagEnum.LOCALMAT) {
-            Mat4.RTS(this._localPosition, this._localScale, this._localRotation, this._localMatrix);
+            mat4.fromRotationTranslationScale(this._localMatrix, this._localRotation, this._localPosition, this._localScale);
             this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.LOCALMAT;
         }
         return this._localMatrix;
@@ -120,82 +105,82 @@ export class Transform {
     // 得到worldmatrix后，不会立刻decompse得到worldpos/worldscale/worldort,而是dirty标记起来.
     // setworld属性转换到setlocal属性
     // ------------------------------------------------------------------------------------------------
-    private _worldPosition: Vec3 = Vec3.create();
-    get worldPosition(): Vec3 {
+    private _worldPosition: vec3 = vec3.create();
+    get worldPosition(): vec3 {
         if (this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.WWORLD_POS)) {
-            Mat4.getTranslationing(this.worldMatrix, this._worldPosition);
+            mat4.getTranslation(this._worldPosition, this.worldMatrix);
             this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WWORLD_POS;
         }
         return this._worldPosition;
     }
 
-    set worldPosition(value: Vec3) {
+    set worldPosition(value: vec3) {
         if (this.parent == null) {
             return;
         }
         if (this.parent.parent == null) {
             this._localPosition = value;
         } else {
-            const invparentworld = Mat4.create();
-            Mat4.invert(this.parent.worldMatrix, invparentworld);
-            Mat4.transformPoint(value, invparentworld, this._localPosition);
-            Mat4.recycle(invparentworld);
+            const invparentworld = mat4.create();
+            mat4.invert(invparentworld, this.parent.worldMatrix);
+            // mat4.transformPoint(value, invparentworld, this._localPosition);
+            vec3.transformMat4(this._localPosition, value, invparentworld)
+            // mat4.recycle(invparentworld);
         }
         this.markDirty();
     }
 
-    private _worldRotation: Quat = Quat.create();
+    private _worldRotation: quat = quat.create();
     get worldRotation() {
         if (this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.WORLD_ROTATION)) {
-            Mat4.getRotationing(this.worldMatrix, this._worldRotation, this.worldScale);
+            mat4.getRotation(this._worldRotation, this.worldMatrix);
             this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLD_ROTATION;
         }
         return this._worldRotation;
     }
 
-    set worldRotation(value: Quat) {
+    set worldRotation(value: quat) {
         if (this.parent == null) {
             return;
         }
         if (this.parent.parent == null) {
             this._localRotation = value;
         } else {
-            const invparentworldrot = Quat.create();
-            Quat.inverse(this.parent.worldRotation, invparentworldrot);
-            Quat.multiply(invparentworldrot, value, this._localRotation);
-            Quat.recycle(invparentworldrot);
+            const invparentworldrot = quat.create();
+            quat.invert(invparentworldrot, this.parent.worldRotation);
+            quat.multiply(this._localRotation, invparentworldrot, value);
         }
         this.markDirty();
     }
 
-    private _worldScale: Vec3 = Vec3.create(1, 1, 1);
-    get worldScale(): Vec3 {
+    private _worldScale: vec3 = vec3.fromValues(1, 1, 1);
+    get worldScale(): vec3 {
         if (this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.WORLD_SCALE)) {
-            Mat4.getScaling(this.worldMatrix, this._worldScale);
+            mat4.getScaling(this._worldScale, this.worldMatrix);
             this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLD_SCALE;
         }
         return this._worldScale;
     }
 
-    set worldScale(value: Vec3) {
+    set worldScale(value: vec3) {
         if (this.parent == null) {
             return;
         }
         if (this.parent.parent == null) {
             this._localScale = value;
         } else {
-            Vec3.divide(value, this.parent.worldScale, this._localScale);
+            vec3.divide(this._localScale, value, this.parent.worldScale);
         }
         this.markDirty();
     }
 
-    private _worldMatrix: Mat4 = Mat4.create();
-    get worldMatrix(): Mat4 {
+    private _worldMatrix: mat4 = mat4.create();
+    get worldMatrix(): mat4 {
         if (this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.LOCALMAT)) {
             if (this.parent) {
-                Mat4.multiply(this.parent.worldMatrix, this.localMatrix, this._worldMatrix);
+                mat4.multiply(this._worldMatrix, this.parent.worldMatrix, this.localMatrix);
             } else {
-                Mat4.copy(this.localMatrix, this._worldMatrix);
+                mat4.copy(this.localMatrix, this._worldMatrix);
             }
             this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLDMAT;
             this.dirtyFlag =
@@ -208,29 +193,27 @@ export class Transform {
         return this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.LOCALMAT);
     }
 
-    set worldMatrix(value: Mat4) {
+    set worldMatrix(value: mat4) {
         if (this.parent == null) {
             return;
         }
-        Mat4.copy(value, this._worldMatrix);
+        mat4.copy(this._worldMatrix, value);
         if (this.parent.parent == null) {
-            Mat4.copy(value, this.localMatrix);
-            // this.localMatrix = this._localMatrix;
+            mat4.copy(this._localMatrix, value);
         } else {
-            const invparentworld = Mat4.create();
-            Mat4.invert(this.parent.worldMatrix, invparentworld);
-            Mat4.multiply(invparentworld, value, this.localMatrix);
+            const invparentworld = mat4.create();
+            mat4.invert(invparentworld, this.parent.worldMatrix);
+            mat4.multiply(this.localMatrix, invparentworld, value);
             // this.setlocalMatrix(this._localMatrix);
-            Mat4.recycle(invparentworld);
         }
         this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLDMAT;
         this.dirtyFlag =
             this.dirtyFlag | DirtyFlagEnum.WORLD_ROTATION | DirtyFlagEnum.WORLD_SCALE | DirtyFlagEnum.WWORLD_POS;
     }
 
-    private _worldTolocalMatrix: Mat4 = Mat4.create();
-    get worldTolocalMatrix(): Mat4 {
-        Mat4.invert(this.worldMatrix, this._worldTolocalMatrix);
+    private _worldTolocalMatrix: mat4 = mat4.create();
+    get worldTolocalMatrix(): mat4 {
+        mat4.invert(this._worldTolocalMatrix, this.worldMatrix);
         return this._worldTolocalMatrix;
     }
 
@@ -242,22 +225,11 @@ export class Transform {
         for (const child of node.children) {
             if (!(child.dirtyFlag & DirtyFlagEnum.WORLDMAT)) {
                 child.dirtyFlag = child.dirtyFlag | DirtyFlagEnum.WORLDMAT;
+                Transform.onDirty.raiseEvent(child);
                 this.NotifyChildSelfDirty(child);
             }
         }
     }
-
-    // private static linkRefScene(node: Transform, scene: Scene)
-    // {
-    //     if (node.refScene != scene)
-    //     {
-    //         node.refScene = scene;
-    //         for (let child of node.children)
-    //         {
-    //             this.linkRefScene(child, scene);
-    //         }
-    //     }
-    // }
 
     static onDirty = new EventTarget<Transform>();
     /**
@@ -313,61 +285,45 @@ export class Transform {
     /**
      * 获取世界坐标系下当前z轴的朝向
      */
-    getForwardInWorld(out: Vec3): Vec3 {
-        Mat4.transformVector3(Vec3.FORWARD, this.worldMatrix, out);
-        Vec3.normalize(out, out);
+    getForwardInWorld(out: vec3): vec3 {
+        vec3.transformMat4(out, vec3.FORMAWORLD, this.worldMatrix);
+        vec3.normalize(out, out);
         return out;
     }
 
-    getRightInWorld(out: Vec3): Vec3 {
-        Mat4.transformVector3(Vec3.RIGHT, this.worldMatrix, out);
-        Vec3.normalize(out, out);
+    getRightInWorld(out: vec3): vec3 {
+        vec3.transformMat4(out, vec3.RIGHT, this.worldMatrix);
+        vec3.normalize(out, out);
         return out;
     }
 
-    getUpInWorld(out: Vec3): Vec3 {
-        Mat4.transformVector3(Vec3.UP, this.worldMatrix, out);
-        Vec3.normalize(out, out);
+    getUpInWorld(out: vec3): vec3 {
+        vec3.transformMat4(out, vec3.RIGHT, this.worldMatrix);
+        vec3.normalize(out, out);
         return out;
     }
 
-    moveInWorld(dir: Vec3, amount: number) {
-        const dirInLocal = Vec3.create();
-        Mat4.transformVector3(dir, this.worldTolocalMatrix, dirInLocal);
-        Vec3.AddscaledVec(this._localPosition, dirInLocal, amount, this._localPosition);
+    moveInWorld(dir: vec3, amount: number) {
+        const dirInLocal = vec3.create();
+        vec3.transformMat4(dirInLocal, dir, this.worldTolocalMatrix);
+        vec3.scaleAndAdd(this._localPosition, this._localPosition, dirInLocal, amount);
         this.markDirty();
         return this;
     }
 
-    moveInlocal(dir: Vec3, amount: number) {
-        Vec3.AddscaledVec(this._localPosition, dir, amount, this._localPosition);
+    moveInlocal(dir: vec3, amount: number) {
+        vec3.scaleAndAdd(this._localPosition, this._localPosition, dir, amount);
         this.markDirty();
         return this;
     }
 
-    lookAtPoint(pos: Vec3, up?: Vec3) {
-        const dirz = Vec3.subtract(this.worldPosition, pos);
-        Vec3.normalize(dirz, dirz);
-        const dirx = Vec3.cross(up || Vec3.UP, dirz);
-        if (Vec3.magnitude(dirx) == 0) {
-            const dot = Vec3.dot(up || Vec3.UP, dirz);
-            if (dot == 1) {
-                const currentDir = this.getForwardInWorld(Vec3.create());
-                this.worldRotation = Quat.fromToRotation(currentDir, dirz, this.worldRotation);
-            }
-        } else {
-            Vec3.normalize(dirx, dirx);
-            const diry = Vec3.cross(dirz, dirx);
-            this.worldRotation = Quat.fromUnitXYZ(dirx, diry, dirz, this.worldRotation);
-
-            Vec3.recycle(diry);
-        }
-
-        Vec3.recycle(dirz);
-        Vec3.recycle(dirx);
+    lookAtPoint(pos: vec3, up?: vec3) {
+        let temptMat = mat4.create();
+        mat4.targetTo(temptMat, this.worldPosition, pos, up ?? vec3.UP);
+        this.worldMatrix = temptMat;
     }
 
-    lookAt(tran: Transform, up?: Vec3) {
+    lookAt(tran: Transform, up?: vec3) {
         this.lookAtPoint(tran.worldPosition, up);
     }
 

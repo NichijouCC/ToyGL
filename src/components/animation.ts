@@ -1,7 +1,7 @@
 import { Icomponent, Ecs } from "../core/ecs";
 import { Entity } from "../core/entity";
 import { AnimationClip } from "../scene/asset/animationClip";
-import { ClipInstance, ClipOptions } from "../scene/primitive/clipInstance";
+import { ClipInstance, ClipOptions } from "../scene/primitive/animtion/clipInstance";
 
 @Ecs.registeComp
 export class Animation implements Icomponent {
@@ -17,7 +17,7 @@ export class Animation implements Icomponent {
 
     addAnimationClip(clip: AnimationClip, options?: ClipOptions) {
         if (!this._clipsMap.has(clip.name)) {
-            const newClip = new ClipInstance(clip, { animator: () => { return this.entity; }, ...options });
+            const newClip = new ClipInstance(clip, { root: () => { return this.entity; }, ...options });
             this._clipsMap.set(clip.name, newClip);
             this._clips.push(clip);
             return newClip;
