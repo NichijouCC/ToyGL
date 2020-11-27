@@ -51,7 +51,8 @@ export class Mouse extends EventEmitter<MyMouseEvent> {
     private _position: vec2 = vec2.create();
     get position() { return this._position; };
     private _pressed: { [key: string]: boolean } = {};
-    constructor(canvas: HTMLCanvasElement) {
+    private _moved: { [key: string]: number } = {};
+    constructor() {
         super();
         /**
          * 屏蔽网页原生鼠标事件
@@ -60,31 +61,31 @@ export class Mouse extends EventEmitter<MyMouseEvent> {
             return false;
         };
 
-        canvas.addEventListener("mousedown", (ev: MouseEvent) => {
+        document.addEventListener("mousedown", (ev: MouseEvent) => {
             const key = ev.button;
             this._pressed[Private.keyDic[key]] = true;
             const event = this.getClickEventByMouseEvent(ev);
             this.emit("mousedown", event);
         });
 
-        canvas.addEventListener("mouseup", (ev: MouseEvent) => {
+        document.addEventListener("mouseup", (ev: MouseEvent) => {
             const key = ev.button;
             this._pressed[Private.keyDic[key]] = false;
             const event = this.getClickEventByMouseEvent(ev);
             this.emit("mouseup", event);
         });
 
-        canvas.addEventListener("mousemove", (ev: MouseEvent) => {
+        document.addEventListener("mousemove", (ev: MouseEvent) => {
             const event = this.getClickEventByMouseEvent(ev);
             this.emit("mousemove", event);
         });
 
-        canvas.addEventListener("mousewheel", (ev: any) => {
+        document.addEventListener("mousewheel", (ev: any) => {
             const event = this.getClickEventByMouseEvent(ev);
             this.emit("mousewheel", event);
         });
 
-        canvas.onblur = () => {
+        document.onblur = () => {
             this._pressed = {};
         };
     }

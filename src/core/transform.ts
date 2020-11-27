@@ -286,26 +286,26 @@ export class Transform {
      * 获取世界坐标系下当前z轴的朝向
      */
     getForwardInWorld(out: vec3): vec3 {
-        vec3.transformMat4(out, vec3.FORMAWORLD, this.worldMatrix);
+        mat4.transfromVector(out, vec3.FORMAWORLD, this.worldMatrix);
         vec3.normalize(out, out);
         return out;
     }
 
     getRightInWorld(out: vec3): vec3 {
-        vec3.transformMat4(out, vec3.RIGHT, this.worldMatrix);
+        mat4.transfromVector(out, vec3.RIGHT, this.worldMatrix);
         vec3.normalize(out, out);
         return out;
     }
 
     getUpInWorld(out: vec3): vec3 {
-        vec3.transformMat4(out, vec3.RIGHT, this.worldMatrix);
+        mat4.transfromVector(out, vec3.UP, this.worldMatrix);
         vec3.normalize(out, out);
         return out;
     }
 
     moveInWorld(dir: vec3, amount: number) {
         const dirInLocal = vec3.create();
-        vec3.transformMat4(dirInLocal, dir, this.worldTolocalMatrix);
+        mat4.transfromVector(dirInLocal, dir, this.worldTolocalMatrix);
         vec3.scaleAndAdd(this._localPosition, this._localPosition, dirInLocal, amount);
         this.markDirty();
         return this;

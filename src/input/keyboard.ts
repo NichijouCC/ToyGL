@@ -43,7 +43,7 @@ interface KeyboardEventMap {
 
 export class Keyboard extends EventEmitter<KeyboardEventMap> {
     private _pressed: { [key: string]: boolean } = {};
-    constructor(canvas: HTMLCanvasElement) {
+    constructor() {
         super();
         document.onkeydown = (ev: KeyboardEvent) => {
             const keystr = ev.key.toUpperCase(); // safari浏览器不支持keypress事件中的key属性

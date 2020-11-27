@@ -1,7 +1,7 @@
 import { Mouse, MouseKeyEnum } from "./mouse";
 import { Keyboard, KeyCodeEnum } from "./keyboard";
 
-export class Input {
+class Input {
     private _mouse: Mouse;
     get mouse() { return this._mouse; };
 
@@ -9,9 +9,9 @@ export class Input {
     get keyBoard() { return this._keyBoard; }
 
     get position() { return this._mouse.position; }
-    constructor(canvas: HTMLCanvasElement) {
-        this._mouse = new Mouse(canvas);
-        this._keyBoard = new Keyboard(canvas);
+    constructor() {
+        this._mouse = new Mouse();
+        this._keyBoard = new Keyboard();
     }
 
     getKeyDown(key: KeyCodeEnum) {
@@ -22,3 +22,5 @@ export class Input {
         return this._mouse.getKeyState(key);
     }
 }
+
+export const InputCtr = new Input();

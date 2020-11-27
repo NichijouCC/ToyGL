@@ -1,10 +1,10 @@
 import { ModelComponent } from "./modelComponent";
 import { InterScene } from "../scene/Scene";
-import { BassCompSystem } from "./bassCompSystem";
+import { AbstractCompSystem } from "./abstractCompSystem";
 import { ForwardRender } from "../scene/render/ForwardRender";
 import { Irenderable } from "../scene/render/Irenderable";
 
-export class ModelSystem extends BassCompSystem<ModelComponent> {
+export class ModelSystem extends AbstractCompSystem<ModelComponent> {
     careCompCtors: (new () => ModelComponent)[] = [ModelComponent]
     // private layers: LayerComposition = new LayerComposition();
     private scene: InterScene;

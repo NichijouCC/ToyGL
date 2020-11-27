@@ -1,9 +1,9 @@
 import { InterScene } from "../scene/Scene";
-import { BassCompSystem } from "./bassCompSystem";
+import { AbstractCompSystem } from "./abstractCompSystem";
 import { CameraComponent } from "./camerComponent";
 import { Screen } from "../scene/Index";
 
-export class CamerSystem extends BassCompSystem<CameraComponent> {
+export class CamerSystem extends AbstractCompSystem<CameraComponent> {
     careCompCtors: (new () => CameraComponent)[] = [CameraComponent];
     private scene: InterScene;
     private screen: Screen;

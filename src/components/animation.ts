@@ -1,11 +1,10 @@
 import { Icomponent, Ecs } from "../core/ecs";
-import { Entity } from "../core/entity";
 import { AnimationClip } from "../scene/asset/animationClip";
 import { ClipInstance, ClipOptions } from "../scene/primitive/animtion/clipInstance";
+import { AbstractComponent } from "./abstractComponent";
 
 @Ecs.registeComp
-export class Animation implements Icomponent {
-    readonly entity: Entity;
+export class Animation extends AbstractComponent {
     private _clipsMap: Map<string, ClipInstance> = new Map();
     private _clips: AnimationClip[] = [];
     beAutoPlay: boolean = true;

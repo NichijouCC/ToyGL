@@ -1,4 +1,3 @@
-import { Input } from "./input/input";
 import { Timer } from "./core/timer";
 import { InterScene } from "./scene/scene";
 import { GraphicsDevice } from "./webgl/graphicsDevice";
@@ -20,7 +19,6 @@ export class ToyGL {
         const canvas = screen.canvas;
 
         const timer = new Timer();
-        const input = new Input(canvas);
         const device = new GraphicsDevice(canvas);
         const render = new ForwardRender(device);
         const resource = new Resource();
@@ -34,16 +32,11 @@ export class ToyGL {
         timer.onTick.addEventListener(scene._tick);
 
         toy._timer = timer;
-        toy._input = input;
         toy._screen = screen;
         toy._scene = scene;
         toy._resource = resource;
         return toy;
     }
-
-    private _input: Input;
-    get input() { return this._input; }
-
     private _screen: Screen;
     get screen() { return this._screen; }
 

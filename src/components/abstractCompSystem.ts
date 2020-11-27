@@ -2,10 +2,13 @@ import { Isystem, UniteBitkey, Icomponent } from "../core/ecs";
 import { Entity } from "../core/entity";
 import { EventEmitter } from '@mtgoo/ctool';
 
-export abstract class BassCompSystem<T extends Icomponent> extends EventEmitter<IcompSymEvent> implements Isystem {
+export abstract class AbstractCompSystem<T extends Icomponent> extends EventEmitter<IcompSymEvent> implements Isystem {
     abstract careCompCtors: (new () => T)[] = [];
     get careComps() { return this.careCompCtors.map(item => item.name); }
     readonly uniteBitkey: UniteBitkey = new UniteBitkey();
+    /**
+     * enityID => compoentArr
+     */
     protected comps: Map<number, T[]> = new Map();
     tryAddEntity(entity: Entity): void {
         if (!this.comps.has(entity.id)) {

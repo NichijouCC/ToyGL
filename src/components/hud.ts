@@ -3,10 +3,10 @@ import { Entity } from "../core/entity";
 import { Rect } from "../mathD/rect";
 import { Material, Texture2D } from "../scene/Index";
 import { vec3 } from '../mathD/index';
+import { AbstractComponent } from "./abstractComponent";
 
 @Ecs.registeComp
-export class Hud implements Icomponent {
-    entity: Entity;
+export class Hud extends AbstractComponent {
     private _rect: Rect = new Rect(0, 0, 1, 1);
     private _command: (context: CanvasRenderingContext2D) => void;
     private _size: vec3 = vec3.create();

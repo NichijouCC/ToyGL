@@ -6,10 +6,10 @@ import { StaticMesh } from "../scene/asset/geometry/staticMesh";
 import { Material } from "../scene/asset/material/material";
 import { SkinInstance } from "../scene/primitive/skinInstance";
 import { Skin } from "../scene/asset/Skin";
+import { AbstractComponent } from "./abstractComponent";
 
 @Ecs.registeComp
-export class ModelComponent implements Icomponent {
-    readonly entity: Entity;
+export class ModelComponent extends AbstractComponent {
     protected _mesh: AssetReference<StaticMesh> = new AssetReference();
     get mesh() { return this._mesh.current; };
     set mesh(asset: StaticMesh) { this._mesh.current = asset; };
@@ -27,6 +27,7 @@ export class ModelComponent implements Icomponent {
     private _skinInstance: SkinInstance;
     get skinIns() { return this._skinInstance; };
     constructor() {
+        super();
         this._skin.onDataChange.addEventListener((event) => {
             const { newData: newAsset, oldData: oldAsset } = event;
             if (this._skinInstance) { this._skinInstance.destroy(); this._skinInstance = null; };
