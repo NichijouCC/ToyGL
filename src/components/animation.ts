@@ -27,11 +27,25 @@ export class Animation extends AbstractComponent {
     }
 
     play(clip: AnimationClip | string) {
+        let newClip: ClipInstance;
         if (typeof clip == "string") {
-            this._currentClip = this._clipsMap.get(clip);
+            newClip = this._clipsMap.get(clip);
         } else {
-            const playClip = this.addAnimationClip(clip);
-            this._currentClip = playClip;
+            newClip = this.addAnimationClip(clip);
+        }
+        if (newClip != null) {
+            this._currentClip = newClip;
+            this._currentClip._reset();
+        }
+    }
+    playByIndex(index: number, options?: { onEnd?: () => void }) {
+        let clip = this._clips[index];
+        if (clip) {
+            this._currentClip = this._clipsMap.get(clip.name);
+            this._currentClip._reset();
+            if (options?.onEnd != null) {
+                this._currentClip.onEnd.addEventListener(options.onEnd)
+            }
         }
     }
 

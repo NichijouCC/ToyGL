@@ -74,6 +74,7 @@ export class ThirdPersonCtrSystem extends AbstractCompSystem<ThirdPersonControll
             let comp: ThirdPersonController = this.comps.values().next().value[0];
             this.targeCtr = comp;
             if (this._init == false) this.init();
+            if (!comp.canMove) return;
             vec3.zero(dir);
             if (InputCtr.getKeyDown(KeyCodeEnum.A)) {
                 vec3.add(dir, dir, vec3.LEFT);

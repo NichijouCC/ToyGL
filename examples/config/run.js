@@ -56,23 +56,23 @@ const webpackConfig = beProduction ? require('./webpack.prod') : require('./webp
 
 
 /**
- * 根据输入参数找到对应样例文件路径
+ * 根据输入参数找到对应样例文件路径；
+ * 
+ * 如果是 "dev+ 参数" 的格式则为执行某个样例,返回文件路径,不然返回null
  */
 function findeExampleFile() {
     const file_prefix = process.argv[2];
     const path = require("path");
     const fs = require("fs");
-    const exec = require('child_process').exec;
     let src_dir = path.resolve("./src");
-
     return new Promise((resolve) => {
         fs.readdir(src_dir, (err, items) => {
-            for (let i = 0; i < items.length; i++) {
-                if (items[i].startsWith(file_prefix)) {
-                    console.warn(`@@------------执行：${items[i]}-----------------------`);
-                    resolve(path.resolve(src_dir, items[i]))
-                    break;
-                }
+            let item = items.find(item => item.startsWith(file_prefix));
+            if (item != null) {
+                console.warn(`@@------------执行：${item}-----------------------`);
+                resolve(path.resolve(src_dir, item))
+            } else {
+                resolve(null);
             }
         });
     })

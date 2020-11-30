@@ -32,7 +32,7 @@ module.exports = {
                     },
                     {
                         test: /\.(scss|css)$/,
-                        use: ["style-loader", "css-loader", "sass-loader"]// 将 Sass 编译成 CSS-》将 CSS 转化成 CommonJS 模块-》将 JS 字符串生成为 style 节点
+                        use: ["style-loader", "css-loader", "sass-loader"]
                     },
                     {
                         test: /\.(svg|jpg|jpeg|bmp|png|webp|gif|ico|ttf)$/,
@@ -41,7 +41,6 @@ module.exports = {
                             //limit: 8 * 1024, // 小于这个大小的图片，会自动base64编码后插入到代码中
                             name: 'img/[name].[hash:8].[ext]',
                             outputPath: pathsMap.buildPath,
-                            publicPath: pathsMap.publicPath
                         }
                     },
                     {

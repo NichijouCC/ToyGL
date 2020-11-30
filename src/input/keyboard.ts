@@ -37,8 +37,8 @@ export enum KeyCodeEventEnum {
 }
 
 interface KeyboardEventMap {
-    "keydown": KeyboardEvent,
-    "keyup": KeyboardEvent
+    "keydown": KeyboardEvent & { code: KeyCodeEnum },
+    "keyup": KeyboardEvent & { code: KeyCodeEnum }
 }
 
 export class Keyboard extends EventEmitter<KeyboardEventMap> {
@@ -50,17 +50,21 @@ export class Keyboard extends EventEmitter<KeyboardEventMap> {
 
             if (Object.values(KeyCodeEnum).indexOf(keystr as any) >= 0) {
                 this._pressed[keystr] = true;
-                this.emit("keydown", ev);
-                this.emit([keystr, "keydown"].join("-") as any, ev);
+                this.emit("keydown", { ...ev, code: keystr as any });
+                this.emit([keystr, "keydown"].join("-") as any, { ...ev, code: keystr });
             } else {
                 this._pressed = {};
             }
         };
         document.onkeyup = (ev: KeyboardEvent) => {
             const keystr = ev.key.toUpperCase(); // safari浏览器不支持keypress事件中的key属性
-            this._pressed[keystr] = false;
-            this.emit("keyup", ev);
-            this.emit([keystr, "keyup"].join("-") as any, ev);
+            if (Object.values(KeyCodeEnum).indexOf(keystr as any) >= 0) {
+                this._pressed[keystr] = false;
+                this.emit("keyup", { ...ev, code: keystr as any });
+                this.emit([keystr, "keyup"].join("-") as any, { ...ev, code: keystr });
+            } else {
+                this._pressed = {};
+            }
         };
         document.onblur = () => {
             this._pressed = {};

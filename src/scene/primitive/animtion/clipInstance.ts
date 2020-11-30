@@ -5,6 +5,7 @@ import { Entity } from "../../../core/entity";
 import { quat, vec3 } from '../../../mathD';
 import { numberLerp } from "../../../mathD/common";
 import { ChannelInstance } from "./channelInstance";
+import { EventTarget } from '@mtgoo/ctool'
 
 export class ClipInstance {
     private clip: AnimationClip;
@@ -56,7 +57,8 @@ export class ClipInstance {
                     if (this.beloop) { // ----------------------restart play
                         newFrame = 0;
                         this.localTime = 0;
-                        this.channelInsArr.forEach(item => item.jumpToStart())
+                        this.channelInsArr.forEach(item => item.jumpToStart());
+                        this.onEnd.raiseEvent();
 
                     } else { // --------------------------------play end
                         // this.enableTimeFlow = false;
@@ -77,6 +79,12 @@ export class ClipInstance {
             this._excecute(deltaTime);
         }
     }
+
+    _reset() {
+        this.localTime = 0;
+        this.channelInsArr.forEach(item => item.jumpToStart())
+    }
+    onEnd = new EventTarget();
 
     private beCrossfade: boolean;
     private fadeTime: number;
