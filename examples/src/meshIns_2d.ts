@@ -43,7 +43,7 @@ const ins = MeshInstance.create({
     material,
     node: scene.addNewChild()
 })
-toy.scene._addRenderIns(ins);
+toy.scene.addRenderIns(ins);
 
 let cam = toy.scene.addNewCamera();
 cam.node.localPosition[2] = 5;

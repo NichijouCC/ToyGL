@@ -1,7 +1,7 @@
 import { Mouse, MouseKeyEnum } from "./mouse";
 import { Keyboard, KeyCodeEnum } from "./keyboard";
 
-class Input {
+class InputCtr {
     private _mouse: Mouse;
     get mouse() { return this._mouse; };
 
@@ -23,4 +23,4 @@ class Input {
     }
 }
 
-export const InputCtr = new Input();
+export const Input = new InputCtr();

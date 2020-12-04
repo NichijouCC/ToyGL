@@ -60,9 +60,10 @@ export class InterScene {
     private _renders: Irenderable[] = [];
     addRenderIns(render: Irenderable) {
         this._renders.push(render);
+        return render;
     }
 
-    _addRenderIns(render: Irenderable) {
+    _addFrameRenderIns(render: Irenderable) {
         this.frameState.renders.push(render);
         return render;
     }

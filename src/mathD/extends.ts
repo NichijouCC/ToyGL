@@ -9,14 +9,13 @@ import { TypedArray } from '../core/typedArray';
 (vec3 as any).DOWN = vec3.fromValues(0, -1, 0);
 (vec3 as any).ZERO = vec3.fromValues(0, 0, 0);
 
-
-
 (vec3 as any).center = (out: vec3, a: vec3, b: vec3) => {
     out[0] = (a[0] + b[0]) * 0.5;
     out[1] = (a[1] + b[1]) * 0.5;
     out[2] = (a[2] + b[2]) * 0.5;
     return out;
 }
+
 (vec3 as any).projectToPlan = (() => {
     let tempt = vec3.create();
     return (out: vec3, a: vec3, planNormal: vec3) => {
@@ -26,10 +25,10 @@ import { TypedArray } from '../core/typedArray';
     }
 })();
 
+(mat4 as any).IDENTITY = mat4.create();
 (mat4 as any).fromNumberArray = (array: number[]) => {
     return mat4.fromValues(array[0], array[1], array[2], array[3], array[4], array[5], array[6], array[7], array[8], array[9], array[10], array[11], array[12], array[13], array[14], array[15]);
 };
-(mat4 as any).IDENTITY = mat4.create();
 (mat4 as any).toArray = (array: number[] | TypedArray, mat: mat4, offset: number = 0) => {
     array[offset] = mat[0];
     array[offset + 1] = mat[1];

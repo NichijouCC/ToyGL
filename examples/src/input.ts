@@ -2,8 +2,8 @@ import { Input, ToyGL, KeyCodeEnum, MouseKeyEnum, DefaultMesh, DefaultGeometry, 
 import { initToy } from "./util";
 
 const toy = initToy();
-const { scene, input } = toy;
-const ins = scene._addRenderIns({
+const { scene } = toy;
+const ins = scene.addRenderIns({
     geometry: DefaultGeometry.cube,
     material: DefaultMaterial.color_3d,
     worldMat: mat4.create()
@@ -17,19 +17,19 @@ setInterval(() => {
 }, 5000);
 
 scene.preupdate.addEventListener(() => {
-    if (input.getKeyDown(KeyCodeEnum.A)) {
+    if (Input.getKeyDown(KeyCodeEnum.A)) {
         ins.worldMat = mat4.fromTranslation(ins.worldMat, vec3.fromValues(-1, 0, 0));
     }
 
-    if (input.getKeyDown(KeyCodeEnum.D)) {
+    if (Input.getKeyDown(KeyCodeEnum.D)) {
         ins.worldMat = mat4.fromTranslation(ins.worldMat, vec3.fromValues(1, 0, 0));
     }
 
-    if (input.getMouseDown(MouseKeyEnum.Left)) {
+    if (Input.getMouseDown(MouseKeyEnum.Left)) {
         ins.worldMat = mat4.fromRotation(ins.worldMat, 0.05, rotDir);
     }
 
-    if (input.getKeyDown(KeyCodeEnum.R)) {
+    if (Input.getKeyDown(KeyCodeEnum.R)) {
         ins.worldMat = mat4.create();
     }
 });

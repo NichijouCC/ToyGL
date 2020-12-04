@@ -19,7 +19,10 @@ export enum ClearEnum {
     NONE = 0b00,
 }
 export class Camera extends UniqueObject {
-    node: Transform;
+    _node: Transform;
+    get node() { return this._node };
+    set node(value: Transform) { this._node = value; };
+
     private _projectionType: ProjectionEnum = ProjectionEnum.PERSPECTIVE;
     get projectionType() { return this._projectionType; }
     set projectionType(type: ProjectionEnum) { this._projectionType = type; this.projectMatBedirty = true; }

@@ -1,5 +1,5 @@
 import { Entity } from "../core/entity";
-import { InputCtr, KeyCodeEnum, MouseKeyEnum } from "../input";
+import { Input, KeyCodeEnum, MouseKeyEnum } from "../input";
 import { mat4, quat, vec3, vec4 } from "../mathD";
 import { InterScene } from "../scene/scene";
 import { AbstractCompSystem } from "./abstractCompSystem";
@@ -18,9 +18,9 @@ export class ThirdPersonCtrSystem extends AbstractCompSystem<ThirdPersonControll
     private _init = false;
     private init() {
         this._init = true;
-        InputCtr.mouse.on("mousemove", (ev) => {
+        Input.mouse.on("mousemove", (ev) => {
             if (this.scene == null || this.targeCtr == null) return;
-            if (InputCtr.getMouseDown(MouseKeyEnum.Left)) {
+            if (Input.getMouseDown(MouseKeyEnum.Left)) {
                 this.rotAngle += 0.1 * ev.movementX * this.targeCtr.camRotSpeed;
             }
         });
@@ -31,7 +31,7 @@ export class ThirdPersonCtrSystem extends AbstractCompSystem<ThirdPersonControll
         let targetRot = quat.create();
         let temptRot = quat.create();
 
-        InputCtr.mouse.on("mousewheel", (ev) => {
+        Input.mouse.on("mousewheel", (ev) => {
             if (this.scene == null || this.targeCtr == null) return;
             let camNode = this.scene.mainCamera;
             let { moveSpeed, rotSpeed, entity } = this.targeCtr;
@@ -76,16 +76,16 @@ export class ThirdPersonCtrSystem extends AbstractCompSystem<ThirdPersonControll
             if (this._init == false) this.init();
             if (!comp.canMove) return;
             vec3.zero(dir);
-            if (InputCtr.getKeyDown(KeyCodeEnum.A)) {
+            if (Input.getKeyDown(KeyCodeEnum.A)) {
                 vec3.add(dir, dir, vec3.LEFT);
             }
-            if (InputCtr.getKeyDown(KeyCodeEnum.D)) {
+            if (Input.getKeyDown(KeyCodeEnum.D)) {
                 vec3.add(dir, dir, vec3.RIGHT);
             }
-            if (InputCtr.getKeyDown(KeyCodeEnum.W)) {
+            if (Input.getKeyDown(KeyCodeEnum.W)) {
                 vec3.add(dir, dir, vec3.BACKWORLD);
             }
-            if (InputCtr.getKeyDown(KeyCodeEnum.S)) {
+            if (Input.getKeyDown(KeyCodeEnum.S)) {
                 vec3.add(dir, dir, vec3.FORMAWORLD);
             }
 

@@ -110,7 +110,7 @@ export class AutoUniforms {
         },
         czm_boneMatrices: {
             size: 110,
-            datatype: UniformTypeEnum.FLOAT_MAT4,
+            datatype: UniformTypeEnum.FLOAT_ARRAY,
             getValue: (uniformState: UniformState) => {
                 return uniformState.boneMatrices;
             }

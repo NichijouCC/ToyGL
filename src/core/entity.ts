@@ -20,8 +20,8 @@ export class Entity extends Transform implements Ientity {
         Ecs.removeComp(this, comp);
     }
 
-    traverse(handler: (e: Entity) => boolean, includeSelf: boolean = true) {
-        let _continue = true;
+    traverse(handler: (e: Entity) => void | boolean, includeSelf: boolean = true) {
+        let _continue;
         if (includeSelf) {
             _continue = handler(this);
         }

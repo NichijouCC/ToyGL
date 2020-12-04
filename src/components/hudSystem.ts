@@ -66,7 +66,7 @@ export class HudSystem extends AbstractCompSystem<Hud> {
                 hud.entity.localScale = vec3.clone(hud.size);
             }
             if (_mat && _text2d) {
-                this._scene._addRenderIns({
+                this._scene._addFrameRenderIns({
                     geometry: DefaultGeometry.quad,
                     material: _mat,
                     worldMat: mat4.fromRotationTranslationScale(mat4.create(), rot, entity.worldPosition, entity.worldScale)

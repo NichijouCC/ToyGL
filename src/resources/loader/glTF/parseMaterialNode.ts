@@ -4,8 +4,12 @@ import { Color } from "../../../mathD/color";
 import { Material } from "../../../scene/asset/material/material";
 import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
 import { DefaultMaterial } from "../../defAssets/defaultMaterial";
+import { SkinInstance, SkinWay } from "../../../scene/primitive/skinInstance";
 
 namespace Private {
+    /**
+     * perbone one mat4，使用root坐标系
+     */
     export const defmat = new Material({
         uniformParameters: {
             MainColor: Color.create(1.0, 1.0, 1.0, 1.0)
@@ -22,7 +26,7 @@ namespace Private {
             #ifdef SKIN
             attribute vec4 skinIndex;
             attribute vec4 skinWeight;
-            uniform mat4 czm_boneMatrices[44];
+            uniform mat4 czm_boneMatrices[60];
             vec4 calcVertex(vec4 srcVertex,vec4 blendIndex,vec4 blendWeight)
             {
                 int i = int(blendIndex.x);  
@@ -35,6 +39,80 @@ namespace Private {
                         + czm_boneMatrices[i3]*blendWeight.z 
                         + czm_boneMatrices[i4]*blendWeight.w;
                 return mat* srcVertex;
+            }
+            #endif
+            attribute vec3 POSITION;
+            void main()
+            {
+                vec4 position=vec4(POSITION.xyz,1.0);
+                #ifdef SKIN
+                position =calcVertex(position,skinIndex,skinWeight);
+                #endif
+
+                xlv_TEXCOORD0 = TEXCOORD_0.xy;
+                gl_Position = czm_modelViewp * position;
+            }`,
+            fsStr: `precision highp float;
+            uniform vec4 MainColor;
+            varying vec2 xlv_TEXCOORD0;
+            uniform sampler2D MainTex;
+            void main()
+            {
+                gl_FragData[0] = texture2D(MainTex, xlv_TEXCOORD0)*MainColor;
+            }`
+        }
+    });
+    /**
+     * perbone 1 location+1 quat,使用world坐标系
+     * 
+     * @description
+     * 7*60=420<128*4;
+     */
+    export const defmat2 = new Material({
+        uniformParameters: {
+            MainColor: Color.create(1.0, 1.0, 1.0, 1.0)
+        },
+        shaderOption: {
+            attributes: {
+                POSITION: VertexAttEnum.POSITION,
+                TEXCOORD_0: VertexAttEnum.TEXCOORD_0
+            },
+            vsStr: `precision highp float;
+            attribute vec3 TEXCOORD_0;
+            uniform mat4 czm_modelViewp;
+            varying mediump vec2 xlv_TEXCOORD0;
+            #ifdef SKIN
+            attribute vec4 skinIndex;
+            attribute vec4 skinWeight;
+            uniform float czm_boneMatrices[420];
+            
+            vec3 rotate_vector( vec4 quat, vec3 vec )
+            {
+                return vec + 2.0 * cross( cross( vec, quat.xyz ) + quat.w * vec, quat.xyz );
+            }
+            
+            vec3 blendBone(vec3 point,int boneIndex){
+                vec3 m= vec3(czm_boneMatrices[boneIndex*7+0],czm_boneMatrices[boneIndex*7+1],czm_boneMatrices[boneIndex*7+2]);
+                vec4 q= vec4(czm_boneMatrices[boneIndex*7+3],czm_boneMatrices[boneIndex*7+4],czm_boneMatrices[boneIndex*7+5],czm_boneMatrices[boneIndex*7+6]);
+                
+                vec3 rotatedpos= rotate_vector(q,point);
+                rotatedpos += m;
+                return rotatedpos;
+            }
+            
+            vec4 calcVertex(vec4 srcVertex,vec4 blendIndex,vec4 blendWeight)
+            {
+                int i = int(blendIndex.x);  
+                int i2 =int(blendIndex.y);
+                int i3 =int(blendIndex.z);
+                int i4 =int(blendIndex.w);
+
+                vec3 endpos=blendBone(srcVertex.xyz,i)*blendWeight.x
+                        +blendBone(srcVertex.xyz,i2)*blendWeight.y
+                        +blendBone(srcVertex.xyz,i3)*blendWeight.z
+                        +blendBone(srcVertex.xyz,i4)*blendWeight.w;
+            
+                return vec4(endpos,1.0);
             }
             #endif
             attribute vec3 POSITION;
@@ -74,7 +152,11 @@ export class ParseMaterialNode {
             if (node.pbrMetallicRoughness?.baseColorTexture != null) {
                 const mat = new Material();
                 mat.setUniformParameter("MainColor", Color.create(1.0, 1.0, 1.0, 1));
-                mat.shader = Private.defmat.shader;
+                if (SkinInstance.skinWay == SkinWay.UNIFROMMATS) {
+                    mat.shader = Private.defmat.shader;
+                } else if (SkinInstance.skinWay == SkinWay.UNIFORMARRAY) {
+                    mat.shader = Private.defmat2.shader;
+                }
                 return ParseTextureNode.parse(node.pbrMetallicRoughness?.baseColorTexture.index, gltf)
                     .then(tex => {
                         mat.setUniformParameter("MainTex", tex);
