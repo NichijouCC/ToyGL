@@ -1,11 +1,10 @@
-import { Entity } from "../core/entity";
+import { AbsSystem } from "../core/absSystem";
 import { Input, KeyCodeEnum, MouseKeyEnum } from "../input";
 import { mat4, quat, vec3, vec4 } from "../mathD";
 import { InterScene } from "../scene/scene";
-import { AbstractCompSystem } from "./abstractCompSystem";
 import { ThirdPersonController } from "./thirdPersonController";
 
-export class ThirdPersonCtrSystem extends AbstractCompSystem<ThirdPersonController> {
+export class ThirdPersonCtrSystem extends AbsSystem<ThirdPersonController> {
     careCompCtors: (new () => ThirdPersonController)[] = [ThirdPersonController];
     private scene: InterScene;
     constructor(scene: InterScene) {

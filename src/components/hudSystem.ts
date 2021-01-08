@@ -1,13 +1,13 @@
-import { AbstractCompSystem } from "./abstractCompSystem";
 import { Hud } from "./hud";
 import { InterScene } from "../scene/scene";
 import { DefaultGeometry, DefaultMaterial } from "../resources/index";
 import { mat4, quat, vec3 } from '../mathD';
 import { TextureAsset } from "../scene/index";
 import { TextureFilterEnum, TextureWrapEnum } from "../webgl/index";
+import { AbsSystem } from "../core/absSystem";
 
 
-export class HudSystem extends AbstractCompSystem<Hud> {
+export class HudSystem extends AbsSystem<Hud> {
     careCompCtors: (new () => Hud)[] = [Hud];
     private context2d: CanvasRenderingContext2D;
     private _scene: InterScene;

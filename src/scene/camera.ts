@@ -19,9 +19,6 @@ export enum ClearEnum {
     NONE = 0b00,
 }
 export class Camera extends UniqueObject {
-    _node: Transform;
-    get node() { return this._node };
-    set node(value: Transform) { this._node = value; };
 
     private _projectionType: ProjectionEnum = ProjectionEnum.PERSPECTIVE;
     get projectionType() { return this._projectionType; }
@@ -80,6 +77,10 @@ export class Camera extends UniqueObject {
         }
     }
 
+
+    _node: Transform;
+    get node() { return this._node };
+    set node(value: Transform) { this._node = value; };
     /**
      * 计算相机投影矩阵
      */
@@ -126,6 +127,13 @@ export class Camera extends UniqueObject {
     get forwardInword() {
         return this.node.getForwardInWorld(this._forward);
     }
+    lookAtPoint(point: vec3) {
+        this.node?.lookAtPoint(point);
+    }
+
+    lookAt(node: Entity) {
+        this.node?.lookAt(node);
+    }
 
     constructor() {
         super();
@@ -145,14 +153,6 @@ export class Camera extends UniqueObject {
             get: () => { return this._viewport[3]; },
             set: (value: number) => { this._viewport[3] = value; this.projectMatBedirty = true; }
         });
-    }
-
-    lookAtPoint(point: vec3) {
-        this.node?.lookAtPoint(point);
-    }
-
-    lookAt(node: Entity) {
-        this.node?.lookAt(node);
     }
 }
 

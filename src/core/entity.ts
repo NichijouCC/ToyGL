@@ -1,5 +1,7 @@
-import { Icomponent, Ecs, Ientity, UniteBitkey } from "./ecs";
+import { Icomponent, Ecs, Ientity } from "./ecs";
+import { UniteBitkey } from "./bitkey";
 import { Transform } from "./transform";
+import { AbsComponent, ComponentCtor } from "./absComponent";
 
 export class Entity extends Transform implements Ientity {
     name: string;
@@ -8,24 +10,30 @@ export class Entity extends Transform implements Ientity {
         super();
         this.name = name;
     }
-
+    /**
+     * @private
+     */
+    _components: { [compName: string]: AbsComponent } = {};
+    /**
+     * @private
+     */
     _uniteBitkey: UniteBitkey = new UniteBitkey();
-    addComponent<T extends Icomponent>(comp: string): T {
+    addComponent<T extends AbsComponent, P extends object>(comp: new () => T, properties?: P): T {
         const newComp = Ecs.addComp(this, comp);
-        return newComp as T;
+        return newComp;
     }
 
-    getComponent(comp: string) { return (this as any)[comp]; }
-    removeComponent(comp: string): void {
+    getComponent<T extends AbsComponent>(comp: new () => T) { return (this as any)[comp.name]; }
+    removeComponent<T extends AbsComponent>(comp: new () => T): void {
         Ecs.removeComp(this, comp);
     }
 
     traverse(handler: (e: Entity) => void | boolean, includeSelf: boolean = true) {
-        let _continue;
+        let _find;
         if (includeSelf) {
-            _continue = handler(this);
+            _find = handler(this);
         }
-        if (_continue !== false) {
+        if (_find !== true) {
             let child;
             for (let i = 0; i < this.children.length; i++) {
                 child = this.children[i] as Entity;
@@ -34,27 +42,24 @@ export class Entity extends Transform implements Ientity {
         }
     }
 
-    find(check: (e: Entity) => boolean) {
-        if (check(this)) return this;
-        let child: Entity, result: Entity;
-        for (let i = 0; i < this.children.length; i++) {
-            child = this.children[i] as Entity;
-            result = child.find(check);
-            if (result) break;
+    find(check: (e: Entity) => void | boolean): Entity | null {
+        let queue: Entity[] = [this];
+        while (queue.length != 0) {
+            let first = queue.shift();
+            if (check(first)) return first;
+            for (let i = 0; i < first.children.length; i++) {
+                queue.push(first.children[i] as Entity);
+            }
         }
-        return result;
+        return null;
     }
 
-    findInParents(check: (e: Entity) => boolean) {
-        if (check(this)) {
-            return this;
-        } else {
-            let result: Entity;
-            if (this.parent) {
-                result = (this.parent as Entity).findInParents(check) as Entity;
-            }
-            return result;
+    findInParents(check: (e: Entity) => void | boolean): Entity | null {
+        if (check(this)) return this;
+        if (this.parent) {
+            return (this.parent as Entity).findInParents(check);
         }
+        return null;
     }
 
     clone(): Entity {

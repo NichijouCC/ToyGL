@@ -47,7 +47,7 @@ export class SkinInstance {
      */
     private _boneData!: Float32Array;
 
-    static skinWay = SkinWay.UNIFROMMATS;
+    static skinWay = SkinWay.UNIFORMARRAY;
 
     constructor(skin: Skin, attachEntity: Entity) {
         this.skin = skin;
@@ -60,10 +60,8 @@ export class SkinInstance {
         const { skin, attachEntity } = this;
         this._boneInverses = [];
         let searchRoot: Entity;
-        this.rootBone = attachEntity.find(item => item.name == skin.rootBoneName);
-        if (this.rootBone == null) {
-            this.rootBone = attachEntity.parent.children.find(item => item.name == skin.rootBoneName) as Entity;
-        }
+        // this.rootBone = attachEntity.find(item => item.name == skin.rootBoneName);
+        this.rootBone = findRootBone(attachEntity, skin.rootBoneName);
         if (this.rootBone == null) {
             console.error("cannot finc rootbone");
             return;
@@ -214,3 +212,24 @@ const saveBoneMatToArray = (() => {
         array[index * 7 + 6] = rot[3];
     }
 })()
+
+
+const findRootBone = (start: Entity, rootName: string) => {
+    let target = start.find((item) => item.name == rootName);
+    if (target != null) return target;
+    let checked = new Set<Entity>();
+    checked.add(start);
+    let parent = start.parent as Entity;
+    while (parent != null && target == null) {
+        for (let i = 0; i < parent.children.length; i++) {
+            let child = parent.children[i] as Entity;
+            if (!checked.has(child)) {
+                target = child.find((item) => item.name == rootName);
+                if (target != null) return target;
+            }
+        }
+        checked.add(parent);
+        parent = parent.parent as Entity;
+    }
+    return target;
+}

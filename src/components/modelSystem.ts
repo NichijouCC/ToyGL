@@ -1,10 +1,10 @@
 import { ModelComponent } from "./modelComponent";
 import { InterScene } from "../scene/Scene";
-import { AbstractCompSystem } from "./abstractCompSystem";
 import { ForwardRender } from "../scene/render/ForwardRender";
 import { Irenderable } from "../scene/render/Irenderable";
+import { AbsSystem } from "../core/absSystem";
 
-export class ModelSystem extends AbstractCompSystem<ModelComponent> {
+export class ModelSystem extends AbsSystem<ModelComponent> {
     careCompCtors: (new () => ModelComponent)[] = [ModelComponent]
     private scene: InterScene;
     constructor(scene: InterScene, render: ForwardRender) {

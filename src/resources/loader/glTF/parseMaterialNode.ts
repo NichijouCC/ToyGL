@@ -88,7 +88,8 @@ namespace Private {
             
             vec3 rotate_vector( vec4 quat, vec3 vec )
             {
-                return vec + 2.0 * cross( cross( vec, quat.xyz ) + quat.w * vec, quat.xyz );
+                //return vec + 2.0 * cross( cross( vec, quat.xyz ) + quat.w * vec, quat.xyz );
+                return vec + 2.0 * cross( quat.xyz,cross(quat.xyz, vec ) + quat.w * vec );
             }
             
             vec3 blendBone(vec3 point,int boneIndex){

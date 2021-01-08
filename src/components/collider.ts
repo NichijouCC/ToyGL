@@ -1,9 +1,8 @@
+import { AbsComponent } from "../core/absComponent";
 import { vec3 } from "../mathD";
 import { StaticMesh } from "../scene/asset";
-import { AbstractComponent } from "./abstractComponent";
 
-
-export class Collider<T extends colliderTypes = "box"> extends AbstractComponent {
+export class Collider<T extends colliderTypes = "box"> extends AbsComponent {
     type: keyof colliderTypes;
     parameters: ColliderParameters[T];
     layer: string = "default";

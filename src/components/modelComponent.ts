@@ -6,10 +6,10 @@ import { StaticMesh } from "../scene/asset/geometry/staticMesh";
 import { Material } from "../scene/asset/material/material";
 import { SkinInstance } from "../scene/primitive/skinInstance";
 import { Skin } from "../scene/asset/Skin";
-import { AbstractComponent } from "./abstractComponent";
+import { AbsComponent } from "../core/absComponent";
 
 @Ecs.registeComp
-export class ModelComponent extends AbstractComponent {
+export class ModelComponent extends AbsComponent {
     protected _mesh: AssetReference<StaticMesh> = new AssetReference();
     get mesh() { return this._mesh.current; };
     set mesh(asset: StaticMesh) { this._mesh.current = asset; };

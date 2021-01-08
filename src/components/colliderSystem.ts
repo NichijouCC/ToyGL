@@ -1,7 +1,7 @@
-import { AbstractCompSystem } from "./abstractCompSystem";
+import { AbsSystem } from "../core/absSystem";
 import { Collider } from "./collider";
 
-export class ColliderSystem extends AbstractCompSystem<Collider<any>> {
+export class ColliderSystem extends AbsSystem<Collider> {
     careCompCtors: (new () => Collider<any>)[] = [Collider];
 
     update(delta: number) {

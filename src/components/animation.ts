@@ -1,10 +1,10 @@
+import { AbsComponent } from "../core/absComponent";
 import { Icomponent, Ecs } from "../core/ecs";
 import { AnimationClip } from "../scene/asset/animationClip";
 import { ClipInstance, ClipOptions } from "../scene/primitive/animtion/clipInstance";
-import { AbstractComponent } from "./abstractComponent";
 
 @Ecs.registeComp
-export class Animation extends AbstractComponent {
+export class Animation extends AbsComponent {
     private _clipsMap: Map<string, ClipInstance> = new Map();
     private _clips: AnimationClip[] = [];
     beAutoPlay: boolean = true;
