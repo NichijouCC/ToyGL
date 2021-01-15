@@ -62,7 +62,7 @@ export class LoadGlTF implements IassetLoader {
                     const animations = await Promise.all(gltfJson.animations.map((item, index) => {
                         return ParseAnimationNode.parse(index, gltfJson);
                     }));
-                    const comp = sceneRoot.addComponent("Animation") as Animation;
+                    const comp = sceneRoot.addComponent(Animation) as Animation;
                     animations.forEach(item => comp.addAnimationClip(item));
                 }
                 const rpefab = new Prefab();

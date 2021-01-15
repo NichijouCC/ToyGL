@@ -13,7 +13,7 @@ import { initToy } from "./util";
     toy.scene.addChild(newasset);
 
     let child = scene.addNewChild();
-    let comp = child.addComponent<Hud>(Hud.name);
+    let comp = child.addComponent<Hud>(Hud);
     newasset.addChild(child);
     child.localPosition[1] = 2;
 

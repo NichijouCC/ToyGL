@@ -18,7 +18,7 @@ export class Entity extends Transform implements Ientity {
      * @private
      */
     _uniteBitkey: UniteBitkey = new UniteBitkey();
-    addComponent<T extends AbsComponent, P extends object>(comp: new () => T, properties?: P): T {
+    addComponent<T extends AbsComponent, P extends object = any>(comp: new () => T, properties?: P): T {
         const newComp = Ecs.addComp(this, comp);
         return newComp;
     }

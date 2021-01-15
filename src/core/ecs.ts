@@ -12,7 +12,7 @@ export interface Icomponent {
 export interface Ientity {
     _components: { [compName: string]: AbsComponent };
     _uniteBitkey: UniteBitkey;
-    addComponent<T extends AbsComponent, P extends object>(comp: new () => T, properties?: P): T;
+    addComponent<T extends AbsComponent, P extends object = any>(comp: new () => T, properties?: P): T;
     getComponent<T extends AbsComponent>(comp: new () => T): T;
     removeComponent<T extends AbsComponent>(comp: new () => T): void;
 }
@@ -38,7 +38,7 @@ export class Ecs {
     }
 
     static registeComp = (comp: Function) => {
-        const compName = comp.constructor.name;
+        const compName = comp.name;
         if (Ecs.registedcomps[compName] == null) {
             Ecs.registedcomps[compName] = { ctr: comp.constructor, bitKey: Bitkey.create(), relatedSystem: [] };
         } else {
