@@ -53,13 +53,12 @@ export class ParseAccessorNode {
                 .then(value => {
                     let canUseCache = true;
                     // let typedArray = getTypedArray(value.viewBuffer, accessor.componentType) as any;
-                    let typedArray = TypedArray.fromGlType(accessor.componentType, value.viewBuffer);
-
 
                     arrayInfo.bytesOffset = accessor.byteOffset ?? 0;
                     arrayInfo.bytesStride = value.byteStride;
                     arrayInfo.target = value.target;
 
+                    let typedArray = TypedArray.fromGlType(accessor.componentType, value.viewBuffer);
                     if (accessor.sparse != null) {
                         canUseCache = false;
                         typedArray = typedArray.slice(0);
@@ -88,7 +87,7 @@ export class ParseAccessorNode {
                         });
                     }
                     arrayInfo.typedArray = typedArray;
-                    if (bufferOptions != null || value.target != null) {
+                    if (bufferOptions?.target != null || value.target != null) {
                         const context = bufferOptions.context;
                         const target = bufferOptions.target || value.target;
                         switch (target) {
@@ -96,7 +95,7 @@ export class ParseAccessorNode {
                                 if (canUseCache) {
                                     var newVertexBuffer = gltf.cache.vertexBufferCache[viewindex];
                                     if (newVertexBuffer == null) {
-                                        newVertexBuffer = new VertexBuffer({ context, typedArray });
+                                        newVertexBuffer = new VertexBuffer({ context, typedArray: value.viewBuffer });
                                         gltf.cache.vertexBufferCache[viewindex] = newVertexBuffer;
                                     } else {
                                         console.warn("命中！！");
@@ -110,7 +109,7 @@ export class ParseAccessorNode {
                                 if (canUseCache) {
                                     let newIndexBuffer = gltf.cache.indexBufferCache[viewindex];
                                     if (newIndexBuffer == null) {
-                                        newIndexBuffer = new IndexBuffer({ context, typedArray: typedArray as any });
+                                        newIndexBuffer = new IndexBuffer({ context, typedArray: value.viewBuffer, indexDatatype: accessor.componentType as any });
                                         gltf.cache.indexBufferCache[viewindex] = newIndexBuffer;
                                     } else {
                                         console.warn("命中！！");

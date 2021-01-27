@@ -46,7 +46,7 @@ export class Ecs {
         }
     }
 
-    static addComp<T extends AbsComponent, P extends object>(entity: Ientity, comp: new () => T, properties?: P): T {
+    static addComp<T extends AbsComponent, P extends Partial<T>>(entity: Ientity, comp: new () => T, properties?: P): T {
         const compInfo = this.registedcomps[comp.name];
         if (compInfo == null) return;
 
@@ -55,6 +55,11 @@ export class Ecs {
         Object.defineProperty(newcomp, "entity", {
             value: entity
         });
+
+        if (properties) {
+            Object.keys(properties).forEach(item => (newcomp as any)[item] = (properties as any)[item])
+        }
+
         (entity as any)[comp.name] = newcomp;
         entity._uniteBitkey.addBitKey(compInfo.bitKey);
 

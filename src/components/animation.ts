@@ -4,7 +4,7 @@ import { AnimationClip } from "../scene/asset/animationClip";
 import { ClipInstance, ClipOptions } from "../scene/primitive/animtion/clipInstance";
 
 @Ecs.registeComp
-export class Animation extends AbsComponent {
+export class Animation extends AbsComponent<Animation> {
     private _clipsMap: Map<string, ClipInstance> = new Map();
     private _clips: AnimationClip[] = [];
     beAutoPlay: boolean = true;

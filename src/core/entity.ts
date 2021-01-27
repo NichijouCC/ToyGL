@@ -6,9 +6,11 @@ import { AbsComponent, ComponentCtor } from "./absComponent";
 export class Entity extends Transform implements Ientity {
     name: string;
     beActive: boolean = true;
-    constructor(name?: string) {
+    constructor(properties?: Partial<Entity>) {
         super();
-        this.name = name;
+        if (properties) {
+            Object.keys(properties).forEach(item => (this as any)[item] = (properties as any)[item])
+        }
     }
     /**
      * @private
@@ -18,8 +20,8 @@ export class Entity extends Transform implements Ientity {
      * @private
      */
     _uniteBitkey: UniteBitkey = new UniteBitkey();
-    addComponent<T extends AbsComponent, P extends object = any>(comp: new () => T, properties?: P): T {
-        const newComp = Ecs.addComp(this, comp);
+    addComponent<T extends AbsComponent, P extends Partial<T>>(comp: new () => T, properties?: P): T {
+        const newComp = Ecs.addComp(this, comp, properties);
         return newComp;
     }
 

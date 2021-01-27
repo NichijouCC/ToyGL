@@ -1,5 +1,4 @@
 import { Icomponent, Ientity, Ecs } from "../core/ecs";
-import { Entity } from "../core/entity";
 import { AssetReferenceArray } from "../scene/assetReferenceArray";
 import { AssetReference } from "../scene/assetReference";
 import { StaticMesh } from "../scene/asset/geometry/staticMesh";
@@ -9,18 +8,18 @@ import { Skin } from "../scene/asset/Skin";
 import { AbsComponent } from "../core/absComponent";
 
 @Ecs.registeComp
-export class ModelComponent extends AbsComponent {
-    protected _mesh: AssetReference<StaticMesh> = new AssetReference();
+export class ModelComponent extends AbsComponent<ModelComponent> {
+    protected _mesh = new AssetReference<StaticMesh>();
     get mesh() { return this._mesh.current; };
     set mesh(asset: StaticMesh) { this._mesh.current = asset; };
-    protected _materials: AssetReferenceArray<Material> = new AssetReferenceArray();
+    protected _materials = new AssetReferenceArray<Material>();
     set material(asset: Material) { this._materials.setValue(asset); };
     get material() { return this._materials.current[0]; };
 
     get materials() { return this._materials.current; };
     set materials(mats: Material[]) { this._materials.current = mats; }
 
-    private _skin: AssetReference<Skin> = new AssetReference();
+    private _skin = new AssetReference<Skin>();
     set skin(skin: Skin) { this._skin.current = skin; };
     get skin() { return this._skin.current; }
 

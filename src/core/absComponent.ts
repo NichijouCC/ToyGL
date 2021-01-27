@@ -1,4 +1,3 @@
-import { abort } from "process";
 import { Icomponent, Ientity } from "./ecs";
 import { Entity } from "./entity";
 
@@ -23,7 +22,7 @@ function setComponetProperty(target: AbsComponent, value: object) {
 
 export abstract class AbsComponent<T extends object = any> implements Icomponent {
     readonly entity: Entity;
-    readonly beInit: boolean = false;
+    beInit: boolean = false;
     constructor(props?: T) {
         if (props) {
             setComponetProperty(this, props);
@@ -37,7 +36,10 @@ export abstract class AbsComponent<T extends object = any> implements Icomponent
      * private
      */
     _update() {
-        if (!this.beInit) this.init();
+        if (!this.beInit) {
+            this.beInit = true;
+            this.init();
+        }
         this.update();
     }
     update() { }

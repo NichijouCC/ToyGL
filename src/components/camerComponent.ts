@@ -10,7 +10,7 @@ export class CameraComponent {
     }
 }
 
-export interface CameraComponent extends Camera, AbsComponent {
+export interface CameraComponent extends Camera, AbsComponent<CameraComponent> {
 
 }
 applyMixins(CameraComponent, [Camera, AbsComponent]);

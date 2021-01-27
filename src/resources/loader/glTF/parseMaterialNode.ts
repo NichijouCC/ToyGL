@@ -164,7 +164,12 @@ export class ParseMaterialNode {
                         return mat;
                     })
             } else {
-                const mat = DefaultMaterial.color_3d;
+                const mat = DefaultMaterial.color_3d.clone();
+
+                let baseColor = node.pbrMetallicRoughness?.baseColorFactor;
+                if (baseColor) {
+                    mat.setUniformParameter("MainColor", Color.create(baseColor[0], baseColor[1], baseColor[2], baseColor[3]))
+                }
                 return Promise.resolve(mat);
             }
 

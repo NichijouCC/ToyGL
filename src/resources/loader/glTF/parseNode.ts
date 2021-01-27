@@ -14,7 +14,7 @@ export class ParseNode {
     static parse(index: number, gltf: IgltfJson, root: Entity, context: GraphicsDevice): Promise<Entity> {
         const node = gltf.nodes[index];
         const name = GlTF.getNodeName(index, gltf);
-        const sceneNode = new Entity(name);
+        const sceneNode = new Entity({ name });
         if (node.matrix) {
             sceneNode.localMatrix = mat4.fromNumberArray(node.matrix);
         }

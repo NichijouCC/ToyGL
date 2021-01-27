@@ -79,13 +79,10 @@ export class ParseMeshNode {
                 .then(arrayInfo => {
                     vaoOptions.vertexAttributes.push({
                         type: attType,
-                        vertexBuffer: arrayInfo.buffer as VertexBuffer ?? new VertexBuffer({
-                            context,
-                            typedArray: arrayInfo.typedArray
-                        }),
+                        vertexBuffer: arrayInfo.buffer as VertexBuffer,
                         componentsPerAttribute: arrayInfo.componentSize,
                         componentDatatype: arrayInfo.componentDataType,
-                        normalize: arrayInfo.normalize,
+                        normalize: arrayInfo.normalize ?? false,
                         offsetInBytes: arrayInfo.bytesOffset,
                         strideInBytes: arrayInfo.bytesStride
                     });
@@ -99,7 +96,7 @@ export class ParseMeshNode {
                     if (!(arrayInfo.typedArray instanceof Uint8Array || arrayInfo.typedArray instanceof Uint16Array || arrayInfo.typedArray instanceof Uint32Array)) {
                         console.error("index data type not Uint16Array or Uint32Array!");
                     }
-                    vaoOptions.indexBuffer = arrayInfo.buffer as IndexBuffer ?? new IndexBuffer({ context, typedArray: arrayInfo.typedArray as IndicesArray });
+                    vaoOptions.indexBuffer = arrayInfo.buffer as IndexBuffer;
                     vaoOptions.primitiveByteOffset = arrayInfo.bytesOffset;
                     vaoOptions.primitiveCount = arrayInfo.count;
                 });
