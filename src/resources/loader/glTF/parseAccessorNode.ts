@@ -106,11 +106,14 @@ export class ParseAccessorNode {
                                 }
                                 break;
                             case BufferTargetEnum.ELEMENT_ARRAY_BUFFER:
+                                typedArray = TypedArray.fromGlType(accessor.componentType, value.viewBuffer, accessor.byteOffset);
+                                arrayInfo.bytesOffset = 0;
                                 if (canUseCache) {
                                     let newIndexBuffer = gltf.cache.indexBufferCache[viewindex];
                                     if (newIndexBuffer == null) {
-                                        newIndexBuffer = new IndexBuffer({ context, typedArray: value.viewBuffer, indexDatatype: accessor.componentType as any });
-                                        gltf.cache.indexBufferCache[viewindex] = newIndexBuffer;
+                                        // newIndexBuffer = new IndexBuffer({ context, typedArray: value.viewBuffer, indexDatatype: accessor.componentType as any });
+                                        newIndexBuffer = new IndexBuffer({ context, typedArray: typedArray as any });
+                                        // gltf.cache.indexBufferCache[viewindex] = newIndexBuffer;
                                     } else {
                                         console.warn("命中！！");
                                     }

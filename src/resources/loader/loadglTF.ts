@@ -5,7 +5,7 @@ import { Igltf, Iproperty } from "./glTF/gltfJsonStruct";
 import { ParseSceneNode } from "./glTF/parseSceneNode";
 import { Material } from "../../scene/asset/material/material";
 import { GraphicsDevice } from "../../webgl/graphicsDevice";
-import { StaticMesh, SubMesh } from "../../scene/asset/geometry/staticMesh";
+import { StaticMesh, PrimitiveMesh } from "../../scene/asset/geometry/staticMesh";
 import { IassetLoader } from "../resource";
 import { Prefab } from "../../scene/asset/prefab";
 import { Texture2D } from "../../scene/asset/texture/texture2d";
@@ -19,7 +19,7 @@ export interface IglTFExtension {
 }
 
 export interface IgltfPrimitive {
-    mesh: SubMesh;
+    mesh: PrimitiveMesh;
     material: Material;
 }
 

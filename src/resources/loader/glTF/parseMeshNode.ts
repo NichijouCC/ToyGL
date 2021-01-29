@@ -8,7 +8,7 @@ import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
 import { VertexArray, IvaoOptions } from "../../../webgl/vertextArray";
 import { Material } from "../../../scene/asset/material/material";
-import { StaticMesh, SubMesh } from "../../../scene/asset/geometry/staticMesh";
+import { StaticMesh, PrimitiveMesh } from "../../../scene/asset/geometry/staticMesh";
 import { IndexBuffer, IndicesArray } from "../../../webgl/indexBuffer";
 import { VertexBuffer } from "../../../webgl/vertexBuffer";
 import { BufferTargetEnum } from "../../../webgl/buffer";
@@ -50,7 +50,7 @@ export class ParseMeshNode {
 
     static parsePrimitive(node: IgltfMeshPrimitive, gltf: IgltfJson, context: GraphicsDevice): Promise<IgltfPrimitive> {
         return Promise.all([
-            this.parseMesh(node, gltf, context),
+            this.parsePrimitiveVertexData(node, gltf, context),
             this.parseMaterial(node, gltf)]
         ).then(
             ([mesh, material]) => {
@@ -68,7 +68,7 @@ export class ParseMeshNode {
         }
     }
 
-    static parseMesh(node: IgltfMeshPrimitive, gltf: IgltfJson, context: GraphicsDevice): Promise<SubMesh> {
+    static parsePrimitiveVertexData(node: IgltfMeshPrimitive, gltf: IgltfJson, context: GraphicsDevice): Promise<PrimitiveMesh> {
         const taskAtts: Promise<void>[] = [];
         const vaoOptions: IvaoOptions = { vertexAttributes: [], context };
         const attributes = node.attributes;
@@ -96,15 +96,17 @@ export class ParseMeshNode {
                     if (!(arrayInfo.typedArray instanceof Uint8Array || arrayInfo.typedArray instanceof Uint16Array || arrayInfo.typedArray instanceof Uint32Array)) {
                         console.error("index data type not Uint16Array or Uint32Array!");
                     }
-                    vaoOptions.indexBuffer = arrayInfo.buffer as IndexBuffer;
-                    vaoOptions.primitiveByteOffset = arrayInfo.bytesOffset;
+                    let indexBuffer = arrayInfo.buffer as IndexBuffer;
+                    vaoOptions.indexBuffer = indexBuffer;
+                    vaoOptions.primitiveByteOffset = arrayInfo.bytesOffset / indexBuffer.bytesPerIndex;
                     vaoOptions.primitiveCount = arrayInfo.count;
                 });
             taskAtts.push(indexTask);
         }
+        vaoOptions.primitiveType = node.mode as any;
         return Promise.all(taskAtts)
             .then(() => {
-                const mesh = new SubMesh();
+                const mesh = new PrimitiveMesh();
                 mesh.vertexArray = new VertexArray(vaoOptions);
                 return mesh;
             }).catch(err => {

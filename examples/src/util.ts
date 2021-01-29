@@ -4,7 +4,9 @@ import { ToyGL } from "../../src/toygl";
 export function initToy() {
     const toy = ToyGL.create(document.getElementById("canvas") as HTMLCanvasElement);
     const cam = toy.scene.addNewCamera();
-    cam.node.localPosition = vec3.fromValues(10, 10, 10);
+
+    let size = 30;
+    cam.node.localPosition = vec3.fromValues(size, size, size);
     //cam.node.lookAtPoint(vec3.create());
 
     cam.lookAtPoint(vec3.create());

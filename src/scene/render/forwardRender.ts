@@ -133,13 +133,13 @@ export class ForwardRender {
                 bucketId = bucketId | ShaderBucket.DIFFUSEMAP;
             }
 
-            shaderIns = material.shader.getInstance(bucketId, this.device);
+            shaderIns = material.shader.getProgram(bucketId, this.device);
             let shaderChanged = shaderIns.bind();
 
-            if (shaderChanged || material != Private.preMaterial || material.bedirty || Private.preBuketID != bucketId) {
+            if (shaderChanged || material != Private.preMaterial || material._bedirty || Private.preBuketID != bucketId) {
                 Private.preMaterial = material;
                 Private.preBuketID = bucketId;
-                material.bedirty = false;
+                material._bedirty = false;
                 this.bindShaderUniforms(shaderIns, uniforms);
             } else {
                 this.bindShaderAutoUniforms(shaderIns);

@@ -2,19 +2,19 @@ import { ShaderProgram, IshaderProgramOption } from "../../../webgl/shaderProgam
 import { RenderLayerEnum } from "../../renderLayer";
 import { Asset, IgraphicAsset } from "../asset";
 import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
-import { ShaderInstance } from "./shaderInstance";
 import { ShaderBucket } from "./shaderBucket";
 import { GraphicsDevice } from "../../../webgl";
 
-export let sortId: number = 0;
 export class Shader extends Asset {
-    private _shader: ShaderProgram;
-    private _instances: Map<number, ShaderProgram> = new Map();
+    static totalCount: number = 0;
+    private _programs: Map<number, ShaderProgram> = new Map();
 
     private _layer: RenderLayerEnum;
     get layer() { return this._layer; }
 
     private _layerIndex: number;
+    get layerIndex() { return this._layerIndex; };
+
     setLayerIndex(layer: RenderLayerEnum, queue: number = 0) {
         const layerIndex = layer + queue;
         if (this._layerIndex != layerIndex) {
@@ -24,23 +24,25 @@ export class Shader extends Asset {
         }
     }
 
-    get layerIndex() { return this._layerIndex; };
-
     private vsStr: string;
     private fsStr: string;
     private attributes: { [attName: string]: VertexAttEnum };
-    readonly sortId: number;
+    readonly create_id: number;
     constructor(options: IshaderOption) {
         super();
-        this.sortId = sortId++;
+        this.create_id = Shader.totalCount++;
 
         this.vsStr = options.vsStr;
         this.fsStr = options.fsStr;
         this.attributes = options.attributes;
     }
+    private _bucketFeats: number = 0;
 
-    getInstance(bucketId: number, device: GraphicsDevice) {
-        if (!this._instances.has(bucketId)) {
+    set buketFeats(feat: ShaderBucket | number) { this._bucketFeats = feat; }
+
+    getProgram(bucketId: ShaderBucket, device: GraphicsDevice) {
+        bucketId = bucketId | this._bucketFeats;
+        if (!this._programs.has(bucketId)) {
             const packStr = ShaderBucket.packShaderStr(bucketId);
             const program = new ShaderProgram({
                 context: device,
@@ -49,21 +51,19 @@ export class Shader extends Asset {
                 fsStr: packStr + this.fsStr
             });
 
-            this._instances.set(bucketId, program);
-            // this._instances.set(bucketId, new ShaderInstance(
-            //     packStr + this.vsStr,
-            //     packStr + this.fsStr,
-            //     this.attributes));
+            this._programs.set(bucketId, program);
         }
-        return this._instances.get(bucketId);
+        return this._programs.get(bucketId);
     }
 
-    unbind(): void {
-        this._shader?.unbind();
-    }
+    destroy() { }
 
-    destroy() {
-        this._shader?.destroy();
+    clone() {
+        let newShader = new Shader({ vsStr: this.vsStr, fsStr: this.fsStr, attributes: this.attributes });
+        newShader._bucketFeats = this._bucketFeats;
+        newShader._layer = this._layer;
+        newShader._layerIndex = this._layerIndex;
+        return newShader;
     }
 }
 

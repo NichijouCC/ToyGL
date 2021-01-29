@@ -114,6 +114,13 @@ export class AutoUniforms {
             getValue: (uniformState: UniformState) => {
                 return uniformState.boneMatrices;
             }
+        },
+        czm_alphaCut: {
+            size: 1,
+            datatype: UniformTypeEnum.FLOAT,
+            getValue: (uniformState: UniformState) => {
+                return 0.5;
+            }
         }
     };
 

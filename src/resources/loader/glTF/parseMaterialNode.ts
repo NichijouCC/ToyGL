@@ -5,6 +5,8 @@ import { Material } from "../../../scene/asset/material/material";
 import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
 import { DefaultMaterial } from "../../defAssets/defaultMaterial";
 import { SkinInstance, SkinWay } from "../../../scene/primitive/skinInstance";
+import { MaterialAlphaMode } from "./gltfJsonStruct";
+import { ShaderBucket } from "../../../scene/asset";
 
 namespace Private {
     /**
@@ -56,9 +58,19 @@ namespace Private {
             uniform vec4 MainColor;
             varying vec2 xlv_TEXCOORD0;
             uniform sampler2D MainTex;
+            #ifdef AlPHACUT
+            uniform float czm_alphaCut;
+            #endif
             void main()
             {
-                gl_FragData[0] = texture2D(MainTex, xlv_TEXCOORD0)*MainColor;
+                vec4 outColor=texture2D(MainTex, xlv_TEXCOORD0)*MainColor;
+            
+                #ifdef AlPHACUT
+                if(outColor.a<czm_alphaCut){
+                    discard;
+                }
+                #endif
+                gl_FragData[0] = outColor;
             }`
         }
     });
@@ -131,48 +143,69 @@ namespace Private {
             uniform vec4 MainColor;
             varying vec2 xlv_TEXCOORD0;
             uniform sampler2D MainTex;
+            #ifdef AlPHACUT
+            uniform float czm_alphaCut;
+            #endif
             void main()
             {
-                gl_FragData[0] = texture2D(MainTex, xlv_TEXCOORD0)*MainColor;
+                vec4 outColor=texture2D(MainTex, xlv_TEXCOORD0)*MainColor;
+                outColor.a=1.0;
+                #ifdef AlPHACUT
+                if(outColor.a<czm_alphaCut){
+                    discard;
+                }
+                #endif
+                gl_FragData[0] = outColor;
             }`
         }
     });
 }
 
 export class ParseMaterialNode {
-    static parse(index: number, gltf: IgltfJson): Promise<Material> {
+    static async parse(index: number, gltf: IgltfJson): Promise<Material> {
         if (gltf.cache.materialNodeCache[index]) {
             return gltf.cache.materialNodeCache[index];
         } else {
-            // if (gltf.materials == null)
-            // {
-            //     return Promise.resolve(null);
-            // }
             const node = gltf.materials[index];
+            const mat1 = DefaultMaterial.color_3d.clone();
+            return mat1
 
+            const mat = new Material();
             if (node.pbrMetallicRoughness?.baseColorTexture != null) {
-                const mat = new Material();
                 mat.setUniformParameter("MainColor", Color.create(1.0, 1.0, 1.0, 1));
                 if (SkinInstance.skinWay == SkinWay.UNIFROMMATS) {
-                    mat.shader = Private.defmat.shader;
+                    mat.shader = Private.defmat.shader.clone();
                 } else if (SkinInstance.skinWay == SkinWay.UNIFORMARRAY) {
-                    mat.shader = Private.defmat2.shader;
+                    mat.shader = Private.defmat2.shader.clone();
                 }
-                return ParseTextureNode.parse(node.pbrMetallicRoughness?.baseColorTexture.index, gltf)
+
+                await ParseTextureNode.parse(node.pbrMetallicRoughness?.baseColorTexture.index, gltf)
                     .then(tex => {
                         mat.setUniformParameter("MainTex", tex);
-                        return mat;
                     })
             } else {
-                const mat = DefaultMaterial.color_3d.clone();
-
+                mat.shader = DefaultMaterial.color_3d.shader.clone();
                 let baseColor = node.pbrMetallicRoughness?.baseColorFactor;
                 if (baseColor) {
                     mat.setUniformParameter("MainColor", Color.create(baseColor[0], baseColor[1], baseColor[2], baseColor[3]))
                 }
-                return Promise.resolve(mat);
             }
-
+            if (node.doubleSided) {
+                mat.renderState.cull.enabled = false;
+            }
+            if (node.alphaMode != null) {
+                switch (node.alphaMode) {
+                    case MaterialAlphaMode.OPAQUE:
+                        break;
+                    case MaterialAlphaMode.BLEND:
+                        mat.renderState.blend.enabled = true;
+                        break;
+                    case MaterialAlphaMode.MASK:
+                        mat.shader.buketFeats = ShaderBucket.AlPHACUT;
+                        break;
+                }
+            }
+            return mat;
             //     let baseVs =
             //     "\
             //   attribute vec3 POSITION;\

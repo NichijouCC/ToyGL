@@ -3,13 +3,13 @@ import { GraphicsDevice } from "../../../webgl/graphicsDevice";
 import { AbstractGeometryAsset } from "./abstractGeometryAsset";
 import { Asset } from "../asset";
 export class StaticMesh extends Asset {
-    sbuMeshs: SubMesh[] = [];
+    sbuMeshs: PrimitiveMesh[] = [];
     destroy(): void {
         throw new Error("Method not implemented.");
     }
 }
 
-export class SubMesh extends AbstractGeometryAsset {
+export class PrimitiveMesh extends AbstractGeometryAsset {
     protected create(device: GraphicsDevice): VertexArray {
         throw new Error("Method not implemented.");
     }

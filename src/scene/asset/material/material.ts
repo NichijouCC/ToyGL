@@ -5,14 +5,14 @@ import { Asset } from "../asset";
 import { AssetReference } from "../../assetReference";
 
 export class Material extends Asset {
-    static IdCount: number = 0;
+    static totalCount: number = 0;
 
     name: string;
     uniformParameters: { [name: string]: any } = {};
     constructor(options?: ImatOption) {
         super();
         this.name = options?.name;
-        this._sortId = Material.IdCount++;
+        Material.totalCount++;
 
         if (options?.shaderOption != null) {
             if (options?.shaderOption instanceof Shader) {
@@ -24,13 +24,13 @@ export class Material extends Asset {
         if (options?.uniformParameters) {
             this.uniformParameters = { ...options.uniformParameters };
         }
-        this.onDirty.addEventListener(() => { this.bedirty = true; });
+        this.onDirty.addEventListener(() => { this._bedirty = true; });
         this.shaderRef.onDirty.addEventListener(() => { this.onDirty.raiseEvent(); });
     }
     /**
-     * shader修改;uniform修改
+     * private
      */
-    bedirty: boolean = false;
+    _bedirty: boolean = false;
     private shaderRef = new AssetReference<Shader>();
     get shader() { return this.shaderRef.current; };
     set shader(value: Shader) { this.shaderRef.current = value; };
@@ -47,13 +47,11 @@ export class Material extends Asset {
 
     get layerIndex() { return this._layerIndex ?? this.shader.layerIndex; };
 
-    renderState: RenderState = new RenderState();
-    private _sortId: number;
-    get sortId() { return this._sortId + 1000 * this.shader?.sortId; }
+    renderState = new RenderState();
 
     setUniformParameter(uniformKey: string, value: any) {
         this.uniformParameters[uniformKey] = value;
-        this.bedirty = true;
+        this._bedirty = true;
     }
 
     destroy(): void {
@@ -68,7 +66,7 @@ export class Material extends Asset {
         for (const key in this.uniformParameters) {
             mat.uniformParameters[key] = this.uniformParameters[key];
         }
-        mat.bedirty = true;
+        mat._bedirty = true;
         return mat;
     }
 }

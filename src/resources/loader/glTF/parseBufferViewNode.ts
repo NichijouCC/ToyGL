@@ -11,9 +11,6 @@ export class ParseBufferViewNode {
             const task = ParseBufferNode.parse(bufferindex, gltf)
                 .then(buffer => {
                     const viewbuffer = new Uint8Array(buffer.buffer, bufferview.byteOffset + buffer.byteOffset, bufferview.byteLength);
-                    // let stride = bufferview.byteStride;
-                    // let glbuffer = bufferview.target && GlRender.createBuffer(bufferview.target, viewbuffer);
-                    // let glbuffer = bufferview.target && GlBuffer.fromViewData(bufferview.target, viewbuffer);
                     return { viewBuffer: viewbuffer, byteStride: bufferview.byteStride, target: bufferview.target };
                 })
                 .catch(err => {

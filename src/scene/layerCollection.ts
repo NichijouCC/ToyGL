@@ -3,25 +3,25 @@ import { Irenderable } from "./render/irenderable";
 import { Camera } from "./camera";
 import { RenderLayerEnum } from "./renderLayer";
 namespace Private {
-    export const sortByMatLayerIndex = (drawa: Irenderable, drawb: Irenderable): number => {
+    const sortByMatLayerIndex = (drawa: Irenderable, drawb: Irenderable): number => {
         return drawa.material.layerIndex - drawb.material.layerIndex;
     };
 
-    export const sortByZdist_FrontToBack = (drawa: Irenderable, drawb: Irenderable): number => {
+    const sortByZdist_FrontToBack = (drawa: Irenderable, drawb: Irenderable): number => {
         return drawa.zdist - drawb.zdist;
     };
 
-    export const sortByZdist_BackToFront = (drawa: Irenderable, drawb: Irenderable): number => {
+    const sortByZdist_BackToFront = (drawa: Irenderable, drawb: Irenderable): number => {
         return drawb.zdist - drawa.zdist;
     };
 
-    export const sortByMatSortId = (drawa: Irenderable, drawb: Irenderable): number => {
-        return drawb.material.sortId - drawb.material.sortId;
+    const sortByShaderId = (drawa: Irenderable, drawb: Irenderable): number => {
+        return drawa.material.shader.create_id - drawb.material.shader.create_id;
     };
 
     export const sortTypeInfo: { [type: string]: IsortInfo } = {}; {
         sortTypeInfo[SortTypeEnum.MatLayerIndex] = { sortFunc: sortByMatLayerIndex };
-        sortTypeInfo[SortTypeEnum.ShaderId] = { sortFunc: sortByMatSortId };
+        sortTypeInfo[SortTypeEnum.ShaderId] = { sortFunc: sortByShaderId };
         sortTypeInfo[SortTypeEnum.Zdist_FrontToBack] = {
             sortFunc: sortByZdist_FrontToBack,
             beforeSort: (ins: Irenderable[], cam: Camera) => {
