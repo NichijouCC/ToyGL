@@ -10,8 +10,8 @@ export class ParseBufferViewNode {
             const bufferindex = bufferview.buffer;
             const task = ParseBufferNode.parse(bufferindex, gltf)
                 .then(buffer => {
-                    const viewbuffer = new Uint8Array(buffer.buffer, bufferview.byteOffset + buffer.byteOffset, bufferview.byteLength);
-                    return { viewBuffer: viewbuffer, byteStride: bufferview.byteStride, target: bufferview.target };
+                    const viewbuffer = new Uint8Array(buffer.buffer, (bufferview.byteOffset ?? 0) + buffer.byteOffset, bufferview.byteLength);
+                    return { viewBuffer: viewbuffer, byteStride: bufferview.byteStride, target: bufferview.target, __debuge: bufferview };
                 })
                 .catch(err => {
                     console.error("ParseBufferViewNode error", err);

@@ -1,7 +1,5 @@
-import { getByteSizeFromGLtype } from "../core/typedArray";
 
-export enum ComponentDatatypeEnum
-{
+export enum ComponentDatatypeEnum {
     /**
      * Int8Array
      */
@@ -70,11 +68,4 @@ export enum ComponentDatatypeEnum
      * Float64Array
      */
     DOUBLE = 0x140a
-}
-
-export namespace ComponentDatatypeEnum
-{
-    export function byteSize(type: ComponentDatatypeEnum) {
-        return getByteSizeFromGLtype(type);
-    }
 }

@@ -40,7 +40,7 @@ export class Ecs {
     static registeComp = (comp: Function) => {
         const compName = comp.name;
         if (Ecs.registedcomps[compName] == null) {
-            Ecs.registedcomps[compName] = { ctr: comp.constructor, bitKey: Bitkey.create(), relatedSystem: [] };
+            Ecs.registedcomps[compName] = { ctr: comp, bitKey: Bitkey.create(), relatedSystem: [] };
         } else {
             throw new Error("重复注册组件: " + compName);
         }
@@ -51,7 +51,7 @@ export class Ecs {
         if (compInfo == null) return;
 
         // eslint-disable-next-line new-cap
-        const newcomp = new comp();
+        const newcomp = new compInfo.ctr();
         Object.defineProperty(newcomp, "entity", {
             value: entity
         });

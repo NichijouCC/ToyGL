@@ -3,6 +3,7 @@ import { GraphicsDevice } from "./graphicsDevice";
 import { ComponentDatatypeEnum } from "./componentDatatypeEnum";
 import { VertexAttEnum } from "./vertexAttEnum";
 import { BufferConfig } from "./buffer";
+import { Gltype } from "../core/typedArray";
 
 export interface IvertexAttribute {
     // index: number; // 0;
@@ -70,7 +71,7 @@ export class VertexAttribute implements IvertexAttribute {
         if (this.vertexBuffer) {
             const bytes = this.vertexBuffer.sizeInbytes - this.offsetInBytes;
             if (this.strideInBytes == 0) {
-                this.count = bytes / (this.componentsPerAttribute * ComponentDatatypeEnum.byteSize(this.componentDatatype));
+                this.count = bytes / (this.componentsPerAttribute * Gltype.bytesPerElement(this.componentDatatype));
             } else {
                 this.count = bytes / this.strideInBytes;
             }

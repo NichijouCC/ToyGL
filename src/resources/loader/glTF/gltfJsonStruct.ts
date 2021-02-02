@@ -517,7 +517,7 @@ export interface IgltfBufferView extends IchildRootProperty {
     /**
      * The offset into the buffer in bytes
      */
-    byteOffset: number;
+    byteOffset?: number;
     /**
      * The lenth of the bufferView in bytes
      */

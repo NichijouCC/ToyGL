@@ -167,8 +167,6 @@ export class ParseMaterialNode {
             return gltf.cache.materialNodeCache[index];
         } else {
             const node = gltf.materials[index];
-            const mat1 = DefaultMaterial.color_3d.clone();
-            return mat1
 
             const mat = new Material();
             if (node.pbrMetallicRoughness?.baseColorTexture != null) {

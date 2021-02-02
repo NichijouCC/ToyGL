@@ -93,12 +93,9 @@ export class ParseMeshNode {
         if (index != null) {
             const indexTask = ParseAccessorNode.parse(index, gltf, { target: BufferTargetEnum.ELEMENT_ARRAY_BUFFER, context })
                 .then(arrayInfo => {
-                    if (!(arrayInfo.typedArray instanceof Uint8Array || arrayInfo.typedArray instanceof Uint16Array || arrayInfo.typedArray instanceof Uint32Array)) {
-                        console.error("index data type not Uint16Array or Uint32Array!");
-                    }
                     let indexBuffer = arrayInfo.buffer as IndexBuffer;
                     vaoOptions.indexBuffer = indexBuffer;
-                    vaoOptions.primitiveByteOffset = arrayInfo.bytesOffset / indexBuffer.bytesPerIndex;
+                    vaoOptions.primitiveByteOffset = arrayInfo.bytesOffset;
                     vaoOptions.primitiveCount = arrayInfo.count;
                 });
             taskAtts.push(indexTask);

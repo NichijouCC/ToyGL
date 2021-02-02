@@ -34,8 +34,7 @@ export class ParseAnimationNode {
             ParseAccessorNode.parse(sampleNode.input, gltf),
             ParseAccessorNode.parse(sampleNode.output, gltf)
         ]).then(([inputdata, outputdata]) => {
-            const timedata = inputdata.typedArray;
-            // chan.keys=new Float32Array(timedata.length);
+
             const keyframes = Accessor.getTypedData(inputdata);
             for (let i = 0; i < keyframes.length; i++) {
                 chan.keyframes[i] = (keyframes[i] * AnimationClip.FPS) | 0;// 变成frame

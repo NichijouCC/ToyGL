@@ -1,7 +1,7 @@
 import { GraphicsDevice } from "./graphicsDevice";
 import { BufferUsageEnum, Buffer, BufferTargetEnum } from "./buffer";
 import { GlConstants } from "./glconstant";
-import { TypedArray, getByteSizeFromGLtype } from "../core/typedArray";
+import { TypedArray, Gltype } from "../core/typedArray";
 export type IndicesArray = Uint8Array | Uint16Array | Uint32Array;
 export type IndexBufferOption = {
     context: GraphicsDevice;
@@ -22,8 +22,8 @@ export class IndexBuffer extends Buffer {
         super({ ...options, target: BufferTargetEnum.ELEMENT_ARRAY_BUFFER });
         this.indexDatatype = (options as any).indexDatatype;
         const typedArray = (options as any).typedArray;
-        this.indexDatatype = options.indexDatatype ?? TypedArray.glType(typedArray);
-        this.bytesPerIndex = getByteSizeFromGLtype(this.indexDatatype);
+        this.indexDatatype = options.indexDatatype ?? TypedArray.getGLtype(typedArray);
+        this.bytesPerIndex = Gltype.bytesPerElement(this.indexDatatype);
         this.numberOfIndices = this._sizeInBytes / this.bytesPerIndex;
     }
 }
