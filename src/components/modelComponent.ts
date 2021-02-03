@@ -8,7 +8,8 @@ import { Skin } from "../scene/asset/Skin";
 import { AbsComponent } from "../core/absComponent";
 
 @Ecs.registeComp
-export class ModelComponent extends AbsComponent<ModelComponent> {
+export class ModelComponent extends AbsComponent {
+
     protected _mesh = new AssetReference<StaticMesh>();
     get mesh() { return this._mesh.current; };
     set mesh(asset: StaticMesh) { this._mesh.current = asset; };
@@ -25,14 +26,23 @@ export class ModelComponent extends AbsComponent<ModelComponent> {
 
     private _skinInstance: SkinInstance;
     get skinIns() { return this._skinInstance; };
+
     constructor() {
         super();
         this._skin.onDataChange.addEventListener((event) => {
             const { newData: newAsset, oldData: oldAsset } = event;
             if (this._skinInstance) { this._skinInstance.destroy(); this._skinInstance = null; };
             if (newAsset) {
-                this._skinInstance = new SkinInstance(newAsset, this.entity);
+                this._skinInstance = new SkinInstance(newAsset, () => this.entity);
             }
         });
+    }
+
+    clone(): ModelComponent {
+        let comp = ModelComponent.create();
+        comp.mesh = this.mesh;
+        comp.materials = this.materials;
+        comp.skin = this.skin;
+        return comp;
     }
 }

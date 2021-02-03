@@ -32,14 +32,14 @@ export class InterScene {
     private render: ForwardRender;
     constructor(render: ForwardRender) {
         this.render = render;
-        this.root = new Entity();
+        this.root = Entity.create({ beActive: true, _parentsBeActive: true } as any);
         Entity.onDirty.addEventListener((node) => {
             this.frameState.dirtyNode.add(node as Entity);
         });
     }
 
     addNewChild(): Entity {
-        const trans = new Entity();
+        const trans = Entity.create();
         this.root.addChild(trans);
         return trans;
     }

@@ -1,6 +1,6 @@
 import { AbsComponent } from "./absComponent";
 import { UniteBitkey } from "./bitkey";
-import { Isystem } from "./ecs";
+import { Isystem, UPADTE } from "./ecs";
 import { Entity } from "./entity";
 
 export abstract class AbsSystem<T extends AbsComponent> implements Isystem {
@@ -10,7 +10,7 @@ export abstract class AbsSystem<T extends AbsComponent> implements Isystem {
     /**
      * enityID => compoentArr
      */
-    protected comps: Map<number, T[]> = new Map();
+    protected comps: Map<string, T[]> = new Map();
     addEntity(entity: Entity): void {
         if (!this.comps.has(entity.id)) {
             const comps = this.careCompCtors.map(comp => entity.getComponent(comp));
@@ -24,13 +24,10 @@ export abstract class AbsSystem<T extends AbsComponent> implements Isystem {
         }
     }
 
-    /**
-     * @private
-     */
-    _update(deltaTime: number) {
+    [UPADTE](deltaTime: number) {
         this.update(deltaTime);
         this.comps.forEach((comps) => {
-            comps.forEach(comp => comp.update())
+            comps.forEach(comp => comp[UPADTE]())
         })
     }
 

@@ -1,5 +1,6 @@
 import { vec3, mat4, quat } from '../mathD/index';
-import { EventTarget } from "@mtgoo/ctool";
+import { Entity } from './entity';
+import { UniqueObject } from './uniqueObject';
 enum DirtyFlagEnum {
     WWORLD_POS = 0b000100,
     WORLD_ROTATION = 0b001000,
@@ -7,20 +8,43 @@ enum DirtyFlagEnum {
     LOCALMAT = 0b000001,
     WORLDMAT = 0b000010,
 }
-
-export class Transform {
-    parent: Transform;
-    children: Transform[] = [];
+export class Transform extends UniqueObject {
+    protected _parent: this;
+    get parent() { return this._parent }
+    protected _children: this[] = [];
+    get children() { return this._children }
     private dirtyFlag: number = 0;
-    // private bedirty() { return this.dirtyFlag != 0; }
-    name: string;
-    readonly id: number;
-    static IdCount = 0;
-    constructor(name?: string) {
-        this.id = Transform.IdCount++;
-        this.name = name;
-        // --------attach to dirty-------
 
+    //-----------------------------------------------------------------------------------------------------------
+    //  本节点是否显示由节点自身是否显示和递归的父节点是否显示综合决定，【beActive = selfBeActive & p1_beactive & p2_beactive & .... 】 
+    //-----------------------------------------------------------------------------------------------------------
+    private _selfBeActive: boolean = true;
+    private _parentsBeActive: boolean = false;
+    private setParentsBeActive = (active: boolean) => {
+        if (active != this._parentsBeActive) {
+            this._parentsBeActive = active;
+            //当自己为激活状态，父节点显示状态修改，则beactive修改了，需要通知子节点；当自己为未激活状态,beactive并未修改
+            if (this._selfBeActive) {
+                this._children.forEach(item => { item.setParentsBeActive(active); })
+            }
+        }
+    }
+    /**
+     * 此节点最终是否显示
+     */
+    get beActive() { return this._selfBeActive && this._parentsBeActive; }
+    set beActive(active: boolean) {
+        if (this._selfBeActive != active) {
+            this._selfBeActive = active;
+            if (this._parentsBeActive) {
+                this._children.forEach(item => item.setParentsBeActive(active))
+            }
+        }
+    }
+
+    constructor() {
+        super();
+        // --------attach to dirty-------
         let _this = this;
         this._localPosition = new Proxy(vec3.create(), {
             set: function (target, property, value, receiver) {
@@ -51,33 +75,17 @@ export class Transform {
     private _localRotation: quat;
     private _localScale: vec3;
 
-    set localPosition(value: vec3) {
-        vec3.copy(this._localPosition, value);
-        this.markDirty();
-    }
+    set localPosition(value: vec3) { vec3.copy(this._localPosition, value); }
 
-    get localPosition(): vec3 {
-        return this._localPosition;
-    }
+    get localPosition(): vec3 { return this._localPosition; }
 
-    set localRotation(value: quat) {
-        quat.copy(this._localRotation, value);
-        this.markDirty();
-    }
+    set localRotation(value: quat) { quat.copy(this._localRotation, value); }
 
-    get localRotation(): quat {
-        return this._localRotation;
-    }
+    get localRotation(): quat { return this._localRotation; }
 
-    set localScale(value: vec3) {
-        vec3.copy(this._localScale, value);
-        // this._localScale = value;
-        this.markDirty();
-    }
+    set localScale(value: vec3) { vec3.copy(this._localScale, value); }
 
-    get localScale(): vec3 {
-        return this._localScale;
-    }
+    get localScale(): vec3 { return this._localScale; }
 
     private _localMatrix: mat4 = mat4.create();
     set localMatrix(value: mat4) {
@@ -115,14 +123,14 @@ export class Transform {
     }
 
     set worldPosition(value: vec3) {
-        if (this.parent == null) {
+        if (this._parent == null) {
             return;
         }
-        if (this.parent.parent == null) {
+        if (this._parent._parent == null) {
             this._localPosition = value;
         } else {
             const invparentworld = mat4.create();
-            mat4.invert(invparentworld, this.parent.worldMatrix);
+            mat4.invert(invparentworld, this._parent.worldMatrix);
             // mat4.transformPoint(value, invparentworld, this._localPosition);
             vec3.transformMat4(this._localPosition, value, invparentworld)
             // mat4.recycle(invparentworld);
@@ -140,14 +148,14 @@ export class Transform {
     }
 
     set worldRotation(value: quat) {
-        if (this.parent == null) {
+        if (this._parent == null) {
             return;
         }
-        if (this.parent.parent == null) {
+        if (this._parent._parent == null) {
             this._localRotation = value;
         } else {
             const invparentworldrot = quat.create();
-            quat.invert(invparentworldrot, this.parent.worldRotation);
+            quat.invert(invparentworldrot, this._parent.worldRotation);
             quat.multiply(this._localRotation, invparentworldrot, value);
         }
         this.markDirty();
@@ -163,13 +171,13 @@ export class Transform {
     }
 
     set worldScale(value: vec3) {
-        if (this.parent == null) {
+        if (this._parent == null) {
             return;
         }
-        if (this.parent.parent == null) {
+        if (this._parent._parent == null) {
             this._localScale = value;
         } else {
-            vec3.divide(this._localScale, value, this.parent.worldScale);
+            vec3.divide(this._localScale, value, this._parent.worldScale);
         }
         this.markDirty();
     }
@@ -177,8 +185,8 @@ export class Transform {
     private _worldMatrix: mat4 = mat4.create();
     get worldMatrix(): mat4 {
         if (this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.LOCALMAT)) {
-            if (this.parent) {
-                mat4.multiply(this._worldMatrix, this.parent.worldMatrix, this.localMatrix);
+            if (this._parent) {
+                mat4.multiply(this._worldMatrix, this._parent.worldMatrix, this.localMatrix);
             } else {
                 mat4.copy(this.localMatrix, this._worldMatrix);
             }
@@ -189,20 +197,18 @@ export class Transform {
         return this._worldMatrix;
     }
 
-    get worldMatrixBedirty() {
-        return this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.LOCALMAT);
-    }
+    get worldMatrixBedirty() { return this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.LOCALMAT); }
 
     set worldMatrix(value: mat4) {
-        if (this.parent == null) {
+        if (this._parent == null) {
             return;
         }
         mat4.copy(this._worldMatrix, value);
-        if (this.parent.parent == null) {
+        if (this._parent._parent == null) {
             mat4.copy(this._localMatrix, value);
         } else {
             const invparentworld = mat4.create();
-            mat4.invert(invparentworld, this.parent.worldMatrix);
+            mat4.invert(invparentworld, this._parent.worldMatrix);
             mat4.multiply(this.localMatrix, invparentworld, value);
             // this.setlocalMatrix(this._localMatrix);
         }
@@ -222,36 +228,38 @@ export class Transform {
      * @param node
      */
     private static NotifyChildSelfDirty(node: Transform) {
-        for (const child of node.children) {
+        for (const child of node._children) {
             if (!(child.dirtyFlag & DirtyFlagEnum.WORLDMAT)) {
                 child.dirtyFlag = child.dirtyFlag | DirtyFlagEnum.WORLDMAT;
-                Transform.onDirty.raiseEvent(child);
+                Entity.onDirty.raiseEvent(child as any);
                 this.NotifyChildSelfDirty(child);
             }
         }
     }
 
-    static onDirty = new EventTarget<Transform>();
+
     /**
      * 修改local属性后，标记dirty
      */
     private markDirty() {
         this.dirtyFlag = this.dirtyFlag | DirtyFlagEnum.LOCALMAT | DirtyFlagEnum.WORLDMAT;
         Transform.NotifyChildSelfDirty(this);
-        Transform.onDirty.raiseEvent(this);
+        Entity.onDirty.raiseEvent(this as any);
     }
 
     /// ------------------------------------------父子结构
     /**
      * 添加子物体实例
      */
-    addChild(node: Transform) {
-        if (node.parent != null) {
-            node.parent.removeChild(node);
+    addChild(node: this) {
+        if (node._parent != null) {
+            node._parent.removeChild(node);
         }
-        this.children.push(node);
-        node.parent = this;
+        this._children.push(node);
+        node._parent = this;
         node.markDirty();
+        node.setParentsBeActive(this.beActive);
+        return node;
         // Transform.linkRefScene(node, this.refScene);
     }
 
@@ -260,25 +268,27 @@ export class Transform {
      */
     removeAllChild() {
         // if(this.children==undefined||this.children.length==0) return;
-        if (this.children.length == 0) return;
-        for (let i = 0, len = this.children.length; i < len; i++) {
-            this.children[i].parent = null;
+        if (this._children.length == 0) return;
+        for (let i = 0, len = this._children.length; i < len; i++) {
+            this._children[i]._parentsBeActive = false;
+            this._children[i]._parent = null;
         }
-        this.children.length = 0;
+        this._children.length = 0;
     }
 
     /**
      * 移除指定子物体
      */
-    removeChild(node: Transform) {
-        if (node.parent != this || this.children.length == 0) {
+    removeChild(node: this) {
+        if (node._parent != this || this._children.length == 0) {
             throw new Error("not my child.");
         }
-        const i = this.children.indexOf(node);
+        const i = this._children.indexOf(node);
         if (i >= 0) {
-            this.children.splice(i, 1);
-            node.parent = null;
+            this._children.splice(i, 1);
+            node._parent = null;
         }
+        node._parentsBeActive = false;
     }
 
     // -------易用性拓展
@@ -328,7 +338,7 @@ export class Transform {
     }
 
     dispose(): void {
-        this.parent = null;
-        this.children = null;
+        this._parent = null;
+        this._children = null;
     }
 }

@@ -29,8 +29,8 @@ export class SkinInstance {
     private bones: Entity[] = [];
     private rootBone: Entity;
     private _boneInverses!: mat4[];
-    private attachEntity: Entity;
-
+    private get attachEntity() { return this.getEntity?.() };
+    private getEntity: () => Entity;
     /**
      * 方式1：
      */
@@ -49,9 +49,10 @@ export class SkinInstance {
 
     static skinWay = SkinWay.UNIFORMARRAY;
 
-    constructor(skin: Skin, attachEntity: Entity) {
+
+    constructor(skin: Skin, getEntity: () => Entity) {
         this.skin = skin;
-        this.attachEntity = attachEntity;
+        this.getEntity = getEntity;
         // let skinMeshRoot = attachEntity.findInParents((item) => item.getComponent(Animation.name) != null);
     }
 
@@ -219,7 +220,7 @@ const findRootBone = (start: Entity, rootName: string) => {
     if (target != null) return target;
     let checked = new Set<Entity>();
     checked.add(start);
-    let parent = start.parent as Entity;
+    let parent = start.parent;
     while (parent != null && target == null) {
         for (let i = 0; i < parent.children.length; i++) {
             let child = parent.children[i] as Entity;
@@ -229,7 +230,7 @@ const findRootBone = (start: Entity, rootName: string) => {
             }
         }
         checked.add(parent);
-        parent = parent.parent as Entity;
+        parent = parent.parent;
     }
     return target;
 }

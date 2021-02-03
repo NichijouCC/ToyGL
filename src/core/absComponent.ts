@@ -1,4 +1,4 @@
-import { Icomponent, Ientity } from "./ecs";
+import { Ecs, Icomponent, Ientity, UPADTE } from "./ecs";
 import { Entity } from "./entity";
 
 const key = "__storedProperty";
@@ -20,22 +20,25 @@ function setComponetProperty(target: AbsComponent, value: object) {
 }
 
 
-export abstract class AbsComponent<T extends object = any> implements Icomponent {
+export class AbsComponent implements Icomponent {
     readonly entity: Entity;
     beInit: boolean = false;
-    constructor(props?: T) {
+    constructor(props?: Partial<typeof AbsComponent>) {
         if (props) {
             setComponetProperty(this, props);
         }
     }
-    getName() {
-        return this.constructor.name;
+    static compName() {
+        return this.prototype.constructor.name;
     }
+    get compName() { return this.constructor.name; }
+    get compType() { return this.constructor; }
+
     init() { }
     /**
      * private
      */
-    _update() {
+    [UPADTE]() {
         if (!this.beInit) {
             this.beInit = true;
             this.init();
@@ -44,11 +47,11 @@ export abstract class AbsComponent<T extends object = any> implements Icomponent
     }
     update() { }
 
-    static getName() {
-        return this.prototype.constructor.name;
-    }
-}
+    clone(): any {
+        throw new Error("Method not implemented.");
+    };
 
-export interface ComponentCtor<T extends object = {}> {
-    new(props: T): AbsComponent<T>;
+    static create<K extends typeof AbsComponent>(this: K, properties?: Partial<K>): InstanceType<K> {
+        return Ecs.createComp(this.prototype.constructor as any, properties as any) as InstanceType<K>;
+    }
 }

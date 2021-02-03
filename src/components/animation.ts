@@ -4,7 +4,7 @@ import { AnimationClip } from "../scene/asset/animationClip";
 import { ClipInstance, ClipOptions } from "../scene/primitive/animtion/clipInstance";
 
 @Ecs.registeComp
-export class Animation extends AbsComponent<Animation> {
+export class Animation extends AbsComponent {
     private _clipsMap: Map<string, ClipInstance> = new Map();
     private _clips: AnimationClip[] = [];
     beAutoPlay: boolean = true;
@@ -51,5 +51,13 @@ export class Animation extends AbsComponent<Animation> {
 
     crossFade(clip: AnimationClip | string) {
 
+    }
+
+    clone(): Animation {
+        let newComp = Animation.create();
+        this._clips.forEach(item => {
+            newComp.addAnimationClip(item);
+        })
+        return newComp;
     }
 }

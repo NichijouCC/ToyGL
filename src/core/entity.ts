@@ -1,46 +1,52 @@
-import { Icomponent, Ecs, Ientity } from "./ecs";
+import { COMPS, Ecs, Icomponent, Ientity, UNITBITKEY } from "./ecs";
 import { UniteBitkey } from "./bitkey";
 import { Transform } from "./transform";
-import { AbsComponent, ComponentCtor } from "./absComponent";
+import { EventTarget } from "@mtgoo/ctool";
 
 export class Entity extends Transform implements Ientity {
     name: string;
-    beActive: boolean = true;
-    constructor(properties?: Partial<Entity>) {
+    private constructor(properties?: Partial<Entity>) {
         super();
         if (properties) {
             Object.keys(properties).forEach(item => (this as any)[item] = (properties as any)[item])
         }
     }
-    /**
-     * @private
-     */
-    _components: { [compName: string]: AbsComponent } = {};
-    /**
-     * @private
-     */
-    _uniteBitkey: UniteBitkey = new UniteBitkey();
-    addComponent<T extends AbsComponent, P extends Partial<T>>(comp: new () => T, properties?: P): T {
-        const newComp = Ecs.addComp(this, comp, properties);
+
+    static create(properties?: Partial<Entity>) {
+        let newEntity = new Entity(properties);
+        Ecs.addEntity(newEntity);
+        return newEntity;
+    }
+    static onDirty = new EventTarget<Entity>();
+    [COMPS]: { [compName: string]: Icomponent } = {};
+    [UNITBITKEY]: UniteBitkey = new UniteBitkey();
+    addComponent<T extends Icomponent, P extends Partial<T>>(comp: new () => T, properties?: P): T {
+        const newComp = Ecs.createComp(comp, properties);
+        if (newComp) Ecs.bindComp(this, newComp);
         return newComp;
     }
 
-    getComponent<T extends AbsComponent>(comp: new () => T) { return (this as any)[comp.name]; }
-    removeComponent<T extends AbsComponent>(comp: new () => T): void {
-        Ecs.removeComp(this, comp);
+    addComponentIns<T extends Icomponent>(comp: T) {
+        if (comp) Ecs.bindComp(this, comp);
+        return comp;
     }
 
-    traverse(handler: (e: Entity) => void | boolean, includeSelf: boolean = true) {
+    getComponent<T extends Icomponent>(comp: new () => T): T { return this[COMPS][comp.name] as T; }
+    removeComponent<T extends Icomponent>(comp: new () => T): void { Ecs.unbindComp(this, comp); }
+
+    traverse(handler: (e: Entity) => void | boolean, includeSelf: boolean = true): void {
         let _find;
         if (includeSelf) {
             _find = handler(this);
         }
         if (_find !== true) {
             let child;
-            for (let i = 0; i < this.children.length; i++) {
-                child = this.children[i] as Entity;
+            for (let i = 0; i < this._children.length; i++) {
+                child = this._children[i];
                 child.traverse(handler, true);
             }
+        } else {
+            return;
         }
     }
 
@@ -49,8 +55,8 @@ export class Entity extends Transform implements Ientity {
         while (queue.length != 0) {
             let first = queue.shift();
             if (check(first)) return first;
-            for (let i = 0; i < first.children.length; i++) {
-                queue.push(first.children[i] as Entity);
+            for (let i = 0; i < first._children.length; i++) {
+                queue.push(first._children[i]);
             }
         }
         return null;
@@ -58,14 +64,36 @@ export class Entity extends Transform implements Ientity {
 
     findInParents(check: (e: Entity) => void | boolean): Entity | null {
         if (check(this)) return this;
-        if (this.parent) {
-            return (this.parent as Entity).findInParents(check);
+        if (this._parent) {
+            return (this._parent).findInParents(check);
         }
         return null;
     }
 
     clone(): Entity {
         // TODO
-        return new Entity();
+        return Entity.clonefrom(this);
+    }
+    private static clonefrom(from: Entity) {
+        let newIns = Entity.create();
+        (newIns as any)["clonefrom"] = from.name;
+        newIns.name = from.name;
+        newIns["_selfBeActive"] = from["_selfBeActive"];
+        newIns['_parentsBeActive'] = from['_parentsBeActive'];
+
+        newIns.localPosition = from.localPosition;
+        newIns.localScale = from.localScale;
+        newIns.localRotation = from.localRotation;
+
+        Object.values(from[COMPS]).forEach((item) => {
+            let newComp = item.clone();
+            newIns.addComponentIns(newComp);
+        });
+        if (from._children.length > 0) {
+            from._children.forEach(item => {
+                newIns.addChild(Entity.clonefrom(item));
+            });
+        }
+        return newIns;
     }
 }

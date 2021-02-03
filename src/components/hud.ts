@@ -25,4 +25,7 @@ export class Hud extends AbsComponent {
         this._command = command;
         this._size = vec3.fromValues(width3d, width3d * rect.height / rect.width, 1.0);
     }
+    clone(): Hud {
+        throw new Error("Method not implemented.");
+    }
 }

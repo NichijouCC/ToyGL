@@ -6,6 +6,10 @@ export class Collider<T extends colliderTypes = "box"> extends AbsComponent {
     type: keyof colliderTypes;
     parameters: ColliderParameters[T];
     layer: string = "default";
+
+    clone(): Collider {
+        throw new Error("Method not implemented.");
+    }
 }
 
 interface ColliderParameters {
