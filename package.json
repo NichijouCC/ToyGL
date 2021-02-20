@@ -57,7 +57,7 @@
     "typescript": "^3.7.1-rc"
   },
   "dependencies": {
-    "@mtgoo/ctool": "^0.0.8",
+    "@mtgoo/ctool": "^0.0.17",
     "@types/dat.gui": "^0.7.2",
     "dat.gui": "^0.7.6",
     "gl-matrix": "^3.3.0",

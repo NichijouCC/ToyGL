@@ -74,6 +74,12 @@ export class Entity extends Transform implements Ientity {
         // TODO
         return Entity.clonefrom(this);
     }
+
+    dispose() {
+        this._parent.removeChild(this);
+        this.traverse((item) => { Ecs.removeEnity(item) })
+    }
+
     private static clonefrom(from: Entity) {
         let newIns = Entity.create();
         (newIns as any)["clonefrom"] = from.name;

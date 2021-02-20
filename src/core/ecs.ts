@@ -43,6 +43,11 @@ export class Ecs {
         return entity;
     }
 
+    static removeEnity(entity: Ientity) {
+        this.entitys.delete(entity);
+        this.systems.forEach(item => item.system.removeEntity(entity))
+    }
+
     static registeComp = (comp: Function) => {
         const compName = comp.name;
         if (Ecs.registedcomps[compName] == null) {
@@ -92,7 +97,6 @@ export class Ecs {
             }
         }
     }
-
 
     static addSystem(system: Isystem, priority?: number) {
         this.systems.push({ system, priority: priority ?? this.systems.length });

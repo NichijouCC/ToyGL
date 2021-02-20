@@ -46,6 +46,7 @@ export class InterScene {
 
     addChild(item: Entity) {
         this.root.addChild(item);
+        return item;
     }
 
     preupdate = new EventTarget<number>();

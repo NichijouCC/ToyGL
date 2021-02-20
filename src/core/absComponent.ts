@@ -19,8 +19,7 @@ function setComponetProperty(target: AbsComponent, value: object) {
     }
 }
 
-
-export class AbsComponent implements Icomponent {
+export abstract class AbsComponent implements Icomponent {
     readonly entity: Entity;
     beInit: boolean = false;
     constructor(props?: Partial<typeof AbsComponent>) {
@@ -47,11 +46,9 @@ export class AbsComponent implements Icomponent {
     }
     update() { }
 
-    clone(): any {
-        throw new Error("Method not implemented.");
-    };
+    abstract clone(): Icomponent
 
-    static create<K extends typeof AbsComponent>(this: K, properties?: Partial<K>): InstanceType<K> {
-        return Ecs.createComp(this.prototype.constructor as any, properties as any) as InstanceType<K>;
+    static create<K extends AbsComponent>(this: new () => K, properties?: Partial<K>): K {
+        return Ecs.createComp(this, properties);
     }
 }
