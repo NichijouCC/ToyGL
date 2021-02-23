@@ -1,14 +1,14 @@
-import { Ecs, Icomponent, Ientity, UPADTE } from "./ecs";
+import { Ecs, Icomponent, Ientity, UPDATE } from "./ecs";
 import { Entity } from "./entity";
 
 const key = "__storedProperty";
-export function ComponetProperty<T>(target: Function, name: string) {
+export function ComponentProperty<T>(target: Function, name: string) {
     let proto = target.prototype;
     if (proto[key] == null) proto[key] = {};
     if (proto[key][name] == null) proto[key][name] = true;
 }
 
-function setComponetProperty(target: AbsComponent, value: object) {
+function setComponentProperty(target: AbsComponent, value: object) {
     let storedProperties = target.constructor.prototype[key];
     if (storedProperties != null) {
         Object.keys(storedProperties).forEach(property => {
@@ -24,7 +24,7 @@ export abstract class AbsComponent implements Icomponent {
     beInit: boolean = false;
     constructor(props?: Partial<typeof AbsComponent>) {
         if (props) {
-            setComponetProperty(this, props);
+            setComponentProperty(this, props);
         }
     }
     static compName() {
@@ -33,14 +33,14 @@ export abstract class AbsComponent implements Icomponent {
     get compName() { return this.constructor.name; }
     get compType() { return this.constructor; }
 
-    init() { }
+    onInit() { }
     /**
      * private
      */
-    [UPADTE]() {
+    [UPDATE]() {
         if (!this.beInit) {
             this.beInit = true;
-            this.init();
+            this.onInit();
         }
         this.update();
     }

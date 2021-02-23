@@ -49,8 +49,8 @@ export class ParseAccessorNode {
         arrayInfo.normalize = accessor.normalized;
 
         if (accessor.bufferView != null) {
-            const viewindex = accessor.bufferView;
-            let value = await ParseBufferViewNode.parse(viewindex, gltf)
+            const viewIndex = accessor.bufferView;
+            let value = await ParseBufferViewNode.parse(viewIndex, gltf)
             let hasSparse = accessor.sparse != null;
             arrayInfo.bytesOffset = accessor.byteOffset ?? 0;
             arrayInfo.bytesStride = value.byteStride;
@@ -87,10 +87,10 @@ export class ParseAccessorNode {
                 switch (target) {
                     case BufferTargetEnum.ARRAY_BUFFER:
                         if (!hasSparse) {
-                            var newVertexBuffer = gltf.cache.vertexBufferCache[viewindex];
+                            var newVertexBuffer = gltf.cache.vertexBufferCache[viewIndex];
                             if (newVertexBuffer == null) {
                                 newVertexBuffer = new VertexBuffer({ context, typedArray: value.viewBuffer });
-                                gltf.cache.vertexBufferCache[viewindex] = newVertexBuffer;
+                                gltf.cache.vertexBufferCache[viewIndex] = newVertexBuffer;
                             } else {
                                 console.warn("命中！！");
                             }
@@ -101,10 +101,10 @@ export class ParseAccessorNode {
                         break;
                     case BufferTargetEnum.ELEMENT_ARRAY_BUFFER:
                         if (!hasSparse) {
-                            let newIndexBuffer = gltf.cache.indexBufferCache[viewindex];
+                            let newIndexBuffer = gltf.cache.indexBufferCache[viewIndex];
                             if (newIndexBuffer == null) {
                                 newIndexBuffer = new IndexBuffer({ context, typedArray: value.viewBuffer, indexDatatype: accessor.componentType as any });
-                                gltf.cache.indexBufferCache[viewindex] = newIndexBuffer;
+                                gltf.cache.indexBufferCache[viewIndex] = newIndexBuffer;
                             } else {
                                 console.warn("命中！！");
                             }

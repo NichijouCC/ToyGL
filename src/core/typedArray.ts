@@ -72,8 +72,8 @@ export function getGLTypeFromTypedArray(typedArray: ArrayBufferView): number {
 export type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array;
 
 export namespace TypedArray {
-    export function fromGlType(gltype: number, data: number | Array<number> | TypedArray, byteOffset: number = 0): TypedArray {
-        const TypeArrayCtr = Gltype.toTypeArrCtor(gltype);
+    export function fromGlType(glType: number, data: number | Array<number> | TypedArray, byteOffset: number = 0): TypedArray {
+        const TypeArrayCtr = GlType.toTypeArrCtor(glType);
         if (typeof data == "number") {
             return new TypeArrayCtr(data as number);
         } else if (data instanceof Array) {
@@ -84,12 +84,12 @@ export namespace TypedArray {
         }
     }
 
-    export function getGLtype(data: TypedArray) {
-        return Gltype.fromTypedArray(data);
+    export function getGLType(data: TypedArray) {
+        return GlType.fromTypedArray(data);
     }
 }
 
-export namespace Gltype {
+export namespace GlType {
     export function bytesPerElement(glType: number) {
         if (glTypeToTypedArrayCtor[glType]) {
             return glTypeToTypedArrayCtor[glType].BYTES_PER_ELEMENT;

@@ -7,8 +7,8 @@ import { TextureFilterEnum, TextureWrapEnum } from "../webgl/index";
 import { AbsSystem } from "../core/absSystem";
 
 
-export class HudSystem extends AbsSystem<Hud> {
-    careCompCtors: (new () => Hud)[] = [Hud];
+export class HudSystem extends AbsSystem<[Hud]> {
+    careCompCtors = [Hud];
     private context2d: CanvasRenderingContext2D;
     private _scene: InterScene;
     constructor(scene: InterScene, canvas: HTMLCanvasElement, options?: HudOptions) {

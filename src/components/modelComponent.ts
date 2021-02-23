@@ -7,7 +7,7 @@ import { SkinInstance } from "../scene/primitive/skinInstance";
 import { Skin } from "../scene/asset/Skin";
 import { AbsComponent } from "../core/absComponent";
 
-@Ecs.registeComp
+@Ecs.registerComp
 export class ModelComponent extends AbsComponent {
 
     protected _mesh = new AssetReference<StaticMesh>();

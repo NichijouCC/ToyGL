@@ -2,11 +2,11 @@ import { vec3, mat4, quat } from '../mathD/index';
 import { Entity } from './entity';
 import { UniqueObject } from './uniqueObject';
 enum DirtyFlagEnum {
-    WWORLD_POS = 0b000100,
+    WORLD_POS = 0b000100,
     WORLD_ROTATION = 0b001000,
     WORLD_SCALE = 0b010000,
-    LOCALMAT = 0b000001,
-    WORLDMAT = 0b000010,
+    LOCAL_MAT = 0b000001,
+    WORLD_MAT = 0b000010,
 }
 export class Transform extends UniqueObject {
     protected _parent: this;
@@ -94,16 +94,16 @@ export class Transform extends UniqueObject {
         mat4.getScaling(this._localScale, this._localMatrix);
         mat4.getTranslation(this._localPosition, this._localMatrix);
         mat4.getRotation(this._localRotation, this._localMatrix);
-        this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.LOCALMAT;
-        this.dirtyFlag = this.dirtyFlag | DirtyFlagEnum.WORLDMAT;
+        this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.LOCAL_MAT;
+        this.dirtyFlag = this.dirtyFlag | DirtyFlagEnum.WORLD_MAT;
 
         Transform.NotifyChildSelfDirty(this);
     }
 
     get localMatrix() {
-        if (this.dirtyFlag & DirtyFlagEnum.LOCALMAT) {
+        if (this.dirtyFlag & DirtyFlagEnum.LOCAL_MAT) {
             mat4.fromRotationTranslationScale(this._localMatrix, this._localRotation, this._localPosition, this._localScale);
-            this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.LOCALMAT;
+            this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.LOCAL_MAT;
         }
         return this._localMatrix;
     }
@@ -115,9 +115,9 @@ export class Transform extends UniqueObject {
     // ------------------------------------------------------------------------------------------------
     private _worldPosition: vec3 = vec3.create();
     get worldPosition(): vec3 {
-        if (this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.WWORLD_POS)) {
+        if (this.dirtyFlag & (DirtyFlagEnum.WORLD_MAT | DirtyFlagEnum.WORLD_POS)) {
             mat4.getTranslation(this._worldPosition, this.worldMatrix);
-            this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WWORLD_POS;
+            this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLD_POS;
         }
         return this._worldPosition;
     }
@@ -129,10 +129,10 @@ export class Transform extends UniqueObject {
         if (this._parent._parent == null) {
             this._localPosition = value;
         } else {
-            const invparentworld = mat4.create();
-            mat4.invert(invparentworld, this._parent.worldMatrix);
+            const invParentWorld = mat4.create();
+            mat4.invert(invParentWorld, this._parent.worldMatrix);
             // mat4.transformPoint(value, invparentworld, this._localPosition);
-            vec3.transformMat4(this._localPosition, value, invparentworld)
+            vec3.transformMat4(this._localPosition, value, invParentWorld)
             // mat4.recycle(invparentworld);
         }
         this.markDirty();
@@ -140,7 +140,7 @@ export class Transform extends UniqueObject {
 
     private _worldRotation: quat = quat.create();
     get worldRotation() {
-        if (this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.WORLD_ROTATION)) {
+        if (this.dirtyFlag & (DirtyFlagEnum.WORLD_MAT | DirtyFlagEnum.WORLD_ROTATION)) {
             mat4.getRotation(this._worldRotation, this.worldMatrix);
             this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLD_ROTATION;
         }
@@ -154,16 +154,16 @@ export class Transform extends UniqueObject {
         if (this._parent._parent == null) {
             this._localRotation = value;
         } else {
-            const invparentworldrot = quat.create();
-            quat.invert(invparentworldrot, this._parent.worldRotation);
-            quat.multiply(this._localRotation, invparentworldrot, value);
+            const invParentWorldRot = quat.create();
+            quat.invert(invParentWorldRot, this._parent.worldRotation);
+            quat.multiply(this._localRotation, invParentWorldRot, value);
         }
         this.markDirty();
     }
 
     private _worldScale: vec3 = vec3.fromValues(1, 1, 1);
     get worldScale(): vec3 {
-        if (this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.WORLD_SCALE)) {
+        if (this.dirtyFlag & (DirtyFlagEnum.WORLD_MAT | DirtyFlagEnum.WORLD_SCALE)) {
             mat4.getScaling(this._worldScale, this.worldMatrix);
             this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLD_SCALE;
         }
@@ -184,20 +184,20 @@ export class Transform extends UniqueObject {
 
     private _worldMatrix: mat4 = mat4.create();
     get worldMatrix(): mat4 {
-        if (this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.LOCALMAT)) {
+        if (this.dirtyFlag & (DirtyFlagEnum.WORLD_MAT | DirtyFlagEnum.LOCAL_MAT)) {
             if (this._parent) {
                 mat4.multiply(this._worldMatrix, this._parent.worldMatrix, this.localMatrix);
             } else {
                 mat4.copy(this.localMatrix, this._worldMatrix);
             }
-            this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLDMAT;
+            this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLD_MAT;
             this.dirtyFlag =
-                this.dirtyFlag | DirtyFlagEnum.WORLD_ROTATION | DirtyFlagEnum.WORLD_SCALE | DirtyFlagEnum.WWORLD_POS;
+                this.dirtyFlag | DirtyFlagEnum.WORLD_ROTATION | DirtyFlagEnum.WORLD_SCALE | DirtyFlagEnum.WORLD_POS;
         }
         return this._worldMatrix;
     }
 
-    get worldMatrixBedirty() { return this.dirtyFlag & (DirtyFlagEnum.WORLDMAT | DirtyFlagEnum.LOCALMAT); }
+    get worldMatrixBeDirty() { return this.dirtyFlag & (DirtyFlagEnum.WORLD_MAT | DirtyFlagEnum.LOCAL_MAT); }
 
     set worldMatrix(value: mat4) {
         if (this._parent == null) {
@@ -207,30 +207,30 @@ export class Transform extends UniqueObject {
         if (this._parent._parent == null) {
             mat4.copy(this._localMatrix, value);
         } else {
-            const invparentworld = mat4.create();
-            mat4.invert(invparentworld, this._parent.worldMatrix);
-            mat4.multiply(this.localMatrix, invparentworld, value);
+            const invParentWorld = mat4.create();
+            mat4.invert(invParentWorld, this._parent.worldMatrix);
+            mat4.multiply(this.localMatrix, invParentWorld, value);
             // this.setlocalMatrix(this._localMatrix);
         }
-        this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLDMAT;
+        this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLD_MAT;
         this.dirtyFlag =
-            this.dirtyFlag | DirtyFlagEnum.WORLD_ROTATION | DirtyFlagEnum.WORLD_SCALE | DirtyFlagEnum.WWORLD_POS;
+            this.dirtyFlag | DirtyFlagEnum.WORLD_ROTATION | DirtyFlagEnum.WORLD_SCALE | DirtyFlagEnum.WORLD_POS;
     }
 
-    private _worldTolocalMatrix: mat4 = mat4.create();
+    private _worldToLocalMatrix: mat4 = mat4.create();
     get worldTolocalMatrix(): mat4 {
-        mat4.invert(this._worldTolocalMatrix, this.worldMatrix);
-        return this._worldTolocalMatrix;
+        mat4.invert(this._worldToLocalMatrix, this.worldMatrix);
+        return this._worldToLocalMatrix;
     }
 
     /**
-     * 通知子节点需要计算worldmatrix
+     * 通知子节点需要计算worldMatrix
      * @param node
      */
     private static NotifyChildSelfDirty(node: Transform) {
         for (const child of node._children) {
-            if (!(child.dirtyFlag & DirtyFlagEnum.WORLDMAT)) {
-                child.dirtyFlag = child.dirtyFlag | DirtyFlagEnum.WORLDMAT;
+            if (!(child.dirtyFlag & DirtyFlagEnum.WORLD_MAT)) {
+                child.dirtyFlag = child.dirtyFlag | DirtyFlagEnum.WORLD_MAT;
                 Entity.onDirty.raiseEvent(child as any);
                 this.NotifyChildSelfDirty(child);
             }
@@ -242,7 +242,7 @@ export class Transform extends UniqueObject {
      * 修改local属性后，标记dirty
      */
     private markDirty() {
-        this.dirtyFlag = this.dirtyFlag | DirtyFlagEnum.LOCALMAT | DirtyFlagEnum.WORLDMAT;
+        this.dirtyFlag = this.dirtyFlag | DirtyFlagEnum.LOCAL_MAT | DirtyFlagEnum.WORLD_MAT;
         Transform.NotifyChildSelfDirty(this);
         Entity.onDirty.raiseEvent(this as any);
     }
@@ -296,32 +296,32 @@ export class Transform extends UniqueObject {
      * 获取世界坐标系下当前z轴的朝向
      */
     getForwardInWorld(out: vec3): vec3 {
-        mat4.transfromVector(out, vec3.FORMAWORLD, this.worldMatrix);
+        mat4.transformVector(out, vec3.FORWARD, this.worldMatrix);
         vec3.normalize(out, out);
         return out;
     }
 
     getRightInWorld(out: vec3): vec3 {
-        mat4.transfromVector(out, vec3.RIGHT, this.worldMatrix);
+        mat4.transformVector(out, vec3.RIGHT, this.worldMatrix);
         vec3.normalize(out, out);
         return out;
     }
 
     getUpInWorld(out: vec3): vec3 {
-        mat4.transfromVector(out, vec3.UP, this.worldMatrix);
+        mat4.transformVector(out, vec3.UP, this.worldMatrix);
         vec3.normalize(out, out);
         return out;
     }
 
     moveInWorld(dir: vec3, amount: number) {
         const dirInLocal = vec3.create();
-        mat4.transfromVector(dirInLocal, dir, this.worldTolocalMatrix);
+        mat4.transformVector(dirInLocal, dir, this.worldTolocalMatrix);
         vec3.scaleAndAdd(this._localPosition, this._localPosition, dirInLocal, amount);
         this.markDirty();
         return this;
     }
 
-    moveInlocal(dir: vec3, amount: number) {
+    moveInLocal(dir: vec3, amount: number) {
         vec3.scaleAndAdd(this._localPosition, this._localPosition, dir, amount);
         this.markDirty();
         return this;

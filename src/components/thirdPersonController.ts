@@ -3,7 +3,7 @@ import { AbsComponent } from "../core/absComponent";
 import { Ecs } from "../core/ecs";
 import { vec3 } from "../mathD";
 
-@Ecs.registeComp
+@Ecs.registerComp
 export class ThirdPersonController extends AbsComponent {
     canMove: boolean = true;
     moveSpeed: number = 10 * 3.0;

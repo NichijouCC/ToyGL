@@ -12,6 +12,7 @@ import { StaticMesh, PrimitiveMesh } from "../../../scene/asset/geometry/staticM
 import { IndexBuffer, IndicesArray } from "../../../webgl/indexBuffer";
 import { VertexBuffer } from "../../../webgl/vertexBuffer";
 import { BufferTargetEnum } from "../../../webgl/buffer";
+import { DefaultMaterial } from "../../defAssets/defaultMaterial";
 
 const MapGltfAttributeToToyAtt: { [name: string]: VertexAttEnum } = {
     POSITION: VertexAttEnum.POSITION,
@@ -64,7 +65,7 @@ export class ParseMeshNode {
         if (matindex != null) {
             return ParseMaterialNode.parse(matindex, gltf);
         } else {
-            return Promise.resolve(null);
+            return Promise.resolve(DefaultMaterial.color_3d.clone());
         }
     }
 

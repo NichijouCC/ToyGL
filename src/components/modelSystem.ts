@@ -4,8 +4,8 @@ import { ForwardRender } from "../scene/render/ForwardRender";
 import { Irenderable } from "../scene/render/Irenderable";
 import { AbsSystem } from "../core/absSystem";
 
-export class ModelSystem extends AbsSystem<ModelComponent> {
-    careCompCtors: (new () => ModelComponent)[] = [ModelComponent]
+export class ModelSystem extends AbsSystem<[ModelComponent]> {
+    careCompCtors = [ModelComponent]
     private scene: InterScene;
     constructor(scene: InterScene, render: ForwardRender) {
         super();
@@ -13,20 +13,19 @@ export class ModelSystem extends AbsSystem<ModelComponent> {
     }
 
     update(deltaTime: number): void {
-        const comps = Array.from(this.comps.values()).map(item => item[0]);
-        comps.forEach(item => {
-            if (item.entity.beActive == true) {
-                item.mesh?.sbuMeshs.forEach((submeshItem, index) => {
+        this.comps.forEach(([comp]) => {
+            if (comp.entity.beActive == true) {
+                comp.mesh?.sbuMeshs.forEach((submeshItem, index) => {
                     const renderIns: Irenderable = {
                         geometry: submeshItem,
-                        skinIns: item.skinIns,
-                        material: item.materials[index],
-                        worldMat: item.entity.worldMatrix,
-                        bevisible: item.entity.beActive
+                        skinIns: comp.skinIns,
+                        material: comp.materials[index],
+                        worldMat: comp.entity.worldMatrix,
+                        bevisible: comp.entity.beActive
                     };
                     this.scene._addFrameRenderIns(renderIns);
                 });
             }
-        });
+        })
     }
 }

@@ -14,14 +14,14 @@ export class ClipInstance {
     private curFrame: number = 0;
     private speed: number = 1;
     private localTime: number = 0;
-    private beloop: boolean;
+    private beLoop: boolean;
 
     private _options: { root: Entity | (() => Entity) } & ClipOptions;
     constructor(clip: AnimationClip, options: { root: Entity | (() => Entity) } & ClipOptions) {
         this.clip = clip;
         this.curFrame = 0;
         this.speed = options.speed ?? 1;
-        this.beloop = options.beLoop ?? true;
+        this.beLoop = options.beLoop ?? true;
 
         this._options = options;
     }
@@ -33,8 +33,8 @@ export class ClipInstance {
     }
 
     private _state = ClipStateEnum.INITING;
-    get beplaying() { return this._state == ClipStateEnum.PLAYING; }
-    private _init() {
+    get bePlaying() { return this._state == ClipStateEnum.PLAYING; }
+    _init() {
         const { _options: { root }, clip } = this;
         const entity = typeof root == "function" ? root() : root;
         this.channelInsArr = this.clip.channels.map(item => {
@@ -54,7 +54,7 @@ export class ClipInstance {
                 if (this.curFrame < totalFrame) {
                     newFrame = totalFrame;
                 } else {
-                    if (this.beloop) { // ----------------------restart play
+                    if (this.beLoop) { // ----------------------restart play
                         newFrame = 0;
                         this.localTime = 0;
                         this.channelInsArr.forEach(item => item.jumpToStart());
@@ -73,11 +73,7 @@ export class ClipInstance {
     }
 
     _update(deltaTime: number) {
-        if (this._state == ClipStateEnum.INITING) {
-            this._init();
-        } else if (this._state == ClipStateEnum.PLAYING) {
-            this._excecute(deltaTime);
-        }
+        this._excecute(deltaTime);
     }
 
     _reset() {

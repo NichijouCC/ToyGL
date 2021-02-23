@@ -12,14 +12,12 @@ export class SerializableObject {
     }
 }
 
-export interface SerializedProperty
-{
+export interface SerializedProperty {
     typeName?: string;
     data: any;
 }
 
-export interface SerializedObject
-{
+export interface SerializedObject {
     version?: number;
     typeName?: string;
     properties: { [propertyName: string]: SerializedProperty };
@@ -69,8 +67,8 @@ export class Serializer {
 
     private static serializeProperties = (obj: SerializableObject, json: SerializedObject) => {
         for (const key of Object.keys(obj)) {
-            const unserializable = Attribute.meta_unserialize(obj, key);
-            if (unserializable) {
+            const unSerializable = Attribute.meta_unserialize(obj, key);
+            if (unSerializable) {
                 continue;
             }
             const property = Reflect.get(obj, key);
@@ -127,7 +125,6 @@ export function getMetadata(metaType: string, target: object, att: string) {
     return (Reflect.getPrototypeOf(target) as ImetaObject).metadata?.att?.metaType;
 }
 
-export interface ImetaObject
-{
+export interface ImetaObject {
     metadata: { [att: string]: { [metaType: string]: any } };
 }

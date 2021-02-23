@@ -24,6 +24,7 @@
     "lint": "eslint **/*.ts --fix --ignore-pattern node_modules/"
   },
   "devDependencies": {
+    "@types/cannon": "^0.1.5",
     "@types/gl-matrix": "^3.2.0",
     "@types/node": "^10.11.0",
     "@typescript-eslint/eslint-plugin": "^3.10.1",
@@ -59,6 +60,7 @@
   "dependencies": {
     "@mtgoo/ctool": "^0.0.17",
     "@types/dat.gui": "^0.7.2",
+    "cannon": "^0.6.2",
     "dat.gui": "^0.7.6",
     "gl-matrix": "^3.3.0",
     "rollup-plugin-livereload": "^1.0.1",

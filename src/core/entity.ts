@@ -1,4 +1,4 @@
-import { COMPS, Ecs, Icomponent, Ientity, UNITBITKEY } from "./ecs";
+import { COMPS, Ecs, Icomponent, Ientity, UNIT_BITKEY } from "./ecs";
 import { UniteBitkey } from "./bitkey";
 import { Transform } from "./transform";
 import { EventTarget } from "@mtgoo/ctool";
@@ -19,7 +19,7 @@ export class Entity extends Transform implements Ientity {
     }
     static onDirty = new EventTarget<Entity>();
     [COMPS]: { [compName: string]: Icomponent } = {};
-    [UNITBITKEY]: UniteBitkey = new UniteBitkey();
+    [UNIT_BITKEY]: UniteBitkey = new UniteBitkey();
     addComponent<T extends Icomponent, P extends Partial<T>>(comp: new () => T, properties?: P): T {
         const newComp = Ecs.createComp(comp, properties);
         if (newComp) Ecs.bindComp(this, newComp);
@@ -32,6 +32,7 @@ export class Entity extends Transform implements Ientity {
     }
 
     getComponent<T extends Icomponent>(comp: new () => T): T { return this[COMPS][comp.name] as T; }
+    getComponentByName<T extends Icomponent = any>(comp: string): T { return this[COMPS][comp] as T; }
     removeComponent<T extends Icomponent>(comp: new () => T): void { Ecs.unbindComp(this, comp); }
 
     traverse(handler: (e: Entity) => void | boolean, includeSelf: boolean = true): void {
@@ -70,19 +71,29 @@ export class Entity extends Transform implements Ientity {
         return null;
     }
 
+    findComponents<T extends Icomponent>(comp: new () => T): T[] {
+        let arr: T[] = [];
+        this.traverse((node) => {
+            let component = node.getComponent(comp);
+            if (component != null) {
+                arr.push(component);
+            }
+        });
+        return arr;
+    }
+
     clone(): Entity {
         // TODO
-        return Entity.clonefrom(this);
+        return Entity.cloneFrom(this);
     }
 
     dispose() {
         this._parent.removeChild(this);
-        this.traverse((item) => { Ecs.removeEnity(item) })
+        this.traverse((item) => { Ecs.removeEntity(item) })
     }
 
-    private static clonefrom(from: Entity) {
+    private static cloneFrom(from: Entity) {
         let newIns = Entity.create();
-        (newIns as any)["clonefrom"] = from.name;
         newIns.name = from.name;
         newIns["_selfBeActive"] = from["_selfBeActive"];
         newIns['_parentsBeActive'] = from['_parentsBeActive'];
@@ -97,7 +108,7 @@ export class Entity extends Transform implements Ientity {
         });
         if (from._children.length > 0) {
             from._children.forEach(item => {
-                newIns.addChild(Entity.clonefrom(item));
+                newIns.addChild(Entity.cloneFrom(item));
             });
         }
         return newIns;

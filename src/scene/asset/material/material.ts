@@ -24,13 +24,13 @@ export class Material extends Asset {
         if (options?.uniformParameters) {
             this.uniformParameters = { ...options.uniformParameters };
         }
-        this.onDirty.addEventListener(() => { this._bedirty = true; });
+        this.onDirty.addEventListener(() => { this._beDirty = true; });
         this.shaderRef.onDirty.addEventListener(() => { this.onDirty.raiseEvent(); });
     }
     /**
      * private
      */
-    _bedirty: boolean = false;
+    _beDirty: boolean = false;
     private shaderRef = new AssetReference<Shader>();
     get shader() { return this.shaderRef.current; };
     set shader(value: Shader) { this.shaderRef.current = value; };
@@ -51,7 +51,7 @@ export class Material extends Asset {
 
     setUniformParameter(uniformKey: string, value: any) {
         this.uniformParameters[uniformKey] = value;
-        this._bedirty = true;
+        this._beDirty = true;
     }
 
     destroy(): void {
@@ -66,7 +66,7 @@ export class Material extends Asset {
         for (const key in this.uniformParameters) {
             mat.uniformParameters[key] = this.uniformParameters[key];
         }
-        mat._bedirty = true;
+        mat._beDirty = true;
         return mat;
     }
 }

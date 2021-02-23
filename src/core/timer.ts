@@ -28,12 +28,12 @@ export class Timer implements Itimer {
         this._deltaTime = this._lastTime ? (now - this._lastTime) * this.timeScale * 0.001 : 0;
         this._lastTime = now;
         if (this.beActive != null) {
-            this._ontick.raiseEvent(this._deltaTime);
+            this._onTick.raiseEvent(this._deltaTime);
         }
     }
 
-    private _ontick = new EventTarget<number>();
-    get onTick() { return this._ontick; }
+    private _onTick = new EventTarget<number>();
+    get onTick() { return this._onTick; }
 
     FPS: number = 60;
     private _lastFPS: number;

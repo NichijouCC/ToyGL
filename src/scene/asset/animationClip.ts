@@ -1,5 +1,5 @@
 import { Asset } from "./asset";
-import { AnimationChannelTargetPath } from "../primitive/animtion/clipInstance";
+import { AnimationChannelTargetPath } from "../primitive/animation/clipInstance";
 import { UUID } from "@mtgoo/ctool";
 import { Entity } from "../../core/entity";
 

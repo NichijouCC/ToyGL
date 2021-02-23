@@ -4,19 +4,17 @@ import { mat4, quat, vec3, vec4 } from "../mathD";
 import { InterScene } from "../scene/scene";
 import { ThirdPersonController } from "./thirdPersonController";
 
-export class ThirdPersonCtrSystem extends AbsSystem<ThirdPersonController> {
-    careCompCtors: (new () => ThirdPersonController)[] = [ThirdPersonController];
+export class ThirdPersonCtrSystem extends AbsSystem<[ThirdPersonController]> {
+    careCompCtors = [ThirdPersonController];
     private scene: InterScene;
     constructor(scene: InterScene) {
         super();
         this.scene = scene;
     }
-
     private targeCtr: ThirdPersonController;
     private rotAngle = 0;
-    private _init = false;
-    private init() {
-        this._init = true;
+
+    onEnable() {
         Input.mouse.on("mousemove", (ev) => {
             if (this.scene == null || this.targeCtr == null) return;
             if (Input.getMouseDown(MouseKeyEnum.Left)) {
@@ -39,9 +37,9 @@ export class ThirdPersonCtrSystem extends AbsSystem<ThirdPersonController> {
             vec3.normalize(camNodeForkward, camNodeForkward);
 
             if (ev.rotateDelta > 0) {
-                quat.rotationTo(targetRot, vec3.FORMAWORLD, camNodeForkward);
+                quat.rotationTo(targetRot, vec3.FORWARD, camNodeForkward);
             } else if (ev.rotateDelta < 0) {
-                quat.rotationTo(targetRot, vec3.BACKWORLD, camNodeForkward);
+                quat.rotationTo(targetRot, vec3.BACKWARD, camNodeForkward);
             }
 
             vec3.scale(moved, camNodeForkward, moveSpeed * (ev.rotateDelta ?? 0.1) * -0.001);
@@ -51,7 +49,6 @@ export class ThirdPersonCtrSystem extends AbsSystem<ThirdPersonController> {
             entity.worldRotation = temptRot;
         })
     }
-
 
     update = (() => {
         /**
@@ -72,7 +69,6 @@ export class ThirdPersonCtrSystem extends AbsSystem<ThirdPersonController> {
             if (this.comps.size == 0) return;
             let comp: ThirdPersonController = this.comps.values().next().value[0];
             this.targeCtr = comp;
-            if (this._init == false) this.init();
             if (!comp.canMove) return;
             vec3.zero(dir);
             if (Input.getKeyDown(KeyCodeEnum.A)) {
@@ -82,20 +78,20 @@ export class ThirdPersonCtrSystem extends AbsSystem<ThirdPersonController> {
                 vec3.add(dir, dir, vec3.RIGHT);
             }
             if (Input.getKeyDown(KeyCodeEnum.W)) {
-                vec3.add(dir, dir, vec3.BACKWORLD);
+                vec3.add(dir, dir, vec3.BACKWARD);
             }
             if (Input.getKeyDown(KeyCodeEnum.S)) {
-                vec3.add(dir, dir, vec3.FORMAWORLD);
+                vec3.add(dir, dir, vec3.FORWARD);
             }
 
             let cam = this.scene.mainCamera;
             let { moveSpeed, rotSpeed, offsetTocamera, entity } = comp;
             if (vec3.len(dir) != 0) {
-                mat4.transfromVector(moveForward, dir, cam.worldMatrix);
+                mat4.transformVector(moveForward, dir, cam.worldMatrix);
                 vec3.projectToPlan(moveForward, moveForward, vec3.UP);
                 vec3.normalize(moveForward, moveForward);
 
-                quat.rotationTo(targetRot, vec3.BACKWORLD, moveForward);
+                quat.rotationTo(targetRot, vec3.BACKWARD, moveForward);
                 vec3.scale(moved, moveForward, moveSpeed * delta);
                 vec3.add(targetPos, moved, entity.worldPosition);
                 entity.worldPosition = targetPos;

@@ -1,8 +1,8 @@
 import { vec3, mat4 } from 'gl-matrix';
 import { TypedArray } from '../core/typedArray';
 
-(vec3 as any).FORMAWORLD = vec3.fromValues(0, 0, 1);
-(vec3 as any).BACKWORLD = vec3.fromValues(0, 0, -1);
+(vec3 as any).FORWARD = vec3.fromValues(0, 0, 1);
+(vec3 as any).BACKWARD = vec3.fromValues(0, 0, -1);
 (vec3 as any).RIGHT = vec3.fromValues(1, 0, 0);
 (vec3 as any).LEFT = vec3.fromValues(-1, 0, 0);
 (vec3 as any).UP = vec3.fromValues(0, 1, 0);
@@ -70,7 +70,7 @@ import { TypedArray } from '../core/typedArray';
     return Math.sqrt(Math.max(scaleX, scaleY, scaleZ));
 }
 
-(mat4 as any).transfromVector = (out: vec3, a: vec3, m: mat4) => {
+(mat4 as any).transformVector = (out: vec3, a: vec3, m: mat4) => {
     let x = a[0],
         y = a[1],
         z = a[2];
@@ -83,8 +83,8 @@ import { TypedArray } from '../core/typedArray';
 declare module 'gl-matrix' {
     namespace vec3 {
         const ZERO: vec3;
-        const FORMAWORLD: vec3;
-        const BACKWORLD: vec3;
+        const FORWARD: vec3;
+        const BACKWARD: vec3;
         const RIGHT: vec3;
         const LEFT: vec3;
         const DOWN: vec3;
@@ -95,7 +95,7 @@ declare module 'gl-matrix' {
     namespace mat4 {
         const IDENTITY: mat4;
         export function fromNumberArray(array: number[]): mat4;
-        export function transfromVector(out: vec3, a: vec3, m: mat4): vec3;
+        export function transformVector(out: vec3, a: vec3, m: mat4): vec3;
         export function getMaxScaleOnAxis(array: mat4): number;
         export function toArray(array: number[] | TypedArray, mat: mat4, offset: number): number[] | TypedArray;
     }

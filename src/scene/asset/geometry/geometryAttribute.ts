@@ -37,12 +37,12 @@ export class GeometryAttribute {
         } else {
             this.values = option.values;
             if (option.componentDatatype != null) {
-                if (option.values != null && TypedArray.getGLtype(this.values) != option.componentDatatype) {
+                if (option.values != null && TypedArray.getGLType(this.values) != option.componentDatatype) {
                     throw new Error("the componentDatatype is conflict with geometryAttributeOption's value (Typedarray)");
                 }
                 this.componentDatatype = option.componentDatatype;
             } else {
-                this.componentDatatype = this.values ? TypedArray.getGLtype(this.values) : ComponentDatatypeEnum.FLOAT;
+                this.componentDatatype = this.values ? TypedArray.getGLType(this.values) : ComponentDatatypeEnum.FLOAT;
             }
         }
     }

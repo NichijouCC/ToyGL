@@ -5,20 +5,20 @@ import { AutoUniforms } from "../../render/autoUniform";
 import { UniformState } from "../../uniformState";
 export class ShaderInstance {
     program: ShaderProgram;
-    autouniforms: string[];
+    autoUniforms: string[];
     constructor(vsStr: string, fsStr: string, attributes: {
         [attName: string]: VertexAttEnum;
     }) {
         this.create = (device: GraphicsDevice) => {
             const program = new ShaderProgram({ context: device, attributes, vsStr, fsStr });
-            const autouniforms: string[] = [];
+            const autoUniforms: string[] = [];
             Object.keys(program.uniforms).forEach(uniform => {
                 if (AutoUniforms.containAuto(uniform)) {
-                    autouniforms.push(uniform);
+                    autoUniforms.push(uniform);
                 }
             });
             this.program = program;
-            this.autouniforms = autouniforms;
+            this.autoUniforms = autoUniforms;
         };
     }
 

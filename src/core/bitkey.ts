@@ -40,15 +40,15 @@ export class UniteBitkey {
         this.keysMap[groupKey] = currentValue & ~key.value;
     }
 
-    containe(otherKey: UniteBitkey) {
+    contain(otherKey: UniteBitkey) {
         const keys = Object.keys(otherKey.keysMap);
-        let key, otherValue, thisValue, becontained;
+        let key, otherValue, thisValue, beContained;
         for (let i = 0; i < keys.length; i++) {
             key = keys[i] as any;
             otherValue = otherKey.keysMap[key];
             thisValue = this.keysMap[key];
-            becontained = thisValue != null && ((otherValue & thisValue) == otherValue);
-            if (!becontained)
+            beContained = thisValue != null && ((otherValue & thisValue) == otherValue);
+            if (!beContained)
                 return false;
         }
         return true;

@@ -5,7 +5,7 @@ import { Material, Texture2D } from "../scene/Index";
 import { vec3 } from '../mathD/index';
 import { AbsComponent } from "../core/absComponent";
 
-@Ecs.registeComp
+@Ecs.registerComp
 export class Hud extends AbsComponent {
     private _rect: Rect = new Rect(0, 0, 1, 1);
     private _command: (context: CanvasRenderingContext2D) => void;

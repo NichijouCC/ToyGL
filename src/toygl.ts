@@ -9,7 +9,7 @@ import { ForwardRender } from "./scene/render/forwardRender";
 import { EventTarget } from "@mtgoo/ctool";
 import { AnimationSystem } from "./components/animationSystem";
 import { Screen } from "./core/toyScreen";
-import { CamerSystem } from "./components/camerSystem";
+import { CameraSystem } from "./components/cameraSystem";
 
 export class ToyGL {
     onresize = new EventTarget<{ width: number, height: number }>();
@@ -25,7 +25,7 @@ export class ToyGL {
         const scene = new InterScene(render);
         resource.registerAssetLoader(".gltf", new LoadGlTF(device));
         resource.registerAssetLoader(".glb", new LoadGlTF(device));
-        Ecs.addSystem(new CamerSystem(scene, screen));
+        Ecs.addSystem(new CameraSystem(scene, screen));
         Ecs.addSystem(new AnimationSystem());
         Ecs.addSystem(new ModelSystem(scene, render));
 

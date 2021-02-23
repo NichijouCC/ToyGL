@@ -34,7 +34,7 @@ export class SkinInstance {
     /**
      * 方式1：
      */
-    private _boneMatrixs!: Float32Array;
+    private _boneMatrixes!: Float32Array;
 
     /**
      * 方式2：
@@ -87,7 +87,7 @@ export class SkinInstance {
 
         switch (SkinInstance.skinWay) {
             case SkinWay.UNIFROMMATS:
-                this._boneMatrixs = new Float32Array(bones.length * 16);
+                this._boneMatrixes = new Float32Array(bones.length * 16);
                 break;
             case SkinWay.UNIFORMARRAY:
                 this._boneData = new Float32Array(bones.length * 7)
@@ -124,8 +124,8 @@ export class SkinInstance {
         if (!this.beInit) { this.init(device); }
         const { bones, rootBone } = this;
         if (SkinInstance.skinWay == SkinWay.UNIFROMMATS) {
-            boneUpdate_a(frameState, rootBone, bones, this._boneInverses, this._boneMatrixs);
-            state.boneMatrices = this._boneMatrixs;
+            boneUpdate_a(frameState, rootBone, bones, this._boneInverses, this._boneMatrixes);
+            state.boneMatrices = this._boneMatrixes;
             state.matrixModel = this.rootBone.worldMatrix;
         } else if (SkinInstance.skinWay == SkinWay.UNIFORMARRAY) {
             boneUpdate_c(frameState, rootBone, bones, this._boneInverses, this._boneData);

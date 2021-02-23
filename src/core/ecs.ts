@@ -3,21 +3,21 @@
 // enity addcomponent时候将检查 相关system是否要管理此组件,关心的话就add到system中,这样就避免system的query过程.
 
 import { UniteBitkey, Bitkey } from "./bitkey";
-export const UPADTE = Symbol("update");
-export const UNITBITKEY = Symbol("uniteBitkey");
+export const UPDATE = Symbol("update");
+export const UNIT_BITKEY = Symbol("uniteBitkey");
 export const COMPS = Symbol("comps");
 
 
 export interface Icomponent {
     readonly entity: Ientity;
     readonly compName: string;
-    [UPADTE](): void;
+    [UPDATE](): void;
     clone(): Icomponent;
 }
 
 export interface Ientity {
     [COMPS]: { [compName: string]: Icomponent };
-    [UNITBITKEY]: UniteBitkey;
+    [UNIT_BITKEY]: UniteBitkey;
     addComponent<T extends Icomponent, P extends object = any>(comp: new () => T, properties?: P): T;
     getComponent<T extends Icomponent>(comp: new () => T): T;
     removeComponent<T extends Icomponent>(comp: new () => T): void;
@@ -29,57 +29,57 @@ export interface Isystem {
     addEntity(entity: Ientity): void;
     removeEntity(entity: Ientity): void;
     update(deltaTime: number): void;
-    [UPADTE](deltaTime: number): void;
+    [UPDATE](deltaTime: number): void;
 }
 
 export class Ecs {
-    private static registedcomps: { [name: string]: { ctr: new () => any, bitKey: Bitkey, relatedSystem: Isystem[] } } = {};
+    private static registeredComps: { [name: string]: { ctr: new () => any, bitKey: Bitkey, relatedSystem: Isystem[] } } = {};
     static systems: { system: Isystem, priority: number }[] = [];
-    static entitys = new WeakSet<Ientity>();
+    static entities = new WeakSet<Ientity>();
     static comps = new WeakSet<Icomponent>();
 
     static addEntity(entity: Ientity) {
-        this.entitys.add(entity);
+        this.entities.add(entity);
         return entity;
     }
 
-    static removeEnity(entity: Ientity) {
-        this.entitys.delete(entity);
+    static removeEntity(entity: Ientity) {
+        this.entities.delete(entity);
         this.systems.forEach(item => item.system.removeEntity(entity))
     }
 
-    static registeComp = (comp: Function) => {
+    static registerComp = (comp: Function) => {
         const compName = comp.name;
-        if (Ecs.registedcomps[compName] == null) {
-            Ecs.registedcomps[compName] = { ctr: comp as any, bitKey: Bitkey.create(), relatedSystem: [] };
+        if (Ecs.registeredComps[compName] == null) {
+            Ecs.registeredComps[compName] = { ctr: comp as any, bitKey: Bitkey.create(), relatedSystem: [] };
         } else {
             throw new Error("重复注册组件: " + compName);
         }
     }
 
     static createComp<T extends Icomponent, P extends Partial<T>>(comp: new () => T, properties?: P): T {
-        const compInfo = this.registedcomps[comp.name];
+        const compInfo = this.registeredComps[comp.name];
         if (compInfo == null) return;
-        const newcomp = new compInfo.ctr();
-        this.comps.add(newcomp);
+        const newComp = new compInfo.ctr();
+        this.comps.add(newComp);
         if (properties) {
-            Object.keys(properties).forEach(item => newcomp[item] = (properties as any)[item])
+            Object.keys(properties).forEach(item => newComp[item] = (properties as any)[item])
         }
-        return newcomp;
+        return newComp;
     }
 
     static bindComp(entity: Ientity, comp: Icomponent) {
-        const compInfo = this.registedcomps[comp.compName];
+        const compInfo = this.registeredComps[comp.compName];
         if (compInfo == null) return;
         Object.defineProperty(comp, "entity", {
             value: entity
         });
         entity[COMPS][comp.compName] = comp;
-        entity[UNITBITKEY].addBitKey(compInfo.bitKey);
+        entity[UNIT_BITKEY].addBitKey(compInfo.bitKey);
 
         const relatedSystem = compInfo.relatedSystem;
         relatedSystem.forEach(item => {
-            if (entity[UNITBITKEY].containe(item.uniteBitkey)) {
+            if (entity[UNIT_BITKEY].contain(item.uniteBitkey)) {
                 item.addEntity(entity);
             }
         });
@@ -88,7 +88,7 @@ export class Ecs {
     static unbindComp<T extends Icomponent>(entity: Ientity, comp: new () => T) {
         const component = entity[COMPS][comp.name];
         if (component != null) {
-            const compInfo = this.registedcomps[comp.name];
+            const compInfo = this.registeredComps[comp.name];
             if (compInfo != null) {
                 const relatedSystem = compInfo.relatedSystem;
                 relatedSystem.forEach(item => {
@@ -101,7 +101,7 @@ export class Ecs {
     static addSystem(system: Isystem, priority?: number) {
         this.systems.push({ system, priority: priority ?? this.systems.length });
         system.careComps.forEach(item => {
-            const info = this.registedcomps[item];
+            const info = this.registeredComps[item];
             system.uniteBitkey.addBitKey(info.bitKey);
             info.relatedSystem.push(system);
         });
@@ -117,6 +117,6 @@ export class Ecs {
     }
 
     static update(deltaTime: number) {
-        this.systems.forEach(item => item.system[UPADTE](deltaTime));
+        this.systems.forEach(item => item.system[UPDATE](deltaTime));
     }
 }

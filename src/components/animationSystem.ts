@@ -1,19 +1,15 @@
 import { AbsSystem } from "../core/absSystem";
 import { Animation } from "./animation";
 
-export class AnimationSystem extends AbsSystem<Animation> {
-    careCompCtors: (new () => Animation)[] = [Animation];
-
-    static queries = [[Animation]];
-
+export class AnimationSystem extends AbsSystem<[Animation]> {
+    careCompCtors = [Animation];
     update(deltaTime: number) {
-        this.comps.forEach(item => {
-            const animation = item[0];
-            if (animation.currentClip) {
-                animation.currentClip._update(deltaTime);
+        this.comps.forEach(([comp]) => {
+            if (comp.currentClip) {
+                comp.currentClip._update(deltaTime);
             } else {
-                if (animation.beAutoPlay && animation.clips.length > 0) {
-                    animation.play(animation.clips[0]);
+                if (comp.beAutoPlay && comp.clips.length > 0) {
+                    comp.play(comp.clips[0]);
                 }
             }
         });

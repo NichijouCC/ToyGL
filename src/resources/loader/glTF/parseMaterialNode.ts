@@ -199,7 +199,7 @@ export class ParseMaterialNode {
                         mat.renderState.blend.enabled = true;
                         break;
                     case MaterialAlphaMode.MASK:
-                        mat.shader.buketFeats = ShaderBucket.AlPHACUT;
+                        mat.shader.buketFeats = ShaderBucket.AlPHA_CUT;
                         break;
                 }
             }

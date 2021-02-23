@@ -3,9 +3,9 @@ import { Icomponent, Ecs } from "../core/ecs";
 import { applyMixins } from "../core/util";
 import { Camera } from "../scene/camera";
 
-@Ecs.registeComp
+@Ecs.registerComp
 export class CameraComponent extends AbsComponent {
-    init() {
+    onInit() {
         this._node = this.entity;
     }
     clone(): CameraComponent {
