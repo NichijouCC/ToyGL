@@ -2,10 +2,10 @@ import { ModelComponent } from "./modelComponent";
 import { InterScene } from "../scene/Scene";
 import { ForwardRender } from "../scene/render/ForwardRender";
 import { Irenderable } from "../scene/render/Irenderable";
-import { AbsSystem } from "../core/absSystem";
+import { System } from "../core/ecs/system";
 
-export class ModelSystem extends AbsSystem<[ModelComponent]> {
-    careCompCtors = [ModelComponent]
+export class ModelSystem extends System<{ comps: ModelComponent[][] }> {
+    caries = { comps: [ModelComponent] };
     private scene: InterScene;
     constructor(scene: InterScene, render: ForwardRender) {
         super();
@@ -13,7 +13,7 @@ export class ModelSystem extends AbsSystem<[ModelComponent]> {
     }
 
     update(deltaTime: number): void {
-        this.comps.forEach(([comp]) => {
+        this.queries.comps.forEach(([comp]) => {
             if (comp.entity.beActive == true) {
                 comp.mesh?.sbuMeshs.forEach((submeshItem, index) => {
                     const renderIns: Irenderable = {
@@ -21,7 +21,7 @@ export class ModelSystem extends AbsSystem<[ModelComponent]> {
                         skinIns: comp.skinIns,
                         material: comp.materials[index],
                         worldMat: comp.entity.worldMatrix,
-                        bevisible: comp.entity.beActive
+                        beVisible: comp.entity.beActive
                     };
                     this.scene._addFrameRenderIns(renderIns);
                 });

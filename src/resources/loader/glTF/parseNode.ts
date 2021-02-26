@@ -4,7 +4,7 @@ import { ParseCameraNode } from "./parseCameraNode";
 import { ParseMeshNode } from "./parseMeshNode";
 import { IgltfJson } from "../loadglTF";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
-import { Entity } from "../../../core/entity";
+import { Entity } from "../../../core/ecs/entity";
 import { ModelComponent } from "../../../components/modelComponent";
 import { StaticMesh } from "../../../scene/asset/geometry/staticMesh";
 import { ParseSkinNode } from "./parseSkinNode";

@@ -1,8 +1,10 @@
-import { AbsComponent } from "../core/absComponent";
+import { Component } from "../core/ecs/component";
+import { Ecs } from "../core/ecs/ecs";
 import { vec3 } from "../mathD";
 import { StaticMesh } from "../scene/asset";
 
-export class Collider<T extends colliderTypes = any> extends AbsComponent {
+@Ecs.registerComp
+export class Collider<T extends colliderTypes = any> extends Component {
     type: keyof ColliderParameters;
     parameters: ColliderParameters[T];
     layer: string = "default";
@@ -19,7 +21,7 @@ interface ColliderParameters {
     };
     "sphere": {
         center: vec3,
-        raduis: number,
+        radius: number,
     };
     "mesh": {
         mesh: StaticMesh

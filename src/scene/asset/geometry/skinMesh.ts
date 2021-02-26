@@ -1,4 +1,4 @@
-import { Entity } from "../../../core/entity";
+import { Entity } from "../../../core/ecs/entity";
 import { StaticMesh } from "./staticMesh";
 
 export interface Iskin {

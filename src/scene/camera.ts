@@ -5,7 +5,7 @@ import { Transform } from "../core/transform";
 import { UniqueObject } from "../core/uniqueObject";
 
 import { vec3, mat4 } from '../mathD';
-import { Entity } from "../core/entity";
+import { Entity } from "../core/ecs/entity";
 
 export enum ProjectionEnum {
     PERSPECTIVE,
@@ -47,7 +47,7 @@ export class Camera extends UniqueObject {
         this.projectMatBedirty = true;
     }
 
-    private _far: number = 1000;
+    private _far: number = 500;
     get far(): number { return this._far; }
     set far(val: number) {
         if (val <= this.near) val = this.near + 0.01;

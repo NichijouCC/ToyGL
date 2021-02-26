@@ -1,7 +1,7 @@
 /* eslint-disable brace-style */
 /* eslint-disable indent */
 import { AnimationClip } from "../../asset/animationClip";
-import { Entity } from "../../../core/entity";
+import { Entity } from "../../../core/ecs/entity";
 import { quat, vec3 } from '../../../mathD';
 import { numberLerp } from "../../../mathD/common";
 import { ChannelInstance } from "./channelInstance";
@@ -117,13 +117,13 @@ export enum AnimationChannelTargetPath {
 export namespace AnimationChannelTargetPath {
     const temptPos = vec3.create();
     const temptScale = vec3.create();
-    const temptquat = quat.create();
+    const temptQuat = quat.create();
     const funcMap: Map<AnimationChannelTargetPath, (from: any, to: any, lerp: number) => any> = new Map();
     {
         funcMap.set(AnimationChannelTargetPath.ROTATION, (from: quat, to: quat, lerp: number) => {
-            quat.slerp(temptquat, from, to, lerp);
+            quat.slerp(temptQuat, from, to, lerp);
             // quat.normalize(temptquat, temptquat);
-            return temptquat;
+            return temptQuat;
         });
         funcMap.set(AnimationChannelTargetPath.SCALE, (from: vec3, to: vec3, lerp: number) => {
             vec3.lerp(temptScale, from, to, lerp);

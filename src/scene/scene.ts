@@ -1,8 +1,8 @@
 import { EventTarget } from "@mtgoo/ctool";
 import { ForwardRender } from "./render/forwardRender";
 import { Camera } from "./camera";
-import { Entity } from "../core/entity";
-import { Ecs } from "../core/ecs";
+import { Entity } from "../core/ecs/entity";
+import { Ecs } from "../core/ecs/ecs";
 import { Irenderable } from "./render/irenderable";
 import { FrameState } from "./frameState";
 
@@ -67,6 +67,9 @@ export class InterScene {
     _addFrameRenderIns(render: Irenderable) {
         this.frameState.renders.push(render);
         return render;
+    }
+    _addFrameMesh() {
+
     }
 
     prerender = new EventTarget();

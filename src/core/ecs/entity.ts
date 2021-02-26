@@ -1,25 +1,19 @@
-import { COMPS, Ecs, Icomponent, Ientity, UNIT_BITKEY } from "./ecs";
-import { UniteBitkey } from "./bitkey";
-import { Transform } from "./transform";
+import { COMPS, Icomponent, Ientity, UNIT_BIT_KEY } from "./iecs";
+import { Ecs } from "./ecs";
+import { UniteBitkey } from "../bitkey";
+import { Transform } from "../transform";
 import { EventTarget } from "@mtgoo/ctool";
 
 export class Entity extends Transform implements Ientity {
     name: string;
-    private constructor(properties?: Partial<Entity>) {
-        super();
-        if (properties) {
-            Object.keys(properties).forEach(item => (this as any)[item] = (properties as any)[item])
-        }
-    }
+    private constructor() { super() }
 
     static create(properties?: Partial<Entity>) {
-        let newEntity = new Entity(properties);
-        Ecs.addEntity(newEntity);
-        return newEntity;
+        return Ecs.createEntity(properties);
     }
     static onDirty = new EventTarget<Entity>();
     [COMPS]: { [compName: string]: Icomponent } = {};
-    [UNIT_BITKEY]: UniteBitkey = new UniteBitkey();
+    [UNIT_BIT_KEY]: UniteBitkey = new UniteBitkey();
     addComponent<T extends Icomponent, P extends Partial<T>>(comp: new () => T, properties?: P): T {
         const newComp = Ecs.createComp(comp, properties);
         if (newComp) Ecs.bindComp(this, newComp);
@@ -35,7 +29,7 @@ export class Entity extends Transform implements Ientity {
     getComponentByName<T extends Icomponent = any>(comp: string): T { return this[COMPS][comp] as T; }
     removeComponent<T extends Icomponent>(comp: new () => T): void { Ecs.unbindComp(this, comp); }
 
-    traverse(handler: (e: Entity) => void | boolean, includeSelf: boolean = true): void {
+    traverse(handler: (e: Entity) => void | boolean, includeSelf: boolean = true): void {//先序遍历
         let _find;
         if (includeSelf) {
             _find = handler(this);
@@ -51,7 +45,7 @@ export class Entity extends Transform implements Ientity {
         }
     }
 
-    find(check: (e: Entity) => void | boolean): Entity | null {
+    find(check: (e: Entity) => void | boolean): Entity | null {//层序遍历
         let queue: Entity[] = [this];
         while (queue.length != 0) {
             let first = queue.shift();

@@ -1,5 +1,5 @@
 import { AnimationChannel } from "../../asset/animationClip";
-import { Entity } from "../../../core/entity";
+import { Entity } from "../../../core/ecs/entity";
 import { AnimationChannelTargetPath } from "./clipInstance";
 
 

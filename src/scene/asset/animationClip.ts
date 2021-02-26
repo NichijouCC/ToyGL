@@ -1,7 +1,7 @@
 import { Asset } from "./asset";
 import { AnimationChannelTargetPath } from "../primitive/animation/clipInstance";
 import { UUID } from "@mtgoo/ctool";
-import { Entity } from "../../core/entity";
+import { Entity } from "../../core/ecs/entity";
 
 export class AnimationClip extends Asset {
     channels: AnimationChannel[] = [];
@@ -23,7 +23,7 @@ export class AnimationChannel {
     propertyName: AnimationChannelTargetPath;
     keyframes: number[] = [];
     values: any[] = [];
-    interPolation: AnimationSamplerInterpolation;
+    interPolation: AnimationSamplerInterpolation = AnimationSamplerInterpolation.LINEAR;
 
     get startFrame() { return this.keyframes[0]; };
     get endFrame() { return this.keyframes[this.keyframes.length - 1]; };

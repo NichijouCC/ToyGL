@@ -61,6 +61,7 @@
     "@mtgoo/ctool": "^0.0.17",
     "@types/dat.gui": "^0.7.2",
     "cannon": "^0.6.2",
+    "cannon-es": "^0.16.0",
     "dat.gui": "^0.7.6",
     "gl-matrix": "^3.3.0",
     "rollup-plugin-livereload": "^1.0.1",

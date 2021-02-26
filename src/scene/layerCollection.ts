@@ -8,11 +8,11 @@ namespace Private {
     };
 
     const sortByZdist_FrontToBack = (drawa: Irenderable, drawb: Irenderable): number => {
-        return drawa.zdist - drawb.zdist;
+        return drawa.zDist - drawb.zDist;
     };
 
     const sortByZdist_BackToFront = (drawa: Irenderable, drawb: Irenderable): number => {
-        return drawb.zdist - drawa.zdist;
+        return drawb.zDist - drawa.zDist;
     };
 
     const sortByShaderId = (drawa: Irenderable, drawb: Irenderable): number => {
@@ -37,7 +37,7 @@ namespace Private {
                     tempz = meshPos[2] - camPos[2];
 
 
-                    drawCall.zdist = tempx * camFwd[0] + tempy * camFwd[1] + tempz * camFwd[2];
+                    drawCall.zDist = tempx * camFwd[0] + tempy * camFwd[1] + tempz * camFwd[2];
                 }
             }
         };

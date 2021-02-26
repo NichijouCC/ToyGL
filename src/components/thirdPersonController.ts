@@ -1,15 +1,15 @@
 import { EventTarget } from "@mtgoo/ctool";
-import { AbsComponent } from "../core/absComponent";
-import { Ecs } from "../core/ecs";
+import { Component } from "../core/ecs/component";
+import { Ecs } from "../core/ecs/ecs";
 import { vec3 } from "../mathD";
 
 @Ecs.registerComp
-export class ThirdPersonController extends AbsComponent {
+export class ThirdPersonController extends Component {
     canMove: boolean = true;
     moveSpeed: number = 10 * 3.0;
     rotSpeed: number = 16.0;
     camRotSpeed: number = 1.0;
-    offsetTocamera = vec3.fromValues(0, 3 * 3, 5 * 3);
+    offsetTocamera = vec3.fromValues(0, 3 * 10, 5 * 10);
 
     onMove = new EventTarget();
     onStop = new EventTarget();

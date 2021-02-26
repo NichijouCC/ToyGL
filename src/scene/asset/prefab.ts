@@ -1,5 +1,5 @@
 import { Asset } from "./asset";
-import { Entity } from "../../core/entity";
+import { Entity } from "../../core/ecs/entity";
 
 export class Prefab extends Asset {
     private _root: Entity;

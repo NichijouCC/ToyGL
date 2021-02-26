@@ -1,11 +1,11 @@
-import { AbsSystem } from "../core/absSystem";
+import { System } from "../core/ecs/system";
 import { Input, KeyCodeEnum, MouseKeyEnum } from "../input";
 import { mat4, quat, vec3, vec4 } from "../mathD";
 import { InterScene } from "../scene/scene";
 import { ThirdPersonController } from "./thirdPersonController";
 
-export class ThirdPersonCtrSystem extends AbsSystem<[ThirdPersonController]> {
-    careCompCtors = [ThirdPersonController];
+export class ThirdPersonCtrSystem extends System<{ comps: ThirdPersonController[][] }> {
+    caries = { comps: [ThirdPersonController] };
     private scene: InterScene;
     constructor(scene: InterScene) {
         super();
@@ -66,8 +66,8 @@ export class ThirdPersonCtrSystem extends AbsSystem<[ThirdPersonController]> {
         let camOffset = vec3.create();
 
         return (delta: number) => {
-            if (this.comps.size == 0) return;
-            let comp: ThirdPersonController = this.comps.values().next().value[0];
+            if (this.queries.comps.length == 0) return;
+            let comp: ThirdPersonController = this.queries.comps[0][0];
             this.targeCtr = comp;
             if (!comp.canMove) return;
             vec3.zero(dir);

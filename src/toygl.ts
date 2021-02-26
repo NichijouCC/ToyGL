@@ -3,13 +3,11 @@ import { InterScene } from "./scene/scene";
 import { GraphicsDevice } from "./webgl/graphicsDevice";
 import { Resource } from "./resources/resource";
 import { LoadGlTF } from "./resources/loader/loadglTF";
-import { Ecs } from "./core/ecs";
-import { ModelSystem } from "./components/modelSystem";
+import { Ecs } from "./core/ecs/ecs";
 import { ForwardRender } from "./scene/render/forwardRender";
 import { EventTarget } from "@mtgoo/ctool";
-import { AnimationSystem } from "./components/animationSystem";
+import { AnimationSystem, ModelSystem, CameraSystem } from "./components/index";
 import { Screen } from "./core/toyScreen";
-import { CameraSystem } from "./components/cameraSystem";
 
 export class ToyGL {
     onresize = new EventTarget<{ width: number, height: number }>();
@@ -27,7 +25,7 @@ export class ToyGL {
         resource.registerAssetLoader(".glb", new LoadGlTF(device));
         Ecs.addSystem(new CameraSystem(scene, screen));
         Ecs.addSystem(new AnimationSystem());
-        Ecs.addSystem(new ModelSystem(scene, render));
+        Ecs.addSystem(new ModelSystem(scene, render), Number.POSITIVE_INFINITY);
 
         timer.onTick.addEventListener(scene._tick);
 

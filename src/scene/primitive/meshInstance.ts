@@ -5,7 +5,7 @@ import { Material } from "../asset/material/material";
 import { EventTarget } from "@mtgoo/ctool";
 import { Skin } from "../asset/Skin";
 import { SkinInstance } from "./skinInstance";
-import { Entity } from "../../core/entity";
+import { Entity } from "../../core/ecs/entity";
 import { Irenderable } from "../render/irenderable";
 
 // instance ondirty 触发 layercomposition 对instance 重新分层，重新sort
@@ -14,10 +14,10 @@ export class MeshInstance implements Irenderable {
     static meshInstanceId: number = 0;
 
     readonly id: number;
-    bevisible: boolean = true;
+    beVisible: boolean = true;
     enableCull: boolean = false;
     cullingMask?: CullingMask;
-    zdist?: number;
+    zDist?: number;
     instanceCount?: number;
     constructor() {
         this.id = MeshInstance.meshInstanceId++;

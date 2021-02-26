@@ -1,7 +1,7 @@
 import { IgltfJson } from "../loadglTF";
 import { ParseNode } from "./parseNode";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
-import { Entity } from "../../../core/entity";
+import { Entity } from "../../../core/ecs/entity";
 
 export class ParseSceneNode {
     static parse(index: number, gltf: IgltfJson, context: GraphicsDevice): Promise<Entity> {

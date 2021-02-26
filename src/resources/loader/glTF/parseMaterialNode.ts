@@ -75,7 +75,7 @@ namespace Private {
         }
     });
     /**
-     * perbone 1 location+1 quat,使用world坐标系
+     * perbone：1 location + 1 quat,使用world坐标系
      * 
      * @description
      * 7*60=420<128*4;

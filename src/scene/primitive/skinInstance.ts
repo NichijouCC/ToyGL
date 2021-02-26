@@ -1,4 +1,4 @@
-import { Entity } from "../../core/entity";
+import { Entity } from "../../core/ecs/entity";
 import { mat4, quat, vec3 } from "../../mathD";
 import { MemoryTexture } from "../asset/texture/memoryTexture";
 import { GraphicsDevice } from "../../webgl/graphicsDevice";
@@ -146,7 +146,7 @@ export class SkinInstance {
 const boneUpdate_a = (() => {
     let offsetMatrix = mat4.create();
     return (frameState: FrameState, rootBone: Entity, bones: Entity[], boneInverses: mat4[], data: Float32Array) => {
-        const mat = rootBone.worldTolocalMatrix;
+        const mat = rootBone.worldToLocalMatrix;
         if (frameState.dirtyNode.has(rootBone)) { // root dirty 全部重新计算
             for (let i = 0; i < bones.length; i++) {
                 const matrix = bones[i] ? bones[i].worldMatrix : mat4.IDENTITY;
@@ -174,7 +174,7 @@ const boneUpdate_a = (() => {
 const boneUpdate_c = (() => {
     let offsetMatrix = mat4.create();
     return (frameState: FrameState, rootBone: Entity, bones: Entity[], boneInverses: mat4[], data: Float32Array) => {
-        const mat = rootBone.worldTolocalMatrix;
+        const mat = rootBone.worldToLocalMatrix;
         if (frameState.dirtyNode.has(rootBone)) { // root dirty 全部重新计算
             for (let i = 0; i < bones.length; i++) {
                 const matrix = bones[i] ? bones[i].worldMatrix : mat4.IDENTITY;

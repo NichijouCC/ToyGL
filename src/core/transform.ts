@@ -1,5 +1,5 @@
 import { vec3, mat4, quat } from '../mathD/index';
-import { Entity } from './entity';
+import { Entity } from './ecs/entity';
 import { UniqueObject } from './uniqueObject';
 enum DirtyFlagEnum {
     WORLD_POS = 0b000100,
@@ -76,15 +76,12 @@ export class Transform extends UniqueObject {
     private _localScale: vec3;
 
     set localPosition(value: vec3) { vec3.copy(this._localPosition, value); }
-
     get localPosition(): vec3 { return this._localPosition; }
 
     set localRotation(value: quat) { quat.copy(this._localRotation, value); }
-
     get localRotation(): quat { return this._localRotation; }
 
     set localScale(value: vec3) { vec3.copy(this._localScale, value); }
-
     get localScale(): vec3 { return this._localScale; }
 
     private _localMatrix: mat4 = mat4.create();
@@ -131,9 +128,7 @@ export class Transform extends UniqueObject {
         } else {
             const invParentWorld = mat4.create();
             mat4.invert(invParentWorld, this._parent.worldMatrix);
-            // mat4.transformPoint(value, invparentworld, this._localPosition);
             vec3.transformMat4(this._localPosition, value, invParentWorld)
-            // mat4.recycle(invparentworld);
         }
         this.markDirty();
     }
@@ -210,7 +205,6 @@ export class Transform extends UniqueObject {
             const invParentWorld = mat4.create();
             mat4.invert(invParentWorld, this._parent.worldMatrix);
             mat4.multiply(this.localMatrix, invParentWorld, value);
-            // this.setlocalMatrix(this._localMatrix);
         }
         this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLD_MAT;
         this.dirtyFlag =
@@ -218,7 +212,7 @@ export class Transform extends UniqueObject {
     }
 
     private _worldToLocalMatrix: mat4 = mat4.create();
-    get worldTolocalMatrix(): mat4 {
+    get worldToLocalMatrix(): mat4 {
         mat4.invert(this._worldToLocalMatrix, this.worldMatrix);
         return this._worldToLocalMatrix;
     }
@@ -260,7 +254,6 @@ export class Transform extends UniqueObject {
         node.markDirty();
         node.setParentsBeActive(this.beActive);
         return node;
-        // Transform.linkRefScene(node, this.refScene);
     }
 
     /**
@@ -315,7 +308,7 @@ export class Transform extends UniqueObject {
 
     moveInWorld(dir: vec3, amount: number) {
         const dirInLocal = vec3.create();
-        mat4.transformVector(dirInLocal, dir, this.worldTolocalMatrix);
+        mat4.transformVector(dirInLocal, dir, this.worldToLocalMatrix);
         vec3.scaleAndAdd(this._localPosition, this._localPosition, dirInLocal, amount);
         this.markDirty();
         return this;

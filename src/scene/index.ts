@@ -18,5 +18,5 @@ export * from "../core/toyScreen";
 export * from "./asset/index";
 export * from "./primitive/index";
 
-export * from '../core/entity';
+export * from '../core/ecs/entity';
 export * from '../core/transform';

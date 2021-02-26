@@ -1,10 +1,10 @@
 import { InterScene } from "../scene/Scene";
 import { CameraComponent } from "./cameraComponent";
 import { Screen } from "../scene/Index";
-import { AbsSystem } from "../core/absSystem";
+import { System } from "../core/ecs/system";
 
-export class CameraSystem extends AbsSystem<[CameraComponent]> {
-    careCompCtors = [CameraComponent];
+export class CameraSystem extends System<{ "comps": CameraComponent[][] }> {
+    caries = { "comps": [CameraComponent] };
     private scene: InterScene;
     private screen: Screen;
     constructor(scene: InterScene, screen: Screen) {

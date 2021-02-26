@@ -4,11 +4,11 @@ import { DefaultGeometry, DefaultMaterial } from "../resources/index";
 import { mat4, quat, vec3 } from '../mathD';
 import { TextureAsset } from "../scene/index";
 import { TextureFilterEnum, TextureWrapEnum } from "../webgl/index";
-import { AbsSystem } from "../core/absSystem";
+import { System } from "../core/ecs/system";
 
 
-export class HudSystem extends AbsSystem<[Hud]> {
-    careCompCtors = [Hud];
+export class HudSystem extends System<{ comps: Hud[][] }> {
+    caries = { comps: [Hud] };
     private context2d: CanvasRenderingContext2D;
     private _scene: InterScene;
     constructor(scene: InterScene, canvas: HTMLCanvasElement, options?: HudOptions) {
@@ -35,7 +35,7 @@ export class HudSystem extends AbsSystem<[Hud]> {
         const { mainCamera } = this._scene;
         const rot = mat4.getRotation(quat.create(), mainCamera.worldMatrix);
 
-        this.comps.forEach(([hud]) => {
+        this.queries.comps.forEach(([hud]) => {
             let { commond, rect, entity, _mat, _text2d } = hud;
             if (hud._contentDirty) {
                 hud._contentDirty = false;

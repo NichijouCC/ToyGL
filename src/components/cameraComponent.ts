@@ -1,10 +1,11 @@
-import { AbsComponent } from "../core/absComponent";
-import { Icomponent, Ecs } from "../core/ecs";
+import { Component } from "../core/ecs/component";
+import { Icomponent } from "../core/ecs/iecs";
+import { Ecs } from "../core/ecs/ecs";
 import { applyMixins } from "../core/util";
 import { Camera } from "../scene/camera";
 
 @Ecs.registerComp
-export class CameraComponent extends AbsComponent {
+export class CameraComponent extends Component {
     onInit() {
         this._node = this.entity;
     }
@@ -13,5 +14,5 @@ export class CameraComponent extends AbsComponent {
     }
 }
 
-export interface CameraComponent extends Camera, AbsComponent { }
+export interface CameraComponent extends Camera, Component { }
 applyMixins(CameraComponent, [Camera]);

@@ -1,4 +1,5 @@
-import { Ecs, Icomponent, Ientity, UPDATE } from "./ecs";
+import { Icomponent, Ientity, UPDATE } from "./iecs";
+import { Ecs } from "./ecs";
 import { Entity } from "./entity";
 
 const key = "__storedProperty";
@@ -8,7 +9,7 @@ export function ComponentProperty<T>(target: Function, name: string) {
     if (proto[key][name] == null) proto[key][name] = true;
 }
 
-function setComponentProperty(target: AbsComponent, value: object) {
+function setComponentProperty(target: Component, value: object) {
     let storedProperties = target.constructor.prototype[key];
     if (storedProperties != null) {
         Object.keys(storedProperties).forEach(property => {
@@ -19,36 +20,38 @@ function setComponentProperty(target: AbsComponent, value: object) {
     }
 }
 
-export abstract class AbsComponent implements Icomponent {
+export abstract class Component implements Icomponent {
     readonly entity: Entity;
-    beInit: boolean = false;
-    constructor(props?: Partial<typeof AbsComponent>) {
+    protected _beInit: boolean = false;
+    get compName() { return this.constructor.name; }
+    get compType() { return this.constructor; }
+
+    constructor(props?: Partial<typeof Component>) {
         if (props) {
             setComponentProperty(this, props);
         }
     }
-    static compName() {
-        return this.prototype.constructor.name;
-    }
-    get compName() { return this.constructor.name; }
-    get compType() { return this.constructor; }
 
-    onInit() { }
     /**
      * private
      */
     [UPDATE]() {
-        if (!this.beInit) {
-            this.beInit = true;
+        if (!this._beInit) {
+            this._beInit = true;
             this.onInit();
         }
         this.update();
     }
+
+    onInit() { }
     update() { }
 
     abstract clone(): Icomponent
 
-    static create<K extends AbsComponent>(this: new () => K, properties?: Partial<K>): K {
+    static compName() {
+        return this.prototype.constructor.name;
+    }
+    static create<K extends Component>(this: new () => K, properties?: Partial<K>): K {
         return Ecs.createComp(this, properties);
     }
 }

@@ -1,4 +1,4 @@
-import { Entity } from "../core/entity";
+import { Entity } from "../core/ecs/entity";
 import { Irenderable } from "./render/irenderable";
 
 export class FrameState {
