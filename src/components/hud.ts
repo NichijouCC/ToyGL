@@ -12,7 +12,7 @@ export class Hud extends Component {
     private _size: vec3 = vec3.create();
 
     get rect() { return this._rect; }
-    get commond() { return this._command; }
+    get command() { return this._command; }
     get size() { return this._size; }
 
     _contentDirty: boolean = false;

@@ -1,6 +1,6 @@
 import { COMPS, Icomponent, Ientity, UNIT_BIT_KEY } from "./iecs";
 import { Ecs } from "./ecs";
-import { UniteBitkey } from "../bitkey";
+import { UnitedBitkey } from "./bitkey";
 import { Transform } from "../transform";
 import { EventTarget } from "@mtgoo/ctool";
 
@@ -13,58 +13,21 @@ export class Entity extends Transform implements Ientity {
     }
     static onDirty = new EventTarget<Entity>();
     [COMPS]: { [compName: string]: Icomponent } = {};
-    [UNIT_BIT_KEY]: UniteBitkey = new UniteBitkey();
+    [UNIT_BIT_KEY]: UnitedBitkey = new UnitedBitkey();
     addComponent<T extends Icomponent, P extends Partial<T>>(comp: new () => T, properties?: P): T {
         const newComp = Ecs.createComp(comp, properties);
-        if (newComp) Ecs.bindComp(this, newComp);
+        if (newComp) Ecs.bindCompToEntity(this, newComp);
         return newComp;
     }
 
     addComponentIns<T extends Icomponent>(comp: T) {
-        if (comp) Ecs.bindComp(this, comp);
+        if (comp) Ecs.bindCompToEntity(this, comp);
         return comp;
     }
 
     getComponent<T extends Icomponent>(comp: new () => T): T { return this[COMPS][comp.name] as T; }
     getComponentByName<T extends Icomponent = any>(comp: string): T { return this[COMPS][comp] as T; }
-    removeComponent<T extends Icomponent>(comp: new () => T): void { Ecs.unbindComp(this, comp); }
-
-    traverse(handler: (e: Entity) => void | boolean, includeSelf: boolean = true): void {//先序遍历
-        let _find;
-        if (includeSelf) {
-            _find = handler(this);
-        }
-        if (_find !== true) {
-            let child;
-            for (let i = 0; i < this._children.length; i++) {
-                child = this._children[i];
-                child.traverse(handler, true);
-            }
-        } else {
-            return;
-        }
-    }
-
-    find(check: (e: Entity) => void | boolean): Entity | null {//层序遍历
-        let queue: Entity[] = [this];
-        while (queue.length != 0) {
-            let first = queue.shift();
-            if (check(first)) return first;
-            for (let i = 0; i < first._children.length; i++) {
-                queue.push(first._children[i]);
-            }
-        }
-        return null;
-    }
-
-    findInParents(check: (e: Entity) => void | boolean): Entity | null {
-        if (check(this)) return this;
-        if (this._parent) {
-            return (this._parent).findInParents(check);
-        }
-        return null;
-    }
-
+    removeComponent<T extends Icomponent>(comp: new () => T): void { Ecs.unbindCompToEntity(this, comp); }
     findComponents<T extends Icomponent>(comp: new () => T): T[] {
         let arr: T[] = [];
         this.traverse((node) => {

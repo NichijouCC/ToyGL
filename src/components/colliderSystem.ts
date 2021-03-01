@@ -3,17 +3,17 @@ import { vec3 } from "../mathD";
 import { Collider } from "./collider";
 import * as CANNON from 'cannon-es';
 
-export class ColliderSystem extends System<{ comps: Collider<any>[][] }> {
+export class ColliderSystem extends System {
     caries = { comps: [Collider] };
     private dic: { [id: string]: CANNON.Body } = {};
     constructor() {
         super();
         PhysicsWorld.init();
-        this.on("removeEntity", ({ entity, comps }) => {
+        this.on("removeEntity", (entity) => {
             PhysicsWorld.removeShape(this.dic[entity.id]);
         });
-        this.on("addEntity", ({ entity, comps }) => {
-            let comp = comps[0] as Collider;
+        this.on("addEntity", (entity) => {
+            let comp = entity.getComponent(Collider);
             if (comp.type == "box") {
                 let worldPos = vec3.add(vec3.create(), comp.parameters.center, entity.worldPosition);
                 let shape = PhysicsWorld.addBoxShape(worldPos, comp.parameters.size);

@@ -1,56 +1,58 @@
 import { EventEmitter } from "@mtgoo/ctool";
-import { Component } from "./component";
-import { UniteBitkey } from "../bitkey";
-import { COMPS_ARR, ENTITIES, Icomponent, Ientity, Isystem, UNIT_BIT_KEY_DIC, UPDATE } from "./iecs";
+import { UnitedBitkey } from "./bitkey";
+import { ENTITIES, Icomponent, Ientity, Isystem, UNIT_BIT_KEY_DIC } from "./iecs";
 import { Entity } from "./entity";
 
-export abstract class System<T extends object = any> extends EventEmitter<IsystemEvents> implements Isystem {
+export abstract class System extends EventEmitter<IsystemEvents> implements Isystem {
     constructor() {
         super();
-        this.onEnable();
+        this.onCreate();
+        this.emit("onCreate");
     }
     /**
      * 在 addSystem 的时候进行初始化
      */
-    [UNIT_BIT_KEY_DIC]: { [query: string]: UniteBitkey; };
-    [ENTITIES]: { [query: string]: { [id: string]: Ientity; }; };
-    [COMPS_ARR]: { [query: string]: Icomponent[][]; };
+    [UNIT_BIT_KEY_DIC]: { [queryKey: string]: UnitedBitkey; };
+    [ENTITIES]: { [queryKey: string]: Entity[]; };
 
-    abstract caries: { [query: string]: (new () => Icomponent)[]; }
-    get queries(): T { return this[COMPS_ARR] as any; }
-    onEnable(): void { }
+    abstract caries: { [queryKey: string]: (new () => Icomponent)[]; }
+    get queries() { return this[ENTITIES] }
 
-    addEntity(query: string, entity: Entity): void {
-        if (!this[ENTITIES][query][entity.id]) {
-            this[ENTITIES][query][entity.id] = entity;
-            const comps = this.caries[query].map(comp => entity.getComponent(comp));
-            this[COMPS_ARR][query].push(comps);
+    onCreate(): void { }
+
+    addEntity(queryKey: string, entity: Entity): void {
+        let results = this[ENTITIES][queryKey];
+        if (!results.includes(entity)) {
+            results.push(entity);
+            this.emit("addEntity", entity)
         }
     }
 
     removeEntity(entity: Entity): void {
+        let results: Ientity[], index: number
         for (const key in this[ENTITIES]) {
-            if (this[ENTITIES][key][entity.id] != null) {
-                delete this[ENTITIES][key][entity.id];
+            results = this[ENTITIES][key];
+            index = results.indexOf(entity);
+            if (index >= 0) {
+                results.splice(index, 1);
+                this.emit("removeEntity", entity);
             }
         }
-        for (const key in this[COMPS_ARR]) {
-            let compsArr = this[COMPS_ARR][key];
-            let newArr = [];
-            for (let i = 0; i < compsArr.length; i++) {
-                if (compsArr[i][0]?.entity != entity) {
-                    newArr.push(compsArr[i]);
-                }
-            };
-            delete this[COMPS_ARR][key];
-            this[COMPS_ARR][key] = newArr;
+    }
+
+    removeQueriedEntity(query: string, entity: Entity) {
+        let results = this[ENTITIES][query];
+        let index = results.indexOf(entity);
+        if (index >= 0) {
+            results.splice(index, 1);
         }
     }
+
     update(deltaTime: number): void { }
 }
 
 interface IsystemEvents {
-    onEnable: void;
-    addEntity: { entity: Entity, comps: any[] }
-    removeEntity: { entity: Entity, comps: any[] }
+    onCreate: void;
+    addEntity: Entity
+    removeEntity: Entity
 }

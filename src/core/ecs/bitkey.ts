@@ -1,4 +1,4 @@
-// 每个组件占一个二进制位，50个二进制位作为一个group，如果component数量超过50的话。
+// 每个组件占一个二进制位，50个二进制位作为一个group。
 // Reference:https://stackoverflow.com/questions/2802957/number-of-bits-in-javascript-numbers
 
 export class Bitkey {
@@ -23,7 +23,7 @@ export class Bitkey {
     }
 }
 
-export class UniteBitkey {
+export class UnitedBitkey {
     private keysMap: { [groupKey: number]: number; } = {};
     addBitKey(key: Bitkey) {
         const groupKey = key.groupIndex;
@@ -40,7 +40,7 @@ export class UniteBitkey {
         this.keysMap[groupKey] = currentValue & ~key.value;
     }
 
-    contain(otherKey: UniteBitkey) {
+    contain(otherKey: UnitedBitkey) {
         const keys = Object.keys(otherKey.keysMap);
         let key, otherValue, thisValue, beContained;
         for (let i = 0; i < keys.length; i++) {
@@ -48,8 +48,7 @@ export class UniteBitkey {
             otherValue = otherKey.keysMap[key];
             thisValue = this.keysMap[key];
             beContained = thisValue != null && ((otherValue & thisValue) == otherValue);
-            if (!beContained)
-                return false;
+            if (!beContained) return false;
         }
         return true;
     }

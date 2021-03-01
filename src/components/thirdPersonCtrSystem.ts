@@ -4,7 +4,7 @@ import { mat4, quat, vec3, vec4 } from "../mathD";
 import { InterScene } from "../scene/scene";
 import { ThirdPersonController } from "./thirdPersonController";
 
-export class ThirdPersonCtrSystem extends System<{ comps: ThirdPersonController[][] }> {
+export class ThirdPersonCtrSystem extends System {
     caries = { comps: [ThirdPersonController] };
     private scene: InterScene;
     constructor(scene: InterScene) {
@@ -14,7 +14,7 @@ export class ThirdPersonCtrSystem extends System<{ comps: ThirdPersonController[
     private targeCtr: ThirdPersonController;
     private rotAngle = 0;
 
-    onEnable() {
+    onCreate() {
         Input.mouse.on("mousemove", (ev) => {
             if (this.scene == null || this.targeCtr == null) return;
             if (Input.getMouseDown(MouseKeyEnum.Left)) {
@@ -67,7 +67,7 @@ export class ThirdPersonCtrSystem extends System<{ comps: ThirdPersonController[
 
         return (delta: number) => {
             if (this.queries.comps.length == 0) return;
-            let comp: ThirdPersonController = this.queries.comps[0][0];
+            let comp = this.queries.comps[0].getComponent(ThirdPersonController);
             this.targeCtr = comp;
             if (!comp.canMove) return;
             vec3.zero(dir);

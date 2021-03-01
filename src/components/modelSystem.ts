@@ -4,7 +4,7 @@ import { ForwardRender } from "../scene/render/ForwardRender";
 import { Irenderable } from "../scene/render/Irenderable";
 import { System } from "../core/ecs/system";
 
-export class ModelSystem extends System<{ comps: ModelComponent[][] }> {
+export class ModelSystem extends System {
     caries = { comps: [ModelComponent] };
     private scene: InterScene;
     constructor(scene: InterScene, render: ForwardRender) {
@@ -13,7 +13,8 @@ export class ModelSystem extends System<{ comps: ModelComponent[][] }> {
     }
 
     update(deltaTime: number): void {
-        this.queries.comps.forEach(([comp]) => {
+        this.queries.comps.forEach((node) => {
+            let comp = node.getComponent(ModelComponent);
             if (comp.entity.beActive == true) {
                 comp.mesh?.sbuMeshs.forEach((submeshItem, index) => {
                     const renderIns: Irenderable = {

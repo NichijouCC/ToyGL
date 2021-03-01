@@ -284,6 +284,43 @@ export class Transform extends UniqueObject {
         node._parentsBeActive = false;
     }
 
+    //----------------节点查找
+    find(check: (e: this) => void | boolean): this | null {//层序遍历
+        let queue: this[] = [this];
+        while (queue.length != 0) {
+            let first = queue.shift();
+            if (check(first)) return first;
+            for (let i = 0; i < first._children.length; i++) {
+                queue.push(first._children[i]);
+            }
+        }
+        return null;
+    }
+
+    findInParents(check: (e: this) => void | boolean): this | null {
+        if (check(this)) return this;
+        if (this._parent) {
+            return (this._parent).findInParents(check);
+        }
+        return null;
+    }
+
+    traverse(handler: (e: this) => void | boolean, includeSelf: boolean = true): void {//先序遍历
+        let _find;
+        if (includeSelf) {
+            _find = handler(this);
+        }
+        if (_find !== true) {
+            let child;
+            for (let i = 0; i < this._children.length; i++) {
+                child = this._children[i];
+                child.traverse(handler, true);
+            }
+        } else {
+            return;
+        }
+    }
+
     // -------易用性拓展
     /**
      * 获取世界坐标系下当前z轴的朝向

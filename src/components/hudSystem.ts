@@ -7,7 +7,7 @@ import { TextureFilterEnum, TextureWrapEnum } from "../webgl/index";
 import { System } from "../core/ecs/system";
 
 
-export class HudSystem extends System<{ comps: Hud[][] }> {
+export class HudSystem extends System {
     caries = { comps: [Hud] };
     private context2d: CanvasRenderingContext2D;
     private _scene: InterScene;
@@ -35,8 +35,9 @@ export class HudSystem extends System<{ comps: Hud[][] }> {
         const { mainCamera } = this._scene;
         const rot = mat4.getRotation(quat.create(), mainCamera.worldMatrix);
 
-        this.queries.comps.forEach(([hud]) => {
-            let { commond, rect, entity, _mat, _text2d } = hud;
+        this.queries.comps.forEach((node) => {
+            let hud = node.getComponent(Hud);
+            let { command, rect, entity, _mat, _text2d } = hud;
             if (hud._contentDirty) {
                 hud._contentDirty = false;
                 if (this.context2d.canvas.width < rect.x + rect.width) {
@@ -48,7 +49,7 @@ export class HudSystem extends System<{ comps: Hud[][] }> {
 
                 this.context2d.restore();
                 this.context2d.clearRect(rect.x, rect.y, rect.width, rect.height);
-                commond(this.context2d);
+                command(this.context2d);
                 const imagedata = this.context2d.getImageData(rect.x, rect.y, rect.width, rect.height);
                 hud._text2d = _text2d = TextureAsset.fromImageSource({
                     image: imagedata,

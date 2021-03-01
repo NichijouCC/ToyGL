@@ -1,6 +1,6 @@
-import { Bitkey, UniteBitkey } from "../bitkey";
+import { Bitkey, UnitedBitkey } from "./bitkey";
 import { Entity } from "./entity";
-import { Isystem, Ientity, Icomponent, COMPS, UNIT_BIT_KEY, UPDATE, UNIT_BIT_KEY_DIC, COMPS_ARR, ENTITIES } from "./iecs";
+import { Isystem, Ientity, Icomponent, COMPS, UNIT_BIT_KEY, UPDATE, UNIT_BIT_KEY_DIC, ENTITIES } from "./iecs";
 
 export class Ecs {
     private static registeredComps: { [name: string]: { ctr: new () => any; bitKey: Bitkey; relatedSystem: { system: Isystem, query: string }[]; }; } = {};
@@ -33,8 +33,7 @@ export class Ecs {
 
     static createComp<T extends Icomponent, P extends Partial<T>>(comp: new () => T, properties?: P): T {
         const compInfo = this.registeredComps[comp.name];
-        if (compInfo == null)
-            return;
+        if (compInfo == null) return;
         const newComp = new compInfo.ctr();
         this.comps.add(newComp);
         if (properties) {
@@ -43,10 +42,9 @@ export class Ecs {
         return newComp;
     }
 
-    static bindComp(entity: Ientity, comp: Icomponent) {
+    static bindCompToEntity(entity: Ientity, comp: Icomponent) {
         const compInfo = this.registeredComps[comp.compName];
-        if (compInfo == null)
-            return;
+        if (compInfo == null) return;
         Object.defineProperty(comp, "entity", {
             value: entity
         });
@@ -61,43 +59,44 @@ export class Ecs {
         });
     }
 
-    static unbindComp<T extends Icomponent>(entity: Ientity, comp: new () => T) {
+    static unbindCompToEntity<T extends Icomponent>(entity: Ientity, comp: new () => T) {
         const component = entity[COMPS][comp.name];
         if (component != null) {
             const compInfo = this.registeredComps[comp.name];
-            if (compInfo != null) {
-                const relatedSystem = compInfo.relatedSystem;
-                relatedSystem.forEach(item => {
-                    item.system.removeEntity(entity);
-                });
-            }
+            entity[UNIT_BIT_KEY].removeBitKey(compInfo.bitKey);
+            const relatedSystem = compInfo.relatedSystem;
+            relatedSystem.forEach(item => {
+                item.system.removeQueriedEntity(item.query, entity);
+            });
         }
+        delete entity[COMPS][comp.name];
     }
 
     static addSystem(system: Isystem, priority?: number) {
         let { caries } = system;
         system[UNIT_BIT_KEY_DIC] = {};
-        system[COMPS_ARR] = {};
         system[ENTITIES] = {};
         for (let query in caries) {
-            let unit_keys = new UniteBitkey();
+            let unit_keys = new UnitedBitkey();
             caries[query].forEach(item => {
                 const info = this.registeredComps[item.name];
                 info.relatedSystem.push({ system, query });
                 unit_keys.addBitKey(info.bitKey);
             })
             system[UNIT_BIT_KEY_DIC][query] = unit_keys;
-            system[COMPS_ARR][query] = [];
-            system[ENTITIES][query] = {};
+            system[ENTITIES][query] = [];
         }
         this.systems.push({ system, priority: priority ?? this.systems.length });
         this.systems.sort((a, b) => a.priority - b.priority);
     }
-
     static removeSystem(system: Isystem) {
         let targetIndex = this.systems.findIndex((item) => item.system = system);
         if (targetIndex != -1) {
             this.systems.splice(targetIndex - 1, 1);
+        }
+
+        for (let key in this.registeredComps) {
+            this.registeredComps[key].relatedSystem = this.registeredComps[key].relatedSystem.filter(item => item.system != system);
         }
     }
 

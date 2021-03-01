@@ -3,7 +3,7 @@ import { CameraComponent } from "./cameraComponent";
 import { Screen } from "../scene/Index";
 import { System } from "../core/ecs/system";
 
-export class CameraSystem extends System<{ "comps": CameraComponent[][] }> {
+export class CameraSystem extends System {
     caries = { "comps": [CameraComponent] };
     private scene: InterScene;
     private screen: Screen;
