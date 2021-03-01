@@ -1,4 +1,3 @@
-import { Icomponent, Ientity } from "../core/ecs/iecs";
 import { Ecs } from "../core/ecs/ecs";
 import { AssetReferenceArray } from "../scene/assetReferenceArray";
 import { AssetReference } from "../scene/assetReference";

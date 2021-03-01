@@ -1,4 +1,3 @@
-import { Icomponent } from "../core/ecs/iecs";
 import { Ecs } from "../core/ecs/ecs";
 import { Rect } from "../mathD/rect";
 import { Material, Texture2D } from "../scene/index";

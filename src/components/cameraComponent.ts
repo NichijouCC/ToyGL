@@ -1,5 +1,4 @@
 import { Component } from "../core/ecs/component";
-import { Icomponent } from "../core/ecs/iecs";
 import { Ecs } from "../core/ecs/ecs";
 import { applyMixins } from "../core/util";
 import { Camera } from "../scene/camera";

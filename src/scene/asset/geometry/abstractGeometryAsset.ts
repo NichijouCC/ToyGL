@@ -1,7 +1,7 @@
 import { Asset, IgraphicAsset } from "../asset";
 import { VertexArray } from "../../../webgl/vertextArray";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
-import { BoundingSphere } from "../../bounds";
+import { BoundingBox, BoundingSphere } from "../../bounds";
 import { EventTarget } from "@mtgoo/ctool";
 
 export abstract class AbstractGeometryAsset extends Asset implements Igeometry {
@@ -10,9 +10,9 @@ export abstract class AbstractGeometryAsset extends Asset implements Igeometry {
     protected abstract create(device: GraphicsDevice): VertexArray
     protected abstract updateDirtyAtts(device: GraphicsDevice): void
 
-    protected _bounding: BoundingSphere;
-    get bounding() { return this._bounding; }
-    set bounding(aabb: BoundingSphere) { this._bounding = aabb; }
+    protected _bounding: BoundingBox;
+    get boundingBox() { return this._bounding; }
+    set boundingBox(aabb: BoundingBox) { this._bounding = aabb; }
 
     bind(device: GraphicsDevice) {
         if (this.graphicAsset == null) {
@@ -42,7 +42,7 @@ export abstract class AbstractGeometryAsset extends Asset implements Igeometry {
 export interface Igeometry {
     onDirty: EventTarget;
     graphicAsset: VertexArray;
-    bounding: BoundingSphere;
+    boundingBox: BoundingBox;
     bind(device: GraphicsDevice): void;
     unbind(): void;
     destroy(): void;

@@ -1,6 +1,6 @@
 import { InterScene } from "../scene/Scene";
 import { CameraComponent } from "./cameraComponent";
-import { Screen } from "../scene/Index";
+import { Screen } from "../scene/index";
 import { System } from "../core/ecs/system";
 
 export class CameraSystem extends System {

@@ -23,23 +23,19 @@ export interface IgltfPrimitive {
     material: Material;
 }
 
-export interface IgltfBufferview {
+export interface IgltfBufferView {
     viewBuffer: Uint8Array;
     byteStride?: number,
     target?: number
 }
 export class GltfNodeCache {
     meshNodeCache: { [index: number]: Promise<IgltfPrimitive[]> } = {};
-    bufferviewNodeCache: { [index: number]: Promise<IgltfBufferview> } = {};
+    bufferViewNodeCache: { [index: number]: Promise<IgltfBufferView> } = {};
     bufferNodeCache: { [index: number]: Promise<Uint8Array> } = {};
     materialNodeCache: { [index: number]: Promise<Material> } = {};
-    textrueNodeCache: { [index: number]: Promise<Texture2D> } = {};
+    textureNodeCache: { [index: number]: Promise<Texture2D> } = {};
     vertexBufferCache: { [index: number]: VertexBuffer } = {};
     indexBufferCache: { [index: number]: IndexBuffer } = {};
-
-    // beContainAnimation: boolean = false;
-    // skinNodeCache: { [index: number]: SkinNode } = {};
-    // animationNodeCache: { [index: number]: AnimationClip } = {};
 }
 
 export interface IgltfJson extends Igltf {
@@ -77,11 +73,11 @@ export class LoadGlTF implements IassetLoader {
         this.ExtensionDic[type] = extension;
     }
 
-    getExtensionData(node: Iproperty, extendname: string): Promise<any> {
+    getExtensionData(node: Iproperty, extendName: string): Promise<any> {
         if (node.extensions == null) return null;
-        const extension = LoadGlTF.ExtensionDic[extendname];
+        const extension = LoadGlTF.ExtensionDic[extendName];
         if (extension == null) return null;
-        const info = node.extensions[extendname];
+        const info = node.extensions[extendName];
         if (info == null) return null;
         return extension.load(info, this);
     }
@@ -96,38 +92,38 @@ export class LoadGlTF implements IassetLoader {
                 return gltfJson;
             });
         } else {
-            return this.loadglTFBin(url)
-                .then((value: { json: any; chunkbin: Uint8Array[] }) => {
+            return this.loadGltfBin(url)
+                .then((value: { json: any; chunkBin: Uint8Array[] }) => {
                     const gltfJson = value.json as IgltfJson;
                     gltfJson.cache = new GltfNodeCache();
                     gltfJson.rootURL = getAssetDirectory(url);
 
-                    for (let i = 0; i < value.chunkbin.length; i++) {
-                        gltfJson.cache.bufferNodeCache[i] = Promise.resolve(value.chunkbin[i]);
+                    for (let i = 0; i < value.chunkBin.length; i++) {
+                        gltfJson.cache.bufferNodeCache[i] = Promise.resolve(value.chunkBin[i]);
                     }
                     return gltfJson;
                 });
         }
     }
 
-    private async loadglTFBin(url: string): Promise<{ json: JSON; chunkbin: Uint8Array[] }> {
+    private async loadGltfBin(url: string): Promise<{ json: JSON; chunkBin: Uint8Array[] }> {
         return loadArrayBuffer(url).then(bin => {
             const Binary = {
                 Magic: 0x46546c67
             };
-            const breader = new BinReader(bin);
-            const magic = breader.readUint32();
+            const bReader = new BinReader(bin);
+            const magic = bReader.readUint32();
             if (magic !== Binary.Magic) {
                 throw new Error("Unexpected magic: " + magic);
             }
-            const version = breader.readUint32();
+            const version = bReader.readUint32();
             if (version != 2) {
                 throw new Error("Unsupported version:" + version);
             }
-            const length = breader.readUint32();
-            if (length !== breader.getLength()) {
+            const length = bReader.readUint32();
+            if (length !== bReader.getLength()) {
                 throw new Error(
-                    "Length in header does not match actual data length: " + length + " != " + breader.getLength()
+                    "Length in header does not match actual data length: " + length + " != " + bReader.getLength()
                 );
             }
 
@@ -136,29 +132,29 @@ export class LoadGlTF implements IassetLoader {
                 BIN: 0x004e4942
             };
             // JSON chunk
-            const chunkLength = breader.readUint32();
-            const chunkFormat = breader.readUint32();
+            const chunkLength = bReader.readUint32();
+            const chunkFormat = bReader.readUint32();
             if (chunkFormat !== ChunkFormat.JSON) {
                 throw new Error("First chunk format is not JSON");
             }
-            const _json = JSON.parse(breader.readUint8ArrToString(chunkLength));
-            const _chunkbin: Uint8Array[] = [];
-            while (breader.canread() > 0) {
-                const chunkLength = breader.readUint32();
-                const chunkFormat = breader.readUint32();
+            const _json = JSON.parse(bReader.readUint8ArrToString(chunkLength));
+            const _chunkBin: Uint8Array[] = [];
+            while (bReader.canread() > 0) {
+                const chunkLength = bReader.readUint32();
+                const chunkFormat = bReader.readUint32();
                 switch (chunkFormat) {
                     case ChunkFormat.JSON:
                         throw new Error("Unexpected JSON chunk");
                     case ChunkFormat.BIN:
-                        _chunkbin.push(breader.readUint8Array(chunkLength));
+                        _chunkBin.push(bReader.readUint8Array(chunkLength));
                         break;
                     default:
                         // ignore unrecognized chunkFormat
-                        breader.skipBytes(chunkLength);
+                        bReader.skipBytes(chunkLength);
                         break;
                 }
             }
-            return { json: _json, chunkbin: _chunkbin };
+            return { json: _json, chunkBin: _chunkBin };
         });
     }
 }

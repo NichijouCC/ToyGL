@@ -8,6 +8,8 @@ import { TypedArray } from '../core/typedArray';
 (vec3 as any).UP = vec3.fromValues(0, 1, 0);
 (vec3 as any).DOWN = vec3.fromValues(0, -1, 0);
 (vec3 as any).ZERO = vec3.fromValues(0, 0, 0);
+(vec3 as any).ONE = vec3.fromValues(1, 1, 1);
+
 
 (vec3 as any).center = (out: vec3, a: vec3, b: vec3) => {
     out[0] = (a[0] + b[0]) * 0.5;
@@ -83,6 +85,7 @@ import { TypedArray } from '../core/typedArray';
 declare module 'gl-matrix' {
     namespace vec3 {
         const ZERO: vec3;
+        const ONE: vec3;
         const FORWARD: vec3;
         const BACKWARD: vec3;
         const RIGHT: vec3;

@@ -29,7 +29,7 @@ export class MeshInstance implements Irenderable {
             const { newData: newAsset, oldData: oldAsset } = event;
             if (this._skinInstance) { this._skinInstance.destroy(); this._skinInstance = null; };
             if (newAsset) {
-                this._skinInstance = new SkinInstance(newAsset, this.node);
+                this._skinInstance = new SkinInstance(newAsset, () => this.node);
             }
         });
     }
@@ -40,7 +40,7 @@ export class MeshInstance implements Irenderable {
     private geometryRef = new AssetReference<Igeometry>();
     get geometry() { return this.geometryRef.current; }
     set geometry(value: Igeometry) { this.geometryRef.current = value; }
-    get bounding() { return this.geometryRef.current.bounding; }
+    get boundingBox() { return this.geometryRef.current.boundingBox; }
 
     private materialRef = new AssetReference<Material>();
     get material(): Material { return this.materialRef.current; }

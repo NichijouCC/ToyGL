@@ -1,24 +1,28 @@
 import { Bitkey, UnitedBitkey } from "./bitkey";
 import { Entity } from "./entity";
-import { Isystem, Ientity, Icomponent, COMPS, UNIT_BIT_KEY, UPDATE, UNIT_BIT_KEY_DIC, ENTITIES } from "./iecs";
+import { Isystem, Icomponent, COMPS, UNIT_BIT_KEY, UPDATE, UNIT_BIT_KEY_DIC, ENTITIES } from "./iecs";
 
 export class Ecs {
     private static registeredComps: { [name: string]: { ctr: new () => any; bitKey: Bitkey; relatedSystem: { system: Isystem, query: string }[]; }; } = {};
     static systems: { system: Isystem; priority: number; }[] = [];
-    static entities = new Set<Ientity>();
+    static entities = new Map<string, Entity>();
     static comps = new Set<Icomponent>();
 
     static createEntity(properties?: Partial<Entity>) {
-        let ins = new (Entity as any)();
+        let ins: Entity = new (Entity as any)();
         if (properties) {
             Object.keys(properties).forEach(item => (ins as any)[item] = (properties as any)[item])
         }
-        this.entities.add(ins);
-        return ins as Entity;
+        this.entities.set(ins.id, ins);
+        return ins;
     }
 
-    static removeEntity(entity: Ientity) {
-        this.entities.delete(entity);
+    static findEntityById(id: string) {
+        return this.entities.get(id)
+    }
+
+    static removeEntity(entity: Entity) {
+        this.entities.delete(entity.id);
         this.systems.forEach(item => item.system.removeEntity(entity));
     }
 
@@ -42,7 +46,7 @@ export class Ecs {
         return newComp;
     }
 
-    static bindCompToEntity(entity: Ientity, comp: Icomponent) {
+    static bindCompToEntity(entity: Entity, comp: Icomponent) {
         const compInfo = this.registeredComps[comp.compName];
         if (compInfo == null) return;
         Object.defineProperty(comp, "entity", {
@@ -59,7 +63,7 @@ export class Ecs {
         });
     }
 
-    static unbindCompToEntity<T extends Icomponent>(entity: Ientity, comp: new () => T) {
+    static unbindCompToEntity<T extends Icomponent>(entity: Entity, comp: new () => T) {
         const component = entity[COMPS][comp.name];
         if (component != null) {
             const compInfo = this.registeredComps[comp.name];
@@ -99,7 +103,10 @@ export class Ecs {
             this.registeredComps[key].relatedSystem = this.registeredComps[key].relatedSystem.filter(item => item.system != system);
         }
     }
-
+    /**
+     * 单位秒
+     * @param deltaTime 
+     */
     static update(deltaTime: number) {
         this.entities.forEach(item => {
             for (let key in item[COMPS]) {

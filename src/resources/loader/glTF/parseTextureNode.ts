@@ -6,8 +6,8 @@ import { retryFn } from "@mtgoo/ctool";
 
 export class ParseTextureNode {
     static parse(index: number, gltf: IgltfJson): Promise<Texture2D | null> {
-        if (gltf.cache.textrueNodeCache[index]) {
-            return gltf.cache.textrueNodeCache[index];
+        if (gltf.cache.textureNodeCache[index]) {
+            return gltf.cache.textureNodeCache[index];
         } else {
             if (gltf.textures == null) return null;
             const node = gltf.textures[index];
@@ -42,7 +42,7 @@ export class ParseTextureNode {
                         console.error("ParseTextureNode->img error", err);
                         return Promise.reject(err);
                     })
-                gltf.cache.textrueNodeCache[index] = task;
+                gltf.cache.textureNodeCache[index] = task;
                 return task;
             } else {
                 const task = ParseBufferViewNode.parse(imageNode.bufferView, gltf)
@@ -86,7 +86,7 @@ export class ParseTextureNode {
                         console.error("ParseTextureNode->bufferView error", err);
                         return Promise.reject(err);
                     })
-                gltf.cache.textrueNodeCache[index] = task;
+                gltf.cache.textureNodeCache[index] = task;
                 return task;
             }
             // let asset=assetMgr.load(bundle.rootURL+"/"+uri.uri) as Texture;

@@ -1,18 +1,18 @@
 import { IgltfJson, IgltfPrimitive } from "../loadglTF";
-import { IgltfMeshPrimitive, AccessorComponentType } from "./gltfJsonStruct";
-// import { Material } from "../assets/material";
+import { IgltfMeshPrimitive } from "./gltfJsonStruct";
 import { ParseMaterialNode } from "./parseMaterialNode";
-// import { Geometry } from "../assets/geometry";
 import { ParseAccessorNode } from "./parseAccessorNode";
 import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
 import { VertexArray, IvaoOptions } from "../../../webgl/vertextArray";
 import { Material } from "../../../scene/asset/material/material";
-import { StaticMesh, PrimitiveMesh } from "../../../scene/asset/geometry/staticMesh";
-import { IndexBuffer, IndicesArray } from "../../../webgl/indexBuffer";
+import { PrimitiveMesh } from "../../../scene/asset/geometry/staticMesh";
+import { IndexBuffer } from "../../../webgl/indexBuffer";
 import { VertexBuffer } from "../../../webgl/vertexBuffer";
 import { BufferTargetEnum } from "../../../webgl/buffer";
 import { DefaultMaterial } from "../../defAssets/defaultMaterial";
+import { BoundingBox } from "../../../scene/index";
+import { vec3 } from "../../../mathD";
 
 const MapGltfAttributeToToyAtt: { [name: string]: VertexAttEnum } = {
     POSITION: VertexAttEnum.POSITION,
@@ -61,9 +61,9 @@ export class ParseMeshNode {
     }
 
     static parseMaterial(node: IgltfMeshPrimitive, gltf: IgltfJson): Promise<Material> {
-        const matindex = node.material;
-        if (matindex != null) {
-            return ParseMaterialNode.parse(matindex, gltf);
+        const matIndex = node.material;
+        if (matIndex != null) {
+            return ParseMaterialNode.parse(matIndex, gltf);
         } else {
             return Promise.resolve(DefaultMaterial.color_3d.clone());
         }
@@ -73,6 +73,7 @@ export class ParseMeshNode {
         const taskAtts: Promise<void>[] = [];
         const vaoOptions: IvaoOptions = { vertexAttributes: [], context };
         const attributes = node.attributes;
+        let aabb: BoundingBox;
         for (const attName in attributes) {
             const attIndex = attributes[attName];
             const attType = MapGltfAttributeToToyAtt[attName];
@@ -87,6 +88,15 @@ export class ParseMeshNode {
                         offsetInBytes: arrayInfo.bytesOffset,
                         strideInBytes: arrayInfo.bytesStride
                     });
+
+                    if (attType == VertexAttEnum.POSITION && arrayInfo.min && arrayInfo.max) {
+                        let min = arrayInfo.min;
+                        let max = arrayInfo.max;
+                        aabb = BoundingBox.create(
+                            vec3.fromValues((max[0] + min[0]) * 0.5, (max[1] + min[1]) * 0.5, (max[2] + min[2]) * 0.5),
+                            vec3.fromValues((max[0] - min[0]) * 0.5, (max[1] - min[1]) * 0.5, (max[2] - min[2]) * 0.5)
+                        );
+                    }
                 });
             taskAtts.push(attTask);
         }
@@ -106,6 +116,7 @@ export class ParseMeshNode {
             .then(() => {
                 const mesh = new PrimitiveMesh();
                 mesh.vertexArray = new VertexArray(vaoOptions);
+                mesh.boundingBox = aabb;
                 return mesh;
             }).catch(err => {
                 console.error("ParseMeshNode->parseMesh error", err);

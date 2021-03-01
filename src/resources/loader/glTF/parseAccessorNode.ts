@@ -1,11 +1,10 @@
-import { IgltfBufferview, IgltfJson } from "../loadglTF";
+import { IgltfBufferView, IgltfJson } from "../loadglTF";
 import { ParseBufferViewNode } from "./parseBufferViewNode";
 import { BufferTargetEnum, Buffer, BufferUsageEnum } from "../../../webgl/buffer";
 import { TypedArray } from "../../../core/typedArray";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
 import { IndexBuffer } from "../../../webgl/indexBuffer";
 import { VertexBuffer } from "../../../webgl/vertexBuffer";
-import { IgltfAccessor } from "./gltfJsonStruct";
 
 export interface IaccessorData {
     componentSize: number;
@@ -18,6 +17,8 @@ export interface IaccessorData {
     typedArray: TypedArray;
 
     buffer?: Buffer;
+    min?: number[];
+    max?: number[];
 }
 
 export namespace Accessor {
@@ -47,6 +48,8 @@ export class ParseAccessorNode {
         arrayInfo.componentDataType = accessor.componentType;
         arrayInfo.count = accessor.count;
         arrayInfo.normalize = accessor.normalized;
+        arrayInfo.min = accessor.min;
+        arrayInfo.max = accessor.max;
 
         if (accessor.bufferView != null) {
             const viewIndex = accessor.bufferView;

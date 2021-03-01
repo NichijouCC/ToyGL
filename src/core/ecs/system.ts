@@ -24,7 +24,7 @@ export abstract class System extends EventEmitter<IsystemEvents> implements Isys
         let results = this[ENTITIES][queryKey];
         if (!results.includes(entity)) {
             results.push(entity);
-            this.emit("addEntity", entity)
+            this.emit("addEntity", { queryKey, entity })
         }
     }
 
@@ -35,16 +35,17 @@ export abstract class System extends EventEmitter<IsystemEvents> implements Isys
             index = results.indexOf(entity);
             if (index >= 0) {
                 results.splice(index, 1);
-                this.emit("removeEntity", entity);
+                this.emit("removeEntity", { queryKey: key, entity });
             }
         }
     }
 
-    removeQueriedEntity(query: string, entity: Entity) {
-        let results = this[ENTITIES][query];
+    removeQueriedEntity(queryKey: string, entity: Entity) {
+        let results = this[ENTITIES][queryKey];
         let index = results.indexOf(entity);
         if (index >= 0) {
             results.splice(index, 1);
+            this.emit("removeEntity", { queryKey, entity });
         }
     }
 
@@ -53,6 +54,6 @@ export abstract class System extends EventEmitter<IsystemEvents> implements Isys
 
 interface IsystemEvents {
     onCreate: void;
-    addEntity: Entity
-    removeEntity: Entity
+    addEntity: { queryKey: string, entity: Entity }
+    removeEntity: { queryKey: string, entity: Entity }
 }

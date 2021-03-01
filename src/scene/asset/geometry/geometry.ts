@@ -2,7 +2,7 @@ import { IndicesArray, IndexBuffer } from "../../../webgl/indexBuffer";
 import { AbstractGeometryAsset } from "./abstractGeometryAsset";
 import { GeometryAttribute, IgeometryAttributeOptions } from "./geometryAttribute";
 import { PrimitiveTypeEnum } from "../../../webgl/PrimitiveTypeEnum";
-import { BoundingSphere } from "../../bounds";
+import { BoundingBox, BoundingSphere } from "../../bounds";
 import { GlConstants } from "../../../webgl/glconstant";
 import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
 import { TypedArray } from "../../../core/typedArray";
@@ -37,7 +37,6 @@ export class Geometry extends AbstractGeometryAsset {
     attributes: { [keyName: string]: GeometryAttribute } = {};
     indices?: IndicesArray;
     primitiveType: PrimitiveTypeEnum;
-    boundingSphere: BoundingSphere;
     constructor(option: IgeometryOptions) {
         super();
         // this.attributes = option.attributes;
@@ -46,16 +45,16 @@ export class Geometry extends AbstractGeometryAsset {
         });
         this.indices = option.indices instanceof Array ? new Uint16Array(option.indices) : option.indices;
         this.primitiveType = option.primitiveType != null ? option.primitiveType : GlConstants.TRIANGLES;
-        this.boundingSphere = option.boundingSphere;
+        this._bounding = option.boundingBox;
     }
 
     private _vertexCount: number;
     get vertexCount() { return this._vertexCount; };
-    get bounding() {
-        if (this.boundingSphere == null) {
-            this.boundingSphere = BoundingSphere.fromTypedArray(this.attributes[VertexAttEnum.POSITION]?.values);
+    get boundingBox() {
+        if (this._bounding == null) {
+            this._bounding = BoundingBox.fromTypedArray(this.attributes[VertexAttEnum.POSITION]?.values);
         }
-        return this.boundingSphere;
+        return this._bounding;
     }
 
     private newAtts: { [name: string]: GeometryAttribute } = {};
@@ -147,7 +146,7 @@ export interface IgeometryOptions {
     attributes?: IgeometryAttributeOptions[];
     indices?: IndicesArray | Array<number>;
     primitiveType?: number;
-    boundingSphere?: BoundingSphere;
+    boundingBox?: BoundingBox;
     count?: number;
     offset?: number;
 }

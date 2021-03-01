@@ -1,10 +1,10 @@
 import { ParseBufferNode } from "./parseBufferNode";
-import { IgltfJson, IgltfBufferview } from "../loadglTF";
+import { IgltfJson, IgltfBufferView } from "../loadglTF";
 
 export class ParseBufferViewNode {
-    static parse(index: number, gltf: IgltfJson): Promise<IgltfBufferview> {
-        if (gltf.cache.bufferviewNodeCache[index]) {
-            return gltf.cache.bufferviewNodeCache[index];
+    static parse(index: number, gltf: IgltfJson): Promise<IgltfBufferView> {
+        if (gltf.cache.bufferViewNodeCache[index]) {
+            return gltf.cache.bufferViewNodeCache[index];
         } else {
             const bufferview = gltf.bufferViews[index];
             const bufferindex = bufferview.buffer;
@@ -17,7 +17,7 @@ export class ParseBufferViewNode {
                     console.error("ParseBufferViewNode error", err);
                     return Promise.reject(err);
                 })
-            gltf.cache.bufferviewNodeCache[index] = task;
+            gltf.cache.bufferViewNodeCache[index] = task;
             return task;
         }
     }

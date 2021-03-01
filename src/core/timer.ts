@@ -17,6 +17,9 @@ export class Timer implements Itimer {
     timeScale: number = 1.0;
     private intervalLoop: DebuffAction;
     private _onTick = new EventTarget<number>();
+    /**
+     * 单位秒
+     */
     get onTick() { return this._onTick; }
 
     private update() {

@@ -11,6 +11,7 @@ import { LayerComposition } from "../layerComposition";
 import { Irenderable } from "./irenderable";
 import { FrameState } from "../frameState";
 import { ShaderProgram } from "../../webgl";
+import { vec3 } from "../../mathD";
 
 const Private: {
     preMaterial: Material,
@@ -184,7 +185,13 @@ export class ForwardRender {
         }
     }
 
-    private frustumCull(frustum: Frustum, drawcall: Irenderable) {
-        return frustum.containSphere(drawcall.bounding ?? drawcall.geometry.bounding, drawcall.worldMat);
-    }
+    private frustumCull = (() => {
+        let _temptSphere = new BoundingSphere();
+        return (frustum: Frustum, drawCall: Irenderable) => {
+            let aabb = drawCall.boundingBox ?? drawCall.geometry.boundingBox;
+            vec3.copy(_temptSphere.center, aabb.center);
+            _temptSphere.radius = vec3.len(aabb.halfSize);
+            return frustum.containSphere(_temptSphere, drawCall.worldMat);
+        }
+    })()
 }

@@ -1,5 +1,4 @@
 import { Component } from "../core/ecs/component";
-import { Icomponent } from "../core/ecs/iecs";
 import { Ecs } from "../core/ecs/ecs";
 import { AnimationClip } from "../scene/asset/animationClip";
 import { ClipInstance, ClipOptions } from "../scene/primitive/animation/clipInstance";
