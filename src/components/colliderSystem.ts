@@ -1,12 +1,12 @@
 import { System } from "../core/ecs/system";
 import { vec3 } from "../mathD";
-import { Collider } from "./collider";
+import { BoxCollider, SphereCollider } from "./collider";
 import * as CANNON from 'cannon-es';
 import { Rigidbody } from "./rigidbody";
 import { Ecs } from "../core/ecs/ecs";
 
 export class ColliderSystem extends System {
-    caries = { colliders: [Collider], rigidbodies: [Rigidbody] };
+    caries = { boxColliders: [BoxCollider], SphereColliders: [SphereCollider], rigidbodies: [Rigidbody] };
     private dic: { [id: string]: CANNON.Body } = {};
     constructor() {
         super();
@@ -17,20 +17,20 @@ export class ColliderSystem extends System {
             }
         });
         this.on("addEntity", ({ entity, queryKey }) => {
-            if (queryKey == "colliders") {
-                let comp = entity.getComponent(Collider);
-                if (comp.type == "box") {
-                    let worldPos = vec3.add(vec3.create(), comp.parameters.center, entity.worldPosition);
-                    let shape = PhysicsWorld.addBoxShape(worldPos, comp.parameters.size);
-                    this.dic[entity.id] = shape;
-                } else if (comp.type = "sphere") {
-                    let worldPos = vec3.add(vec3.create(), comp.parameters.center, entity.worldPosition);
-                    let shape = PhysicsWorld.addSphereShape(worldPos, comp.parameters.radius);
-                    this.dic[entity.id] = shape;
-                }
-            } else {
+            if (queryKey == "boxColliders") {
+                let comp = entity.getComponent(BoxCollider);
+                let worldPos = vec3.add(vec3.create(), comp.center, entity.worldPosition);
+                let shape = PhysicsWorld.addBoxShape(worldPos, comp.size);
+                this.dic[entity.id] = shape;
+            } else if (queryKey == "SphereColliders") {
+                let comp = entity.getComponent(SphereCollider);
+                let worldPos = vec3.add(vec3.create(), comp.center, entity.worldPosition);
+                let shape = PhysicsWorld.addSphereShape(worldPos, comp.radius);
+                this.dic[entity.id] = shape;
+            }
+            else if (queryKey == "rigidbodies") {
                 let comp = entity.getComponent(Rigidbody);
-                let shape = PhysicsWorld.addRigidbody(comp.entity.worldPosition, comp.mass);
+                let shape = PhysicsWorld.addRigidbody(comp.entity.worldPosition, comp.radius, comp.height, comp.mass);
                 this.dic[entity.id] = shape;
             }
         });
@@ -44,6 +44,12 @@ export class ColliderSystem extends System {
             entity = Ecs.findEntityById(key);
             entity.worldPosition = vec3.set(tempt, pos.x, pos.y, pos.z);
         }
+        this.queries.rigidbodies.forEach(item => {
+            let comp = item.getComponent(Rigidbody);
+            this.dic[item.id].velocity.x = comp.velocity[0];
+            this.dic[item.id].velocity.y = comp.velocity[1];
+            this.dic[item.id].velocity.z = comp.velocity[2];
+        })
     }
 }
 
@@ -77,9 +83,11 @@ export class PhysicsWorld {
         this.world.removeBody(body);
     }
 
-    static addRigidbody(position: ArrayLike<number>, mass: number) {
+    static addRigidbody(position: ArrayLike<number>, raduis: number, height: number, mass: number) {
         let body = new CANNON.Body({
             mass: mass,
+            position: new CANNON.Vec3(position[0], position[1], position[2]),
+            shape: new CANNON.Cylinder(raduis, raduis, height),
             type: CANNON.Body.KINEMATIC
         });
         this.world.addBody(body);

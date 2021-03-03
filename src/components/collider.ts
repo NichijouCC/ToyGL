@@ -1,32 +1,31 @@
 import { Component } from "../core/ecs/component";
 import { Ecs } from "../core/ecs/ecs";
+import { Icomponent } from "../core/ecs/iecs";
 import { vec3 } from "../mathD";
 import { StaticMesh } from "../scene/asset";
 
 @Ecs.registerComp
-export class Collider<T extends colliderTypes = any> extends Component {
-    type: keyof ColliderParameters;
-    parameters: ColliderParameters[T];
-    layer: string = "default";
-
-    clone(): Collider {
+export class BoxCollider extends Component {
+    center: vec3 = vec3.create();
+    size: vec3 = vec3.clone(vec3.ONE);
+    clone(): Icomponent {
         throw new Error("Method not implemented.");
     }
 }
 
-interface ColliderParameters {
-    "box": {
-        center: vec3,
-        size: vec3,
-    };
-    "sphere": {
-        center: vec3,
-        radius: number,
-    };
-    "mesh": {
-        mesh: StaticMesh
+@Ecs.registerComp
+export class SphereCollider extends Component {
+    center: vec3 = vec3.create();
+    radius = 1.0;
+    clone(): Icomponent {
+        throw new Error("Method not implemented.");
     }
 }
 
-export type colliderTypes = keyof ColliderParameters;
-
+@Ecs.registerComp
+export class MeshCollider extends Component {
+    mesh: StaticMesh
+    clone(): Icomponent {
+        throw new Error("Method not implemented.");
+    }
+}
