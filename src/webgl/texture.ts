@@ -1,5 +1,5 @@
 import { GraphicsDevice } from "./graphicsDevice";
-import { GlConstants } from "./glconstant";
+import { GlConstants } from "./glConstant";
 import { PixelFormatEnum } from "./pixelFormatEnum";
 import { PixelDatatypeEnum } from "./pixelDatatype";
 import { FrameBuffer } from "./framebuffer";

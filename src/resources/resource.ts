@@ -1,20 +1,20 @@
-import { getAssetExtralName } from "./util";
+import { getAssetExtraName } from "./util";
 import { Asset } from "../scene/asset/asset";
 
-export interface IassetLoader {
+export interface IAssetLoader {
     load(url: string): Promise<Asset>
 }
 
 export class Resource {
-    private resLoaderDic: { [ExtralName: string]: IassetLoader } = {};
-    registerAssetLoader(extral: string, factory: IassetLoader) {
-        console.warn("loader type:", extral);
-        this.resLoaderDic[extral] = factory;
+    private resLoaderDic: { [extraName: string]: IAssetLoader } = {};
+    registerAssetLoader(extra: string, factory: IAssetLoader) {
+        console.warn("loader type:", extra);
+        this.resLoaderDic[extra] = factory;
     }
 
-    getAssetLoader(url: string): IassetLoader {
-        const extralType = getAssetExtralName(url);
-        const factory = this.resLoaderDic[extralType];
+    getAssetLoader(url: string): IAssetLoader {
+        const extraType = getAssetExtraName(url);
+        const factory = this.resLoaderDic[extraType];
         return factory;
     }
 
@@ -34,7 +34,7 @@ export class Resource {
         } else {
             const loader = this.getAssetLoader(url);
             if (loader == null) {
-                const errorMsg = "ERROR: load Asset error. INfo: not have Load Func to handle (" + getAssetExtralName(url) + ") type File.  load URL:" + url;
+                const errorMsg = "ERROR: load Asset error. INfo: not have Load Func to handle (" + getAssetExtraName(url) + ") type File.  load URL:" + url;
                 return Promise.reject(errorMsg);
             } else {
                 this.loadMap[url] = loader.load(url);

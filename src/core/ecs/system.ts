@@ -1,9 +1,9 @@
 import { EventEmitter } from "@mtgoo/ctool";
-import { UnitedBitkey } from "./bitkey";
-import { ENTITIES, Icomponent, Ientity, Isystem, UNIT_BIT_KEY_DIC } from "./iecs";
+import { UnitedBitKey } from "./bitKey";
+import { ENTITIES, IComponent, IEntity, ISystem, UNIT_BIT_KEY_DIC } from "./iecs";
 import { Entity } from "./entity";
 
-export abstract class System extends EventEmitter<IsystemEvents> implements Isystem {
+export abstract class System extends EventEmitter<IsystemEvents> implements ISystem {
     constructor() {
         super();
         this.onCreate();
@@ -12,10 +12,10 @@ export abstract class System extends EventEmitter<IsystemEvents> implements Isys
     /**
      * 在 addSystem 的时候进行初始化
      */
-    [UNIT_BIT_KEY_DIC]: { [queryKey: string]: UnitedBitkey; };
+    [UNIT_BIT_KEY_DIC]: { [queryKey: string]: UnitedBitKey; };
     [ENTITIES]: { [queryKey: string]: Entity[]; };
 
-    abstract caries: { [queryKey: string]: (new () => Icomponent)[]; }
+    abstract caries: { [queryKey: string]: (new () => IComponent)[]; }
     get queries() { return this[ENTITIES] }
 
     onCreate(): void { }
@@ -29,7 +29,7 @@ export abstract class System extends EventEmitter<IsystemEvents> implements Isys
     }
 
     removeEntity(entity: Entity): void {
-        let results: Ientity[], index: number
+        let results: IEntity[], index: number
         for (const key in this[ENTITIES]) {
             results = this[ENTITIES][key];
             index = results.indexOf(entity);

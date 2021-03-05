@@ -1,4 +1,4 @@
-import { GlConstants } from "./glconstant";
+import { GlConstants } from "./glConstant";
 
 export enum PrimitiveTypeEnum {
     POINTS = GlConstants.POINTS,

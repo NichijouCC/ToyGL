@@ -1,6 +1,6 @@
 import { vec3, mat4 } from '../mathD/index';
 import { VertexAttEnum } from "../webgl/vertexAttEnum";
-import { VertexArray } from "../webgl/vertextArray";
+import { VertexArray } from "../webgl/vertexArray";
 import { TypedArray } from "../core/typedArray";
 import { Vec3 } from 'cannon-es';
 

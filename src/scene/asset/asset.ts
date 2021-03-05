@@ -9,14 +9,14 @@ export abstract class Asset extends UniqueObject {
     abstract destroy(): void;
 }
 
-export interface IgraphicAsset {
+export interface IGraphicAsset {
     bind(device: GraphicsDevice): void;
     unbind(): void;
     destroy(): void;
     onDirty: EventTarget<void>;
 }
 
-export class GraphicAsset extends Asset implements IgraphicAsset {
+export class GraphicAsset extends Asset implements IGraphicAsset {
     bind(device: GraphicsDevice): void {
         throw new Error("Method not implemented.");
     }

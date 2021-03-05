@@ -1,6 +1,6 @@
 import { Component } from "../core/ecs/component";
 import { Ecs } from "../core/ecs/ecs";
-import { Icomponent } from "../core/ecs/iecs";
+import { IComponent } from "../core/ecs/iecs";
 import { vec3 } from "../mathD";
 @Ecs.registerComp
 export class Rigidbody extends Component {
@@ -8,7 +8,7 @@ export class Rigidbody extends Component {
     radius: number = 0.5;
     height: number = 1;
     velocity: vec3 = vec3.create();
-    clone(): Icomponent {
+    clone(): IComponent {
         throw new Error("Method not implemented.");
     }
 }

@@ -1,12 +1,12 @@
-import { Bitkey, UnitedBitkey } from "./bitkey";
+import { BitKey, UnitedBitKey } from "./bitKey";
 import { Entity } from "./entity";
-import { Isystem, Icomponent, COMPS, UNIT_BIT_KEY, UPDATE, UNIT_BIT_KEY_DIC, ENTITIES } from "./iecs";
+import { ISystem, IComponent, COMPS, UNIT_BIT_KEY, UPDATE, UNIT_BIT_KEY_DIC, ENTITIES } from "./iecs";
 
 export class Ecs {
-    private static registeredComps: { [name: string]: { ctr: new () => any; bitKey: Bitkey; relatedSystem: { system: Isystem, query: string }[]; }; } = {};
-    static systems: { system: Isystem; priority: number; }[] = [];
+    private static registeredComps: { [name: string]: { ctr: new () => any; bitKey: BitKey; relatedSystem: { system: ISystem, query: string }[]; }; } = {};
+    static systems: { system: ISystem; priority: number; }[] = [];
     static entities = new Map<string, Entity>();
-    static comps = new Set<Icomponent>();
+    static comps = new Set<IComponent>();
 
     static createEntity(properties?: Partial<Entity>) {
         let ins: Entity = new (Entity as any)();
@@ -29,13 +29,13 @@ export class Ecs {
     static registerComp = (comp: Function) => {
         const compName = comp.name;
         if (Ecs.registeredComps[compName] == null) {
-            Ecs.registeredComps[compName] = { ctr: comp as any, bitKey: Bitkey.create(), relatedSystem: [] };
+            Ecs.registeredComps[compName] = { ctr: comp as any, bitKey: BitKey.create(), relatedSystem: [] };
         } else {
             throw new Error("重复注册组件: " + compName);
         }
     };
 
-    static createComp<T extends Icomponent, P extends Partial<T>>(comp: new () => T, properties?: P): T {
+    static createComp<T extends IComponent, P extends Partial<T>>(comp: new () => T, properties?: P): T {
         const compInfo = this.registeredComps[comp.name];
         if (compInfo == null) return;
         const newComp = new compInfo.ctr();
@@ -46,7 +46,7 @@ export class Ecs {
         return newComp;
     }
 
-    static bindCompToEntity(entity: Entity, comp: Icomponent) {
+    static bindCompToEntity(entity: Entity, comp: IComponent) {
         const compInfo = this.registeredComps[comp.compName];
         if (compInfo == null) return;
         Object.defineProperty(comp, "entity", {
@@ -63,7 +63,7 @@ export class Ecs {
         });
     }
 
-    static unbindCompToEntity<T extends Icomponent>(entity: Entity, comp: new () => T) {
+    static unbindCompToEntity<T extends IComponent>(entity: Entity, comp: new () => T) {
         const component = entity[COMPS][comp.name];
         if (component != null) {
             const compInfo = this.registeredComps[comp.name];
@@ -76,12 +76,12 @@ export class Ecs {
         delete entity[COMPS][comp.name];
     }
 
-    static addSystem(system: Isystem, priority?: number) {
+    static addSystem(system: ISystem, priority?: number) {
         let { caries } = system;
         system[UNIT_BIT_KEY_DIC] = {};
         system[ENTITIES] = {};
         for (let query in caries) {
-            let unit_keys = new UnitedBitkey();
+            let unit_keys = new UnitedBitKey();
             caries[query].forEach(item => {
                 const info = this.registeredComps[item.name];
                 info.relatedSystem.push({ system, query });
@@ -93,7 +93,7 @@ export class Ecs {
         this.systems.push({ system, priority: priority ?? this.systems.length });
         this.systems.sort((a, b) => a.priority - b.priority);
     }
-    static removeSystem(system: Isystem) {
+    static removeSystem(system: ISystem) {
         let targetIndex = this.systems.findIndex((item) => item.system = system);
         if (targetIndex != -1) {
             this.systems.splice(targetIndex - 1, 1);

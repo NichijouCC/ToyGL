@@ -1,10 +1,10 @@
-import { Asset, IgraphicAsset } from "../asset";
-import { VertexArray } from "../../../webgl/vertextArray";
+import { Asset, IGraphicAsset } from "../asset";
+import { VertexArray } from "../../../webgl/vertexArray";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
-import { BoundingBox, BoundingSphere } from "../../bounds";
+import { BoundingBox } from "../../bounds";
 import { EventTarget } from "@mtgoo/ctool";
 
-export abstract class AbstractGeometryAsset extends Asset implements Igeometry {
+export abstract class AbstractGeometryAsset extends Asset implements IGeometry {
     graphicAsset: VertexArray;
     protected beNeedRefreshGraphicAsset: boolean = false;
     protected abstract create(device: GraphicsDevice): VertexArray
@@ -39,7 +39,7 @@ export abstract class AbstractGeometryAsset extends Asset implements Igeometry {
     }
 }
 
-export interface Igeometry {
+export interface IGeometry {
     onDirty: EventTarget;
     graphicAsset: VertexArray;
     boundingBox: BoundingBox;

@@ -1,5 +1,5 @@
 import { System } from "../core/ecs/system";
-import { vec3 } from "../mathD";
+import { mat4, vec3 } from "../mathD";
 import { BoxCollider, SphereCollider } from "./collider";
 import * as CANNON from 'cannon-es';
 import { Rigidbody } from "./rigidbody";
@@ -19,8 +19,11 @@ export class ColliderSystem extends System {
         this.on("addEntity", ({ entity, queryKey }) => {
             if (queryKey == "boxColliders") {
                 let comp = entity.getComponent(BoxCollider);
-                let worldPos = vec3.add(vec3.create(), comp.center, entity.worldPosition);
-                let shape = PhysicsWorld.addBoxShape(worldPos, comp.size);
+                let selfMat = mat4.fromTranslation(mat4.create(), comp.center);
+                let worldMat = mat4.multiply(selfMat, entity.worldMatrix, selfMat);
+                let worldPos = mat4.getTranslation(vec3.create(), worldMat);
+                let worldSize = mat4.transformVector(vec3.create(), comp.size, worldMat);
+                let shape = PhysicsWorld.addBoxShape(worldPos, worldSize);
                 this.dic[entity.id] = shape;
             } else if (queryKey == "SphereColliders") {
                 let comp = entity.getComponent(SphereCollider);
@@ -83,12 +86,12 @@ export class PhysicsWorld {
         this.world.removeBody(body);
     }
 
-    static addRigidbody(position: ArrayLike<number>, raduis: number, height: number, mass: number) {
+    static addRigidbody(position: ArrayLike<number>, radius: number, height: number, mass: number) {
         let body = new CANNON.Body({
             mass: mass,
             position: new CANNON.Vec3(position[0], position[1], position[2]),
-            shape: new CANNON.Cylinder(raduis, raduis, height),
-            type: CANNON.Body.KINEMATIC
+            shape: new CANNON.Cylinder(radius, radius, height),
+            // type: CANNON.Body.KINEMATIC
         });
         this.world.addBody(body);
         return body;

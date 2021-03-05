@@ -27,14 +27,14 @@ export class GeometryInstance {
     readonly geometry: Geometry;
     attributes: { [keyName: string]: TypedArray };
     readonly id: number;
-    constructor(options: IgeometryInstanceOption) {
+    constructor(options: IGeometryInstanceOption) {
         this.geometry = options.geometry;
         this.attributes = options.attributes;
         this.id = options.id;
     }
 }
 
-export interface IgeometryInstanceOption {
+export interface IGeometryInstanceOption {
     geometry: Geometry;
     attributes?: { [keyName: string]: TypedArray };
     id: number;

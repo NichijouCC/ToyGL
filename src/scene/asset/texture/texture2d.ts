@@ -1,4 +1,4 @@
-import { Asset, IgraphicAsset } from "../asset";
+import { Asset, IGraphicAsset } from "../asset";
 import { Texture, IsamplerOptions, Sampler } from "../../../webgl/texture";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
 import { PixelFormatEnum } from "../../../webgl/pixelFormatEnum";

@@ -1,7 +1,7 @@
 import { ModelComponent } from "./modelComponent";
 import { InterScene } from "../scene/Scene";
-import { ForwardRender } from "../scene/render/ForwardRender";
-import { Irenderable } from "../scene/render/Irenderable";
+import { ForwardRender } from "../scene/render/forwardRender";
+import { IRenderable } from "../scene/render/irenderable";
 import { System } from "../core/ecs/system";
 
 export class ModelSystem extends System {
@@ -16,9 +16,9 @@ export class ModelSystem extends System {
         this.queries.comps.forEach((node) => {
             let comp = node.getComponent(ModelComponent);
             if (comp.entity.beActive == true) {
-                comp.mesh?.sbuMeshs.forEach((submeshItem, index) => {
-                    const renderIns: Irenderable = {
-                        geometry: submeshItem,
+                comp.mesh?.subMeshes.forEach((subMeshItem, index) => {
+                    const renderIns: IRenderable = {
+                        geometry: subMeshItem,
                         skinIns: comp.skinIns,
                         material: comp.materials[index],
                         worldMat: comp.entity.worldMatrix,

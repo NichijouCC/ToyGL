@@ -67,11 +67,11 @@ export class Frustum {
     containSphere(sphere: BoundingSphere, mat: mat4 = null): boolean {
         const planes = this.planes;
         if (mat != null) {
-            const clonesphere = sphere.clone();
-            clonesphere.applyMatrix(mat);
+            const cloneSphere = sphere.clone();
+            cloneSphere.applyMatrix(mat);
 
-            const center = clonesphere.center;
-            const negRadius = -clonesphere.radius;
+            const center = cloneSphere.center;
+            const negRadius = -cloneSphere.radius;
             for (let i = 0; i < 6; i++) {
                 const distance: number = planes[i].distanceToPoint(center);
                 if (distance < negRadius) {

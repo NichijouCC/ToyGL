@@ -1,10 +1,10 @@
 import { CameraType } from "./gltfJsonStruct";
 // import { Camera, ProjectionEnum } from "../../ec/components/camera";
-import { IgltfJson } from "../loadglTF";
+import { IGltfJson } from "../loadGltf";
 import { Camera, ProjectionEnum } from "../../../scene/camera";
 
 export class ParseCameraNode {
-    static parse(index: number, gltf: IgltfJson) {
+    static parse(index: number, gltf: IGltfJson) {
         const node = gltf.cameras[index];
         const cam = new Camera();
 
@@ -18,18 +18,14 @@ export class ParseCameraNode {
                 if (data.zfar) {
                     cam.far = data.zfar;
                 }
-                // if (data.aspectRatio) {
-                //     cam.aspest = data.aspectRatio;
-                // }
                 break;
             }
             case CameraType.ORTHOGRAPHIC: {
                 cam.projectionType = ProjectionEnum.ORTHOGRAPH;
-                const datao = node.orthographic;
-                cam.near = datao.znear;
-                cam.far = datao.zfar;
-                cam.size = datao.ymag;
-                // cam.aspest = datao.xmag / datao.ymag;
+                const ortho = node.orthographic;
+                cam.near = ortho.znear;
+                cam.far = ortho.zfar;
+                cam.size = ortho.ymag;
                 break;
             }
         }

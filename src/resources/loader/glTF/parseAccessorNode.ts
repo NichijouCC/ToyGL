@@ -1,4 +1,4 @@
-import { IgltfBufferView, IgltfJson } from "../loadglTF";
+import { IGltfBufferView, IGltfJson } from "../loadGltf";
 import { ParseBufferViewNode } from "./parseBufferViewNode";
 import { BufferTargetEnum, Buffer, BufferUsageEnum } from "../../../webgl/buffer";
 import { TypedArray } from "../../../core/typedArray";
@@ -39,7 +39,7 @@ export namespace Accessor {
 }
 
 export class ParseAccessorNode {
-    static async parse(index: number, gltf: IgltfJson, bufferOptions?: { target?: BufferTargetEnum, context: GraphicsDevice }): Promise<IaccessorData> {
+    static async parse(index: number, gltf: IGltfJson, bufferOptions?: { target?: BufferTargetEnum, context: GraphicsDevice }): Promise<IaccessorData> {
         const arrayInfo: IaccessorData = {} as any;
         // return new Promise<AccessorNode>((resolve,reject)=>{
         const accessor = gltf.accessors[index];

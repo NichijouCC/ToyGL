@@ -1,8 +1,8 @@
 import { Entity } from "../core/ecs/entity";
-import { Irenderable } from "./render/irenderable";
+import { IRenderable } from "./render/irenderable";
 
 export class FrameState {
     deltaTime: number;
     dirtyNode = new Set<Entity>();
-    renders: Irenderable[] = [];
+    renders: IRenderable[] = [];
 }

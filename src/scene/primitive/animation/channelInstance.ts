@@ -6,7 +6,7 @@ import { AnimationChannelTargetPath } from "./clipInstance";
 export class ChannelInstance {
     channel: AnimationChannel;
 
-    private beinit: boolean = false;
+    private beInit: boolean = false;
     private target: Entity;
     private setFunc: (value: any, obj: Entity) => void;
     private lerpFunc: (from: number, to: number, lerp: number) => any;
@@ -27,18 +27,18 @@ export class ChannelInstance {
         }
         this.setFunc = AnimationChannelTargetPath.setFunc(this.channel.propertyName);
         this.lerpFunc = AnimationChannelTargetPath.lerpFunc(this.channel.propertyName);
-        this.beinit = true;
+        this.beInit = true;
     }
 
     jumpToStart() {
-        if (!this.beinit)
+        if (!this.beInit)
             return;
         this.setFunc(this.channel.values[0], this.target);
         this.temptLastStartIndex = null;
     }
 
-    excecute(currentFrame: number) {
-        if (!this.beinit)
+    execute(currentFrame: number) {
+        if (!this.beInit)
             return;
         if (currentFrame < this.channel.startFrame || currentFrame > this.channel.endFrame)
             return;

@@ -1,5 +1,5 @@
-import { GlConstants } from "./glconstant";
-import { IuniformInfo } from "./shaderProgam";
+import { GlConstants } from "./glConstant";
+import { IUniformInfo } from "./shaderProgram";
 import { GraphicsDevice } from "./graphicsDevice";
 
 export enum UniformTypeEnum {

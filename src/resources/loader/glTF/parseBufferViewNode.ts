@@ -1,8 +1,8 @@
 import { ParseBufferNode } from "./parseBufferNode";
-import { IgltfJson, IgltfBufferView } from "../loadglTF";
+import { IGltfJson, IGltfBufferView } from "../loadGltf";
 
 export class ParseBufferViewNode {
-    static parse(index: number, gltf: IgltfJson): Promise<IgltfBufferView> {
+    static parse(index: number, gltf: IGltfJson): Promise<IGltfBufferView> {
         if (gltf.cache.bufferViewNodeCache[index]) {
             return gltf.cache.bufferViewNodeCache[index];
         } else {

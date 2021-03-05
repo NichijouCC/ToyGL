@@ -1,13 +1,13 @@
-import { IgltfJson } from "../loadglTF";
+import { IGltfJson } from "../loadGltf";
 import { AnimationClip, AnimationChannel } from "../../../scene/asset/animationClip";
-import { IgltfAnimationSampler, IgltfAnimationChannelTarget, AnimationChannelTargetPath } from "./gltfJsonStruct";
+import { IGltfAnimationSampler, IGltfAnimationChannelTarget, AnimationChannelTargetPath } from "./gltfJsonStruct";
 import { ParseNode } from "./parseNode";
 import { ParseAccessorNode, Accessor } from "./parseAccessorNode";
 import { GlTF } from "./util";
 import { TypedArray } from "../../../core/typedArray";
 
 export class ParseAnimationNode {
-    static parse(index: number, gltf: IgltfJson): Promise<AnimationClip> {
+    static parse(index: number, gltf: IGltfJson): Promise<AnimationClip> {
         const animation = gltf.animations[index];
         const newClip = new AnimationClip(animation.name);
         const { channels, samplers } = animation;
@@ -24,7 +24,7 @@ export class ParseAnimationNode {
         })).then(() => { return newClip; });
     }
 
-    private static parseChannelData(channelTarget: IgltfAnimationChannelTarget, sampleNode: IgltfAnimationSampler, gltf: IgltfJson): Promise<AnimationChannel> {
+    private static parseChannelData(channelTarget: IGltfAnimationChannelTarget, sampleNode: IGltfAnimationSampler, gltf: IGltfJson): Promise<AnimationChannel> {
         const chan = new AnimationChannel();
         chan.targetName = GlTF.getNodeName(channelTarget.node, gltf);
         chan.propertyName = channelTarget.path;

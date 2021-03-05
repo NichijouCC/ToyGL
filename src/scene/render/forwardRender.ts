@@ -8,19 +8,19 @@ import { UniformState } from "../uniformState";
 import { AutoUniforms } from "./autoUniform";
 import { ShaderBucket } from "../asset/material/shaderBucket";
 import { LayerComposition } from "../layerComposition";
-import { Irenderable } from "./irenderable";
+import { IRenderable } from "./irenderable";
 import { FrameState } from "../frameState";
 import { ShaderProgram } from "../../webgl";
 import { vec3 } from "../../mathD";
 
 const Private: {
     preMaterial: Material,
-    preBuketID: number,
+    preBucketID: number,
     preRenderState: RenderState,
     temptSphere: BoundingSphere
 } = {
     preMaterial: null,
-    preBuketID: null,
+    preBucketID: null,
     preRenderState: null,
     temptSphere: new BoundingSphere()
 };
@@ -63,21 +63,21 @@ export class ForwardRender {
         );
     }
 
-    private camerRenderLayers = new Map<Camera, LayerComposition>();
+    private cameraRenderLayers = new Map<Camera, LayerComposition>();
 
     render(cameras: Camera[], frameState: FrameState) {
         cameras = cameras.sort(item => item.priority);
-        let cam: Camera, layercomps: LayerComposition, renderItem: Irenderable;
+        let cam: Camera, layerComps: LayerComposition, renderItem: IRenderable;
 
         // ---------------clear preFrame Data
         for (let k = 0; k < cameras.length; k++) {
             cam = cameras[k];
-            if (!this.camerRenderLayers.has(cam)) {
-                layercomps = new LayerComposition();
-                this.camerRenderLayers.set(cam, layercomps);
+            if (!this.cameraRenderLayers.has(cam)) {
+                layerComps = new LayerComposition();
+                this.cameraRenderLayers.set(cam, layerComps);
             } else {
-                layercomps = this.camerRenderLayers.get(cam);
-                layercomps.clear();
+                layerComps = this.cameraRenderLayers.get(cam);
+                layerComps.clear();
             }
         }
 
@@ -89,15 +89,15 @@ export class ForwardRender {
             for (let k = 0; k < cameras.length; k++) {
                 cam = cameras[k];
                 const { cullingMask, frustum } = cam;
-                layercomps = this.camerRenderLayers.get(cam);
+                layerComps = this.cameraRenderLayers.get(cam);
 
                 if (renderItem.cullingMask != null && ((renderItem.cullingMask & cullingMask) == 0)) continue;
                 if (renderItem.enableCull) {
                     if (this.frustumCull(frustum, renderItem)) {
-                        layercomps.addRenableItem(renderItem);
+                        layerComps.addRenderableItem(renderItem);
                     }
                 } else {
-                    layercomps.addRenableItem(renderItem);
+                    layerComps.addRenderableItem(renderItem);
                 }
             }
         }
@@ -105,18 +105,18 @@ export class ForwardRender {
         // ------------------------render per camera
         for (let k = 0; k < cameras.length; k++) {
             cam = cameras[k];
-            layercomps = this.camerRenderLayers.get(cam);
-            layercomps.getlayers().forEach(layer => {
+            layerComps = this.cameraRenderLayers.get(cam);
+            layerComps.getLayers().forEach(layer => {
                 if (layer.insCount == 0) return;
-                const renderInsArr = layer.getSortedinsArr(cam);
+                const renderInsArr = layer.getSortedInsArr(cam);
                 this.renderList(cam, renderInsArr, frameState);
             });
         }
     }
 
-    private renderList(cam: Camera, renderInsArr: Irenderable[], frameState: FrameState) {
+    private renderList(cam: Camera, renderInsArr: IRenderable[], frameState: FrameState) {
         this.setCamera(cam);
-        let renderItem: Irenderable, material: Material, uniforms, renderState, vertexArray, shaderIns: ShaderProgram, uniformValue;
+        let renderItem: IRenderable, material: Material, uniforms, renderState, vertexArray, shaderIns: ShaderProgram, uniformValue;
         for (let i = 0; i < renderInsArr.length; i++) {
             renderItem = renderInsArr[i];
 
@@ -137,9 +137,9 @@ export class ForwardRender {
             shaderIns = material.shader.getProgram(bucketId, this.device);
             let shaderChanged = shaderIns.bind();
 
-            if (shaderChanged || material != Private.preMaterial || material._beDirty || Private.preBuketID != bucketId) {
+            if (shaderChanged || material != Private.preMaterial || material._beDirty || Private.preBucketID != bucketId) {
                 Private.preMaterial = material;
-                Private.preBuketID = bucketId;
+                Private.preBucketID = bucketId;
                 material._beDirty = false;
                 this.bindShaderUniforms(shaderIns, uniforms);
             } else {
@@ -168,14 +168,14 @@ export class ForwardRender {
                     renderState.stencilTest.stencilRefValue,
                     renderState.stencilTest.stencilMask,
                     renderState.stencilTest.stencilFail,
-                    renderState.stencilTest.stencilFaileZpass,
+                    renderState.stencilTest.stencilFailZpass,
                     renderState.stencilTest.stencilPassZfail,
                     renderState.stencilTest.enableSeparateStencil,
                     renderState.stencilTest.stencilFunctionBack,
                     renderState.stencilTest.stencilRefValueBack,
                     renderState.stencilTest.stencilMaskBack,
                     renderState.stencilTest.stencilFailBack,
-                    renderState.stencilTest.stencilFaileZpassBack,
+                    renderState.stencilTest.stencilFailZpassBack,
                     renderState.stencilTest.stencilPassZfailBack
                 );
             }
@@ -187,7 +187,7 @@ export class ForwardRender {
 
     private frustumCull = (() => {
         let _temptSphere = new BoundingSphere();
-        return (frustum: Frustum, drawCall: Irenderable) => {
+        return (frustum: Frustum, drawCall: IRenderable) => {
             let aabb = drawCall.boundingBox ?? drawCall.geometry.boundingBox;
             vec3.copy(_temptSphere.center, aabb.center);
             _temptSphere.radius = vec3.len(aabb.halfSize);

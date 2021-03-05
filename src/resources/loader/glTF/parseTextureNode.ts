@@ -1,11 +1,11 @@
-import { loadImg } from "../../../io/loadtool";
+import { loadImg } from "../../../io/loadTool";
 import { ParseBufferViewNode } from "./parseBufferViewNode";
-import { IgltfJson } from "../loadglTF";
+import { IGltfJson } from "../loadGltf";
 import { Texture2D } from "../../../scene/asset/texture/texture2d";
 import { retryFn } from "@mtgoo/ctool";
 
 export class ParseTextureNode {
-    static parse(index: number, gltf: IgltfJson): Promise<Texture2D | null> {
+    static parse(index: number, gltf: IGltfJson): Promise<Texture2D | null> {
         if (gltf.cache.textureNodeCache[index]) {
             return gltf.cache.textureNodeCache[index];
         } else {

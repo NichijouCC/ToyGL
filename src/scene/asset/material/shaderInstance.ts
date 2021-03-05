@@ -1,4 +1,4 @@
-import { ShaderProgram } from "../../../webgl/shaderProgam";
+import { ShaderProgram } from "../../../webgl/shaderProgram";
 import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
 import { AutoUniforms } from "../../render/autoUniform";

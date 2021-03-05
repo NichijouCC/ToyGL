@@ -1,6 +1,5 @@
-import { GlConstants } from "./glconstant";
-export enum PixelDatatypeEnum
-{
+import { GlConstants } from "./glConstant";
+export enum PixelDatatypeEnum {
     UNSIGNED_BYTE = GlConstants.UNSIGNED_BYTE,
     UNSIGNED_SHORT = GlConstants.UNSIGNED_SHORT,
     UNSIGNED_INT = GlConstants.UNSIGNED_INT,
@@ -11,8 +10,7 @@ export enum PixelDatatypeEnum
     UNSIGNED_SHORT_5_5_5_1 = GlConstants.UNSIGNED_SHORT_5_5_5_1,
     UNSIGNED_SHORT_5_6_5 = GlConstants.UNSIGNED_SHORT_5_6_5
 }
-export namespace PixelDatatypeEnum
-{
+export namespace PixelDatatypeEnum {
     export function isPacked(pixelDatatype: PixelDatatypeEnum) {
         return pixelDatatype === PixelDatatypeEnum.UNSIGNED_INT_24_8 ||
             pixelDatatype === PixelDatatypeEnum.UNSIGNED_SHORT_4_4_4_4 ||

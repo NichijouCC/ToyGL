@@ -3,12 +3,12 @@ import { AbstractGeometryAsset } from "./abstractGeometryAsset";
 import { GeometryAttribute, IgeometryAttributeOptions } from "./geometryAttribute";
 import { PrimitiveTypeEnum } from "../../../webgl/PrimitiveTypeEnum";
 import { BoundingBox, BoundingSphere } from "../../bounds";
-import { GlConstants } from "../../../webgl/glconstant";
+import { GlConstants } from "../../../webgl/glConstant";
 import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
 import { TypedArray } from "../../../core/typedArray";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
-import { VertexArray } from "../../../webgl/vertextArray";
-import { IvertexAttributeOption, VertexAttribute } from "../../../webgl/vertexAttribute";
+import { VertexArray } from "../../../webgl/vertexArray";
+import { IVertexAttributeOption, VertexAttribute } from "../../../webgl/vertexAttribute";
 import { VertexBuffer } from "../../../webgl/vertexBuffer";
 import { BufferUsageEnum } from "../../../webgl/buffer";
 
@@ -85,7 +85,7 @@ export class Geometry extends AbstractGeometryAsset {
         const geAtts = this.attributes;
         const vertexAtts = Object.keys(geAtts).map(attName => {
             const geAtt = geAtts[attName] as GeometryAttribute;
-            const att: IvertexAttributeOption = {
+            const att: IVertexAttributeOption = {
                 type: geAtt.type,
                 componentDatatype: geAtt.componentDatatype,
                 componentsPerAttribute: geAtt.componentsPerAttribute,
@@ -121,7 +121,7 @@ export class Geometry extends AbstractGeometryAsset {
     protected updateDirtyAtts(device: GraphicsDevice): void {
         Object.values(this.newAtts).forEach(geAtt => {
             // let geAtt = this.dirtyAtt[key];
-            const att: IvertexAttributeOption = {
+            const att: IVertexAttributeOption = {
                 type: geAtt.type,
                 componentDatatype: geAtt.componentDatatype,
                 componentsPerAttribute: geAtt.componentsPerAttribute,

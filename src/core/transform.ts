@@ -16,14 +16,14 @@ export class Transform extends UniqueObject {
     private dirtyFlag: number = 0;
 
     //-----------------------------------------------------------------------------------------------------------
-    //  本节点是否显示由节点自身是否显示和递归的父节点是否显示综合决定，【beActive = selfBeActive & p1_beactive & p2_beactive & .... 】 
+    //  本节点是否显示由节点自身是否显示和递归的父节点是否显示综合决定，【beActive = selfBeActive & p1_beActive & p2_beActive & .... 】 
     //-----------------------------------------------------------------------------------------------------------
     private _selfBeActive: boolean = true;
     private _parentsBeActive: boolean = false;
     private setParentsBeActive = (active: boolean) => {
         if (active != this._parentsBeActive) {
             this._parentsBeActive = active;
-            //当自己为激活状态，父节点显示状态修改，则beactive修改了，需要通知子节点；当自己为未激活状态,beactive并未修改
+            //当自己为激活状态，父节点显示状态修改，则beActive修改了，需要通知子节点；当自己为未激活状态,beActive并未修改
             if (this._selfBeActive) {
                 this._children.forEach(item => { item.setParentsBeActive(active); })
             }
@@ -107,8 +107,8 @@ export class Transform extends UniqueObject {
 
     // -------------------------world属性--------------------------------------------------------------
     // ------------------------------------------------------------------------------------------------
-    // 得到worldmatrix后，不会立刻decompse得到worldpos/worldscale/worldort,而是dirty标记起来.
-    // setworld属性转换到setlocal属性
+    // 得到worldMatrix后，不会立刻decompose得到worldPos/worldScale/worldRot,而是dirty标记起来.
+    // setWorld属性转换到setLocal属性
     // ------------------------------------------------------------------------------------------------
     private _worldPosition: vec3 = vec3.create();
     get worldPosition(): vec3 {

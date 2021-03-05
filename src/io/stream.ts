@@ -25,7 +25,7 @@ export class BinReader {
         return this._data.byteLength;
     }
 
-    canread(): number {
+    canRead(): number {
         return this._data.byteLength - this._byteOffset;
     }
 

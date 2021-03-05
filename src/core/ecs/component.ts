@@ -1,4 +1,4 @@
-import { Icomponent, Ientity, UPDATE } from "./iecs";
+import { IComponent, IEntity, UPDATE } from "./iecs";
 import { Ecs } from "./ecs";
 import { Entity } from "./entity";
 
@@ -20,7 +20,7 @@ function setComponentProperty(target: Component, value: object) {
     }
 }
 
-export abstract class Component implements Icomponent {
+export abstract class Component implements IComponent {
     readonly entity: Entity;
     protected _beInit: boolean = false;
     get compName() { return this.constructor.name; }
@@ -46,7 +46,7 @@ export abstract class Component implements Icomponent {
     onInit() { }
     update() { }
 
-    abstract clone(): Icomponent
+    abstract clone(): IComponent
 
     static compName() {
         return this.prototype.constructor.name;

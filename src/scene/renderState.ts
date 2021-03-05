@@ -1,4 +1,4 @@
-import { GlConstants } from "../webgl/glconstant";
+import { GlConstants } from "../webgl/glConstant";
 import { Rect } from "../mathD/rect";
 
 export class RenderState {
@@ -48,7 +48,7 @@ export class RenderState {
         stencilMask: number,
         stencilFail: number,
         stencilPassZfail: number,
-        stencilFaileZpass: number,
+        stencilFailZpass: number,
 
         enableSeparateStencil: boolean,
         stencilFunctionBack: number,
@@ -56,7 +56,7 @@ export class RenderState {
         stencilMaskBack: number,
         stencilFailBack: number,
         stencilPassZfailBack: number,
-        stencilFaileZpassBack: number,
+        stencilFailZpassBack: number,
     } = {
             enabled: false,
             stencilFunction: StencilFuncEnum.ALWAYS,
@@ -64,7 +64,7 @@ export class RenderState {
             stencilMask: 0xff,
             stencilFail: GlConstants.KEEP,
             stencilPassZfail: GlConstants.REPLACE,
-            stencilFaileZpass: GlConstants.KEEP,
+            stencilFailZpass: GlConstants.KEEP,
 
             enableSeparateStencil: false,
             stencilFunctionBack: StencilFuncEnum.ALWAYS,
@@ -72,7 +72,7 @@ export class RenderState {
             stencilMaskBack: 0xff,
             stencilFailBack: GlConstants.KEEP,
             stencilPassZfailBack: GlConstants.REPLACE,
-            stencilFaileZpassBack: GlConstants.KEEP
+            stencilFailZpassBack: GlConstants.KEEP
         };
 
     scissorTest: {

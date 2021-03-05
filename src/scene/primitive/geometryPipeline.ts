@@ -33,8 +33,6 @@ export class GeometryPipeline {
 
 function transformPoint(mat: mat4, valueArray: TypedArray) {
     for (let i = 0; i < valueArray.length; i += 3) {
-        // ------------------------- mat4.transfomPoint
-
         const x = valueArray[i];
         const y = valueArray[i + 1];
         const z = valueArray[i + 2];
@@ -48,8 +46,6 @@ function transformPoint(mat: mat4, valueArray: TypedArray) {
 
 function transformVector(mat: mat4, valueArray: TypedArray) {
     for (let i = 0; i < valueArray.length; i += 3) {
-        // ------------------------- mat4.transformVector
-
         const x = valueArray[i];
         const y = valueArray[i + 1];
         const z = valueArray[i + 2];

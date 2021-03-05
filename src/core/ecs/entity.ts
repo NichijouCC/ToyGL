@@ -1,10 +1,10 @@
-import { COMPS, Icomponent, Ientity, UNIT_BIT_KEY } from "./iecs";
+import { COMPS, IComponent, IEntity, UNIT_BIT_KEY } from "./iecs";
 import { Ecs } from "./ecs";
-import { UnitedBitkey } from "./bitkey";
+import { UnitedBitKey } from "./bitKey";
 import { Transform } from "../transform";
 import { EventTarget } from "@mtgoo/ctool";
 
-export class Entity extends Transform implements Ientity {
+export class Entity extends Transform implements IEntity {
     name: string;
     private constructor() { super() }
 
@@ -12,23 +12,23 @@ export class Entity extends Transform implements Ientity {
         return Ecs.createEntity(properties);
     }
     static onDirty = new EventTarget<Entity>();
-    [COMPS]: { [compName: string]: Icomponent } = {};
-    [UNIT_BIT_KEY]: UnitedBitkey = new UnitedBitkey();
-    addComponent<T extends Icomponent, P extends Partial<T>>(comp: new () => T, properties?: P): T {
+    [COMPS]: { [compName: string]: IComponent } = {};
+    [UNIT_BIT_KEY]: UnitedBitKey = new UnitedBitKey();
+    addComponent<T extends IComponent, P extends Partial<T>>(comp: new () => T, properties?: P): T {
         const newComp = Ecs.createComp(comp, properties);
         if (newComp) Ecs.bindCompToEntity(this, newComp);
         return newComp;
     }
 
-    addComponentIns<T extends Icomponent>(comp: T) {
+    addComponentIns<T extends IComponent>(comp: T) {
         if (comp) Ecs.bindCompToEntity(this, comp);
         return comp;
     }
 
-    getComponent<T extends Icomponent>(comp: new () => T): T { return this[COMPS][comp.name] as T; }
-    getComponentByName<T extends Icomponent = any>(comp: string): T { return this[COMPS][comp] as T; }
-    removeComponent<T extends Icomponent>(comp: new () => T): void { Ecs.unbindCompToEntity(this, comp); }
-    findComponents<T extends Icomponent>(comp: new () => T): T[] {
+    getComponent<T extends IComponent>(comp: new () => T): T { return this[COMPS][comp.name] as T; }
+    getComponentByName<T extends IComponent = any>(comp: string): T { return this[COMPS][comp] as T; }
+    removeComponent<T extends IComponent>(comp: new () => T): void { Ecs.unbindCompToEntity(this, comp); }
+    findComponents<T extends IComponent>(comp: new () => T): T[] {
         let arr: T[] = [];
         this.traverse((node) => {
             let component = node.getComponent(comp);

@@ -1,6 +1,6 @@
-import { ShaderProgram, IshaderProgramOption } from "../../../webgl/shaderProgam";
+import { ShaderProgram, IShaderProgramOption } from "../../../webgl/shaderProgram";
 import { RenderLayerEnum } from "../../renderLayer";
-import { Asset, IgraphicAsset } from "../asset";
+import { Asset, IGraphicAsset } from "../asset";
 import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
 import { ShaderBucket } from "./shaderBucket";
 import { GraphicsDevice } from "../../../webgl";
@@ -28,7 +28,7 @@ export class Shader extends Asset {
     private fsStr: string;
     private attributes: { [attName: string]: VertexAttEnum };
     readonly create_id: number;
-    constructor(options: IshaderOption) {
+    constructor(options: IShaderOption) {
         super();
         this.create_id = Shader.totalCount++;
 
@@ -38,7 +38,7 @@ export class Shader extends Asset {
     }
     private _bucketFeats: number = 0;
 
-    set buketFeats(feat: ShaderBucket | number) { this._bucketFeats = feat; }
+    set bucketFeats(feat: ShaderBucket | number) { this._bucketFeats = feat; }
 
     getProgram(bucketId: ShaderBucket, device: GraphicsDevice) {
         bucketId = bucketId | this._bucketFeats;
@@ -67,13 +67,13 @@ export class Shader extends Asset {
     }
 }
 
-export interface IshaderOption {
+export interface IShaderOption {
     attributes: { [attName: string]: VertexAttEnum };
     vsStr: string;
     fsStr: string;
 }
 
-export interface IlayerIndexEvent {
+export interface ILayerIndexEvent {
     layer: RenderLayerEnum;
     layerIndex: number
 }

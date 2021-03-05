@@ -1,8 +1,8 @@
 import { GeometryInstance } from "./geometryInstance";
 import { Geometry } from "../asset/geometry/geometry";
 import { mat4 } from "../../mathD";
-import { VertexArray } from "../../webgl/vertextArray";
-import { Irenderable } from "../render/irenderable";
+import { VertexArray } from "../../webgl/vertexArray";
+import { IRenderable } from "../render/irenderable";
 
 /**
  * @example
@@ -83,7 +83,7 @@ export class Primitive {
         return this._geometryInstances;
     }
 
-    _batchedGeometrys: Geometry;
+    _batchedGeometries: Geometry;
 
     private _appearance: any;
     private appearanceDirty: boolean = false;
@@ -113,32 +113,7 @@ export class Primitive {
     }
 
     update(frameState: any) {
-        // ----------------------------------------------------
-        //                  batch createvao
-        // ----------------------------------------------------
 
-        // if (this._batchedGeometrys == null)
-        // {
-        //     this._batchedGeometrys = batchPrimitive(this);
-        // } else
-        // {
-        //     if (this.vas == null)
-        //     {
-        //         this.vas = createVertexArray(this._batchedGeometrys, frameState);
-        //     } else
-        //     {
-
-        //     }
-        // }
-
-        // ------------check show
-
-        // ----------------------------------------------------
-        //                draw commond      
-        // ----------------------------------------------------
-        if (this.appearanceDirty) {
-            // creat shader program
-        }
     }
 }
 
@@ -155,7 +130,7 @@ function batchPrimitive(primitive: Primitive) {
     // return batchGeometry
 }
 
-export interface IprimitiveOption {
+export interface IPrimitiveOption {
     geometryInstances: GeometryInstance | GeometryInstance[];
     appearance?: any;
     modelMatrix?: mat4;

@@ -5,16 +5,16 @@ import { Texture } from "./texture";
 
 /***
  * @example usage
- * let shader=new ShaderProgam({
+ * let shader=new ShaderProgram({
  *    context:context,
  *    attributes:{
- *      "apos":VertexAttEnum.POSITION 
+ *      "aPos":VertexAttEnum.POSITION 
  *      },
  *    vsStr:`
- *          attribute vec4 apos;
+ *          attribute vec4 aPos;
  *          void main()
  *          {
- *              gl_Position =vec4(apos.xyz,1.0);
+ *              gl_Position =vec4(aPos.xyz,1.0);
  *          }
  *      `,
  *     fsStr:`
@@ -25,15 +25,14 @@ import { Texture } from "./texture";
  *      `,
  * });
  */
-export class ShaderProgram implements IshaderProgram {
+export class ShaderProgram implements IShaderProgram {
     program: WebGLProgram;
-    uniforms: { [name: string]: IuniformInfo; };
-    // samples: { [name: string]: IuniformInfo };
-    attributes: { [type: string]: IattributeInfo; };
+    uniforms: { [name: string]: IUniformInfo; };
+    attributes: { [type: string]: IAttributeInfo; };
     private static _cachedProgram: WebGLProgram;
 
-    constructor(options: IshaderProgramOption) {
-        const res = options.context.complileAndLinkShader(options);
+    constructor(options: IShaderProgramOption) {
+        const res = options.context.compileAndLinkShader(options);
         if (res) {
             this.program = res.shader;
             this.uniforms = res.uniforms;
@@ -54,12 +53,12 @@ export class ShaderProgram implements IshaderProgram {
 
         const gl = options.context.gl;
         this.bind = () => {
-            let bechanged = this.program != ShaderProgram._cachedProgram;
-            if (bechanged) {
+            let beChanged = this.program != ShaderProgram._cachedProgram;
+            if (beChanged) {
                 gl.useProgram(this.program);
                 ShaderProgram._cachedProgram = this.program;
             }
-            return bechanged;
+            return beChanged;
         };
         this.unbind = () => {
             gl.useProgram(null);
@@ -67,12 +66,6 @@ export class ShaderProgram implements IshaderProgram {
         };
 
         this.bindUniform = (name: string, value: any) => {
-            // let _cahched = this._cachedUniform[name];
-            // if (_cahched == null || _cahched != value.guid)
-            // {
-            //     this._cachedUniform[name] = value.guid;
-            //     options.context.setUniform(this.uniforms[name], value);
-            // }
             options.context.setUniform(this.uniforms[name], value);
         };
     }
@@ -80,7 +73,7 @@ export class ShaderProgram implements IshaderProgram {
     bindUniform(key: string, value: any) { }
 
     bindUniforms(device: GraphicsDevice, values: { [name: string]: any }) {
-        let uniformInfo: IuniformInfo;
+        let uniformInfo: IUniformInfo;
         for (const key in values) {
             uniformInfo = this.uniforms[key];
             if (uniformInfo == null) continue;
@@ -97,7 +90,7 @@ export class ShaderProgram implements IshaderProgram {
 /**
  * shaderProgram 的uniform info
  */
-export interface IuniformInfo {
+export interface IUniformInfo {
     name: string;
     type: UniformTypeEnum;
     location: WebGLUniformLocation;
@@ -106,26 +99,26 @@ export interface IuniformInfo {
      * uniform value 缓存，用于减少shader uniform state changes
      */
     value?: any;
-    setter: (uniform: IuniformInfo, value: any) => void
+    setter: (uniform: IUniformInfo, value: any) => void
 }
 /**
- * shderprogram的 attribute info
+ * shaderProgram的 attribute info
  */
-export interface IattributeInfo {
+export interface IAttributeInfo {
     name: string;
     location: number;
     type: VertexAttEnum;
 }
 /**
- * shaderprogram
+ * shaderProgram
  */
-export interface IshaderProgram {
+export interface IShaderProgram {
     program: WebGLProgram;
-    uniforms: { [name: string]: IuniformInfo };
-    attributes: { [name: string]: IattributeInfo };
+    uniforms: { [name: string]: IUniformInfo };
+    attributes: { [name: string]: IAttributeInfo };
 }
 
-export interface IshaderProgramOption {
+export interface IShaderProgramOption {
     context: GraphicsDevice;
     attributes: { [attName: string]: VertexAttEnum };
     vsStr: string;

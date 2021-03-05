@@ -1,4 +1,4 @@
-import { GlConstants } from "./glconstant";
+import { GlConstants } from "./glConstant";
 /**
  * 由mipmap filter type 和 texture filter type 来决定最终的 filter ttype
  */

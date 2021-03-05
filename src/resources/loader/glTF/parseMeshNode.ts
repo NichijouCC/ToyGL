@@ -1,10 +1,10 @@
-import { IgltfJson, IgltfPrimitive } from "../loadglTF";
-import { IgltfMeshPrimitive } from "./gltfJsonStruct";
+import { IGltfJson, IGltfPrimitive } from "../loadGltf";
+import { IGltfMeshPrimitive } from "./gltfJsonStruct";
 import { ParseMaterialNode } from "./parseMaterialNode";
 import { ParseAccessorNode } from "./parseAccessorNode";
 import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
-import { VertexArray, IvaoOptions } from "../../../webgl/vertextArray";
+import { VertexArray, IVaoOptions } from "../../../webgl/vertexArray";
 import { Material } from "../../../scene/asset/material/material";
 import { PrimitiveMesh } from "../../../scene/asset/geometry/staticMesh";
 import { IndexBuffer } from "../../../webgl/indexBuffer";
@@ -25,13 +25,13 @@ const MapGltfAttributeToToyAtt: { [name: string]: VertexAttEnum } = {
     JOINTS_0: VertexAttEnum.JOINTS_0
 };
 export class ParseMeshNode {
-    static parse(index: number, gltf: IgltfJson, context: GraphicsDevice): Promise<IgltfPrimitive[]> {
+    static parse(index: number, gltf: IGltfJson, context: GraphicsDevice): Promise<IGltfPrimitive[]> {
         if (gltf.cache.meshNodeCache[index]) {
             return gltf.cache.meshNodeCache[index];
         } else {
             const node = gltf.meshes[index];
 
-            const dataArr: Promise<IgltfPrimitive>[] = [];
+            const dataArr: Promise<IGltfPrimitive>[] = [];
             if (node.primitives) {
                 for (const key in node.primitives) {
                     const primitive = node.primitives[key];
@@ -49,7 +49,7 @@ export class ParseMeshNode {
         }
     }
 
-    static parsePrimitive(node: IgltfMeshPrimitive, gltf: IgltfJson, context: GraphicsDevice): Promise<IgltfPrimitive> {
+    static parsePrimitive(node: IGltfMeshPrimitive, gltf: IGltfJson, context: GraphicsDevice): Promise<IGltfPrimitive> {
         return Promise.all([
             this.parsePrimitiveVertexData(node, gltf, context),
             this.parseMaterial(node, gltf)]
@@ -60,7 +60,7 @@ export class ParseMeshNode {
         );
     }
 
-    static parseMaterial(node: IgltfMeshPrimitive, gltf: IgltfJson): Promise<Material> {
+    static parseMaterial(node: IGltfMeshPrimitive, gltf: IGltfJson): Promise<Material> {
         const matIndex = node.material;
         if (matIndex != null) {
             return ParseMaterialNode.parse(matIndex, gltf);
@@ -69,9 +69,9 @@ export class ParseMeshNode {
         }
     }
 
-    static parsePrimitiveVertexData(node: IgltfMeshPrimitive, gltf: IgltfJson, context: GraphicsDevice): Promise<PrimitiveMesh> {
+    static parsePrimitiveVertexData(node: IGltfMeshPrimitive, gltf: IGltfJson, context: GraphicsDevice): Promise<PrimitiveMesh> {
         const taskAtts: Promise<void>[] = [];
-        const vaoOptions: IvaoOptions = { vertexAttributes: [], context };
+        const vaoOptions: IVaoOptions = { vertexAttributes: [], context };
         const attributes = node.attributes;
         let aabb: BoundingBox;
         for (const attName in attributes) {

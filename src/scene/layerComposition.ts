@@ -1,15 +1,14 @@
 import { RenderLayerEnum } from "./renderLayer";
 import { LayerCollection } from "./layerCollection";
 import { SortTypeEnum } from "./render/sortTypeEnum";
-import { Irenderable } from "./render/irenderable";
+import { IRenderable } from "./render/irenderable";
 export class LayerComposition {
     private layers: Map<number, LayerCollection> = new Map();
-    // private nolayers: LayerCollection = new LayerCollection("nolayer" as any);
     constructor() {
         this._addLayer(RenderLayerEnum.Background);
-        this._addLayer(RenderLayerEnum.Geometry, SortTypeEnum.MatLayerIndex | SortTypeEnum.ShaderId);
-        this._addLayer(RenderLayerEnum.AlphaTest, SortTypeEnum.MatLayerIndex | SortTypeEnum.Zdist_FrontToBack);
-        this._addLayer(RenderLayerEnum.Transparent, SortTypeEnum.MatLayerIndex | SortTypeEnum.Zdist_FrontToBack);
+        this._addLayer(RenderLayerEnum.Geometry, SortTypeEnum.MAT_LAYER_INDEX | SortTypeEnum.SHADER_ID);
+        this._addLayer(RenderLayerEnum.AlphaTest, SortTypeEnum.MAT_LAYER_INDEX | SortTypeEnum.Z_DIST_FRONT_TO_BACK);
+        this._addLayer(RenderLayerEnum.Transparent, SortTypeEnum.MAT_LAYER_INDEX | SortTypeEnum.Z_DIST_FRONT_TO_BACK);
     }
 
     private _addLayer(layer: RenderLayerEnum, sortType: number = 0) {
@@ -19,7 +18,7 @@ export class LayerComposition {
         }
     }
 
-    getlayers() {
+    getLayers() {
         return Array.from(this.layers.values());
     }
 
@@ -27,7 +26,7 @@ export class LayerComposition {
 
     }
 
-    addRenableItem(ins: Irenderable) {
+    addRenderableItem(ins: IRenderable) {
         const layer = ins.material.layer;
         if (layer != null) {
             const layerCollection = this.layers.get(layer);

@@ -1,7 +1,7 @@
 /* eslint-disable no-redeclare */
 /* eslint-disable import/export */
 import { TypedArray } from "../core/typedArray";
-import { GlConstants } from "./glconstant";
+import { GlConstants } from "./glConstant";
 import { PixelDatatypeEnum } from "./pixelDatatype";
 
 export enum PixelFormatEnum {

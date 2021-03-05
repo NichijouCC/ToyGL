@@ -12,11 +12,11 @@ export class UniformState {
     // campos: vec3;
 
     matrixModel: mat4;
-    private _matrixNormalToworld: mat4 = mat4.create();
-    get matrixNormalToworld(): mat4 {
-        mat4.invert(this._matrixNormalToworld, this.matrixModel);
-        mat4.transpose(this._matrixNormalToworld, this._matrixNormalToworld);
-        return this._matrixNormalToworld;
+    private _matrixNormalToWorld: mat4 = mat4.create();
+    get matrixNormalToWorld(): mat4 {
+        mat4.invert(this._matrixNormalToWorld, this.matrixModel);
+        mat4.transpose(this._matrixNormalToWorld, this._matrixNormalToWorld);
+        return this._matrixNormalToWorld;
     }
 
     private _matrixNormalToView: mat4 = mat4.create();

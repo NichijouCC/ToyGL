@@ -1,4 +1,4 @@
-import { Shader, IlayerIndexEvent, IshaderOption } from "./shader";
+import { Shader, ILayerIndexEvent, IShaderOption } from "./shader";
 import { RenderLayerEnum } from "../../renderLayer";
 import { RenderState } from "../../renderState";
 import { Asset } from "../asset";
@@ -74,5 +74,5 @@ export class Material extends Asset {
 export interface ImatOption {
     name?: string;
     uniformParameters?: { [name: string]: any };
-    shaderOption?: IshaderOption | Shader;
+    shaderOption?: IShaderOption | Shader;
 }

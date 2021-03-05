@@ -2,6 +2,7 @@ import { System } from "../core/ecs/system";
 import { Input, KeyCodeEnum, MouseKeyEnum } from "../input";
 import { mat4, quat, vec3, vec4 } from "../mathD";
 import { InterScene } from "../scene/scene";
+import { Rigidbody } from "./rigidbody";
 import { ThirdPersonController } from "./thirdPersonController";
 
 export class ThirdPersonCtrSystem extends System {
@@ -22,7 +23,7 @@ export class ThirdPersonCtrSystem extends System {
             }
         });
 
-        let camNodeForkward = vec3.create();
+        let camNodeForward = vec3.create();
         let moved = vec3.create();
         let targetPos = vec3.create();
         let targetRot = quat.create();
@@ -32,17 +33,17 @@ export class ThirdPersonCtrSystem extends System {
             if (this.scene == null || this.targeCtr == null) return;
             let camNode = this.scene.mainCamera;
             let { moveSpeed, rotSpeed, entity } = this.targeCtr;
-            vec3.copy(camNodeForkward, camNode.forwardInword);
-            vec3.projectToPlan(camNodeForkward, camNodeForkward, vec3.UP);
-            vec3.normalize(camNodeForkward, camNodeForkward);
+            vec3.copy(camNodeForward, camNode.forwardInWorld);
+            vec3.projectToPlan(camNodeForward, camNodeForward, vec3.UP);
+            vec3.normalize(camNodeForward, camNodeForward);
 
             if (ev.rotateDelta > 0) {
-                quat.rotationTo(targetRot, vec3.FORWARD, camNodeForkward);
+                quat.rotationTo(targetRot, vec3.FORWARD, camNodeForward);
             } else if (ev.rotateDelta < 0) {
-                quat.rotationTo(targetRot, vec3.BACKWARD, camNodeForkward);
+                quat.rotationTo(targetRot, vec3.BACKWARD, camNodeForward);
             }
 
-            vec3.scale(moved, camNodeForkward, moveSpeed * (ev.rotateDelta ?? 0.1) * -0.001);
+            vec3.scale(moved, camNodeForward, moveSpeed * (ev.rotateDelta ?? 0.1) * -0.001);
             vec3.add(targetPos, moved, entity.worldPosition);
             entity.worldPosition = targetPos;
             quat.slerp(temptRot, entity.worldRotation, targetRot, Math.min(0.05 * rotSpeed, 1));
@@ -52,7 +53,7 @@ export class ThirdPersonCtrSystem extends System {
 
     update = (() => {
         /**
-         * dirz
+         * dirZ
          */
         let moveForward = vec3.create();
         let moved = vec3.create();
@@ -85,7 +86,7 @@ export class ThirdPersonCtrSystem extends System {
             }
 
             let cam = this.scene.mainCamera;
-            let { moveSpeed, rotSpeed, offsetTocamera, entity } = comp;
+            let { moveSpeed, rotSpeed, offsetToCamera, entity } = comp;
             if (vec3.len(dir) != 0) {
                 mat4.transformVector(moveForward, dir, cam.worldMatrix);
                 vec3.projectToPlan(moveForward, moveForward, vec3.UP);
@@ -93,12 +94,16 @@ export class ThirdPersonCtrSystem extends System {
 
                 quat.rotationTo(targetRot, vec3.BACKWARD, moveForward);
                 vec3.scale(moved, moveForward, moveSpeed * delta);
-                vec3.add(targetPos, moved, entity.worldPosition);
-                entity.worldPosition = targetPos;
+                if (comp.useRigidbody) {
+                    comp.entity.getComponent(Rigidbody).velocity = vec3.clone(moveForward);
+                } else {
+                    vec3.add(targetPos, moved, entity.worldPosition);
+                    entity.worldPosition = targetPos;
+                }
                 quat.slerp(temptRot, entity.worldRotation, targetRot, delta * rotSpeed);
                 entity.worldRotation = temptRot;
             }
-            vec3.rotateY(camOffset, offsetTocamera, vec3.ZERO, -1 * this.rotAngle * Math.PI / 180);
+            vec3.rotateY(camOffset, offsetToCamera, vec3.ZERO, -1 * this.rotAngle * Math.PI / 180);
             vec3.add(cam.node.worldPosition, entity.worldPosition, camOffset);
             cam.lookAt(entity);
         }

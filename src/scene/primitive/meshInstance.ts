@@ -1,16 +1,16 @@
 import { CullingMask } from "../camera";
 import { AssetReference } from "../assetReference";
-import { Igeometry } from "../asset/geometry/abstractGeometryAsset";
+import { IGeometry } from "../asset/geometry/abstractGeometryAsset";
 import { Material } from "../asset/material/material";
 import { EventTarget } from "@mtgoo/ctool";
 import { Skin } from "../asset/Skin";
 import { SkinInstance } from "./skinInstance";
 import { Entity } from "../../core/ecs/entity";
-import { Irenderable } from "../render/irenderable";
+import { IRenderable } from "../render/irenderable";
 
-// instance ondirty 触发 layercomposition 对instance 重新分层，重新sort
+// instance onDirty 触发 layerComposition 对instance 重新分层，重新sort
 
-export class MeshInstance implements Irenderable {
+export class MeshInstance implements IRenderable {
     static meshInstanceId: number = 0;
 
     readonly id: number;
@@ -37,9 +37,9 @@ export class MeshInstance implements Irenderable {
     node: Entity;
     get worldMat() { return this.node?.worldMatrix; }
 
-    private geometryRef = new AssetReference<Igeometry>();
+    private geometryRef = new AssetReference<IGeometry>();
     get geometry() { return this.geometryRef.current; }
-    set geometry(value: Igeometry) { this.geometryRef.current = value; }
+    set geometry(value: IGeometry) { this.geometryRef.current = value; }
     get boundingBox() { return this.geometryRef.current.boundingBox; }
 
     private materialRef = new AssetReference<Material>();
@@ -53,13 +53,13 @@ export class MeshInstance implements Irenderable {
     private _skinInstance: SkinInstance;
     get skinInstance() { return this._skinInstance; };
 
-    dispose() { this.ondispose.raiseEvent(this); };
+    dispose() { this.onDispose.raiseEvent(this); };
 
     onDirty = new EventTarget<MeshInstance>();
-    ondispose = new EventTarget<MeshInstance>();
+    onDispose = new EventTarget<MeshInstance>();
     beforeRender = new EventTarget<MeshInstance>();
 
-    static create(options: { geometry: Igeometry, material: Material, node: Entity, skin?: Skin }) {
+    static create(options: { geometry: IGeometry, material: Material, node: Entity, skin?: Skin }) {
         const ins = new MeshInstance();
         ins.geometry = options.geometry;
         ins.material = options.material;

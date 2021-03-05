@@ -1,6 +1,6 @@
 import { GraphicsDevice } from "./graphicsDevice";
 import { BufferUsageEnum, Buffer, BufferTargetEnum } from "./buffer";
-import { GlConstants } from "./glconstant";
+import { GlConstants } from "./glConstant";
 import { TypedArray, GlType } from "../core/typedArray";
 export type IndicesArray = Uint8Array | Uint16Array | Uint32Array;
 export type IndexBufferOption = {

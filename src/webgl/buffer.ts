@@ -1,7 +1,7 @@
 import { GraphicsDevice } from "./graphicsDevice";
 import { IglElement } from "../core/iglElement";
 import { TypedArray } from "../core/typedArray";
-import { GlConstants } from "./glconstant";
+import { GlConstants } from "./glConstant";
 
 export type bufferOption =
     | {
@@ -22,7 +22,7 @@ export class Buffer implements IglElement {
     protected _typedArray: TypedArray;
     get typedArray() { return this._typedArray; };
     protected _sizeInBytes: number;
-    get sizeInbytes() { return this._sizeInBytes; };
+    get sizeInBytes() { return this._sizeInBytes; };
     protected _buffer: WebGLBuffer;
     private device: GraphicsDevice;
     private _gl: WebGLRenderingContext;
@@ -82,8 +82,8 @@ export enum BufferUsageEnum {
 }
 
 export class BufferConfig {
-    static bufferUsageToGLNumber: { [useage: string]: number } = {};
-    static bufferTargetToGLNumber: { [useage: string]: number } = {};
+    static bufferUsageToGLNumber: { [usage: string]: number } = {};
+    static bufferTargetToGLNumber: { [usage: string]: number } = {};
     static vertexAttributeSetter: { [size: number]: (index: number, value: any) => any } = {};
     static init(context: GraphicsDevice) {
         this.vertexAttributeSetter[1] = (index, value) => {

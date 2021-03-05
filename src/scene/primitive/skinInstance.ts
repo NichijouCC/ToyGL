@@ -13,15 +13,15 @@ export enum SkinWay {
     /**
      * 方式1：将骨骼的matToRoot[]到shader中
      */
-    UNIFROMMATS,
+    UNIFORM_MATS,
     /**
      * 方式2：将骨骼mat数据存到图片中传到shader中
      */
-    UNIFORMTEXTURE,
+    UNIFORM_TEXTURE,
     /**
      * 方式3：将骨骼(rot+location)[]传递到shader中
      */
-    UNIFORMARRAY,
+    UNIFORM_ARRAY,
 }
 
 export class SkinInstance {
@@ -47,7 +47,7 @@ export class SkinInstance {
      */
     private _boneData!: Float32Array;
 
-    static skinWay = SkinWay.UNIFORMARRAY;
+    static skinWay = SkinWay.UNIFORM_ARRAY;
 
 
     constructor(skin: Skin, getEntity: () => Entity) {
@@ -64,7 +64,7 @@ export class SkinInstance {
         // this.rootBone = attachEntity.find(item => item.name == skin.rootBoneName);
         this.rootBone = findRootBone(attachEntity, skin.rootBoneName);
         if (this.rootBone == null) {
-            console.error("cannot finc rootbone");
+            console.error("cannot find rootBone");
             return;
         };
 
@@ -86,13 +86,13 @@ export class SkinInstance {
         this.bones = bones;
 
         switch (SkinInstance.skinWay) {
-            case SkinWay.UNIFROMMATS:
+            case SkinWay.UNIFORM_MATS:
                 this._boneMatrixes = new Float32Array(bones.length * 16);
                 break;
-            case SkinWay.UNIFORMARRAY:
+            case SkinWay.UNIFORM_ARRAY:
                 this._boneData = new Float32Array(bones.length * 7)
                 break;
-            case SkinWay.UNIFORMTEXTURE:
+            case SkinWay.UNIFORM_TEXTURE:
                 // layout (1 matrix = 4 pixels)
                 //      RGBA RGBA RGBA RGBA (=> column1, column2, column3, column4)
                 //  with  8x8  pixel texture max   16 bones * 4 pixels =  (8 * 8)
@@ -123,15 +123,15 @@ export class SkinInstance {
         if (this.attachEntity.beActive == false) return;
         if (!this.beInit) { this.init(device); }
         const { bones, rootBone } = this;
-        if (SkinInstance.skinWay == SkinWay.UNIFROMMATS) {
+        if (SkinInstance.skinWay == SkinWay.UNIFORM_MATS) {
             boneUpdate_a(frameState, rootBone, bones, this._boneInverses, this._boneMatrixes);
             state.boneMatrices = this._boneMatrixes;
             state.matrixModel = this.rootBone.worldMatrix;
-        } else if (SkinInstance.skinWay == SkinWay.UNIFORMARRAY) {
+        } else if (SkinInstance.skinWay == SkinWay.UNIFORM_ARRAY) {
             boneUpdate_c(frameState, rootBone, bones, this._boneInverses, this._boneData);
             state.boneMatrices = this._boneData;
             state.matrixModel = this.rootBone.worldMatrix;
-        } else if (SkinInstance.skinWay == SkinWay.UNIFORMTEXTURE) {
+        } else if (SkinInstance.skinWay == SkinWay.UNIFORM_TEXTURE) {
             boneUpdate_a(frameState, rootBone, bones, this._boneInverses, this._boneTextureData);
             this._boneTexture.markDirty();
             state.boneTexture = this._boneTexture;

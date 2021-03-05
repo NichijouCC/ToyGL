@@ -1,4 +1,4 @@
-import { IgltfJson } from "../loadglTF";
+import { IGltfJson } from "../loadGltf";
 import { ParseTextureNode } from "./parseTextureNode";
 import { Color } from "../../../mathD/color";
 import { Material } from "../../../scene/asset/material/material";
@@ -10,9 +10,9 @@ import { ShaderBucket } from "../../../scene/asset";
 
 namespace Private {
     /**
-     * perbone one mat4，使用root坐标系
+     * perBone one mat4，使用root坐标系
      */
-    export const defmat = new Material({
+    export const defMat = new Material({
         uniformParameters: {
             MainColor: Color.create(1.0, 1.0, 1.0, 1.0)
         },
@@ -23,7 +23,7 @@ namespace Private {
             },
             vsStr: `precision highp float;
             attribute vec3 TEXCOORD_0;
-            uniform mat4 czm_modelViewp;
+            uniform mat4 czm_modelViewP;
             varying mediump vec2 xlv_TEXCOORD0;
             #ifdef SKIN
             attribute vec4 skinIndex;
@@ -52,7 +52,7 @@ namespace Private {
                 #endif
 
                 xlv_TEXCOORD0 = TEXCOORD_0.xy;
-                gl_Position = czm_modelViewp * position;
+                gl_Position = czm_modelViewP * position;
             }`,
             fsStr: `precision highp float;
             uniform vec4 MainColor;
@@ -75,12 +75,12 @@ namespace Private {
         }
     });
     /**
-     * perbone：1 location + 1 quat,使用world坐标系
+     * perBone：1 location + 1 quat,使用world坐标系
      * 
      * @description
      * 7*60=420<128*4;
      */
-    export const defmat2 = new Material({
+    export const defMat2 = new Material({
         uniformParameters: {
             MainColor: Color.create(1.0, 1.0, 1.0, 1.0)
         },
@@ -91,7 +91,7 @@ namespace Private {
             },
             vsStr: `precision highp float;
             attribute vec3 TEXCOORD_0;
-            uniform mat4 czm_modelViewp;
+            uniform mat4 czm_modelViewP;
             varying mediump vec2 xlv_TEXCOORD0;
             #ifdef SKIN
             attribute vec4 skinIndex;
@@ -108,9 +108,9 @@ namespace Private {
                 vec3 m= vec3(czm_boneMatrices[boneIndex*7+0],czm_boneMatrices[boneIndex*7+1],czm_boneMatrices[boneIndex*7+2]);
                 vec4 q= vec4(czm_boneMatrices[boneIndex*7+3],czm_boneMatrices[boneIndex*7+4],czm_boneMatrices[boneIndex*7+5],czm_boneMatrices[boneIndex*7+6]);
                 
-                vec3 rotatedpos= rotate_vector(q,point);
-                rotatedpos += m;
-                return rotatedpos;
+                vec3 rotatedPos= rotate_vector(q,point);
+                rotatedPos += m;
+                return rotatedPos;
             }
             
             vec4 calcVertex(vec4 srcVertex,vec4 blendIndex,vec4 blendWeight)
@@ -120,12 +120,12 @@ namespace Private {
                 int i3 =int(blendIndex.z);
                 int i4 =int(blendIndex.w);
 
-                vec3 endpos=blendBone(srcVertex.xyz,i)*blendWeight.x
+                vec3 endPos=blendBone(srcVertex.xyz,i)*blendWeight.x
                         +blendBone(srcVertex.xyz,i2)*blendWeight.y
                         +blendBone(srcVertex.xyz,i3)*blendWeight.z
                         +blendBone(srcVertex.xyz,i4)*blendWeight.w;
             
-                return vec4(endpos,1.0);
+                return vec4(endPos,1.0);
             }
             #endif
             attribute vec3 POSITION;
@@ -137,7 +137,7 @@ namespace Private {
                 #endif
 
                 xlv_TEXCOORD0 = TEXCOORD_0.xy;
-                gl_Position = czm_modelViewp * position;
+                gl_Position = czm_modelViewP * position;
             }`,
             fsStr: `precision highp float;
             uniform vec4 MainColor;
@@ -162,7 +162,7 @@ namespace Private {
 }
 
 export class ParseMaterialNode {
-    static async parse(index: number, gltf: IgltfJson): Promise<Material> {
+    static async parse(index: number, gltf: IGltfJson): Promise<Material> {
         if (gltf.cache.materialNodeCache[index]) {
             return gltf.cache.materialNodeCache[index];
         } else {
@@ -171,10 +171,10 @@ export class ParseMaterialNode {
             const mat = new Material();
             if (node.pbrMetallicRoughness?.baseColorTexture != null) {
                 mat.setUniformParameter("MainColor", Color.create(1.0, 1.0, 1.0, 1));
-                if (SkinInstance.skinWay == SkinWay.UNIFROMMATS) {
-                    mat.shader = Private.defmat.shader.clone();
-                } else if (SkinInstance.skinWay == SkinWay.UNIFORMARRAY) {
-                    mat.shader = Private.defmat2.shader.clone();
+                if (SkinInstance.skinWay == SkinWay.UNIFORM_MATS) {
+                    mat.shader = Private.defMat.shader.clone();
+                } else if (SkinInstance.skinWay == SkinWay.UNIFORM_ARRAY) {
+                    mat.shader = Private.defMat2.shader.clone();
                 }
 
                 await ParseTextureNode.parse(node.pbrMetallicRoughness?.baseColorTexture.index, gltf)
@@ -199,131 +199,11 @@ export class ParseMaterialNode {
                         mat.renderState.blend.enabled = true;
                         break;
                     case MaterialAlphaMode.MASK:
-                        mat.shader.buketFeats = ShaderBucket.AlPHA_CUT;
+                        mat.shader.bucketFeats = ShaderBucket.AlPHA_CUT;
                         break;
                 }
             }
             return mat;
-            //     let baseVs =
-            //     "\
-            //   attribute vec3 POSITION;\
-            //   uniform highp mat4 czm_modelViewp;\
-            //   void main()\
-            //   {\
-            //       highp vec4 tmplet_1=vec4(POSITION.xyz,1.0);\
-            //       gl_Position = czm_modelViewp * tmplet_1;\
-            //   }";
-
-            // let baseFs =
-            //     "\
-            //     uniform highp vec4 MainColor;\
-            //     void main()\
-            //     {\
-            //         gl_FragData[0] = MainColor;\
-            //     }";
-            // mat.setUniformParameter("MainColor", Color.create());
-            // // mat.setUniformParameter("_MainTex", DefTextrue.GIRD);
-            // //-------------loadshader
-            // // let pbrShader = assetMgr.load("resource/shader/pbr_glTF.shader.json") as Shader;
-            // // mat.setShader(pbrShader);
-            // if (node.pbrMetallicRoughness)
-            // {
-            //     let nodeMR = node.pbrMetallicRoughness;
-            //     if (nodeMR.baseColorFactor)
-            //     {
-            //         let baseColorFactor = vec4.create();
-            //         vec4.copy(nodeMR.baseColorFactor, baseColorFactor);
-            //         mat.setUniformParameter("u_BaseColorFactor", baseColorFactor);
-            //     }
-            //     if (nodeMR.metallicFactor != null)
-            //     {
-            //         mat.setUniformParameter("u_metalFactor", nodeMR.metallicFactor);
-            //     }
-            //     if (nodeMR.roughnessFactor != null)
-            //     {
-            //         mat.setUniformParameter("u_roughnessFactor", nodeMR.roughnessFactor);
-            //     }
-            //     if (nodeMR.baseColorTexture != null)
-            //     {
-            //         let tex = ParseTextureNode.parse(nodeMR.baseColorTexture.index, gltf).then(tex =>
-            //         {
-            //             mat.setUniformParameter("u_BaseColorSampler", tex);
-            //             mat.setUniformParameter("_MainTex", tex);
-            //             console.warn("@@@@@@@@@", mat);
-            //         });
-            //     }
-            //     if (nodeMR.metallicRoughnessTexture)
-            //     {
-            //         let tex = ParseTextureNode.parse(nodeMR.metallicRoughnessTexture.index, gltf).then(tex =>
-            //         {
-            //             mat.setUniformParameter("u_MetallicRoughnessSampler", tex);
-            //         });
-            //     }
-            // }
-            // if (node.normalTexture)
-            // {
-            //     let nodet = node.normalTexture;
-            //     let tex = ParseTextureNode.parse(nodet.index, gltf).then(tex =>
-            //     {
-            //         mat.setUniformParameter("u_NormalSampler", tex);
-            //     });
-            //     // mat.setTexture("u_NormalSampler",tex);
-            //     if (nodet.scale)
-            //     {
-            //         mat.setUniformParameter("u_NormalScale", nodet.scale);
-            //     }
-            // }
-            // if (node.emissiveTexture)
-            // {
-            //     let nodet = node.emissiveTexture;
-            //     let tex = ParseTextureNode.parse(nodet.index, gltf).then(tex =>
-            //     {
-            //         mat.setUniformParameter("u_EmissiveSampler", tex);
-            //     });
-            // }
-            // if (node.emissiveFactor)
-            // {
-            //     let ve3 = vec3.create();
-            //     vec3.copy(node.emissiveFactor, ve3);
-            //     mat.setUniformParameter("u_EmissiveFactor", ve3);
-            // }
-            // if (node.occlusionTexture)
-            // {
-            //     let nodet = node.occlusionTexture;
-            //     if (nodet.strength)
-            //     {
-            //         mat.setUniformParameter("u_OcclusionStrength", nodet.strength);
-            //     }
-            // }
-
-            // // let brdfTex = assetMgr.load("resource/texture/brdfLUT.imgdes.json") as Texture;
-            // // mat.setTexture("u_brdfLUT", brdfTex);
-
-            // // let e_cubeDiff: CubeTexture = new CubeTexture();
-            // // let e_diffuseArr: string[] = [];
-            // // e_diffuseArr.push("resource/texture/papermill/diffuse/diffuse_right_0.jpg");
-            // // e_diffuseArr.push("resource/texture/papermill/diffuse/diffuse_left_0.jpg");
-            // // e_diffuseArr.push("resource/texture/papermill/diffuse/diffuse_top_0.jpg");
-            // // e_diffuseArr.push("resource/texture/papermill/diffuse/diffuse_bottom_0.jpg");
-            // // e_diffuseArr.push("resource/texture/papermill/diffuse/diffuse_front_0.jpg");
-            // // e_diffuseArr.push("resource/texture/papermill/diffuse/diffuse_back_0.jpg");
-            // // e_cubeDiff.groupCubeTexture(e_diffuseArr);
-
-            // // let env_speTex = new CubeTexture();
-            // // for (let i = 0; i < 10; i++) {
-            // //     let urlarr = [];
-            // //     urlarr.push("resource/texture/papermill/specular/specular_right_" + i + ".jpg");
-            // //     urlarr.push("resource/texture/papermill/specular/specular_left_" + i + ".jpg");
-            // //     urlarr.push("resource/texture/papermill/specular/specular_top_" + i + ".jpg");
-            // //     urlarr.push("resource/texture/papermill/specular/specular_bottom_" + i + ".jpg");
-            // //     urlarr.push("resource/texture/papermill/specular/specular_front_" + i + ".jpg");
-            // //     urlarr.push("resource/texture/papermill/specular/specular_back_" + i + ".jpg");
-            // //     env_speTex.groupMipmapCubeTexture(urlarr, i, 9);
-            // // }
-            // // mat.setCubeTexture("u_DiffuseEnvSampler", e_cubeDiff);
-            // // mat.setCubeTexture("u_SpecularEnvSampler", env_speTex);
-
-            // return Promise.resolve(mat);
         }
     }
 }

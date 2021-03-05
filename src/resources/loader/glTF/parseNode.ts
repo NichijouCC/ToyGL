@@ -2,7 +2,7 @@
 import { mat4, vec3, quat } from "../../../mathD/index";
 import { ParseCameraNode } from "./parseCameraNode";
 import { ParseMeshNode } from "./parseMeshNode";
-import { IgltfJson } from "../loadglTF";
+import { IGltfJson } from "../loadGltf";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
 import { Entity } from "../../../core/ecs/entity";
 import { ModelComponent } from "../../../components/modelComponent";
@@ -11,7 +11,7 @@ import { ParseSkinNode } from "./parseSkinNode";
 import { GlTF } from "./util";
 
 export class ParseNode {
-    static parse(index: number, gltf: IgltfJson, root: Entity, context: GraphicsDevice): Promise<Entity> {
+    static parse(index: number, gltf: IGltfJson, root: Entity, context: GraphicsDevice): Promise<Entity> {
         const node = gltf.nodes[index];
         const name = GlTF.getNodeName(index, gltf);
         const sceneNode = Entity.create({ name });
@@ -39,7 +39,7 @@ export class ParseNode {
             const task = ParseMeshNode.parse(node.mesh, gltf, context)
                 .then(primitives => {
                     const newMesh = new StaticMesh();
-                    newMesh.sbuMeshs = primitives.map(item => item.mesh);
+                    newMesh.subMeshes = primitives.map(item => item.mesh);
                     modelcomp.mesh = newMesh;
                     modelcomp.materials = primitives.map(item => item.material);
                 });

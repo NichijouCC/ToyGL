@@ -2,7 +2,7 @@ import { Timer } from "./core/timer";
 import { InterScene } from "./scene/scene";
 import { GraphicsDevice } from "./webgl/graphicsDevice";
 import { Resource } from "./resources/resource";
-import { LoadGlTF } from "./resources/loader/loadglTF";
+import { LoadGlTF } from "./resources/loader/loadGltf";
 import { Ecs } from "./core/ecs/ecs";
 import { ForwardRender } from "./scene/render/forwardRender";
 import { EventTarget } from "@mtgoo/ctool";

@@ -1,33 +1,33 @@
 import { SortTypeEnum } from "./render/sortTypeEnum";
-import { Irenderable } from "./render/irenderable";
+import { IRenderable } from "./render/irenderable";
 import { Camera } from "./camera";
 import { RenderLayerEnum } from "./renderLayer";
 import { mat4, vec3 } from "../mathD";
 namespace Private {
-    const sortByMatLayerIndex = (drawA: Irenderable, drawB: Irenderable): number => {
+    const sortByMatLayerIndex = (drawA: IRenderable, drawB: IRenderable): number => {
         return drawA.material.layerIndex - drawB.material.layerIndex;
     };
 
-    const sortByZdist_FrontToBack = (drawA: Irenderable, drawB: Irenderable): number => {
+    const sortByzDist_FrontToBack = (drawA: IRenderable, drawB: IRenderable): number => {
         return drawA.zDist - drawB.zDist;
     };
 
-    const sortByZdist_BackToFront = (drawA: Irenderable, drawB: Irenderable): number => {
+    const sortByzDist_BackToFront = (drawA: IRenderable, drawB: IRenderable): number => {
         return drawB.zDist - drawA.zDist;
     };
 
-    const sortByShaderId = (drawA: Irenderable, drawB: Irenderable): number => {
+    const sortByShaderId = (drawA: IRenderable, drawB: IRenderable): number => {
         return drawA.material.shader.create_id - drawB.material.shader.create_id;
     };
     const _tempt = vec3.create();
-    export const sortTypeInfo: { [type: string]: IsortInfo } = {}; {
-        sortTypeInfo[SortTypeEnum.MatLayerIndex] = { sortFunc: sortByMatLayerIndex };
-        sortTypeInfo[SortTypeEnum.ShaderId] = { sortFunc: sortByShaderId };
-        sortTypeInfo[SortTypeEnum.Zdist_FrontToBack] = {
-            sortFunc: sortByZdist_FrontToBack,
-            beforeSort: (ins: Irenderable[], cam: Camera) => {
+    export const sortTypeInfo: { [type: string]: ISortInfo } = {}; {
+        sortTypeInfo[SortTypeEnum.MAT_LAYER_INDEX] = { sortFunc: sortByMatLayerIndex };
+        sortTypeInfo[SortTypeEnum.SHADER_ID] = { sortFunc: sortByShaderId };
+        sortTypeInfo[SortTypeEnum.Z_DIST_FRONT_TO_BACK] = {
+            sortFunc: sortByzDist_FrontToBack,
+            beforeSort: (ins: IRenderable[], cam: Camera) => {
                 const camPos = cam.worldPos;
-                const camFwd = cam.forwardInword;
+                const camFwd = cam.forwardInWorld;
                 let i, drawCall, insPos;
                 let tempX, tempY, tempZ;
                 for (i = 0; i < ins.length; i++) {
@@ -43,41 +43,41 @@ namespace Private {
         };
     }
 
-    export interface IsortInfo {
-        sortFunc: (drawa: Irenderable, drawb: Irenderable) => number,
-        beforeSort?: (ins: Irenderable[], cam: Camera) => void
+    export interface ISortInfo {
+        sortFunc: (drawA: IRenderable, drawB: IRenderable) => number,
+        beforeSort?: (ins: IRenderable[], cam: Camera) => void
     }
 }
 
 export class LayerCollection {
     readonly layer: RenderLayerEnum;
-    private _insArr: Irenderable[] = [];
+    private _insArr: IRenderable[] = [];
     get insCount() { return this._insArr.length; };
 
-    getSortedinsArr(cam: Camera) {
+    getSortedInsArr(cam: Camera) {
         this.beforeSort.forEach(func => func(this._insArr, cam));
         this.sortFunction && this._insArr.sort(this.sortFunction);
         return this._insArr;
     }
 
-    private sortFunction: (a: Irenderable, b: Irenderable) => number;
-    private sortFunctions: ((a: Irenderable, b: Irenderable) => number)[] = [];
-    private beforeSort: ((ins: Irenderable[], cam: Camera) => void)[] = [];
+    private sortFunction: (a: IRenderable, b: IRenderable) => number;
+    private sortFunctions: ((a: IRenderable, b: IRenderable) => number)[] = [];
+    private beforeSort: ((ins: IRenderable[], cam: Camera) => void)[] = [];
 
     constructor(layer: RenderLayerEnum, sortType: number = 0) {
         this.layer = layer;
-        const attach = (sortInfo: Private.IsortInfo) => {
+        const attach = (sortInfo: Private.ISortInfo) => {
             this.sortFunctions.push(sortInfo.sortFunc);
             if (sortInfo?.beforeSort) {
-                this.beforeSort.push((ins: Irenderable[], cam: Camera) => { sortInfo.beforeSort(ins, cam); });
+                this.beforeSort.push((ins: IRenderable[], cam: Camera) => { sortInfo.beforeSort(ins, cam); });
             }
         };
-        if (sortType & SortTypeEnum.MatLayerIndex) {
-            const sortInfo = Private.sortTypeInfo[SortTypeEnum.MatLayerIndex];
+        if (sortType & SortTypeEnum.MAT_LAYER_INDEX) {
+            const sortInfo = Private.sortTypeInfo[SortTypeEnum.MAT_LAYER_INDEX];
             attach(sortInfo);
         }
-        if (sortType & SortTypeEnum.ShaderId) {
-            const sortInfo = Private.sortTypeInfo[SortTypeEnum.ShaderId];
+        if (sortType & SortTypeEnum.SHADER_ID) {
+            const sortInfo = Private.sortTypeInfo[SortTypeEnum.SHADER_ID];
             attach(sortInfo);
         }
 
@@ -93,7 +93,7 @@ export class LayerCollection {
         }
     }
 
-    add(newIns: Irenderable) {
+    add(newIns: IRenderable) {
         this._insArr.push(newIns);
     }
 

@@ -1,8 +1,8 @@
-import { loadArrayBuffer } from "../../../io/loadtool";
-import { IgltfJson } from "../loadglTF";
+import { loadArrayBuffer } from "../../../io/loadTool";
+import { IGltfJson } from "../loadGltf";
 
 export class ParseBufferNode {
-    static parse(index: number, gltf: IgltfJson): Promise<Uint8Array> {
+    static parse(index: number, gltf: IGltfJson): Promise<Uint8Array> {
         if (gltf.cache.bufferNodeCache[index]) {
             return gltf.cache.bufferNodeCache[index];
         } else {

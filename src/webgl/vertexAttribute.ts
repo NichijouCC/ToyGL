@@ -5,7 +5,7 @@ import { VertexAttEnum } from "./vertexAttEnum";
 import { BufferConfig } from "./buffer";
 import { GlType } from "../core/typedArray";
 
-export interface IvertexAttribute {
+export interface IVertexAttribute {
     // index: number; // 0;
     type: string | VertexAttEnum
     enabled: boolean; // true;
@@ -18,7 +18,7 @@ export interface IvertexAttribute {
     strideInBytes: number; // 0; // tightly packed
     instanceDivisor: number; // 0; // not instanced
 }
-export interface IvertexAttributeOption {
+export interface IVertexAttributeOption {
     // index?: number; // 0;
     type: string | VertexAttEnum
     enabled?: boolean; // true;
@@ -32,7 +32,7 @@ export interface IvertexAttributeOption {
     instanceDivisor?: number; // 0; // not instanced
 }
 
-export class VertexAttribute implements IvertexAttribute {
+export class VertexAttribute implements IVertexAttribute {
     readonly type: string | VertexAttEnum;
     readonly index: number;
     readonly enabled: boolean;
@@ -48,7 +48,7 @@ export class VertexAttribute implements IvertexAttribute {
     readonly count: number;
 
     private _gl: WebGLRenderingContext;
-    constructor(context: GraphicsDevice, options: IvertexAttributeOption) {
+    constructor(context: GraphicsDevice, options: IVertexAttributeOption) {
         // todo  check
         if (options.vertexBuffer == null && options.value == null) {
             throw new Error("attribute must have a vertexBuffer or a value.");
@@ -69,7 +69,7 @@ export class VertexAttribute implements IvertexAttribute {
         this.instanceDivisor = att.instanceDivisor; // 0; // not instanced
 
         if (this.vertexBuffer) {
-            const bytes = this.vertexBuffer.sizeInbytes - this.offsetInBytes;
+            const bytes = this.vertexBuffer.sizeInBytes - this.offsetInBytes;
             if (this.strideInBytes == 0) {
                 this.count = bytes / (this.componentsPerAttribute * GlType.bytesPerElement(this.componentDatatype));
             } else {

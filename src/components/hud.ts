@@ -18,7 +18,7 @@ export class Hud extends Component {
     _mat: Material;
     _text2d: Texture2D;
 
-    setcontent(rect: Rect, command: (context: CanvasRenderingContext2D) => void, width3d: number = 1) {
+    setContent(rect: Rect, command: (context: CanvasRenderingContext2D) => void, width3d: number = 1) {
         this._contentDirty = true;
         this._rect = rect;
         this._command = command;

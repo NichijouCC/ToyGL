@@ -45,7 +45,7 @@ export class ClipInstance {
         this._state = ClipStateEnum.PLAYING;
     }
 
-    private _excecute(deltaTime: number) {
+    private _execute(deltaTime: number) {
         this.localTime += deltaTime * this.speed;
         let newFrame = (this.localTime * AnimationClip.FPS) | 0;
         if (newFrame != this.curFrame) {
@@ -68,12 +68,12 @@ export class ClipInstance {
                 }
             }
             this.curFrame = newFrame;
-            channelInsArr.forEach(item => item.excecute(newFrame))
+            channelInsArr.forEach(item => item.execute(newFrame))
         }
     }
 
     _update(deltaTime: number) {
-        this._excecute(deltaTime);
+        this._execute(deltaTime);
     }
 
     _reset() {
@@ -82,7 +82,7 @@ export class ClipInstance {
     }
     onEnd = new EventTarget();
 
-    private beCrossfade: boolean;
+    private beCrossFade: boolean;
     private fadeTime: number;
     crossFade() {
 
@@ -122,7 +122,7 @@ export namespace AnimationChannelTargetPath {
     {
         funcMap.set(AnimationChannelTargetPath.ROTATION, (from: quat, to: quat, lerp: number) => {
             quat.slerp(temptQuat, from, to, lerp);
-            // quat.normalize(temptquat, temptquat);
+            // quat.normalize(temptQuat, temptQuat);
             return temptQuat;
         });
         funcMap.set(AnimationChannelTargetPath.SCALE, (from: vec3, to: vec3, lerp: number) => {

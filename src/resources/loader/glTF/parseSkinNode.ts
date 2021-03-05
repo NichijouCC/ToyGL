@@ -1,11 +1,11 @@
 import { Skin } from "../../../scene/asset/Skin";
-import { IgltfJson } from "../loadglTF";
+import { IGltfJson } from "../loadGltf";
 import { ParseAccessorNode, Accessor } from "./parseAccessorNode";
 import { GlTF } from "./util";
 import { Entity } from "../../../core/ecs/entity";
 
 export class ParseSkinNode {
-    static parse(index: number, nodeName: string, root: Entity, gltf: IgltfJson): Promise<Skin> {
+    static parse(index: number, nodeName: string, root: Entity, gltf: IGltfJson): Promise<Skin> {
         const skin = new Skin();
         skin.potentialSearchRoot = root.name;// 动画的骨骼节点不一定是skin节点的child
         const skinData = gltf.skins[index];

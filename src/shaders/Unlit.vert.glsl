@@ -3,7 +3,7 @@ precision highp float;
 attribute vec4 POSITION;
 attribute vec2 TEXCOORD_0;
 
-uniform mat4 czm_modelViewp;
+uniform mat4 czm_modelViewP;
 varying mediump vec2 xlv_TEXCOORD0;
 #ifdef SKIN
 attribute vec4 skinIndex;
@@ -31,5 +31,5 @@ void main()
     #endif
 
     xlv_TEXCOORD0 = TEXCOORD_0.xy;
-    gl_Position = czm_modelViewp * position;
+    gl_Position = czm_modelViewP * position;
 }

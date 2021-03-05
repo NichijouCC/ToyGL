@@ -1,11 +1,10 @@
 import { FrameBuffer } from "../../webgl/framebuffer";
-import { Shader } from "../asset/material/shader";
 import { Material } from "../asset/material/material";
 import { GraphicsDevice } from "../../webgl/graphicsDevice";
-import { GlConstants } from "../../webgl/glconstant";
+import { GlConstants } from "../../webgl/glConstant";
 
-import depthPrepass_vs from "./glsl/depthPrepass.vert.glsl";
-import depthPrepass_fs from "./glsl/depthPrepass.frag.glsl";
+import depthPrePass_vs from "./glsl/depthPrepass.vert.glsl";
+import depthPrePass_fs from "./glsl/depthPrepass.frag.glsl";
 import { VertexAttEnum } from "../../webgl/vertexAttEnum";
 
 import lightCull_vs from "./glsl/lightCulling.vert.glsl";
@@ -13,13 +12,13 @@ import lightCull_fs from "./glsl/lightCulling.frag.glsl";
 import { UniformState } from "../uniformState";
 
 export class ForwardPlusRender {
-    private device: GraphicsDevice;
+    private device!: GraphicsDevice;
     uniformState = new UniformState();
     constructor(device: GraphicsDevice) {
         this.device = device;
     }
 
-    private depthPrepass = {
+    private depthPrePass = {
         frameBuffer: new FrameBuffer({
             context: this.device,
             attachments: [{
@@ -32,8 +31,8 @@ export class ForwardPlusRender {
         }),
         mat: new Material({
             shaderOption: {
-                vsStr: depthPrepass_vs,
-                fsStr: depthPrepass_fs,
+                vsStr: depthPrePass_vs,
+                fsStr: depthPrePass_fs,
                 attributes: {
                     a_position: VertexAttEnum.POSITION
                 }
@@ -68,7 +67,7 @@ export class ForwardPlusRender {
     }
 }
 
-export interface Ipass {
+export interface IPass {
     frameBuffer: FrameBuffer;
     mat: Material;
 }

@@ -1,31 +1,31 @@
 /**
  * The root object for a glTF asset
  */
-export interface Igltf {
+export interface IGltf {
     /**
      * An array of accessors. An accessor is a typed view into a bufferView
      */
-    accessors?: IgltfAccessor[];
+    accessors?: IGltfAccessor[];
     /**
      * An array of keyframe animations
      */
-    animations?: IgltfAnimation[];
+    animations?: IGltfAnimation[];
     /**
      * Metadata about the glTF asset
      */
-    asset: IglTFAsset;
+    asset: IGlTFAsset;
     /**
      * An array of buffers.  A buffer points to binary geometry, animation, or skins
      */
-    buffers?: IgltfBuffer[];
+    buffers?: IGltfBuffer[];
     /**
      * An array of bufferViews.  A bufferView is a view into a buffer generally representing a subset of the buffer
      */
-    bufferViews?: IgltfBufferView[];
+    bufferViews?: IGltfBufferView[];
     /**
      * An array of cameras
      */
-    cameras?: IgltfCamera[];
+    cameras?: IGltfCamera[];
     /**
      * Names of glTF extensions used somewhere in this asset
      */
@@ -37,23 +37,23 @@ export interface Igltf {
     /**
      * An array of images.  An image defines data used to create a texture
      */
-    images?: IgltfImage[];
+    images?: IGltfImage[];
     /**
      * An array of materials.  A material defines the appearance of a primitive
      */
-    materials?: IgltfMaterial[];
+    materials?: IGltfMaterial[];
     /**
      * An array of meshes.  A mesh is a set of primitives to be rendered
      */
-    meshes?: IgltfMesh[];
+    meshes?: IGltfMesh[];
     /**
      * An array of nodes
      */
-    nodes?: IgltfNode[];
+    nodes?: IGltfNode[];
     /**
      * An array of samplers.  A sampler contains properties for texture filtering and wrapping modes
      */
-    samplers?: IgltfSampler[];
+    samplers?: IGltfSampler[];
     /**
      * The index of the default scene
      */
@@ -61,15 +61,15 @@ export interface Igltf {
     /**
      * An array of scenes
      */
-    scenes?: IgltfScene[];
+    scenes?: IGltfScene[];
     /**
      * An array of skins.  A skin is defined by joints and matrices
      */
-    skins?: IgltfSkin[];
+    skins?: IGltfSkin[];
     /**
      * An array of textures
      */
-    textures?: IgltfTexture[];
+    textures?: IGltfTexture[];
 }
 
 export enum AccessorComponentType {
@@ -99,7 +99,7 @@ export enum AccessorComponentType {
     FLOAT = 5126,
 }
 /**
- * Specifies if the attirbute is a scalar, vector, or matrix
+ * Specifies if the attribute is a scalar, vector, or matrix
  */
 export enum AccessorType {
     /**
@@ -307,7 +307,7 @@ export enum TextureWrapMode {
 /**
  * glTF Property
  */
-export interface Iproperty {
+export interface IProperty {
     /**
      * Dictionary object with extension-specific objects
      */
@@ -322,7 +322,7 @@ export interface Iproperty {
 /**
  * glTF Child of Root Property
  */
-export interface IchildRootProperty extends Iproperty {
+export interface IChildRootProperty extends IProperty {
     /**
      * The user-defined name of this object
      */
@@ -331,7 +331,7 @@ export interface IchildRootProperty extends Iproperty {
 /**
  * Indices of those attributes that deviate from their initialization value
  */
-export interface IgltfAccessorSparseIndices extends Iproperty {
+export interface IGltfAccessorSparseIndices extends IProperty {
     /**
      * The index of the bufferView with sparse indices. Referenced bufferView can't have ARRAY_BUFFER or ELEMENT_ARRAY_BUFFER target
      */
@@ -348,7 +348,7 @@ export interface IgltfAccessorSparseIndices extends Iproperty {
 /**
  * Array of size accessor.sparse.count times number of components storing the displaced accessor attributes pointed by accessor.sparse.indices
  */
-export interface IgltfAccessorSparseValues extends Iproperty {
+export interface IGltfAccessorSparseValues extends IProperty {
     /**
      * The index of the bufferView with sparse values. Referenced bufferView can't have ARRAY_BUFFER or ELEMENT_ARRAY_BUFFER target
      */
@@ -361,7 +361,7 @@ export interface IgltfAccessorSparseValues extends Iproperty {
 /**
  * Sparse storage of attributes that deviate from their initialization value
  */
-export interface IgltfAccessorSparse extends Iproperty {
+export interface IGltfAccessorSparse extends IProperty {
     /**
      * The number of attributes encoded in this sparse accessor
      */
@@ -369,18 +369,18 @@ export interface IgltfAccessorSparse extends Iproperty {
     /**
      * Index array of size count that points to those accessor attributes that deviate from their initialization value. Indices must strictly increase
      */
-    indices: IgltfAccessorSparseIndices;
+    indices: IGltfAccessorSparseIndices;
     /**
      * Array of size count times number of components, storing the displaced accessor attributes pointed by indices. Substituted values must have the same componentType and number of components as the base accessor
      */
-    values: IgltfAccessorSparseValues;
+    values: IGltfAccessorSparseValues;
 }
 /**
  * A typed view into a bufferView.  A bufferView contains raw binary data.  An accessor provides a typed view into a bufferView or a subset of a bufferView similar to how WebGL's vertexAttribPointer() defines an attribute in a buffer
  */
-export interface IgltfAccessor extends IchildRootProperty {
+export interface IGltfAccessor extends IChildRootProperty {
     /**
-     * The index of the bufferview
+     * The index of the bufferView
      */
     bufferView?: number;
     /**
@@ -414,12 +414,12 @@ export interface IgltfAccessor extends IchildRootProperty {
     /**
      * Sparse storage of attributes that deviate from their initialization value
      */
-    sparse?: IgltfAccessorSparse;
+    sparse?: IGltfAccessorSparse;
 }
 /**
  * Targets an animation's sampler at a node's property
  */
-export interface IgltfAnimationChannel extends Iproperty {
+export interface IGltfAnimationChannel extends IProperty {
     /**
      * The index of a sampler in this animation used to compute the value for the target
      */
@@ -427,12 +427,12 @@ export interface IgltfAnimationChannel extends Iproperty {
     /**
      * The index of the node and TRS property to target
      */
-    target: IgltfAnimationChannelTarget;
+    target: IGltfAnimationChannelTarget;
 }
 /**
  * The index of the node and TRS property that an animation channel targets
  */
-export interface IgltfAnimationChannelTarget extends Iproperty {
+export interface IGltfAnimationChannelTarget extends IProperty {
     /**
      * The index of the node to target
      */
@@ -445,7 +445,7 @@ export interface IgltfAnimationChannelTarget extends Iproperty {
 /**
  * Combines input and output accessors with an interpolation algorithm to define a keyframe graph (but not its target)
  */
-export interface IgltfAnimationSampler extends Iproperty {
+export interface IGltfAnimationSampler extends IProperty {
     /**
      * The index of an accessor containing keyframe input values, e.g., time
      */
@@ -462,20 +462,20 @@ export interface IgltfAnimationSampler extends Iproperty {
 /**
  * A keyframe animation
  */
-export interface IgltfAnimation extends IchildRootProperty {
+export interface IGltfAnimation extends IChildRootProperty {
     /**
      * An array of channels, each of which targets an animation's sampler at a node's property
      */
-    channels: IgltfAnimationChannel[];
+    channels: IGltfAnimationChannel[];
     /**
      * An array of samplers that combines input and output accessors with an interpolation algorithm to define a keyframe graph (but not its target)
      */
-    samplers: IgltfAnimationSampler[];
+    samplers: IGltfAnimationSampler[];
 }
 /**
  * Metadata about the glTF asset
  */
-export interface IglTFAsset extends IchildRootProperty {
+export interface IGlTFAsset extends IChildRootProperty {
     /**
      * A copyright message suitable for display to credit the content creator
      */
@@ -496,7 +496,7 @@ export interface IglTFAsset extends IchildRootProperty {
 /**
  * A buffer points to binary geometry, animation, or skins
  */
-export interface IgltfBuffer extends IchildRootProperty {
+export interface IGltfBuffer extends IChildRootProperty {
     /**
      * The uri of the buffer.  Relative paths are relative to the .gltf file.  Instead of referencing an external file, the uri can also be a data-uri
      */
@@ -509,7 +509,7 @@ export interface IgltfBuffer extends IchildRootProperty {
 /**
  * A view into a buffer generally representing a subset of the buffer
  */
-export interface IgltfBufferView extends IchildRootProperty {
+export interface IGltfBufferView extends IChildRootProperty {
     /**
      * The index of the buffer
      */
@@ -519,7 +519,7 @@ export interface IgltfBufferView extends IchildRootProperty {
      */
     byteOffset?: number;
     /**
-     * The lenth of the bufferView in bytes
+     * The length of the bufferView in bytes
      */
     byteLength: number;
     /**
@@ -527,14 +527,14 @@ export interface IgltfBufferView extends IchildRootProperty {
      */
     byteStride?: number;
     /**
-     * The gltarget
+     * The glTarget
      */
     target?: number;
 }
 /**
  * An orthographic camera containing properties to create an orthographic projection matrix
  */
-export interface IgltfCameraOrthographic extends Iproperty {
+export interface IGltfCameraOrthographic extends IProperty {
     /**
      * The floating-point horizontal magnification of the view. Must not be zero
      */
@@ -555,7 +555,7 @@ export interface IgltfCameraOrthographic extends Iproperty {
 /**
  * A perspective camera containing properties to create a perspective projection matrix
  */
-export interface IgltfCameraPerspective extends Iproperty {
+export interface IGltfCameraPerspective extends IProperty {
     /**
      * The floating-point aspect ratio of the field of view
      */
@@ -576,15 +576,15 @@ export interface IgltfCameraPerspective extends Iproperty {
 /**
  * A camera's projection.  A node can reference a camera to apply a transform to place the camera in the scene
  */
-export interface IgltfCamera extends IchildRootProperty {
+export interface IGltfCamera extends IChildRootProperty {
     /**
      * An orthographic camera containing properties to create an orthographic projection matrix
      */
-    orthographic?: IgltfCameraOrthographic;
+    orthographic?: IGltfCameraOrthographic;
     /**
      * A perspective camera containing properties to create a perspective projection matrix
      */
-    perspective?: IgltfCameraPerspective;
+    perspective?: IGltfCameraPerspective;
     /**
      * Specifies if the camera uses a perspective or orthographic projection
      */
@@ -593,7 +593,7 @@ export interface IgltfCamera extends IchildRootProperty {
 /**
  * Image data used to create a texture. Image can be referenced by URI or bufferView index. mimeType is required in the latter case
  */
-export interface IgltfImage extends IchildRootProperty {
+export interface IGltfImage extends IChildRootProperty {
     /**
      * The uri of the image.  Relative paths are relative to the .gltf file.  Instead of referencing an external file, the uri can also be a data-uri.  The image format must be jpg or png
      */
@@ -610,7 +610,7 @@ export interface IgltfImage extends IchildRootProperty {
 /**
  * Material Normal Texture Info
  */
-export interface IgltfMaterialNormalTextureInfo extends IgltfTextureInfo {
+export interface IGltfMaterialNormalTextureInfo extends IGltfTextureInfo {
     /**
      * The scalar multiplier applied to each normal vector of the normal texture
      */
@@ -619,7 +619,7 @@ export interface IgltfMaterialNormalTextureInfo extends IgltfTextureInfo {
 /**
  * Material Occlusion Texture Info
  */
-export interface IgltfMaterialOcclusionTextureInfo extends IgltfTextureInfo {
+export interface IGltfMaterialOcclusionTextureInfo extends IGltfTextureInfo {
     /**
      * A scalar multiplier controlling the amount of occlusion applied
      */
@@ -628,7 +628,7 @@ export interface IgltfMaterialOcclusionTextureInfo extends IgltfTextureInfo {
 /**
  * A set of parameter values that are used to define the metallic-roughness material model from Physically-Based Rendering (PBR) methodology
  */
-export interface IgltfMaterialPbrMetallicRoughness {
+export interface IGltfMaterialPbrMetallicRoughness {
     /**
      * The material's base color factor
      */
@@ -636,7 +636,7 @@ export interface IgltfMaterialPbrMetallicRoughness {
     /**
      * The base color texture
      */
-    baseColorTexture?: IgltfTextureInfo;
+    baseColorTexture?: IGltfTextureInfo;
     /**
      * The metalness of the material
      */
@@ -648,28 +648,28 @@ export interface IgltfMaterialPbrMetallicRoughness {
     /**
      * The metallic-roughness texture
      */
-    metallicRoughnessTexture?: IgltfTextureInfo;
+    metallicRoughnessTexture?: IGltfTextureInfo;
 }
 /**
  * The material appearance of a primitive
  */
-export interface IgltfMaterial extends IchildRootProperty {
+export interface IGltfMaterial extends IChildRootProperty {
     /**
      * A set of parameter values that are used to define the metallic-roughness material model from Physically-Based Rendering (PBR) methodology. When not specified, all the default values of pbrMetallicRoughness apply
      */
-    pbrMetallicRoughness?: IgltfMaterialPbrMetallicRoughness;
+    pbrMetallicRoughness?: IGltfMaterialPbrMetallicRoughness;
     /**
      * The normal map texture
      */
-    normalTexture?: IgltfMaterialNormalTextureInfo;
+    normalTexture?: IGltfMaterialNormalTextureInfo;
     /**
      * The occlusion map texture
      */
-    occlusionTexture?: IgltfMaterialOcclusionTextureInfo;
+    occlusionTexture?: IGltfMaterialOcclusionTextureInfo;
     /**
      * The emissive map texture
      */
-    emissiveTexture?: IgltfTextureInfo;
+    emissiveTexture?: IGltfTextureInfo;
     /**
      * The RGB components of the emissive color of the material. These values are linear. If an emissiveTexture is specified, this value is multiplied with the texel values
      */
@@ -694,7 +694,7 @@ export interface IgltfMaterial extends IchildRootProperty {
 /**
  * Geometry to be rendered with the given material
  */
-export interface IgltfMeshPrimitive extends Iproperty {
+export interface IGltfMeshPrimitive extends IProperty {
     /**
      * A dictionary object, where each key corresponds to mesh attribute semantic and each value is the index of the accessor containing attribute's data
      */
@@ -723,11 +723,11 @@ export interface IgltfMeshPrimitive extends Iproperty {
 /**
  * A set of primitives to be rendered.  A node can contain one mesh.  A node's transform places the mesh in the scene
  */
-export interface IgltfMesh extends IchildRootProperty {
+export interface IGltfMesh extends IChildRootProperty {
     /**
      * An array of primitives, each defining geometry to be rendered with a material
      */
-    primitives: IgltfMeshPrimitive[];
+    primitives: IGltfMeshPrimitive[];
     /**
      * Array of weights to be applied to the Morph Targets
      */
@@ -736,7 +736,7 @@ export interface IgltfMesh extends IchildRootProperty {
 /**
  * A node in the node hierarchy
  */
-export interface IgltfNode extends IchildRootProperty {
+export interface IGltfNode extends IChildRootProperty {
     /**
      * The index of the camera referenced by this node
      */
@@ -784,7 +784,7 @@ export interface IgltfNode extends IchildRootProperty {
 /**
  * Texture sampler properties for filtering and wrapping modes
  */
-export interface IgltfSampler extends IchildRootProperty {
+export interface IGltfSampler extends IChildRootProperty {
     /**
      * Magnification filter.  Valid values correspond to WebGL enums: 9728 (NEAREST) and 9729 (LINEAR)
      */
@@ -805,7 +805,7 @@ export interface IgltfSampler extends IchildRootProperty {
 /**
  * The root nodes of a scene
  */
-export interface IgltfScene extends IchildRootProperty {
+export interface IGltfScene extends IChildRootProperty {
     /**
      * The indices of each root node
      */
@@ -814,7 +814,7 @@ export interface IgltfScene extends IchildRootProperty {
 /**
  * Joints and matrices defining a skin
  */
-export interface IgltfSkin extends IchildRootProperty {
+export interface IGltfSkin extends IChildRootProperty {
     /**
      * The index of the accessor containing the floating-point 4x4 inverse-bind matrices.  The default is that each matrix is a 4x4 identity matrix, which implies that inverse-bind matrices were pre-applied
      */
@@ -831,7 +831,7 @@ export interface IgltfSkin extends IchildRootProperty {
 /**
  * A texture and its sampler
  */
-export interface IgltfTexture extends IchildRootProperty {
+export interface IGltfTexture extends IChildRootProperty {
     /**
      * The index of the sampler used by this texture. When undefined, a sampler with repeat wrapping and auto filtering should be used
      */
@@ -844,7 +844,7 @@ export interface IgltfTexture extends IchildRootProperty {
 /**
  * Reference to a texture
  */
-export interface IgltfTextureInfo extends Iproperty {
+export interface IGltfTextureInfo extends IProperty {
     /**
      * The index of the texture
      */

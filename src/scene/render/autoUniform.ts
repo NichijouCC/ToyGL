@@ -23,14 +23,14 @@ namespace Private {
     }
 }
 
-export interface IautomaticUniform {
+export interface IAutomaticUniform {
     size: number;
     datatype: UniformTypeEnum;
     getValue(uniformState: UniformState): any;
 }
 
 export class AutoUniforms {
-    private static autoUniformDic: { [name: string]: IautomaticUniform } = {
+    private static autoUniformDic: { [name: string]: IAutomaticUniform } = {
         czm_model: {
             size: 1,
             datatype: UniformTypeEnum.FLOAT_MAT4,
@@ -66,7 +66,7 @@ export class AutoUniforms {
                 return uniformState.matrixViewProject;
             }
         },
-        czm_modelViewp: {
+        czm_modelViewP: {
             size: 1,
             datatype: UniformTypeEnum.FLOAT_MAT4,
             getValue: (uniformState: UniformState) => {
@@ -124,24 +124,24 @@ export class AutoUniforms {
         }
     };
 
-    static containAuto(unfiorm: string) {
-        return this.autoUniformDic[unfiorm] != null;
+    static containAuto(uniform: string) {
+        return this.autoUniformDic[uniform] != null;
     }
 
-    static registAutomaticUniform(unfiorm: string, node: IautomaticUniform) {
-        this.autoUniformDic[unfiorm] = node;
+    static registAutomaticUniform(uniform: string, node: IAutomaticUniform) {
+        this.autoUniformDic[uniform] = node;
     }
 
-    static getUniformDeclaration(unfiorm: string) {
-        const node = this.autoUniformDic[unfiorm];
+    static getUniformDeclaration(uniform: string) {
+        const node = this.autoUniformDic[uniform];
         if (node == null) {
             return null;
         }
         let declaration = "uniform " + Private.datatypeToGlsl[node.datatype];
         if (node.size === 1) {
-            declaration += ` ${unfiorm};`;
+            declaration += ` ${uniform};`;
         } else {
-            declaration += `[${node.size.toString()}] ${unfiorm};`;
+            declaration += `[${node.size.toString()}] ${uniform};`;
         }
         return declaration;
     }

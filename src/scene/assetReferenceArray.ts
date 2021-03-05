@@ -7,7 +7,7 @@ export class AssetReferenceArray<T extends Asset> {
     onDataChange: EventTarget<{ newData: T[], oldData: T[] }> = new EventTarget();
 
     onDirty = new EventTarget<void>();
-    private raiseDiry = () => { this?.onDirty.raiseEvent(); };
+    private raiseDirty = () => { this?.onDirty.raiseEvent(); };
 
     constructor() {
         this._current = [];
@@ -36,7 +36,7 @@ export class AssetReferenceArray<T extends Asset> {
         if (this._current == null) this._current = [] as any;
         if (this._current[index] == null) {
             this._current[index] = new AssetReference<T>();
-            this._current[index].onDirty.addEventListener(this.raiseDiry);
+            this._current[index].onDirty.addEventListener(this.raiseDirty);
         }
         this._current[index].current = asset;
     }

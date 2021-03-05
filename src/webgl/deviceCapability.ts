@@ -1,5 +1,5 @@
 import { GraphicsDevice } from "./graphicsDevice";
-import { GlConstants } from "./glconstant";
+import { GlConstants } from "./glConstant";
 
 export class DeviceCapability {
     /** Maximum textures units per fragment shader */

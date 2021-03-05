@@ -1,4 +1,4 @@
-import { Asset, IgraphicAsset } from "../asset";
+import { Asset, IGraphicAsset } from "../asset";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
 import { TypedArray } from "../../../core/typedArray";
 import { PixelFormatEnum } from "../../../webgl/pixelFormatEnum";
