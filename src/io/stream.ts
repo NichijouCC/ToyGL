@@ -45,8 +45,8 @@ export class BinReader {
     }
 
     readStrLenAndContent(): string {
-        const leng = this.readByte();
-        return this.readUint8ArrToString(leng);
+        const length = this.readByte();
+        return this.readUint8ArrToString(length);
     }
 
     private static _decodeBufferToText(buffer: Uint8Array): string {
@@ -111,14 +111,12 @@ export class BinReader {
     }
 
     readUInt8(): number {
-        // LogManager.Warn(this._data.byteLength + "  @@@@@@@@@@@@@@@@@  " + this._seek);
         const num = this._data.getUint8(this._byteOffset);
         this._byteOffset += 1;
         return num;
     }
 
     readInt16(): number {
-        // LogManager.Log(this._seek + "   " + this.length());
         const num = this._data.getInt16(this._byteOffset, true);
         this._byteOffset += 2;
         return num;
@@ -127,7 +125,6 @@ export class BinReader {
     readUInt16(): number {
         const num = this._data.getUint16(this._byteOffset, true);
         this._byteOffset += 2;
-        // LogManager.Warn("readUInt16 " + this._seek);
         return num;
     }
 
@@ -212,20 +209,20 @@ export class BinWriter {
         this._seek = 0;
     }
 
-    private sureData(addlen: number): void {
-        let nextlen = this._buf.byteLength;
-        while (nextlen < this._length + addlen) {
-            nextlen += 1024;
+    private sureData(addLen: number): void {
+        let nextLen = this._buf.byteLength;
+        while (nextLen < this._length + addLen) {
+            nextLen += 1024;
         }
-        if (nextlen != this._buf.byteLength) {
-            const newbuf = new Uint8Array(nextlen);
+        if (nextLen != this._buf.byteLength) {
+            const newBuf = new Uint8Array(nextLen);
             for (let i = 0; i < this._length; i++) {
-                newbuf[i] = this._buf[i];
+                newBuf[i] = this._buf[i];
             }
-            this._buf = newbuf;
+            this._buf = newBuf;
             this._data = new DataView(this._buf.buffer);
         }
-        this._length += addlen;
+        this._length += addLen;
     }
 
     getLength(): number {
@@ -293,11 +290,11 @@ export class BinWriter {
     }
 
     writeStringAnsi(str: string): void {
-        const slen = str.length;
-        this.sureData(slen + 1);
-        this._data.setUint8(this._seek, slen);
+        const sLen = str.length;
+        this.sureData(sLen + 1);
+        this._data.setUint8(this._seek, sLen);
         this._seek++;
-        for (let i = 0; i < slen; i++) {
+        for (let i = 0; i < sLen; i++) {
             this._data.setUint8(this._seek, str.charCodeAt(i));
             this._seek++;
         }

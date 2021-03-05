@@ -91,7 +91,7 @@ export class Rect extends Float32Array {
         return out;
     }
 
-    public static euqal(a: Rect, b: Rect): boolean {
+    public static equal(a: Rect, b: Rect): boolean {
         if (a[0] != b[0]) return false;
         if (a[1] != b[1]) return false;
         if (a[2] != b[2]) return false;
@@ -114,7 +114,7 @@ export function rectSetZero(out: Rect) {
     out[3] = 0;
 }
 
-export function rectEqul(src1: Rect, src2: Rect): boolean {
+export function rectEqual(src1: Rect, src2: Rect): boolean {
     return !(src1[0] != src2[0] || src1[1] != src2[1] || src1[2] != src2[2] || src1[3] != src2[3]);
 }
 

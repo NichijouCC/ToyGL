@@ -3,7 +3,7 @@ import { UnitedBitKey } from "./bitKey";
 import { ENTITIES, IComponent, IEntity, ISystem, UNIT_BIT_KEY_DIC } from "./iecs";
 import { Entity } from "./entity";
 
-export abstract class System extends EventEmitter<IsystemEvents> implements ISystem {
+export abstract class System extends EventEmitter<ISystemEvents> implements ISystem {
     constructor() {
         super();
         this.onCreate();
@@ -52,7 +52,7 @@ export abstract class System extends EventEmitter<IsystemEvents> implements ISys
     update(deltaTime: number): void { }
 }
 
-interface IsystemEvents {
+interface ISystemEvents {
     onCreate: void;
     addEntity: { queryKey: string, entity: Entity }
     removeEntity: { queryKey: string, entity: Entity }

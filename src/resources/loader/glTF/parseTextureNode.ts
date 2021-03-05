@@ -21,18 +21,18 @@ export class ParseTextureNode {
                     .then(img => {
                         const texOp = {} as any;
                         if (node.sampler != null) {
-                            const samplerinfo = gltf.samplers[node.sampler];
-                            if (samplerinfo.wrapS != null) {
-                                texOp.wrapS = samplerinfo.wrapS;
+                            const samplerInfo = gltf.samplers[node.sampler];
+                            if (samplerInfo.wrapS != null) {
+                                texOp.wrapS = samplerInfo.wrapS;
                             }
-                            if (samplerinfo.wrapT) {
-                                texOp.wrapT = samplerinfo.wrapT;
+                            if (samplerInfo.wrapT) {
+                                texOp.wrapT = samplerInfo.wrapT;
                             }
-                            if (samplerinfo.magFilter) {
-                                texOp.filterMax = samplerinfo.magFilter;
+                            if (samplerInfo.magFilter) {
+                                texOp.filterMax = samplerInfo.magFilter;
                             }
-                            if (samplerinfo.minFilter) {
-                                texOp.filterMin = samplerinfo.minFilter;
+                            if (samplerInfo.minFilter) {
+                                texOp.filterMin = samplerInfo.minFilter;
                             }
                         }
                         const texture: Texture2D = new Texture2D({ image: img });
@@ -46,26 +46,26 @@ export class ParseTextureNode {
                 return task;
             } else {
                 const task = ParseBufferViewNode.parse(imageNode.bufferView, gltf)
-                    .then(viewnode => {
+                    .then(viewNode => {
                         const texOp = {} as any; // todo
                         if (node.sampler != null) {
-                            const samplerinfo = gltf.samplers[node.sampler];
-                            if (samplerinfo.wrapS != null) {
-                                texOp.wrapS = samplerinfo.wrapS;
+                            const samplerInfo = gltf.samplers[node.sampler];
+                            if (samplerInfo.wrapS != null) {
+                                texOp.wrapS = samplerInfo.wrapS;
                             }
-                            if (samplerinfo.wrapT) {
-                                texOp.wrapT = samplerinfo.wrapT;
+                            if (samplerInfo.wrapT) {
+                                texOp.wrapT = samplerInfo.wrapT;
                             }
-                            if (samplerinfo.magFilter) {
-                                texOp.filterMax = samplerinfo.magFilter;
+                            if (samplerInfo.magFilter) {
+                                texOp.filterMax = samplerInfo.magFilter;
                             }
-                            if (samplerinfo.minFilter) {
-                                texOp.filterMin = samplerinfo.minFilter;
+                            if (samplerInfo.minFilter) {
+                                texOp.filterMin = samplerInfo.minFilter;
                             }
                         }
 
                         return new Promise<HTMLImageElement>((resolve, reject) => {
-                            var blob = new Blob([viewnode.viewBuffer], { type: imageNode.mimeType });
+                            var blob = new Blob([viewNode.viewBuffer], { type: imageNode.mimeType });
                             var imageUrl = window.URL.createObjectURL(blob);
                             const img: HTMLImageElement = new Image();
                             img.crossOrigin = "";

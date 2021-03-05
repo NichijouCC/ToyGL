@@ -6,12 +6,12 @@ export class ParseBufferViewNode {
         if (gltf.cache.bufferViewNodeCache[index]) {
             return gltf.cache.bufferViewNodeCache[index];
         } else {
-            const bufferview = gltf.bufferViews[index];
-            const bufferindex = bufferview.buffer;
-            const task = ParseBufferNode.parse(bufferindex, gltf)
+            const bufferView = gltf.bufferViews[index];
+            const bufferIndex = bufferView.buffer;
+            const task = ParseBufferNode.parse(bufferIndex, gltf)
                 .then(buffer => {
-                    const viewbuffer = new Uint8Array(buffer.buffer, (bufferview.byteOffset ?? 0) + buffer.byteOffset, bufferview.byteLength);
-                    return { viewBuffer: viewbuffer, byteStride: bufferview.byteStride, target: bufferview.target, __debuge: bufferview };
+                    const viewBuffer = new Uint8Array(buffer.buffer, (bufferView.byteOffset ?? 0) + buffer.byteOffset, bufferView.byteLength);
+                    return { viewBuffer: viewBuffer, byteStride: bufferView.byteStride, target: bufferView.target };
                 })
                 .catch(err => {
                     console.error("ParseBufferViewNode error", err);

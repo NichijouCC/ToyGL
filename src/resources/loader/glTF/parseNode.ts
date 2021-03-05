@@ -35,18 +35,18 @@ export class ParseNode {
 
         const allTask: Promise<void>[] = [];
         if (node.mesh != null) {
-            const modelcomp = sceneNode.addComponent(ModelComponent);
+            const comp = sceneNode.addComponent(ModelComponent);
             const task = ParseMeshNode.parse(node.mesh, gltf, context)
                 .then(primitives => {
                     const newMesh = new StaticMesh();
                     newMesh.subMeshes = primitives.map(item => item.mesh);
-                    modelcomp.mesh = newMesh;
-                    modelcomp.materials = primitives.map(item => item.material);
+                    comp.mesh = newMesh;
+                    comp.materials = primitives.map(item => item.material);
                 });
 
             if (node.skin != null) {
                 ParseSkinNode.parse(node.skin, name, root, gltf).then((skin) => {
-                    modelcomp.skin = skin;
+                    comp.skin = skin;
                 });
             }
             allTask.push(task);
@@ -54,8 +54,8 @@ export class ParseNode {
 
         if (node.children) {
             for (let i = 0; i < node.children.length; i++) {
-                const nodeindex = node.children[i];
-                const childTask = this.parse(nodeindex, gltf, root, context)
+                const nodeIndex = node.children[i];
+                const childTask = this.parse(nodeIndex, gltf, root, context)
                     .then(child => {
                         sceneNode.addChild(child);
                     });

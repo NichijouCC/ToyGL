@@ -15,13 +15,6 @@ export class ParseSkinNode {
         });
         return ParseAccessorNode.parse(skinData.inverseBindMatrices, gltf)
             .then((res) => {
-                // skin.inverseBindMatrices = skinData.joints.map((item, index) => {
-                //     let boneMat = mat4.fromArray(res.typedArray as any, index);
-                //     if (boneMat == null) {
-                //         console.error("cannot get bone inverse mat data!");
-                //     }
-                //     return boneMat;
-                // })
                 skin.inverseBindMatrices = Accessor.getTypedData(res);
                 return skin;
             });
