@@ -1,10 +1,11 @@
-import { Component } from "../core/ecs/component";
-import { Ecs } from "../core/ecs/ecs";
+import { AbsComponent } from "../core/ecs/component";
+import { ECS } from "../core/ecs/ecs";
+import { Entity } from "../scene";
 import { AnimationClip } from "../scene/asset/animationClip";
 import { ClipInstance, ClipOptions } from "../scene/primitive/animation/clipInstance";
 
-@Ecs.registerComp
-export class Animation extends Component {
+@ECS.registerComp
+export class Animation extends AbsComponent<Entity> {
     beAutoPlay: boolean = true;
     private _clips: AnimationClip[] = [];
     get clips() { return this._clips; }

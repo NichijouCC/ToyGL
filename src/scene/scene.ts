@@ -1,8 +1,8 @@
 import { EventTarget } from "@mtgoo/ctool";
 import { ForwardRender } from "./render/forwardRender";
 import { Camera } from "./camera";
-import { Entity } from "../core/ecs/entity";
-import { Ecs } from "../core/ecs/ecs";
+import { Entity } from "./entity";
+import { ECS } from "../core/ecs/ecs";
 import { IRenderable } from "./render/irenderable";
 import { FrameState } from "./frameState";
 
@@ -32,14 +32,14 @@ export class InterScene {
     private render: ForwardRender;
     constructor(render: ForwardRender) {
         this.render = render;
-        this.root = Entity.create({ beActive: true, _parentsBeActive: true } as any);
+        this.root = new Entity({ beActive: true, _parentsBeActive: true } as any);
         Entity.onDirty.addEventListener((node) => {
             this.frameState.dirtyNode.add(node as Entity);
         });
     }
 
     addNewChild(): Entity {
-        const trans = Entity.create();
+        const trans = new Entity();
         this.root.addChild(trans);
         return trans;
     }
@@ -53,7 +53,7 @@ export class InterScene {
     frameState: FrameState = new FrameState();
     _tick = (deltaTime: number) => {
         this.preUpdate.raiseEvent(deltaTime);
-        Ecs.update(deltaTime);
+        ECS.update(deltaTime);
         this.tickRender(this.frameState);
         this.frameState = new FrameState();
     }
@@ -72,11 +72,13 @@ export class InterScene {
 
     }
 
-    prerender = new EventTarget();
+    preRender = new EventTarget();
+    afterRender = new EventTarget();
     private tickRender = (state: FrameState) => {
-        this.prerender.raiseEvent();
+        this.preRender.raiseEvent();
         state.renders = state.renders.concat(this._renders);
         const { cameras } = this;
         this.render.render(Array.from(cameras.values()), state);
+        this.afterRender.raiseEvent();
     }
 }

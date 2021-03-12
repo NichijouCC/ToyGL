@@ -16,6 +16,7 @@ export interface IComponent {
 }
 
 export interface IEntity {
+    id: string;
     [COMPS]: { [compName: string]: IComponent };
     [UNIT_BIT_KEY]: UnitedBitKey;
     addComponent<T extends IComponent, P extends object = any>(comp: new () => T, properties?: P): T;

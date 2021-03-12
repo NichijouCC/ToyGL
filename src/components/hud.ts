@@ -1,10 +1,9 @@
-import { Ecs } from "../core/ecs/ecs";
+import { ECS } from "../core/ecs/ecs";
 import { Rect } from "../mathD/rect";
-import { Material, Texture2D } from "../scene/index";
+import { Component, Entity, Material, Texture2D } from "../scene/index";
 import { vec3 } from '../mathD/index';
-import { Component } from "../core/ecs/component";
 
-@Ecs.registerComp
+@ECS.registerComp
 export class Hud extends Component {
     private _rect: Rect = new Rect(0, 0, 1, 1);
     private _command: (context: CanvasRenderingContext2D) => void;

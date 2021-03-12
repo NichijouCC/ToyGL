@@ -3,7 +3,7 @@ import { Material } from "./asset/material/material";
 import { VertexArray } from "../webgl/vertexArray";
 import { BoundingSphere, BoundingBox } from "./bounds";
 import { mat4 } from '../mathD';
-import { Transform } from "../core/transform";
+import { Transform } from "./transform";
 
 export abstract class DrawCommand {
     beVisible: boolean = true;

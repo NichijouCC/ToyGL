@@ -1,9 +1,8 @@
-import { System } from "../core/ecs/system";
 import { mat4, vec3 } from "../mathD";
 import { BoxCollider, SphereCollider } from "./collider";
 import * as CANNON from 'cannon-es';
 import { Rigidbody } from "./rigidbody";
-import { Ecs } from "../core/ecs/ecs";
+import { Entity, System } from "../scene/entity";
 
 export class ColliderSystem extends System {
     caries = { boxColliders: [BoxCollider], SphereColliders: [SphereCollider], rigidbodies: [Rigidbody] };
@@ -41,18 +40,18 @@ export class ColliderSystem extends System {
 
     update(delta: number) {
         PhysicsWorld.update(delta);
-        let pos, entity, tempt = vec3.create();
-        for (let key in this.dic) {
-            pos = this.dic[key].position;
-            entity = Ecs.findEntityById(key);
-            entity.worldPosition = vec3.set(tempt, pos.x, pos.y, pos.z);
-        }
-        this.queries.rigidbodies.forEach(item => {
-            let comp = item.getComponent(Rigidbody);
-            this.dic[item.id].velocity.x = comp.velocity[0];
-            this.dic[item.id].velocity.y = comp.velocity[1];
-            this.dic[item.id].velocity.z = comp.velocity[2];
-        })
+        // let pos, entity, tempt = vec3.create();
+        // for (let key in this.dic) {
+        //     pos = this.dic[key].position;
+        //     entity = Ecs.findEntityById(key);
+        //     entity.worldPosition = vec3.set(tempt, pos.x, pos.y, pos.z);
+        // }
+        // this.queries.rigidbodies.forEach(item => {
+        //     let comp = item.getComponent(Rigidbody);
+        //     this.dic[item.id].velocity.x = comp.velocity[0];
+        //     this.dic[item.id].velocity.y = comp.velocity[1];
+        //     this.dic[item.id].velocity.z = comp.velocity[2];
+        // })
     }
 }
 

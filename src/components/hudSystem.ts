@@ -2,9 +2,8 @@ import { Hud } from "./hud";
 import { InterScene } from "../scene/scene";
 import { DefaultGeometry, DefaultMaterial } from "../resources/index";
 import { mat4, quat, vec3 } from '../mathD';
-import { TextureAsset } from "../scene/index";
+import { Entity, System, TextureAsset } from "../scene/index";
 import { TextureFilterEnum, TextureWrapEnum } from "../webgl/index";
-import { System } from "../core/ecs/system";
 
 
 export class HudSystem extends System {

@@ -2,7 +2,7 @@ import { ModelComponent } from "./modelComponent";
 import { InterScene } from "../scene/Scene";
 import { ForwardRender } from "../scene/render/forwardRender";
 import { IRenderable } from "../scene/render/irenderable";
-import { System } from "../core/ecs/system";
+import { Entity, System } from "../scene";
 
 export class ModelSystem extends System {
     caries = { comps: [ModelComponent] };

@@ -1,5 +1,5 @@
 import { Color } from "../../mathD/color";
-import { Transform } from "../../core/transform";
+import { Transform } from "../transform";
 
 export class Light {
     node: Transform;

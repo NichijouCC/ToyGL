@@ -1,11 +1,11 @@
 import { Rect } from "../mathD/rect";
 import { Color } from "../mathD/color";
 import { Frustum } from "./frustum";
-import { Transform } from "../core/transform";
+import { Transform } from "./transform";
 import { UniqueObject } from "../core/uniqueObject";
 
 import { vec3, mat4 } from '../mathD';
-import { Entity } from "../core/ecs/entity";
+import { Entity } from "./entity";
 
 export enum ProjectionEnum {
     PERSPECTIVE,

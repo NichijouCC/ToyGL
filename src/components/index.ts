@@ -10,4 +10,3 @@ export * from "./thirdPersonController";
 export * from "./thirdPersonCtrSystem";
 export * from './collider';
 export * from './colliderSystem';
-

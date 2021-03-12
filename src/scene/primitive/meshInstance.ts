@@ -5,7 +5,7 @@ import { Material } from "../asset/material/material";
 import { EventTarget } from "@mtgoo/ctool";
 import { Skin } from "../asset/Skin";
 import { SkinInstance } from "./skinInstance";
-import { Entity } from "../../core/ecs/entity";
+import { Entity } from "../entity";
 import { IRenderable } from "../render/irenderable";
 
 // instance onDirty 触发 layerComposition 对instance 重新分层，重新sort

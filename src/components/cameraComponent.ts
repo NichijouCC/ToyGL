@@ -1,9 +1,10 @@
-import { Component } from "../core/ecs/component";
-import { Ecs } from "../core/ecs/ecs";
+import { AbsComponent } from "../core/ecs/component";
+import { ECS } from "../core/ecs/ecs";
 import { applyMixins } from "../core/util";
+import { Component, Entity } from "../scene";
 import { Camera } from "../scene/camera";
 
-@Ecs.registerComp
+@ECS.registerComp
 export class CameraComponent extends Component {
     onInit() {
         this._node = this.entity;

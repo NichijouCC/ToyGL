@@ -1,8 +1,9 @@
-import { Component } from "../core/ecs/component";
-import { Ecs } from "../core/ecs/ecs";
+import { AbsComponent } from "../core/ecs/component";
+import { ECS } from "../core/ecs/ecs";
 import { IComponent } from "../core/ecs/iecs";
 import { vec3 } from "../mathD";
-@Ecs.registerComp
+import { Component, Entity } from "../scene";
+@ECS.registerComp
 export class Rigidbody extends Component {
     mass = 1;
     radius: number = 0.5;

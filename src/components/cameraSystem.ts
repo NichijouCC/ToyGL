@@ -1,7 +1,6 @@
 import { InterScene } from "../scene/Scene";
 import { CameraComponent } from "./cameraComponent";
-import { Screen } from "../scene/index";
-import { System } from "../core/ecs/system";
+import { Entity, Screen, System } from "../scene/index";
 
 export class CameraSystem extends System {
     caries = { "comps": [CameraComponent] };

@@ -1,9 +1,10 @@
 import { EventTarget } from "@mtgoo/ctool";
-import { Component } from "../core/ecs/component";
-import { Ecs } from "../core/ecs/ecs";
+import { AbsComponent } from "../core/ecs/component";
+import { ECS } from "../core/ecs/ecs";
 import { vec3 } from "../mathD";
+import { Component, Entity } from "../scene";
 
-@Ecs.registerComp
+@ECS.registerComp
 export class ThirdPersonController extends Component {
     canMove: boolean = true;
     moveSpeed: number = 10 * 3.0;

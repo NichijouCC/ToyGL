@@ -1,4 +1,4 @@
-import { Entity } from "../../core/ecs/entity";
+import { Entity } from "../entity";
 import { mat4, quat, vec3 } from "../../mathD";
 import { MemoryTexture } from "../asset/texture/memoryTexture";
 import { GraphicsDevice } from "../../webgl/graphicsDevice";

@@ -1,15 +1,14 @@
 import { IComponent, IEntity, UPDATE } from "./iecs";
-import { Ecs } from "./ecs";
-import { Entity } from "./entity";
+import { ECS } from "./ecs";
 
 const key = "__storedProperty";
-export function ComponentProperty<T>(target: Function, name: string) {
+export function ComponentProperty(target: Function, name: string) {
     let proto = target.prototype;
     if (proto[key] == null) proto[key] = {};
     if (proto[key][name] == null) proto[key][name] = true;
 }
 
-function setComponentProperty(target: Component, value: object) {
+function setComponentProperty(target: AbsComponent<any>, value: object) {
     let storedProperties = target.constructor.prototype[key];
     if (storedProperties != null) {
         Object.keys(storedProperties).forEach(property => {
@@ -20,13 +19,13 @@ function setComponentProperty(target: Component, value: object) {
     }
 }
 
-export abstract class Component implements IComponent {
-    readonly entity: Entity;
+export abstract class AbsComponent<T extends IEntity> implements IComponent {
+    readonly entity: T;
     protected _beInit: boolean = false;
     get compName() { return this.constructor.name; }
     get compType() { return this.constructor; }
 
-    constructor(props?: Partial<typeof Component>) {
+    constructor(props?: Partial<typeof AbsComponent>) {
         if (props) {
             setComponentProperty(this, props);
         }
@@ -51,7 +50,7 @@ export abstract class Component implements IComponent {
     static compName() {
         return this.prototype.constructor.name;
     }
-    static create<K extends Component>(this: new () => K, properties?: Partial<K>): K {
-        return Ecs.createComp(this, properties);
+    static create<K extends AbsComponent<any>>(this: new () => K, properties?: Partial<K>): K {
+        return ECS.createComp(this, properties);
     }
 }

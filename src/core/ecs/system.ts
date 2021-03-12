@@ -1,9 +1,8 @@
 import { EventEmitter } from "@mtgoo/ctool";
 import { UnitedBitKey } from "./bitKey";
 import { ENTITIES, IComponent, IEntity, ISystem, UNIT_BIT_KEY_DIC } from "./iecs";
-import { Entity } from "./entity";
 
-export abstract class System extends EventEmitter<ISystemEvents> implements ISystem {
+export abstract class AbsSystem<T extends IEntity> extends EventEmitter<ISystemEvents<T>> implements ISystem {
     constructor() {
         super();
         this.onCreate();
@@ -13,14 +12,14 @@ export abstract class System extends EventEmitter<ISystemEvents> implements ISys
      * 在 addSystem 的时候进行初始化
      */
     [UNIT_BIT_KEY_DIC]: { [queryKey: string]: UnitedBitKey; };
-    [ENTITIES]: { [queryKey: string]: Entity[]; };
+    [ENTITIES]: { [queryKey: string]: T[]; };
 
     abstract caries: { [queryKey: string]: (new () => IComponent)[]; }
     get queries() { return this[ENTITIES] }
 
     onCreate(): void { }
 
-    addEntity(queryKey: string, entity: Entity): void {
+    addEntity(queryKey: string, entity: T): void {
         let results = this[ENTITIES][queryKey];
         if (!results.includes(entity)) {
             results.push(entity);
@@ -28,8 +27,8 @@ export abstract class System extends EventEmitter<ISystemEvents> implements ISys
         }
     }
 
-    removeEntity(entity: Entity): void {
-        let results: IEntity[], index: number
+    removeEntity(entity: T): void {
+        let results: T[], index: number
         for (const key in this[ENTITIES]) {
             results = this[ENTITIES][key];
             index = results.indexOf(entity);
@@ -40,7 +39,7 @@ export abstract class System extends EventEmitter<ISystemEvents> implements ISys
         }
     }
 
-    removeQueriedEntity(queryKey: string, entity: Entity) {
+    removeQueriedEntity(queryKey: string, entity: T) {
         let results = this[ENTITIES][queryKey];
         let index = results.indexOf(entity);
         if (index >= 0) {
@@ -52,8 +51,8 @@ export abstract class System extends EventEmitter<ISystemEvents> implements ISys
     update(deltaTime: number): void { }
 }
 
-interface ISystemEvents {
+interface ISystemEvents<T extends IEntity> {
     onCreate: void;
-    addEntity: { queryKey: string, entity: Entity }
-    removeEntity: { queryKey: string, entity: Entity }
+    addEntity: { queryKey: string, entity: T }
+    removeEntity: { queryKey: string, entity: T }
 }

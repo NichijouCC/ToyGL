@@ -1,6 +1,7 @@
-import { System } from "../core/ecs/system";
+import { AbsSystem } from "../core/ecs/system";
 import { Input, KeyCodeEnum, MouseKeyEnum } from "../input";
 import { mat4, quat, vec3, vec4 } from "../mathD";
+import { System } from "../scene";
 import { InterScene } from "../scene/scene";
 import { Rigidbody } from "./rigidbody";
 import { ThirdPersonController } from "./thirdPersonController";

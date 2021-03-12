@@ -3,11 +3,12 @@ import { InterScene } from "./scene/scene";
 import { GraphicsDevice } from "./webgl/graphicsDevice";
 import { Resource } from "./resources/resource";
 import { LoadGlTF } from "./resources/loader/loadGltf";
-import { Ecs } from "./core/ecs/ecs";
+import { ECS } from "./core/ecs/ecs";
 import { ForwardRender } from "./scene/render/forwardRender";
 import { EventTarget } from "@mtgoo/ctool";
 import { AnimationSystem, ModelSystem, CameraSystem } from "./components/index";
 import { Screen } from "./core/toyScreen";
+import { Entity } from "./scene";
 
 export class ToyGL {
     onresize = new EventTarget<{ width: number, height: number }>();
@@ -23,12 +24,13 @@ export class ToyGL {
         const scene = new InterScene(render);
         resource.registerAssetLoader(".gltf", new LoadGlTF(device));
         resource.registerAssetLoader(".glb", new LoadGlTF(device));
-        Ecs.addSystem(new CameraSystem(scene, screen));
-        Ecs.addSystem(new AnimationSystem());
-        Ecs.addSystem(new ModelSystem(scene, render), Number.POSITIVE_INFINITY);
+        ECS.addSystem(new CameraSystem(scene, screen));
+        ECS.addSystem(new AnimationSystem());
+        ECS.addSystem(new ModelSystem(scene, render), Number.POSITIVE_INFINITY);
 
         timer.onTick.addEventListener(scene._tick);
-
+        toy._graphicsDevice = device;
+        toy._render = render;
         toy._timer = timer;
         toy._screen = screen;
         toy._scene = scene;
@@ -41,6 +43,12 @@ export class ToyGL {
     private _timer: Timer;
     get timer() { return this._timer; }
 
+    private _graphicsDevice: GraphicsDevice;
+    get graphicsDevice() { return this._graphicsDevice; }
+
+    private _render: ForwardRender;
+    get render() { return this._render; }
+
     private _scene: InterScene;
     get scene() { return this._scene; }
 
@@ -49,5 +57,5 @@ export class ToyGL {
 
     get canvas() { return this._screen.canvas; }
 
-    addSystem = Ecs.addSystem.bind(Ecs);
+    addSystem = ECS.addSystem.bind(ECS);
 }

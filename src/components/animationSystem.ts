@@ -1,4 +1,4 @@
-import { System } from "../core/ecs/system";
+import { Entity, System } from "../scene";
 import { Animation } from "./animation";
 
 export class AnimationSystem extends System {

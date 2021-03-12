@@ -4,7 +4,7 @@ import { ParseCameraNode } from "./parseCameraNode";
 import { ParseMeshNode } from "./parseMeshNode";
 import { IGltfJson } from "../loadGltf";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
-import { Entity } from "../../../core/ecs/entity";
+import { Entity } from "../../../scene/entity";
 import { ModelComponent } from "../../../components/modelComponent";
 import { StaticMesh } from "../../../scene/asset/geometry/staticMesh";
 import { ParseSkinNode } from "./parseSkinNode";
@@ -14,7 +14,7 @@ export class ParseNode {
     static parse(index: number, gltf: IGltfJson, root: Entity, context: GraphicsDevice): Promise<Entity> {
         const node = gltf.nodes[index];
         const name = GlTF.getNodeName(index, gltf);
-        const sceneNode = Entity.create({ name });
+        const sceneNode = new Entity({ name });
         if (node.matrix) {
             sceneNode.localMatrix = mat4.fromNumberArray(node.matrix);
         }

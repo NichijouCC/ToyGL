@@ -1,13 +1,13 @@
-import { Ecs } from "../core/ecs/ecs";
+import { ECS } from "../core/ecs/ecs";
 import { AssetReferenceArray } from "../scene/assetReferenceArray";
 import { AssetReference } from "../scene/assetReference";
 import { StaticMesh } from "../scene/asset/geometry/staticMesh";
 import { Material } from "../scene/asset/material/material";
 import { SkinInstance } from "../scene/primitive/skinInstance";
 import { Skin } from "../scene/asset/Skin";
-import { Component } from "../core/ecs/component";
+import { Component, Entity } from "../scene";
 
-@Ecs.registerComp
+@ECS.registerComp
 export class ModelComponent extends Component {
 
     protected _mesh = new AssetReference<StaticMesh>();

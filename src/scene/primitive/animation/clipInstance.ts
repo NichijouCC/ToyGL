@@ -1,7 +1,7 @@
 /* eslint-disable brace-style */
 /* eslint-disable indent */
 import { AnimationClip } from "../../asset/animationClip";
-import { Entity } from "../../../core/ecs/entity";
+import { Entity } from "../../entity";
 import { quat, vec3 } from '../../../mathD';
 import { numberLerp } from "../../../mathD/common";
 import { ChannelInstance } from "./channelInstance";

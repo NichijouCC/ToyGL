@@ -1,35 +1,28 @@
 import { BitKey, UnitedBitKey } from "./bitKey";
-import { Entity } from "./entity";
-import { ISystem, IComponent, COMPS, UNIT_BIT_KEY, UPDATE, UNIT_BIT_KEY_DIC, ENTITIES } from "./iecs";
+import { ISystem, IComponent, COMPS, UNIT_BIT_KEY, UPDATE, UNIT_BIT_KEY_DIC, ENTITIES, IEntity } from "./iecs";
 
-export class Ecs {
+export class ECS {
     private static registeredComps: { [name: string]: { ctr: new () => any; bitKey: BitKey; relatedSystem: { system: ISystem, query: string }[]; }; } = {};
     static systems: { system: ISystem; priority: number; }[] = [];
-    static entities = new Map<string, Entity>();
+    static entities = new Map<string, IEntity>();
     static comps = new Set<IComponent>();
 
-    static createEntity(properties?: Partial<Entity>) {
-        let ins: Entity = new (Entity as any)();
-        if (properties) {
-            Object.keys(properties).forEach(item => (ins as any)[item] = (properties as any)[item])
+    static addEntity(entity: IEntity) {
+        if (!this.containEntity(entity)) {
+            this.entities.set(entity.id, entity);
         }
-        this.entities.set(ins.id, ins);
-        return ins;
     }
-
-    static findEntityById(id: string) {
-        return this.entities.get(id)
-    }
-
-    static removeEntity(entity: Entity) {
+    static containEntity(entity: IEntity) { return this.entities.has(entity.id); }
+    static findEntityById(id: string) { return this.entities.get(id); }
+    static removeEntity(entity: IEntity) {
         this.entities.delete(entity.id);
         this.systems.forEach(item => item.system.removeEntity(entity));
     }
 
     static registerComp = (comp: Function) => {
         const compName = comp.name;
-        if (Ecs.registeredComps[compName] == null) {
-            Ecs.registeredComps[compName] = { ctr: comp as any, bitKey: BitKey.create(), relatedSystem: [] };
+        if (ECS.registeredComps[compName] == null) {
+            ECS.registeredComps[compName] = { ctr: comp as any, bitKey: BitKey.create(), relatedSystem: [] };
         } else {
             throw new Error("重复注册组件: " + compName);
         }
@@ -46,7 +39,7 @@ export class Ecs {
         return newComp;
     }
 
-    static bindCompToEntity(entity: Entity, comp: IComponent) {
+    static bindCompToEntity(entity: IEntity, comp: IComponent) {
         const compInfo = this.registeredComps[comp.compName];
         if (compInfo == null) return;
         Object.defineProperty(comp, "entity", {
@@ -55,23 +48,28 @@ export class Ecs {
         entity[COMPS][comp.compName] = comp;
         entity[UNIT_BIT_KEY].addBitKey(compInfo.bitKey);
 
-        const relatedSystem = compInfo.relatedSystem;
-        relatedSystem.forEach(({ system, query }) => {
-            if (entity[UNIT_BIT_KEY].contain(system[UNIT_BIT_KEY_DIC][query])) {
-                system.addEntity(query, entity);
-            }
-        });
+        if (this.containEntity(entity)) {
+            const relatedSystem = compInfo.relatedSystem;
+            relatedSystem.forEach(({ system, query }) => {
+                if (entity[UNIT_BIT_KEY].contain(system[UNIT_BIT_KEY_DIC][query])) {
+                    system.addEntity(query, entity);
+                }
+            });
+        }
     }
 
-    static unbindCompToEntity<T extends IComponent>(entity: Entity, comp: new () => T) {
+    static unbindCompToEntity<T extends IComponent>(entity: IEntity, comp: new () => T) {
         const component = entity[COMPS][comp.name];
         if (component != null) {
             const compInfo = this.registeredComps[comp.name];
             entity[UNIT_BIT_KEY].removeBitKey(compInfo.bitKey);
-            const relatedSystem = compInfo.relatedSystem;
-            relatedSystem.forEach(item => {
-                item.system.removeQueriedEntity(item.query, entity);
-            });
+
+            if (this.containEntity(entity)) {
+                const relatedSystem = compInfo.relatedSystem;
+                relatedSystem.forEach(item => {
+                    item.system.removeQueriedEntity(item.query, entity);
+                });
+            }
         }
         delete entity[COMPS][comp.name];
     }

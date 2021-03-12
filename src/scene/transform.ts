@@ -1,6 +1,5 @@
 import { vec3, mat4, quat } from '../mathD/index';
-import { Entity } from './ecs/entity';
-import { UniqueObject } from './uniqueObject';
+import { Entity } from './entity';
 enum DirtyFlagEnum {
     WORLD_POS = 0b000100,
     WORLD_ROTATION = 0b001000,
@@ -8,7 +7,7 @@ enum DirtyFlagEnum {
     LOCAL_MAT = 0b000001,
     WORLD_MAT = 0b000010,
 }
-export class Transform extends UniqueObject {
+export class Transform {
     protected _parent: this;
     get parent() { return this._parent }
     protected _children: this[] = [];
@@ -43,7 +42,6 @@ export class Transform extends UniqueObject {
     }
 
     constructor() {
-        super();
         // --------attach to dirty-------
         let _this = this;
         this._localPosition = new Proxy(vec3.create(), {

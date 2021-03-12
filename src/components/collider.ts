@@ -1,10 +1,10 @@
-import { Component } from "../core/ecs/component";
-import { Ecs } from "../core/ecs/ecs";
+import { ECS } from "../core/ecs";
 import { IComponent } from "../core/ecs/iecs";
 import { vec3 } from "../mathD";
+import { Component, Entity } from "../scene";
 import { StaticMesh } from "../scene/asset";
 
-@Ecs.registerComp
+@ECS.registerComp
 export class BoxCollider extends Component {
     center: vec3 = vec3.create();
     size: vec3 = vec3.clone(vec3.ONE);
@@ -13,7 +13,7 @@ export class BoxCollider extends Component {
     }
 }
 
-@Ecs.registerComp
+@ECS.registerComp
 export class SphereCollider extends Component {
     center: vec3 = vec3.create();
     radius = 1.0;
@@ -22,7 +22,7 @@ export class SphereCollider extends Component {
     }
 }
 
-@Ecs.registerComp
+@ECS.registerComp
 export class MeshCollider extends Component {
     mesh: StaticMesh
     clone(): IComponent {
