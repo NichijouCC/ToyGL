@@ -1,5 +1,6 @@
 import { vec3, mat4, quat } from '../mathD/index';
 import { Entity } from './entity';
+import { Entity as BaseEntity } from '../core/ecs'
 enum DirtyFlagEnum {
     WORLD_POS = 0b000100,
     WORLD_ROTATION = 0b001000,
@@ -7,7 +8,7 @@ enum DirtyFlagEnum {
     LOCAL_MAT = 0b000001,
     WORLD_MAT = 0b000010,
 }
-export class Transform {
+export class Transform extends BaseEntity {
     protected _parent: this;
     get parent() { return this._parent }
     protected _children: this[] = [];
@@ -19,12 +20,12 @@ export class Transform {
     //-----------------------------------------------------------------------------------------------------------
     private _selfBeActive: boolean = true;
     private _parentsBeActive: boolean = false;
-    private setParentsBeActive = (active: boolean) => {
+    private _setParentsBeActive = (active: boolean) => {
         if (active != this._parentsBeActive) {
             this._parentsBeActive = active;
             //当自己为激活状态，父节点显示状态修改，则beActive修改了，需要通知子节点；当自己为未激活状态,beActive并未修改
             if (this._selfBeActive) {
-                this._children.forEach(item => { item.setParentsBeActive(active); })
+                this._children.forEach(item => { item._setParentsBeActive(active); })
             }
         }
     }
@@ -36,12 +37,13 @@ export class Transform {
         if (this._selfBeActive != active) {
             this._selfBeActive = active;
             if (this._parentsBeActive) {
-                this._children.forEach(item => item.setParentsBeActive(active))
+                this._children.forEach(item => item._setParentsBeActive(active))
             }
         }
     }
 
     constructor() {
+        super();
         // --------attach to dirty-------
         let _this = this;
         this._localPosition = new Proxy(vec3.create(), {
@@ -250,7 +252,7 @@ export class Transform {
         this._children.push(node);
         node._parent = this;
         node.markDirty();
-        node.setParentsBeActive(this.beActive);
+        node._setParentsBeActive(this.beActive);
         return node;
     }
 
