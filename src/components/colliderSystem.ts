@@ -3,12 +3,15 @@ import { BoxCollider, SphereCollider } from "./collider";
 import * as CANNON from 'cannon-es';
 import { Rigidbody } from "./rigidbody";
 import { Entity, System } from "../scene/entity";
+import { ToyGL } from "../toygl";
 
 export class ColliderSystem extends System {
     caries = { boxColliders: [BoxCollider], SphereColliders: [SphereCollider], rigidbodies: [Rigidbody] };
     private dic: { [id: string]: CANNON.Body } = {};
-    constructor() {
+    private _toy: ToyGL;
+    constructor(toy: ToyGL) {
         super();
+        this._toy = toy;
         PhysicsWorld.init();
         this.on("removeEntity", ({ entity, queryKey }) => {
             if (queryKey == "colliders") {
@@ -21,7 +24,7 @@ export class ColliderSystem extends System {
                 let selfMat = mat4.fromTranslation(mat4.create(), comp.center);
                 let worldMat = mat4.multiply(selfMat, entity.worldMatrix, selfMat);
                 let worldPos = mat4.getTranslation(vec3.create(), worldMat);
-                let worldSize = mat4.transformVector(vec3.create(), comp.size, worldMat);
+                let worldSize = mat4.transformVector(vec3.create(), comp.halfSize, worldMat);
                 let shape = PhysicsWorld.addBoxShape(worldPos, worldSize);
                 this.dic[entity.id] = shape;
             } else if (queryKey == "SphereColliders") {
@@ -40,6 +43,10 @@ export class ColliderSystem extends System {
 
     update(delta: number) {
         PhysicsWorld.update(delta);
+        // this.queries.boxColliders.forEach(item => {
+        //     let comp = item.getComponent(BoxCollider);
+        //     this._toy.gizmos.drawBoxCollider(comp);
+        // })
         // let pos, entity, tempt = vec3.create();
         // for (let key in this.dic) {
         //     pos = this.dic[key].position;

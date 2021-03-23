@@ -1,15 +1,15 @@
 import { ModelComponent } from "./modelComponent";
-import { InterScene } from "../scene/Scene";
 import { ForwardRender } from "../scene/render/forwardRender";
 import { IRenderable } from "../scene/render/irenderable";
 import { Entity, System } from "../scene";
+import { ToyGL } from "../toygl";
 
 export class ModelSystem extends System {
     caries = { comps: [ModelComponent] };
-    private scene: InterScene;
-    constructor(scene: InterScene, render: ForwardRender) {
+    private _toy: ToyGL;
+    constructor(toy: ToyGL) {
         super();
-        this.scene = scene;
+        this._toy = toy;
     }
 
     update(deltaTime: number): void {
@@ -24,7 +24,8 @@ export class ModelSystem extends System {
                         worldMat: comp.entity.worldMatrix,
                         beVisible: comp.entity.beActive
                     };
-                    this.scene._addFrameRenderIns(renderIns);
+                    this._toy.scene._addFrameRenderIns(renderIns);
+                    // this._toy.gizmos.drawAABB(subMeshItem.boundingBox, comp.entity.worldMatrix);
                 });
             }
         })

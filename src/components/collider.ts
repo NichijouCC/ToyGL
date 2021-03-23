@@ -7,7 +7,7 @@ import { StaticMesh } from "../scene/asset";
 @ECS.registerComp
 export class BoxCollider extends Component {
     center: vec3 = vec3.create();
-    size: vec3 = vec3.clone(vec3.ONE);
+    halfSize: vec3 = vec3.clone(vec3.ONE);
     clone(): IComponent {
         throw new Error("Method not implemented.");
     }

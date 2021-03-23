@@ -16,7 +16,7 @@ setInterval(() => {
     rotDir = vec3.normalize(rotDir, rotDir);
 }, 5000);
 
-scene.preupdate.addEventListener(() => {
+scene.preUpdate.addEventListener(() => {
     if (Input.getKeyDown(KeyCodeEnum.A)) {
         ins.worldMat = mat4.fromTranslation(ins.worldMat, vec3.fromValues(-1, 0, 0));
     }

@@ -50,7 +50,7 @@ cam.node.localPosition[2] = 5;
 
 let roty = 0;
 let totalTime = 0;
-toy.scene.preupdate.addEventListener((delta) => {
+toy.scene.preUpdate.addEventListener((delta) => {
     roty += delta * 15;
     totalTime += delta;
     ins.node.localRotation = quat.fromEuler(ins.node.localRotation, 0, roty, 0);

@@ -114,7 +114,8 @@ export class Geometry extends AbstractGeometryAsset {
         return new VertexArray({
             context: device,
             vertexAttributes: vertexAtts,
-            indexBuffer: indexBuffer
+            indexBuffer: indexBuffer,
+            primitiveType: this.primitiveType
         });
     }
 

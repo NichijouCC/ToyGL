@@ -13,13 +13,13 @@ import { initToy } from "./util";
     toy.scene.addChild(newasset);
 
     let child = scene.addNewChild();
-    let comp = child.addComponent<Hud>(Hud);
+    let comp = child.addComponent(Hud);
     newasset.addChild(child);
     child.localPosition[1] = 2;
 
     Promise.all(["./images/blood.png", "./images/girl.png"].map(item => loadImg(item)))
         .then(([bg, head]) => {
-            comp.setcontent(new Rect(0, 0, bg.width * 0.5, bg.height * 0.5), (context) => {
+            comp.setContent(new Rect(0, 0, bg.width * 0.5, bg.height * 0.5), (context) => {
                 context.drawImage(bg, 0, 0, bg.width * 0.5, bg.height * 0.5);
                 context.drawImage(head, 45, 45, head.width * 2, head.height * 2);
 
@@ -35,7 +35,7 @@ import { initToy } from "./util";
                 context.fill();
             });
         })
-    scene.preupdate.addEventListener((delta) => {
+    scene.preUpdate.addEventListener((delta) => {
         newasset.localRotation = quat.multiply(quat.create(), newasset.localRotation, quat.fromEuler(quat.create(), 0, delta * 100, 0));
     })
 })()

@@ -9,6 +9,7 @@ import { EventTarget } from "@mtgoo/ctool";
 import { AnimationSystem, ModelSystem, CameraSystem } from "./components/index";
 import { Screen } from "./core/toyScreen";
 import { Entity } from "./scene";
+import { Gizmos } from "./scene/gizmos/gizmos";
 
 export class ToyGL {
     onresize = new EventTarget<{ width: number, height: number }>();
@@ -26,7 +27,7 @@ export class ToyGL {
         resource.registerAssetLoader(".glb", new LoadGlTF(device));
         ECS.addSystem(new CameraSystem(scene, screen));
         ECS.addSystem(new AnimationSystem());
-        ECS.addSystem(new ModelSystem(scene, render), Number.POSITIVE_INFINITY);
+        ECS.addSystem(new ModelSystem(toy), Number.POSITIVE_INFINITY);
 
         timer.onTick.addEventListener(scene._tick);
         toy._graphicsDevice = device;
@@ -35,6 +36,8 @@ export class ToyGL {
         toy._screen = screen;
         toy._scene = scene;
         toy._resource = resource;
+
+        toy._gizmos = new Gizmos(toy);
         return toy;
     }
     private _screen: Screen;
@@ -56,6 +59,9 @@ export class ToyGL {
     get resource() { return this._resource; }
 
     get canvas() { return this._screen.canvas; }
+
+    private _gizmos: Gizmos;
+    get gizmos() { return this._gizmos; }
 
     addSystem = ECS.addSystem.bind(ECS);
 }

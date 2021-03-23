@@ -4,6 +4,7 @@ import { ToyGL } from "../../toygl";
 import { VertexArray, VertexBuffer, BufferUsageEnum, VertexAttEnum, ComponentDatatypeEnum, PrimitiveTypeEnum } from "../../webgl";
 import { Geometry } from "../asset";
 import { BoundingBox } from "../bounds";
+import { IRenderable } from "../render/irenderable";
 
 export class Gizmos {
     private _toy: ToyGL;
@@ -26,29 +27,38 @@ export class Gizmos {
         });
     }
 
+    private _dic = new Map<BoundingBox, IRenderable>();
+
     drawAABB(aabb: BoundingBox, worldMat?: mat4) {
         let { scene } = this._toy;
         let { center, halfSize } = aabb;
         let parentMat = worldMat ?? mat4.IDENTITY;
         let selfToParent = mat4.fromTranslation(mat4.create(), center);
         let selfWorldMat = mat4.multiply(selfToParent, parentMat, selfToParent);
-        let x = halfSize[0], y = halfSize[1], z = halfSize[2];
-        scene._addFrameRenderIns({
-            geometry: new Geometry({
-                attributes: [{
-                    values: [
-                        -x, -y, -z, x, -y, -z, x, -y, -z, x, -y, z, x, -y, z, -x, -y, z, -x, -y, z, -x, -y, -z,//bottom box
-                        -x, y, -z, x, y, -z, x, y, -z, x, y, z, x, y, z, -x, y, z, -x, y, z, -x, y, -z,//top box
-                        -x, -y, -z, -x, y, -z, x, -y, -z, x, y, -z, x, -y, z, x, y, z, -x, -y, z, -x, y, z//边柱子
-                    ],
-                    componentsPerAttribute: 3,
-                    componentDatatype: ComponentDatatypeEnum.FLOAT,
-                    type: VertexAttEnum.POSITION
-                }],
-                primitiveType: PrimitiveTypeEnum.LINES
-            }),
-            material: DefaultMaterial.color_3d.clone(),
-            worldMat: selfWorldMat
-        });
+
+        if (this._dic.has(aabb)) {
+            let renderIns = this._dic.get(aabb);
+            renderIns.worldMat = selfWorldMat;
+            scene._addFrameRenderIns(renderIns);
+        } else {
+            let x = halfSize[0], y = halfSize[1], z = halfSize[2];
+            scene._addFrameRenderIns({
+                geometry: new Geometry({
+                    attributes: [{
+                        values: [
+                            -x, -y, -z, x, -y, -z, x, -y, -z, x, -y, z, x, -y, z, -x, -y, z, -x, -y, z, -x, -y, -z,//bottom box
+                            -x, y, -z, x, y, -z, x, y, -z, x, y, z, x, y, z, -x, y, z, -x, y, z, -x, y, -z,//top box
+                            -x, -y, -z, -x, y, -z, x, -y, -z, x, y, -z, x, -y, z, x, y, z, -x, -y, z, -x, y, z//边柱子
+                        ],
+                        componentsPerAttribute: 3,
+                        componentDatatype: ComponentDatatypeEnum.FLOAT,
+                        type: VertexAttEnum.POSITION
+                    }],
+                    primitiveType: PrimitiveTypeEnum.LINES
+                }),
+                material: DefaultMaterial.color_3d.clone(),
+                worldMat: selfWorldMat
+            });
+        }
     }
 }

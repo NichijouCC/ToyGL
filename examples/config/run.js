@@ -8,6 +8,7 @@ const webpackConfig = beProduction ? require('./webpack.prod') : require('./webp
 
 (async () => {
     const file_prefix = process.argv[2];
+    console.log(process.argv.toString());
     if (file_prefix != null) {
         webpackConfig.entry.app = await findeExampleFile();
     }
