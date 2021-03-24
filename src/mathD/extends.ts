@@ -1,5 +1,5 @@
-import { vec3, mat4 } from 'gl-matrix';
-import { TypedArray } from '../core/typedArray';
+import { vec3, mat4 } from "gl-matrix";
+import { TypedArray } from "../core/typedArray";
 
 (vec3 as any).FORWARD = vec3.fromValues(0, 0, 1);
 (vec3 as any).BACKWARD = vec3.fromValues(0, 0, -1);
@@ -10,28 +10,27 @@ import { TypedArray } from '../core/typedArray';
 (vec3 as any).ZERO = vec3.fromValues(0, 0, 0);
 (vec3 as any).ONE = vec3.fromValues(1, 1, 1);
 
-
 (vec3 as any).center = (out: vec3, a: vec3, b: vec3) => {
     out[0] = (a[0] + b[0]) * 0.5;
     out[1] = (a[1] + b[1]) * 0.5;
     out[2] = (a[2] + b[2]) * 0.5;
     return out;
-}
+};
 
 (vec3 as any).projectToPlan = (() => {
-    let tempt = vec3.create();
+    const tempt = vec3.create();
     return (out: vec3, a: vec3, planNormal: vec3) => {
         vec3.scale(tempt, planNormal, vec3.dot(a, planNormal));
         vec3.subtract(out, a, tempt);
         return out;
-    }
+    };
 })();
 
 (mat4 as any).IDENTITY = mat4.create();
-(mat4 as any).fromNumberArray = (array: number[]) => {
+(mat4 as any).fromNumberArray = (array: ArrayLike<number>) => {
     return mat4.fromValues(array[0], array[1], array[2], array[3], array[4], array[5], array[6], array[7], array[8], array[9], array[10], array[11], array[12], array[13], array[14], array[15]);
 };
-(mat4 as any).toArray = (array: number[] | TypedArray, mat: mat4, offset: number = 0) => {
+(mat4 as any).toArray = (array: number[] | TypedArray, mat: mat4, offset = 0) => {
     array[offset] = mat[0];
     array[offset + 1] = mat[1];
     array[offset + 2] = mat[2];
@@ -52,7 +51,7 @@ import { TypedArray } from '../core/typedArray';
     array[offset + 14] = mat[14];
     array[offset + 15] = mat[15];
     return array;
-}
+};
 
 (mat4 as any).getMaxScaleOnAxis = (mat: mat4): number => {
     const m11 = mat[0];
@@ -70,19 +69,21 @@ import { TypedArray } from '../core/typedArray';
     const scaleZ = m31 * m31 + m32 * m32 + m33 * m33;
 
     return Math.sqrt(Math.max(scaleX, scaleY, scaleZ));
-}
+};
 
 (mat4 as any).transformVector = (out: vec3, a: vec3, m: mat4) => {
-    let x = a[0],
-        y = a[1],
-        z = a[2];
+    const x = a[0];
+    const y = a[1];
+    const z = a[2];
     out[0] = m[0] * x + m[4] * y + m[8] * z;
     out[1] = m[1] * x + m[5] * y + m[9] * z;
     out[2] = m[2] * x + m[6] * y + m[10] * z;
     return out;
-}
+};
 
-declare module 'gl-matrix' {
+(mat4 as any).transformPoint = vec3.transformMat4;
+
+declare module "gl-matrix" {
     namespace vec3 {
         const ZERO: vec3;
         const ONE: vec3;
@@ -97,10 +98,10 @@ declare module 'gl-matrix' {
     }
     namespace mat4 {
         const IDENTITY: mat4;
-        export function fromNumberArray(array: number[]): mat4;
+        export function fromNumberArray(array: ArrayLike<number>): mat4;
         export function transformVector(out: vec3, a: vec3, m: mat4): vec3;
+        export function transformPoint(out: vec3, a: vec3, m: mat4): vec3;
         export function getMaxScaleOnAxis(array: mat4): number;
-        export function toArray(array: number[] | TypedArray, mat: mat4, offset: number): number[] | TypedArray;
+        export function toArray<T = number[] | TypedArray>(out: T, mat: mat4, offset: number): T;
     }
 }
-

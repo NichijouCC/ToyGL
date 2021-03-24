@@ -3,24 +3,24 @@ import { UniformState } from "../uniformState";
 
 namespace Private {
     export const datatypeToGlsl: { [uniformType: string]: string } = {}; {
-        datatypeToGlsl[UniformTypeEnum.FLOAT] = "float";
-        datatypeToGlsl[UniformTypeEnum.FLOAT_VEC2] = "vec2";
-        datatypeToGlsl[UniformTypeEnum.FLOAT_VEC3] = "vec3";
-        datatypeToGlsl[UniformTypeEnum.FLOAT_VEC4] = "vec4";
-        datatypeToGlsl[UniformTypeEnum.INT] = "int";
-        datatypeToGlsl[UniformTypeEnum.INT_VEC2] = "ivec2";
-        datatypeToGlsl[UniformTypeEnum.INT_VEC3] = "ivec3";
-        datatypeToGlsl[UniformTypeEnum.INT_VEC4] = "ivec4";
-        datatypeToGlsl[UniformTypeEnum.BOOL] = "bool";
-        datatypeToGlsl[UniformTypeEnum.BOOL_VEC2] = "bvec2";
-        datatypeToGlsl[UniformTypeEnum.BOOL_VEC3] = "bvec3";
-        datatypeToGlsl[UniformTypeEnum.BOOL_VEC4] = "bvec4";
-        datatypeToGlsl[UniformTypeEnum.FLOAT_MAT2] = "mat2";
-        datatypeToGlsl[UniformTypeEnum.FLOAT_MAT3] = "mat3";
-        datatypeToGlsl[UniformTypeEnum.FLOAT_MAT4] = "mat4";
-        datatypeToGlsl[UniformTypeEnum.SAMPLER_2D] = "sampler2D";
-        datatypeToGlsl[UniformTypeEnum.SAMPLER_CUBE] = "samplerCube";
-    }
+    datatypeToGlsl[UniformTypeEnum.FLOAT] = "float";
+    datatypeToGlsl[UniformTypeEnum.FLOAT_VEC2] = "vec2";
+    datatypeToGlsl[UniformTypeEnum.FLOAT_VEC3] = "vec3";
+    datatypeToGlsl[UniformTypeEnum.FLOAT_VEC4] = "vec4";
+    datatypeToGlsl[UniformTypeEnum.INT] = "int";
+    datatypeToGlsl[UniformTypeEnum.INT_VEC2] = "ivec2";
+    datatypeToGlsl[UniformTypeEnum.INT_VEC3] = "ivec3";
+    datatypeToGlsl[UniformTypeEnum.INT_VEC4] = "ivec4";
+    datatypeToGlsl[UniformTypeEnum.BOOL] = "bool";
+    datatypeToGlsl[UniformTypeEnum.BOOL_VEC2] = "bvec2";
+    datatypeToGlsl[UniformTypeEnum.BOOL_VEC3] = "bvec3";
+    datatypeToGlsl[UniformTypeEnum.BOOL_VEC4] = "bvec4";
+    datatypeToGlsl[UniformTypeEnum.FLOAT_MAT2] = "mat2";
+    datatypeToGlsl[UniformTypeEnum.FLOAT_MAT3] = "mat3";
+    datatypeToGlsl[UniformTypeEnum.FLOAT_MAT4] = "mat4";
+    datatypeToGlsl[UniformTypeEnum.SAMPLER_2D] = "sampler2D";
+    datatypeToGlsl[UniformTypeEnum.SAMPLER_CUBE] = "samplerCube";
+}
 }
 
 export interface IAutomaticUniform {

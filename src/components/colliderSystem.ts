@@ -1,13 +1,13 @@
 import { mat4, vec3 } from "../mathD";
 import { BoxCollider, SphereCollider } from "./collider";
-import * as CANNON from 'cannon-es';
+import * as CANNON from "cannon-es";
 import { Rigidbody } from "./rigidbody";
 import { Entity, System } from "../scene/entity";
 import { ToyGL } from "../toygl";
 
 export class ColliderSystem extends System {
     caries = { boxColliders: [BoxCollider], SphereColliders: [SphereCollider], rigidbodies: [Rigidbody] };
-    private dic: { [id: string]: CANNON.Body } = {};
+
     private _toy: ToyGL;
     constructor(toy: ToyGL) {
         super();
@@ -15,38 +15,35 @@ export class ColliderSystem extends System {
         PhysicsWorld.init();
         this.on("removeEntity", ({ entity, queryKey }) => {
             if (queryKey == "colliders") {
-                PhysicsWorld.removeShape(this.dic[entity.id]);
+                PhysicsWorld.removeShape(entity.id);
             }
         });
         this.on("addEntity", ({ entity, queryKey }) => {
             if (queryKey == "boxColliders") {
-                let comp = entity.getComponent(BoxCollider);
-                let selfMat = mat4.fromTranslation(mat4.create(), comp.center);
-                let worldMat = mat4.multiply(selfMat, entity.worldMatrix, selfMat);
-                let worldPos = mat4.getTranslation(vec3.create(), worldMat);
-                let worldSize = mat4.transformVector(vec3.create(), comp.halfSize, worldMat);
-                let shape = PhysicsWorld.addBoxShape(worldPos, worldSize);
-                this.dic[entity.id] = shape;
+                const comp = entity.getComponent(BoxCollider);
+                const selfMat = mat4.fromTranslation(mat4.create(), comp.center);
+                const worldMat = mat4.multiply(selfMat, entity.worldMatrix, selfMat);
+                const worldPos = mat4.getTranslation(vec3.create(), worldMat);
+                const worldScale = mat4.getScaling(vec3.create(), worldMat);
+                const worldSize = vec3.multiply(vec3.create(), comp.halfSize, worldScale);
+                PhysicsWorld.addBoxShape(entity.id, worldPos, worldSize);
             } else if (queryKey == "SphereColliders") {
-                let comp = entity.getComponent(SphereCollider);
-                let worldPos = vec3.add(vec3.create(), comp.center, entity.worldPosition);
-                let shape = PhysicsWorld.addSphereShape(worldPos, comp.radius);
-                this.dic[entity.id] = shape;
-            }
-            else if (queryKey == "rigidbodies") {
-                let comp = entity.getComponent(Rigidbody);
-                let shape = PhysicsWorld.addRigidbody(comp.entity.worldPosition, comp.radius, comp.height, comp.mass);
-                this.dic[entity.id] = shape;
+                const comp = entity.getComponent(SphereCollider);
+                const worldPos = vec3.add(vec3.create(), comp.center, entity.worldPosition);
+                PhysicsWorld.addSphereShape(entity.id, worldPos, comp.radius);
+            } else if (queryKey == "rigidbodies") {
+                const comp = entity.getComponent(Rigidbody);
+                PhysicsWorld.addRigidbody(entity.id, comp.entity.worldPosition, comp.radius, comp.height, comp.mass);
             }
         });
     }
 
     update(delta: number) {
-        PhysicsWorld.update(delta);
-        // this.queries.boxColliders.forEach(item => {
-        //     let comp = item.getComponent(BoxCollider);
-        //     this._toy.gizmos.drawBoxCollider(comp);
-        // })
+        // PhysicsWorld.update(delta);
+        this.queries.boxColliders.forEach(item => {
+            const comp = item.getComponent(BoxCollider);
+            this._toy.gizmos.drawAABB(comp, comp.entity.worldMatrix);
+        });
         // let pos, entity, tempt = vec3.create();
         // for (let key in this.dic) {
         //     pos = this.dic[key].position;
@@ -63,47 +60,59 @@ export class ColliderSystem extends System {
 }
 
 export class PhysicsWorld {
+    private static dic: { [id: string]: CANNON.Body } = {};
     static world: CANNON.World;
     static init() {
-        var world = new CANNON.World();
+        const world = new CANNON.World();
         world.gravity.set(0, 0, -9.82); // m/s²
         this.world = world;
     }
 
-    static addBoxShape(position: ArrayLike<number>, halfExtents: ArrayLike<number>) {
-        let body = new CANNON.Body({
+    static addBoxShape(id: string, position: ArrayLike<number>, halfExtents: ArrayLike<number>) {
+        const body = new CANNON.Body({
             mass: 0,
             position: new CANNON.Vec3(position[0], position[1], position[2]),
-            shape: new CANNON.Box(new CANNON.Vec3(halfExtents[0], halfExtents[1], halfExtents[2])),
+            shape: new CANNON.Box(new CANNON.Vec3(halfExtents[0], halfExtents[1], halfExtents[2]))
         });
         this.world.addBody(body);
+        this.dic[id] = body;
         return body;
-    }
-    static addSphereShape(position: ArrayLike<number>, radius: number) {
-        let body = new CANNON.Body({
-            mass: 0,
-            position: new CANNON.Vec3(position[0], position[1], position[2]),
-            shape: new CANNON.Sphere(radius),
-        });
-        this.world.addBody(body);
-        return body;
-    }
-    static removeShape(body: CANNON.Body) {
-        this.world.removeBody(body);
     }
 
-    static addRigidbody(position: ArrayLike<number>, radius: number, height: number, mass: number) {
-        let body = new CANNON.Body({
+    static addSphereShape(id: string, position: ArrayLike<number>, radius: number) {
+        const body = new CANNON.Body({
+            mass: 0,
+            position: new CANNON.Vec3(position[0], position[1], position[2]),
+            shape: new CANNON.Sphere(radius)
+        });
+        this.world.addBody(body);
+        this.dic[id] = body;
+        return body;
+    }
+
+    static removeShape(id: string) {
+        this.world.removeBody(this.dic[id]);
+    }
+
+    static addRigidbody(id: string, position: ArrayLike<number>, radius: number, height: number, mass: number) {
+        const body = new CANNON.Body({
             mass: mass,
             position: new CANNON.Vec3(position[0], position[1], position[2]),
-            shape: new CANNON.Cylinder(radius, radius, height),
+            shape: new CANNON.Cylinder(radius, radius, height)
             // type: CANNON.Body.KINEMATIC
         });
         this.world.addBody(body);
+        this.dic[id] = body;
         return body;
     }
 
     static update(deltaTime: number) {
         this.world?.step(1.0 / 60.0, deltaTime, 3);
+    }
+
+    static rayTest(from: vec3, to?: vec3) {
+        let result = new CANNON.RaycastResult();
+        this.world?.rayTest(new CANNON.Vec3(from[0], from[1], from[2]), new CANNON.Vec3(to[0], to[1], to[2]), result);
+        return result;
     }
 }

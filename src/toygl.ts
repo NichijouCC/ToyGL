@@ -22,7 +22,7 @@ export class ToyGL {
         const device = new GraphicsDevice(canvas);
         const render = new ForwardRender(device);
         const resource = new Resource();
-        const scene = new InterScene(render);
+        const scene = new InterScene(toy);
         resource.registerAssetLoader(".gltf", new LoadGlTF(device));
         resource.registerAssetLoader(".glb", new LoadGlTF(device));
         ECS.addSystem(new CameraSystem(scene, screen));
@@ -40,6 +40,7 @@ export class ToyGL {
         toy._gizmos = new Gizmos(toy);
         return toy;
     }
+
     private _screen: Screen;
     get screen() { return this._screen; }
 

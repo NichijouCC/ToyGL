@@ -1,14 +1,18 @@
 import { EventTarget } from "@mtgoo/ctool";
-import { ForwardRender } from "./render/forwardRender";
 import { Camera } from "./camera";
 import { Entity } from "./entity";
 import { ECS } from "../core/ecs/ecs";
 import { IRenderable } from "./render/irenderable";
 import { FrameState } from "./frameState";
+import { ToyGL } from "../toygl";
+import { mat4, vec2, vec3, vec4 } from "../mathD";
+import { PhysicsWorld } from "../components";
+import { Input } from "../input";
 
 export class InterScene {
     private _cameras: Map<string, Camera> = new Map();
     private _mainCam: Camera
+    private _toy: ToyGL;
     get mainCamera() { return this._mainCam; }
     set mainCamera(cam: Camera) { this._mainCam = cam; }
     addNewCamera() {
@@ -29,9 +33,8 @@ export class InterScene {
 
     get cameras() { return this._cameras; }
     private root: Entity;
-    private render: ForwardRender;
-    constructor(render: ForwardRender) {
-        this.render = render;
+    constructor(toy: ToyGL) {
+        this._toy = toy;
         this.root = new Entity({ beActive: true, _parentsBeActive: true } as any);
         Entity.onDirty.addEventListener((node) => {
             this.frameState.dirtyNode.add(node as Entity);
@@ -68,6 +71,7 @@ export class InterScene {
         this.frameState.renders.push(render);
         return render;
     }
+
     _addFrameMesh() {
 
     }
@@ -78,7 +82,60 @@ export class InterScene {
         this.preRender.raiseEvent();
         state.renders = state.renders.concat(this._renders);
         const { cameras } = this;
-        this.render.render(Array.from(cameras.values()), state);
+        this._toy.render.render(Array.from(cameras.values()), state);
         this.afterRender.raiseEvent();
     }
+
+    pick(screenPos: vec2) {
+        const { screen } = this._toy;
+        const ndc_x = (screenPos[0] / screen.width) * 2 - 1;
+        const ndc_y = -1 * ((screenPos[1] / screen.height) * 2 - 1);
+        const ndc_near = vec3.fromValues(ndc_x, ndc_y, -1);
+        const ndc_far = vec3.fromValues(ndc_x, ndc_y, 1);
+        const world_near = ndcToWorld(ndc_near, this._toy.scene.mainCamera.projectMatrix, this._toy.scene.mainCamera.worldMatrix);
+        const world_far = ndcToWorld(ndc_far, this._toy.scene.mainCamera.projectMatrix, this._toy.scene.mainCamera.worldMatrix);
+        this._toy.gizmos.drawLine(world_near, world_far);
+    }
+
+    pickTestCollider() {
+        const { screen } = this._toy;
+        const screenPos = Input.mouse.position;
+        const ndc_x = (screenPos[0] / screen.width) * 2 - 1;
+        const ndc_y = -1 * ((screenPos[1] / screen.height) * 2 - 1);
+        const ndc_near = vec3.fromValues(ndc_x, ndc_y, -1);
+        const ndc_far = vec3.fromValues(ndc_x, ndc_y, 1);
+        const world_near = ndcToWorld(ndc_near, this._toy.scene.mainCamera.projectMatrix, this._toy.scene.mainCamera.worldMatrix);
+        const world_far = ndcToWorld(ndc_far, this._toy.scene.mainCamera.projectMatrix, this._toy.scene.mainCamera.worldMatrix);
+
+        const result = PhysicsWorld.rayTest(world_near, world_far);
+        console.log("pickFromRay", result);
+        if (result.hasHit) {
+            const posInWorld = result.hitPointWorld;
+            this._toy.gizmos.drawPoint(vec3.fromValues(posInWorld.x, posInWorld.y, posInWorld.z));
+        }
+    }
+
+    intersectCollider(from: vec3, to: vec3) {
+        return PhysicsWorld.rayTest(from, to);
+    }
+}
+
+export class Ray {
+    pos: vec3;
+    dir: vec3;
+    constructor(pos: vec3, dir: vec3) {
+        this.pos = pos;
+        this.dir = dir;
+    }
+}
+
+function ndcToView(ndcPos: vec3, projectMat: mat4) {
+    const inversePrjMat = mat4.invert(mat4.create(), projectMat);
+    const viewPosH = vec4.transformMat4(vec4.create(), vec4.fromValues(ndcPos[0], ndcPos[1], ndcPos[2], 1), inversePrjMat);
+    return vec3.fromValues(viewPosH[0] / viewPosH[3], viewPosH[1] / viewPosH[3], viewPosH[2] / viewPosH[3]);
+}
+
+function ndcToWorld(ndcPos: vec3, projectMat: mat4, camToWorld: mat4) {
+    const view_pos = ndcToView(ndcPos, projectMat);
+    return vec3.transformMat4(vec3.create(), view_pos, camToWorld);
 }

@@ -1,6 +1,6 @@
-import { vec3, mat4, quat } from '../mathD/index';
-import { Entity } from './entity';
-import { Entity as BaseEntity } from '../core/ecs'
+import { vec3, mat4, quat } from "../mathD/index";
+import { Entity } from "./entity";
+import { Entity as BaseEntity } from "../core/ecs";
 enum DirtyFlagEnum {
     WORLD_POS = 0b000100,
     WORLD_ROTATION = 0b001000,
@@ -10,25 +10,26 @@ enum DirtyFlagEnum {
 }
 export class Transform extends BaseEntity {
     protected _parent: this;
-    get parent() { return this._parent }
+    get parent() { return this._parent; }
     protected _children: this[] = [];
-    get children() { return this._children }
-    private dirtyFlag: number = 0;
+    get children() { return this._children; }
+    private dirtyFlag = 0;
 
-    //-----------------------------------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------------------------------
     //  本节点是否显示由节点自身是否显示和递归的父节点是否显示综合决定，【beActive = selfBeActive & p1_beActive & p2_beActive & .... 】 
-    //-----------------------------------------------------------------------------------------------------------
-    private _selfBeActive: boolean = true;
-    private _parentsBeActive: boolean = false;
+    // -----------------------------------------------------------------------------------------------------------
+    private _selfBeActive = true;
+    private _parentsBeActive = false;
     private _setParentsBeActive = (active: boolean) => {
         if (active != this._parentsBeActive) {
             this._parentsBeActive = active;
-            //当自己为激活状态，父节点显示状态修改，则beActive修改了，需要通知子节点；当自己为未激活状态,beActive并未修改
+            // 当自己为激活状态，父节点显示状态修改，则beActive修改了，需要通知子节点；当自己为未激活状态,beActive并未修改
             if (this._selfBeActive) {
-                this._children.forEach(item => { item._setParentsBeActive(active); })
+                this._children.forEach(item => { item._setParentsBeActive(active); });
             }
         }
     }
+
     /**
      * 此节点最终是否显示
      */
@@ -37,7 +38,7 @@ export class Transform extends BaseEntity {
         if (this._selfBeActive != active) {
             this._selfBeActive = active;
             if (this._parentsBeActive) {
-                this._children.forEach(item => item._setParentsBeActive(active))
+                this._children.forEach(item => item._setParentsBeActive(active));
             }
         }
     }
@@ -45,7 +46,7 @@ export class Transform extends BaseEntity {
     constructor() {
         super();
         // --------attach to dirty-------
-        let _this = this;
+        const _this = this;
         this._localPosition = new Proxy(vec3.create(), {
             set: function (target, property, value, receiver) {
                 target[property as any] = value;
@@ -60,7 +61,7 @@ export class Transform extends BaseEntity {
                 _this.markDirty();
                 return true;
             }
-        })
+        });
 
         this._localScale = new Proxy(vec3.fromValues(1, 1, 1), {
             set: function (target, property, value, receiver) {
@@ -68,7 +69,7 @@ export class Transform extends BaseEntity {
                 _this.markDirty();
                 return true;
             }
-        })
+        });
     }
 
     private _localPosition: vec3;
@@ -124,11 +125,11 @@ export class Transform extends BaseEntity {
             return;
         }
         if (this._parent._parent == null) {
-            this._localPosition = value;
+            vec3.copy(this._localPosition, value);
         } else {
             const invParentWorld = mat4.create();
             mat4.invert(invParentWorld, this._parent.worldMatrix);
-            vec3.transformMat4(this._localPosition, value, invParentWorld)
+            vec3.transformMat4(this._localPosition, value, invParentWorld);
         }
         this.markDirty();
     }
@@ -147,7 +148,7 @@ export class Transform extends BaseEntity {
             return;
         }
         if (this._parent._parent == null) {
-            this._localRotation = value;
+            quat.copy(this._localRotation, value);
         } else {
             const invParentWorldRot = quat.create();
             quat.invert(invParentWorldRot, this._parent.worldRotation);
@@ -170,7 +171,7 @@ export class Transform extends BaseEntity {
             return;
         }
         if (this._parent._parent == null) {
-            this._localScale = value;
+            vec3.copy(this._localScale, value);
         } else {
             vec3.divide(this._localScale, value, this._parent.worldScale);
         }
@@ -231,7 +232,6 @@ export class Transform extends BaseEntity {
         }
     }
 
-
     /**
      * 修改local属性后，标记dirty
      */
@@ -284,11 +284,11 @@ export class Transform extends BaseEntity {
         node._parentsBeActive = false;
     }
 
-    //----------------节点查找
-    find(check: (e: this) => void | boolean): this | null {//层序遍历
-        let queue: this[] = [this];
+    // ----------------节点查找
+    find(check: (e: this) => void | boolean): this | null { // 层序遍历
+        const queue: this[] = [this];
         while (queue.length != 0) {
-            let first = queue.shift();
+            const first = queue.shift();
             if (check(first)) return first;
             for (let i = 0; i < first._children.length; i++) {
                 queue.push(first._children[i]);
@@ -305,7 +305,7 @@ export class Transform extends BaseEntity {
         return null;
     }
 
-    traverse(handler: (e: this) => void | boolean, includeSelf: boolean = true): void {//先序遍历
+    traverse(handler: (e: this) => void | boolean, includeSelf = true): void { // 先序遍历
         let _find;
         if (includeSelf) {
             _find = handler(this);
@@ -317,7 +317,7 @@ export class Transform extends BaseEntity {
                 child.traverse(handler, true);
             }
         } else {
-            return;
+
         }
     }
 
@@ -358,7 +358,7 @@ export class Transform extends BaseEntity {
     }
 
     lookAtPoint(pos: vec3, up?: vec3) {
-        let temptMat = mat4.create();
+        const temptMat = mat4.create();
         mat4.targetTo(temptMat, this.worldPosition, pos, up ?? vec3.UP);
         this.worldMatrix = temptMat;
     }

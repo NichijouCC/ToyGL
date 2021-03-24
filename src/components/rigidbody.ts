@@ -6,8 +6,8 @@ import { Component, Entity } from "../scene";
 @ECS.registerComp
 export class Rigidbody extends Component {
     mass = 1;
-    radius: number = 0.5;
-    height: number = 1;
+    radius = 0.5;
+    height = 1;
     velocity: vec3 = vec3.create();
     clone(): IComponent {
         throw new Error("Method not implemented.");
