@@ -1,4 +1,4 @@
-import { vec3, mat4, quat } from "../mathD/index";
+import { vec3, mat4, quat, mat4Pool, vec3Pool } from "../mathD/index";
 import { Entity } from "./entity";
 import { Entity as BaseEntity } from "../core/ecs";
 enum DirtyFlagEnum {
@@ -47,7 +47,8 @@ export class Transform extends BaseEntity {
         super();
         // --------attach to dirty-------
         const _this = this;
-        this._localPosition = new Proxy(vec3.create(), {
+        this._localPosition = vec3.create();
+        this._proxyLocalPosition = new Proxy(this._localPosition, {
             set: function (target, property, value, receiver) {
                 target[property as any] = value;
                 _this.markDirty();
@@ -55,7 +56,8 @@ export class Transform extends BaseEntity {
             }
         });
 
-        this._localRotation = new Proxy(quat.create(), {
+        this._localRotation = quat.create();
+        this._proxyLocalRotation = new Proxy(this._localRotation, {
             set: function (target, property, value, receiver) {
                 target[property as any] = value;
                 _this.markDirty();
@@ -63,7 +65,8 @@ export class Transform extends BaseEntity {
             }
         });
 
-        this._localScale = new Proxy(vec3.fromValues(1, 1, 1), {
+        this._localScale = vec3.fromValues(1, 1, 1);
+        this._proxyLocalScale = new Proxy(this._localScale, {
             set: function (target, property, value, receiver) {
                 target[property as any] = value;
                 _this.markDirty();
@@ -73,17 +76,29 @@ export class Transform extends BaseEntity {
     }
 
     private _localPosition: vec3;
+    private _proxyLocalPosition: vec3;
     private _localRotation: quat;
+    private _proxyLocalRotation: quat;
     private _localScale: vec3;
+    private _proxyLocalScale: vec3;
 
-    set localPosition(value: vec3) { vec3.copy(this._localPosition, value); }
-    get localPosition(): vec3 { return this._localPosition; }
+    set localPosition(value: vec3) {
+        vec3.copy(this._localPosition, value);
+        this.markDirty();
+    }
+    get localPosition(): vec3 { return this._proxyLocalPosition; }
 
-    set localRotation(value: quat) { quat.copy(this._localRotation, value); }
-    get localRotation(): quat { return this._localRotation; }
+    set localRotation(value: quat) {
+        quat.copy(this._localRotation, value);
+        this.markDirty();
+    }
+    get localRotation(): quat { return this._proxyLocalRotation; }
 
-    set localScale(value: vec3) { vec3.copy(this._localScale, value); }
-    get localScale(): vec3 { return this._localScale; }
+    set localScale(value: vec3) {
+        vec3.copy(this._localScale, value);
+        this.markDirty();
+    }
+    get localScale(): vec3 { return this._proxyLocalScale; }
 
     private _localMatrix: mat4 = mat4.create();
     set localMatrix(value: mat4) {
@@ -127,9 +142,10 @@ export class Transform extends BaseEntity {
         if (this._parent._parent == null) {
             vec3.copy(this._localPosition, value);
         } else {
-            const invParentWorld = mat4.create();
+            const invParentWorld = mat4Pool.create();
             mat4.invert(invParentWorld, this._parent.worldMatrix);
             vec3.transformMat4(this._localPosition, value, invParentWorld);
+            mat4Pool.recycle(invParentWorld);
         }
         this.markDirty();
     }
@@ -203,9 +219,10 @@ export class Transform extends BaseEntity {
         if (this._parent._parent == null) {
             mat4.copy(this._localMatrix, value);
         } else {
-            const invParentWorld = mat4.create();
+            const invParentWorld = mat4Pool.create();
             mat4.invert(invParentWorld, this._parent.worldMatrix);
             mat4.multiply(this.localMatrix, invParentWorld, value);
+            mat4Pool.recycle(invParentWorld);
         }
         this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLD_MAT;
         this.dirtyFlag =
@@ -344,10 +361,11 @@ export class Transform extends BaseEntity {
     }
 
     moveInWorld(dir: vec3, amount: number) {
-        const dirInLocal = vec3.create();
+        const dirInLocal = vec3Pool.create();
         mat4.transformVector(dirInLocal, dir, this.worldToLocalMatrix);
         vec3.scaleAndAdd(this._localPosition, this._localPosition, dirInLocal, amount);
         this.markDirty();
+        vec3Pool.recycle(dirInLocal);
         return this;
     }
 
@@ -358,9 +376,10 @@ export class Transform extends BaseEntity {
     }
 
     lookAtPoint(pos: vec3, up?: vec3) {
-        const temptMat = mat4.create();
+        const temptMat = mat4Pool.create();
         mat4.targetTo(temptMat, this.worldPosition, pos, up ?? vec3.UP);
         this.worldMatrix = temptMat;
+        mat4Pool.recycle(temptMat);
     }
 
     lookAt(tran: Transform, up?: vec3) {

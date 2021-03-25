@@ -1,4 +1,3 @@
-
 export function applyMixins(derivedCtor: any, constructors: any[]) {
     constructors.forEach((baseCtor) => {
         let props = Object.getOwnPropertyNames(baseCtor.prototype);
@@ -10,17 +9,6 @@ export function applyMixins(derivedCtor: any, constructors: any[]) {
                 Object.create(null)
             );
         });
-        let symbols = Object.getOwnPropertySymbols(baseCtor.prototype);
-        symbols.forEach((name) => {
-            Object.defineProperty(
-                derivedCtor.prototype,
-                name,
-                Object.getOwnPropertyDescriptor(baseCtor.prototype, name) ||
-                Object.create(null)
-            );
-        });
-        let arr = Reflect.ownKeys(baseCtor);
-        console.log(baseCtor);
     });
 }
 

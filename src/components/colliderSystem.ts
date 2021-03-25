@@ -7,7 +7,7 @@ import { ToyGL } from "../toygl";
 
 export class ColliderSystem extends System {
     caries = { boxColliders: [BoxCollider], SphereColliders: [SphereCollider], rigidbodies: [Rigidbody] };
-
+    drawOutLine = false;
     private _toy: ToyGL;
     constructor(toy: ToyGL) {
         super();
@@ -40,10 +40,12 @@ export class ColliderSystem extends System {
 
     update(delta: number) {
         // PhysicsWorld.update(delta);
-        this.queries.boxColliders.forEach(item => {
-            const comp = item.getComponent(BoxCollider);
-            this._toy.gizmos.drawAABB(comp, comp.entity.worldMatrix);
-        });
+        if (this.drawOutLine) {
+            this.queries.boxColliders.forEach(item => {
+                const comp = item.getComponent(BoxCollider);
+                this._toy.gizmos.drawAABB(comp, comp.entity.worldMatrix);
+            });
+        }
         // let pos, entity, tempt = vec3.create();
         // for (let key in this.dic) {
         //     pos = this.dic[key].position;

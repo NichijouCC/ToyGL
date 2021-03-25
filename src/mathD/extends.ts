@@ -1,3 +1,5 @@
+import { ObjectPool } from "@mtgoo/ctool";
+import { vec4 } from "gl-matrix";
 import { vec3, mat4 } from "gl-matrix";
 import { TypedArray } from "../core/typedArray";
 
@@ -25,6 +27,19 @@ import { TypedArray } from "../core/typedArray";
         return out;
     };
 })();
+(vec3 as any).identity = (out: vec3) => {
+    out[0] = 0;
+    out[1] = 0;
+    out[2] = 0;
+    return out;
+}
+(vec4 as any).identity = (out: vec3) => {
+    out[0] = 0;
+    out[1] = 0;
+    out[2] = 0;
+    out[3] = 0;
+    return out;
+}
 
 (mat4 as any).IDENTITY = mat4.create();
 (mat4 as any).fromNumberArray = (array: ArrayLike<number>) => {
@@ -95,6 +110,10 @@ declare module "gl-matrix" {
         const UP: vec3;
         export function center(out: vec3, a: vec3, b: vec3): vec3;
         export function projectToPlan(out: vec3, a: vec3, planNormal: vec3): vec3;
+        export function identity(out: vec3): vec3;
+    }
+    namespace vec4 {
+        export function identity(out: vec4): vec4;
     }
     namespace mat4 {
         const IDENTITY: mat4;
@@ -105,3 +124,7 @@ declare module "gl-matrix" {
         export function toArray<T = number[] | TypedArray>(out: T, mat: mat4, offset: number): T;
     }
 }
+
+export const mat4Pool = new ObjectPool({ create: () => mat4.create(), reset: (obj: mat4) => mat4.identity(obj) });
+export const vec3Pool = new ObjectPool({ create: () => vec3.create(), reset: (obj: vec3) => vec3.identity(obj) });
+export const vec4Pool = new ObjectPool({ create: () => vec4.create(), reset: (obj: vec4) => vec4.identity(obj) });
