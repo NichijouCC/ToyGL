@@ -5,10 +5,7 @@ import { IglElement } from "../core/iglElement";
 export class FrameBuffer implements IframeBufferInfo, IglElement {
     frameBuffer: WebGLFramebuffer;
     attachInfos: IframeBufferAttachmentItem[];
-    constructor(options: {
-        context: GraphicsDevice,
-        attachments: IframeBufferAttachment[]
-    }) {
+    constructor(options:IFrameBufferOptions) {
         const gl = options.context.gl;
         const fbo = gl.createFramebuffer();
         gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
@@ -121,6 +118,10 @@ export class FrameBuffer implements IframeBufferInfo, IglElement {
     destroy() { }
 }
 
+export interface IFrameBufferOptions {
+    context: GraphicsDevice,
+    attachments: IframeBufferAttachment[]
+}
 export interface IframeBufferAttachment {
     type: "color" | "depth" | "depthWithStencil" | "stencil";
     beTexture?: boolean;

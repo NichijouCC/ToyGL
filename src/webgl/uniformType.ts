@@ -1,6 +1,4 @@
 import { GlConstants } from "./glConstant";
-import { IUniformInfo } from "./shaderProgram";
-import { GraphicsDevice } from "./graphicsDevice";
 
 export enum UniformTypeEnum {
     FLOAT = "FLOAT",
@@ -80,11 +78,20 @@ export namespace UniformTypeEnum {
         gltypeArrayToUniformType[GlConstants.SAMPLER_CUBE] = UniformTypeEnum.SAMPLER_CUBE_ARRAY;
     }
 
-    export function fromGlType(type: number, beArray: boolean = false) {
-        if (beArray) {
-            return gltypeArrayToUniformType[type];
-        } else {
-            return gltypeToUniformType[type];
+    export const fromGlType=(()=>{
+        let _type:UniformTypeEnum;
+        return  (glType: number, beArray: boolean = false)=> {
+            if (beArray) {
+                _type= gltypeArrayToUniformType[glType];
+            } else {
+                _type=  gltypeToUniformType[glType];
+            }
+            if(_type==null){
+                let message=`unhanded uniform GLType:${glType}`;
+                console.error(message);
+                throw new Error(message)
+            }
+            return _type;
         }
-    }
+    })()
 }

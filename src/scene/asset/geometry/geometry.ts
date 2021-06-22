@@ -111,8 +111,7 @@ export class Geometry extends AbstractGeometryAsset {
                 typedArray: this.indices
             });
         }
-        return new VertexArray({
-            context: device,
+        return device.createVertexArray({
             vertexAttributes: vertexAtts,
             indexBuffer: indexBuffer,
             primitiveType: this.primitiveType

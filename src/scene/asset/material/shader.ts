@@ -44,8 +44,7 @@ export class Shader extends Asset {
         bucketId = bucketId | this._bucketFeats;
         if (!this._programs.has(bucketId)) {
             const packStr = ShaderBucket.packShaderStr(bucketId);
-            const program = new ShaderProgram({
-                context: device,
+            const program =device.createShaderProgram({
                 attributes: this.attributes,
                 vsStr: packStr + this.vsStr,
                 fsStr: packStr + this.fsStr
@@ -67,11 +66,7 @@ export class Shader extends Asset {
     }
 }
 
-export interface IShaderOption {
-    attributes: { [attName: string]: VertexAttEnum };
-    vsStr: string;
-    fsStr: string;
-}
+export type IShaderOption =Omit<IShaderProgramOption,"context">
 
 export interface ILayerIndexEvent {
     layer: RenderLayerEnum;

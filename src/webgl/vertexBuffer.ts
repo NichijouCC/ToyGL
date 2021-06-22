@@ -1,8 +1,8 @@
 import { GraphicsDevice } from "./graphicsDevice";
-import { BufferUsageEnum, Buffer, BufferTargetEnum, bufferOption, BufferConfig } from "./buffer";
+import { BufferUsageEnum, Buffer, BufferTargetEnum } from "./buffer";
 import { TypedArray } from "../core/typedArray";
-export type vertexBufferOption =
-    | {
+
+export type VertexBufferOption = {
         context: GraphicsDevice;
         usage?: BufferUsageEnum;
         sizeInBytes: number;
@@ -14,14 +14,7 @@ export type vertexBufferOption =
     };
 
 export class VertexBuffer extends Buffer {
-    // componentSize: number;
-    // componentDataType: number;
-    // // size?: number;
-    // normalize: boolean;
-    // bytesStride: number;
-    // bytesOffset: number;
-    // divisor?: number;
-    constructor(options: vertexBufferOption) {
+    constructor(options: VertexBufferOption) {
         super({ ...options, target: BufferTargetEnum.ARRAY_BUFFER });
     }
 }

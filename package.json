@@ -25,7 +25,6 @@
   },
   "devDependencies": {
     "@types/cannon": "^0.1.5",
-    "@types/gl-matrix": "^3.2.0",
     "@types/node": "^10.11.0",
     "@typescript-eslint/eslint-plugin": "^3.10.1",
     "@typescript-eslint/parser": "^3.10.1",

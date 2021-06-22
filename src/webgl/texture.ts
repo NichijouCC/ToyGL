@@ -27,13 +27,13 @@ export class Texture {
     wrapS: TextureWrapEnum;
     wrapT: TextureWrapEnum;
     maximumAnisotropy: number;
-    enableMimap: boolean;
+    enableMipmap: boolean;
     mipmapFilter: TextureFilterEnum;
     unpackAlignment: number;
     sourceType: TextureDataFromEnum;
     private _context: GraphicsDevice;
     private _gl: WebGLRenderingContext;
-    private constructor(options: ItextureOptions) {
+    private constructor(options: ITextureOptions) {
         let { context, width, height, source, pixelFormat = PixelFormatEnum.RGBA, pixelDatatype = PixelDatatypeEnum.UNSIGNED_BYTE } = options;
         this._context = context;
         this._textureFilterAnisotropic = context.caps.textureAnisotropicFilterExtension;
@@ -158,7 +158,7 @@ export class Texture {
 
         if (source) {
             if (source.arrayBufferView) { // Source: typed array
-                this.sourceType = TextureDataFromEnum.TYPEDARRAY;
+                this.sourceType = TextureDataFromEnum.TYPED_ARRAY;
                 gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
                 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
 
@@ -188,7 +188,7 @@ export class Texture {
                     }
                 };
             } else if (source.framebuffer != null) { // Source: framebuffer
-                this.sourceType = TextureDataFromEnum.FRAMEBUFFER;
+                this.sourceType = TextureDataFromEnum.FRAME_BUFFER;
                 gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
                 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
 
@@ -196,7 +196,7 @@ export class Texture {
                 gl.copyTexImage2D(target, 0, internalFormat, source.xOffset, source.yOffset, width, height, 0);
                 source.framebuffer.unbind();
             } else { // Source: ImageData, HTMLImageElement, HTMLCanvasElement, or HTMLVideoElement
-                this.sourceType = TextureDataFromEnum.IMAGESOURCE;
+                this.sourceType = TextureDataFromEnum.IMAGE_SOURCE;
                 // Only valid for DOM-Element uploads
                 gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, preMultiplyAlpha);
                 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flipY);
@@ -214,7 +214,7 @@ export class Texture {
         this.wrapS = options.sampler?.wrapS || TextureWrapEnum.REPEAT;
         this.wrapT = options.sampler?.wrapT || TextureWrapEnum.REPEAT;
         this.maximumAnisotropy = options.sampler?.maximumAnisotropy || 1.0;
-        this.enableMimap = options.sampler?.enableMimap ?? true;
+        this.enableMipmap = options.sampler?.enableMimap ?? true;
         this.mipmapFilter = options.sampler?.mipmapFilter ?? TextureFilterEnum.LINEAR;
 
         if (context.webGLVersion != 1) {
@@ -227,7 +227,7 @@ export class Texture {
                 // throw new Error('Cannot call generateMipmap with a compressed pixel format.');
                 // throw new Error('width must be a power of two to call generateMipmap().');
                 // throw new Error('height must be a power of two to call generateMipmap().');
-                this.enableMimap = false;
+                this.enableMipmap = false;
             }
 
             if (!isPowerOf2(this.width) ||
@@ -248,7 +248,7 @@ export class Texture {
 
         gl.texParameteri(target, gl.TEXTURE_WRAP_S, this.wrapS);
         gl.texParameteri(target, gl.TEXTURE_WRAP_T, this.wrapT);
-        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, TextureFilterEnum.realfilter(this.filterMin, this.enableMimap, this.mipmapFilter));
+        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, TextureFilterEnum.realfilter(this.filterMin, this.enableMipmap, this.mipmapFilter));
         gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, this.filterMax);
         if (this._textureFilterAnisotropic) {
             gl.texParameteri(target, this._textureFilterAnisotropic.TEXTURE_MAX_ANISOTROPY_EXT, this.maximumAnisotropy);
@@ -292,16 +292,7 @@ export class Texture {
      * // Source: typed array
      * @param options 
      */
-    static fromTypedArray(options: {
-        context: GraphicsDevice;
-        width: number;
-        height: number;
-        arrayBufferView: TypedArray;
-        pixelFormat?: PixelFormatEnum;
-        pixelDatatype?: PixelDatatypeEnum;
-        sampler?: IsamplerOptions;
-        flipY?: boolean;
-    }) {
+    static fromTypedArray(options:ITypedArrayTexOpts) {
         return new Texture({ ...options, source: { arrayBufferView: options.arrayBufferView } });
     }
 
@@ -309,40 +300,22 @@ export class Texture {
      * // Source: ImageData, HTMLImageElement, HTMLCanvasElement, or HTMLVideoElement
      * @param options 
      */
-    static fromImageSource(options: {
-        context: GraphicsDevice;
-        image: TexImageSource;
-        pixelFormat?: PixelFormatEnum;
-        pixelDatatype?: PixelDatatypeEnum;
-        sampler?: IsamplerOptions;
-        flipY?: boolean;
-    }) {
+    static fromImageSource(options: IImageSourceTexOpts) {
         return new Texture({ ...options, source: options.image });
     }
 
-    static fromFrameBuffer(options: {
-        context: GraphicsDevice;
-        width: number;
-        height: number;
-        framebuffer: FrameBuffer;
-        xOffset?: number;
-        yOffset?: number;
-        pixelFormat?: PixelFormatEnum;
-        pixelDatatype?: PixelDatatypeEnum;
-        sampler?: IsamplerOptions;
-        flipY?: boolean;
-    }) {
+    static fromFrameBuffer(options: IFrameBufferTexOpts) {
         return new Texture({ ...options, source: { framebuffer: options.framebuffer, xOffset: options.xOffset, yOffset: options.yOffset } });
     }
 }
 
 export enum TextureDataFromEnum {
-    TYPEDARRAY,
-    FRAMEBUFFER,
-    IMAGESOURCE
+    TYPED_ARRAY,
+    FRAME_BUFFER,
+    IMAGE_SOURCE
 }
 
-export interface ItextureOptions {
+export interface ITextureOptions {
     context: GraphicsDevice;
     width?: number;
     height?: number;
@@ -356,20 +329,45 @@ export interface ItextureOptions {
     pixelDatatype?: PixelDatatypeEnum;
     preMultiplyAlpha?: boolean;
     flipY?: boolean;
-    // sampler?: IsamplerOptions
 
-    // ----------------texParameteri-------------
-    // filterMax?: TextureFilterEnum;
-    // filterMin?: TextureFilterEnum;
-    // wrapS?: TextureWrapEnum;
-    // wrapT?: TextureWrapEnum;
-    // maximumAnisotropy?: number;
-    // enableMimap?: boolean;
-    // mipmapFilter?: TextureFilterEnum;
-    sampler?: IsamplerOptions;
+    sampler?: ISamplerOptions;
 }
 
-export interface IsamplerOptions {
+export interface ITypedArrayTexOpts{
+    context: GraphicsDevice;
+    width: number;
+    height: number;
+    arrayBufferView: TypedArray;
+    pixelFormat?: PixelFormatEnum;
+    pixelDatatype?: PixelDatatypeEnum;
+    sampler?: ISamplerOptions;
+    flipY?: boolean;
+}
+
+export interface IImageSourceTexOpts{
+    context: GraphicsDevice;
+    image: TexImageSource;
+    pixelFormat?: PixelFormatEnum;
+    pixelDatatype?: PixelDatatypeEnum;
+    sampler?: ISamplerOptions;
+    flipY?: boolean;
+}
+
+export interface IFrameBufferTexOpts{
+    context: GraphicsDevice;
+    width: number;
+    height: number;
+    framebuffer: FrameBuffer;
+    xOffset?: number;
+    yOffset?: number;
+    pixelFormat?: PixelFormatEnum;
+    pixelDatatype?: PixelDatatypeEnum;
+    sampler?: ISamplerOptions;
+    flipY?: boolean;
+}
+
+
+export interface ISamplerOptions {
     // ----------------texParameteri-------------
     filterMax?: TextureFilterEnum;
     filterMin?: TextureFilterEnum;
@@ -388,12 +386,12 @@ export class Sampler {
     maximumAnisotropy: number;
     enableMimap: boolean;
     mipmapFilter: TextureFilterEnum;
-    constructor(options?: IsamplerOptions) {
-        this.filterMax = options?.filterMax || TextureFilterEnum.LINEAR;
-        this.filterMin = options?.filterMin || TextureFilterEnum.LINEAR;
-        this.wrapS = options?.wrapS || TextureWrapEnum.REPEAT;
-        this.wrapT = options?.wrapT || TextureWrapEnum.REPEAT;
-        this.maximumAnisotropy = options?.maximumAnisotropy || 1.0;
+    constructor(options?: ISamplerOptions) {
+        this.filterMax = options?.filterMax ?? TextureFilterEnum.LINEAR;
+        this.filterMin = options?.filterMin ?? TextureFilterEnum.LINEAR;
+        this.wrapS = options?.wrapS ?? TextureWrapEnum.REPEAT;
+        this.wrapT = options?.wrapT ?? TextureWrapEnum.REPEAT;
+        this.maximumAnisotropy = options?.maximumAnisotropy ?? 1.0;
         this.enableMimap = options?.enableMimap ?? false;
         this.mipmapFilter = options?.mipmapFilter ?? TextureFilterEnum.LINEAR;
     }

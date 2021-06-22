@@ -2,7 +2,7 @@ import { VertexBuffer } from "./vertexBuffer";
 import { GraphicsDevice } from "./graphicsDevice";
 import { ComponentDatatypeEnum } from "./componentDatatypeEnum";
 import { VertexAttEnum } from "./vertexAttEnum";
-import { BufferConfig } from "./buffer";
+import { VertexAttSetter } from "./vertexAttSetter";
 import { GlType } from "../core/typedArray";
 
 export interface IVertexAttribute {
@@ -100,7 +100,7 @@ export class VertexAttribute implements IVertexAttribute {
                 }
             };
         } else {
-            const bindFunc = BufferConfig.vertexAttributeSetter[att.componentsPerAttribute];
+            const bindFunc = VertexAttSetter.get(att.componentsPerAttribute);
             this.bind = () => {
                 bindFunc(this.index, this.value);
             };

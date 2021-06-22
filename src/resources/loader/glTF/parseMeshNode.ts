@@ -115,7 +115,7 @@ export class ParseMeshNode {
         return Promise.all(taskAtts)
             .then(() => {
                 const mesh = new PrimitiveMesh();
-                mesh.vertexArray = new VertexArray(vaoOptions);
+                mesh.vertexArray =context.createVertexArray(vaoOptions);
                 mesh.boundingBox = aabb;
                 return mesh;
             }).catch(err => {

@@ -2,6 +2,7 @@ import { GraphicsDevice } from "./graphicsDevice";
 import { UniformTypeEnum } from "./uniformType";
 import { VertexAttEnum } from "./vertexAttEnum";
 import { Texture } from "./texture";
+import { UniformSetter } from "./UniformSetter";
 
 /***
  * @example usage
@@ -32,7 +33,7 @@ export class ShaderProgram implements IShaderProgram {
     private static _cachedProgram: WebGLProgram;
 
     constructor(options: IShaderProgramOption) {
-        const res = options.context.compileAndLinkShader(options);
+        const res = compileAndLinkShader(options.context.gl,options);
         if (res) {
             this.program = res.shader;
             this.uniforms = res.uniforms;
@@ -66,7 +67,7 @@ export class ShaderProgram implements IShaderProgram {
         };
 
         this.bindUniform = (name: string, value: any) => {
-            options.context.setUniform(this.uniforms[name], value);
+            this.uniforms[name].setter(this.uniforms[name],value);
         };
     }
 
@@ -123,4 +124,120 @@ export interface IShaderProgramOption {
     attributes: { [attName: string]: VertexAttEnum };
     vsStr: string;
     fsStr: string;
+}
+
+
+/**
+ * 创建shader
+ * @param definition 
+ */
+function  compileAndLinkShader(gl:WebGLRenderingContext,definition: Pick<IShaderProgramOption,"vsStr"|"fsStr"|"attributes">) {
+    const vsShader = compileShaderSource(gl, definition.vsStr, true);
+    const fsShader = compileShaderSource(gl, definition.fsStr, false);
+
+    if (vsShader && fsShader) {
+        const shader = gl.createProgram();
+        gl.attachShader(shader, vsShader);
+        gl.attachShader(shader, fsShader);
+        gl.linkProgram(shader);
+        const check = gl.getProgramParameter(shader, gl.LINK_STATUS);
+        if (check == false) {
+            const debugInfo = "ERROR: compile program Error! \n" + gl.getProgramInfoLog(shader);
+            console.error(debugInfo);
+            gl.deleteProgram(shader);
+            return null;
+        } else {
+            const attributes = preSetAttributeLocation(gl, shader, definition.attributes);
+            gl.linkProgram(shader);
+            const uniformDic = getUniformsInfo(gl, shader);
+            // TODO :SAMPLES
+            const samples = {};
+            return { shader, attributes, uniforms: uniformDic };
+        }
+    }
+}
+
+function compileShaderSource(gl: WebGLRenderingContext, source: string, beVertex: boolean) {
+    const target = beVertex ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER;
+    const item = gl.createShader(target);
+    gl.shaderSource(item, source);
+    gl.compileShader(item);
+    const check = gl.getShaderParameter(item, gl.COMPILE_STATUS);
+    if (check == false) {
+        let debug = beVertex ? "ERROR: compile  VS Shader Error! VS:" : "ERROR: compile FS Shader Error! FS:";
+        debug = debug + name + ".\n";
+        console.error(debug + gl.getShaderInfoLog(item));
+        gl.deleteShader(item);
+    } else {
+        return item;
+    }
+}
+
+function preSetAttributeLocation(gl: WebGLRenderingContext,program: WebGLProgram, attInfo: { [attName: string]: VertexAttEnum }): { [attName: string]: IAttributeInfo } {
+    const attDic: { [attName: string]: IAttributeInfo } = {};
+    const numAttribs = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
+    for (let i = 0; i < numAttribs; i++) {
+        const attribInfo = gl.getActiveAttrib(program, i);
+        if (!attribInfo) break;
+        const attName = attribInfo.name;
+        const type = attInfo[attName] ?? VertexAttEnum.fromShaderAttName(attName);
+        if (type == null) {
+            console.error(`cannot get Vertex Attribute type from shader definition or deduced from shader attName! Info: attName In shader [${attName}]`);
+        } else {
+            const location = VertexAttEnum.toShaderLocation(type);
+            gl.bindAttribLocation(program, location, attName);
+            attDic[type] = { name: attName, type, location: location };
+        }
+    }
+    return attDic;
+}
+
+function getUniformsInfo(gl: WebGLRenderingContext, program: WebGLProgram) {
+    const uniformDic: { [name: string]: IUniformInfo } = {};
+
+    const numUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+    const sampleArr: IUniformInfo[] = [];
+    for (let i = 0; i < numUniforms; i++) {
+        const uniformInfo = gl.getActiveUniform(program, i);
+        if (!uniformInfo) break;
+
+        let name = uniformInfo.name;
+        const type = uniformInfo.type;
+        const location = gl.getUniformLocation(program, name);
+
+        let beArray = false;
+        // remove the array suffix.
+        if (name.substr(-3) === "[0]") {
+            beArray = true;
+            name = name.substr(0, name.length - 3);
+        }
+        if (location == null) continue;
+
+        const uniformType = UniformTypeEnum.fromGlType(type, beArray);
+
+        const newUniformElement: IUniformInfo = {
+            name: name,
+            location: location,
+            type: uniformType
+        } as any;
+        uniformDic[name] = newUniformElement;
+
+        if (uniformType == UniformTypeEnum.SAMPLER_2D || uniformType == UniformTypeEnum.SAMPLER_CUBE) {
+            newUniformElement.beTexture = true;
+            sampleArr.push(newUniformElement);
+        } else {
+            uniformDic[name] = newUniformElement;
+            newUniformElement.beTexture = false;
+            newUniformElement.setter =UniformSetter.get(uniformType);
+            if (newUniformElement.setter == null) {
+                console.error("cannot find uniform setter!");
+            }
+        }
+    }
+
+    sampleArr.forEach((item, index) => {
+        let setter=UniformSetter.get(item.type);
+        item.setter = (info: IUniformInfo, value: any) => { setter(info, value, index); };
+    });
+    return uniformDic;
 }

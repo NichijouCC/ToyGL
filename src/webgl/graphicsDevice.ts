@@ -1,12 +1,18 @@
 
 import { DeviceCapability } from "./deviceCapability";
-import { IAttributeInfo, IUniformInfo, IShaderProgramOption } from "./shaderProgram";
+import { IAttributeInfo, IUniformInfo, IShaderProgramOption, ShaderProgram } from "./shaderProgram";
 import { UniformTypeEnum } from "./uniformType";
-import { BufferTargetEnum, BufferUsageEnum, BufferConfig } from "./buffer";
+import { BufferTargetEnum, BufferUsageEnum } from "./buffer";
+import { VertexAttSetter } from "./vertexAttSetter";
 import { DeviceLimit } from "./deviceLimit";
 import { DepthFuncEnum, BlendEquationEnum, BlendParamEnum } from "../scene/renderState";
-import { VertexArray } from "./vertexArray";
+import { IVaoOptions, VertexArray } from "./vertexArray";
 import { VertexAttEnum } from "./vertexAttEnum";
+import { UniformSetter } from "./UniformSetter";
+import { VertexBuffer, VertexBufferOption } from "./vertexBuffer";
+import { IndexBuffer, IndexBufferOption } from "./indexBuffer";
+import { IFrameBufferTexOpts, IImageSourceTexOpts, ITypedArrayTexOpts, Texture } from "./texture";
+import { FrameBuffer, IFrameBufferOptions } from "./framebuffer";
 
 export interface IEngineOption {
     disableWebgl2?: boolean;
@@ -17,12 +23,6 @@ export class GraphicsDevice {
     readonly webGLVersion: number;
     readonly caps: DeviceCapability;
     readonly limit: DeviceLimit;
-
-    readonly uniformSetter: { [uniformType: string]: (uniform: any, value: any) => void } = {};
-    readonly uniformSamplerSetter: { [uniformType: string]: (uniform: any, value: any, unit: number) => void } = {};
-    readonly bufferUsageToGLNumber: { [usage: string]: number } = {};
-    readonly bufferTargetToGLNumber: { [usage: string]: number } = {};
-    readonly vertexAttributeSetter: { [size: number]: (index: number, value: any) => any } = {};
 
     bindingVao: WebGLVertexArrayObject = null;
     // beCreatingVao = false;
@@ -58,278 +58,44 @@ export class GraphicsDevice {
         this.limit = new DeviceLimit(this);
 
         // -------------config init
-        BufferConfig.init(this);
-
-        // ------------------------uniform 
-        var scopeX, scopeY, scopeZ, scopeW;
-        var uniformValue;
-        this.uniformSetter[UniformTypeEnum.BOOL] = (uniform: IUniformInfo, value) => {
-            if (uniform.value !== value) {
-                gl.uniform1i(uniform.location, value);
-                uniform.value = value;
-            }
-        };
-        this.uniformSetter[UniformTypeEnum.INT] = this.uniformSetter[UniformTypeEnum.BOOL];
-        this.uniformSetter[UniformTypeEnum.FLOAT] = (uniform: IUniformInfo, value) => {
-            if (uniform.value !== value) {
-                gl.uniform1f(uniform.location, value);
-                uniform.value = value;
-            }
-        };
-        this.uniformSetter[UniformTypeEnum.FLOAT_VEC2] = (uniform: IUniformInfo, value) => {
-            uniformValue = uniform.value;
-            scopeX = value[0];
-            scopeY = value[1];
-            if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY) {
-                gl.uniform2fv(uniform.location, value);
-                uniformValue[0] = scopeX;
-                uniformValue[1] = scopeY;
-            }
-        };
-        this.uniformSetter[UniformTypeEnum.FLOAT_VEC3] = (uniform: IUniformInfo, value) => {
-            uniformValue = uniform.value;
-            scopeX = value[0];
-            scopeY = value[1];
-            scopeZ = value[2];
-            if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ) {
-                gl.uniform3fv(uniform.location, value);
-                uniformValue[0] = scopeX;
-                uniformValue[1] = scopeY;
-                uniformValue[2] = scopeZ;
-            }
-        };
-        this.uniformSetter[UniformTypeEnum.FLOAT_VEC4] = (uniform: IUniformInfo, value) => {
-            uniformValue = uniform.value;
-            scopeX = value[0];
-            scopeY = value[1];
-            scopeZ = value[2];
-            scopeW = value[3];
-            if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ || uniformValue[3] !== scopeW) {
-                gl.uniform4fv(uniform.location, value);
-                uniformValue[0] = scopeX;
-                uniformValue[1] = scopeY;
-                uniformValue[2] = scopeZ;
-                uniformValue[3] = scopeW;
-            }
-        };
-        this.uniformSetter[UniformTypeEnum.INT_VEC2] = (uniform: IUniformInfo, value) => {
-            uniformValue = uniform.value;
-            scopeX = value[0];
-            scopeY = value[1];
-            if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY) {
-                gl.uniform2iv(uniform.location, value);
-                uniformValue[0] = scopeX;
-                uniformValue[1] = scopeY;
-            }
-        };
-        this.uniformSetter[UniformTypeEnum.BOOL_VEC2] = this.uniformSetter[UniformTypeEnum.INT_VEC2];
-        this.uniformSetter[UniformTypeEnum.INT_VEC3] = (uniform: IUniformInfo, value) => {
-            uniformValue = uniform.value;
-            scopeX = value[0];
-            scopeY = value[1];
-            scopeZ = value[2];
-            if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ) {
-                gl.uniform3iv(uniform.location, value);
-                uniformValue[0] = scopeX;
-                uniformValue[1] = scopeY;
-                uniformValue[2] = scopeZ;
-            }
-        };
-        this.uniformSetter[UniformTypeEnum.BOOL_VEC3] = this.uniformSetter[UniformTypeEnum.INT_VEC3];
-        this.uniformSetter[UniformTypeEnum.INT_VEC4] = (uniform: IUniformInfo, value) => {
-            uniformValue = uniform.value;
-            scopeX = value[0];
-            scopeY = value[1];
-            scopeZ = value[2];
-            scopeW = value[3];
-            if (uniformValue[0] !== scopeX || uniformValue[1] !== scopeY || uniformValue[2] !== scopeZ || uniformValue[3] !== scopeW) {
-                gl.uniform4iv(uniform.location, value);
-                uniformValue[0] = scopeX;
-                uniformValue[1] = scopeY;
-                uniformValue[2] = scopeZ;
-                uniformValue[3] = scopeW;
-            }
-        };
-        this.uniformSetter[UniformTypeEnum.BOOL_VEC4] = this.uniformSetter[UniformTypeEnum.INT_VEC4];
-        this.uniformSetter[UniformTypeEnum.FLOAT_MAT2] = (uniform: IUniformInfo, value) => {
-            gl.uniformMatrix2fv(uniform.location, false, value);
-        };
-        this.uniformSetter[UniformTypeEnum.FLOAT_MAT2_ARRAY] = this.uniformSetter[UniformTypeEnum.FLOAT_MAT2];
-
-        this.uniformSetter[UniformTypeEnum.FLOAT_MAT3] = (uniform: IUniformInfo, value) => {
-            gl.uniformMatrix3fv(uniform.location, false, value);
-        };
-        this.uniformSetter[UniformTypeEnum.FLOAT_MAT3_ARRAY] = this.uniformSetter[UniformTypeEnum.FLOAT_MAT3];
-
-        this.uniformSetter[UniformTypeEnum.FLOAT_MAT4] = (uniform: IUniformInfo, value) => {
-            gl.uniformMatrix4fv(uniform.location, false, value);
-        };
-        this.uniformSetter[UniformTypeEnum.FLOAT_MAT4_ARRAY] = this.uniformSetter[UniformTypeEnum.FLOAT_MAT4];
-
-        this.uniformSetter[UniformTypeEnum.FLOAT_ARRAY] = (uniform: IUniformInfo, value) => {
-            gl.uniform1fv(uniform.location, value);
-        };
-        this.uniformSamplerSetter[UniformTypeEnum.SAMPLER_2D] = (uniform: IUniformInfo, value, unit: number) => {
-            value.bind(this, unit);
-            gl.uniform1i(uniform.location, unit);
-        };
-
-        // ------------------buffer
-        this.bufferTargetToGLNumber[BufferTargetEnum.ARRAY_BUFFER] = gl.ARRAY_BUFFER;
-        this.bufferTargetToGLNumber[BufferTargetEnum.ELEMENT_ARRAY_BUFFER] = gl.ELEMENT_ARRAY_BUFFER;
-
-        this.bufferUsageToGLNumber[BufferUsageEnum.STATIC_DRAW] = gl.STATIC_DRAW;
-        this.bufferUsageToGLNumber[BufferUsageEnum.DYNAMIC_DRAW] = gl.DYNAMIC_DRAW;
-
-        // ------------------attribute
-        this.vertexAttributeSetter[1] = (index, value) => {
-            this.gl.vertexAttrib1f(index, value);
-        };
-        this.vertexAttributeSetter[2] = (index, value) => {
-            this.gl.vertexAttrib2fv(index, value);
-        };
-        this.vertexAttributeSetter[3] = (index, value) => {
-            this.gl.vertexAttrib3fv(index, value);
-        };
-        this.vertexAttributeSetter[4] = (index, value) => {
-            this.gl.vertexAttrib4fv(index, value);
-        };
+        VertexAttSetter.init(this);
+        UniformSetter.init(this);
     }
 
     handleContextLost = () => {
         throw new Error("Method not implemented.");
     }
 
-    // --------------------------------------uniform
-    private getUniformTypeFromGLType(glType: number, beArray?: boolean) {
-        const gl = this.gl;
-        const type = UniformTypeEnum.fromGlType(glType, beArray);
-        if (type == null) {
-            console.error("unhanded uniform GLType:", glType);
-        }
-        return type;
+    createShaderProgram(options:Omit<IShaderProgramOption,"context">){
+        return new ShaderProgram({...options,context:this});
     }
 
-    /**
-     * 创建shader
-     * @param definition 
-     */
-    compileAndLinkShader(definition: IShaderProgramOption) {
-        const gl = this.gl;
-        const vsShader = this.compileShaderSource(gl, definition.vsStr, true);
-        const fsShader = this.compileShaderSource(gl, definition.fsStr, false);
-
-        if (vsShader && fsShader) {
-            const shader = gl.createProgram();
-            gl.attachShader(shader, vsShader);
-            gl.attachShader(shader, fsShader);
-            gl.linkProgram(shader);
-            const check = gl.getProgramParameter(shader, gl.LINK_STATUS);
-            if (check == false) {
-                const debugInfo = "ERROR: compile program Error! \n" + gl.getProgramInfoLog(shader);
-                console.error(debugInfo);
-                gl.deleteProgram(shader);
-                return null;
-            } else {
-                const attributes = this.preSetAttributeLocation(gl, shader, definition.attributes);
-                gl.linkProgram(shader);
-                const uniformDic = this.getUniformsInfo(gl, shader);
-                // TODO :SAMPLES
-                const samples = {};
-                return { shader, attributes, uniforms: uniformDic };
-            }
-        }
+    createVertexArray(options:Omit<IVaoOptions,"context">){
+        return new VertexArray({...options,context:this});
     }
 
-    setUniform(uniform: IUniformInfo, value: any) {
-        this.uniformSetter[uniform.type](uniform, value);
+    createVertexBuffer(options:Omit<VertexBufferOption,"context">){
+        return new VertexBuffer({...options,context:this} as any);
     }
 
-    private compileShaderSource(gl: WebGLRenderingContext, source: string, beVertex: boolean) {
-        const target = beVertex ? gl.VERTEX_SHADER : gl.FRAGMENT_SHADER;
-        const item = gl.createShader(target);
-        gl.shaderSource(item, source);
-        gl.compileShader(item);
-        const check = gl.getShaderParameter(item, gl.COMPILE_STATUS);
-        if (check == false) {
-            let debug = beVertex ? "ERROR: compile  VS Shader Error! VS:" : "ERROR: compile FS Shader Error! FS:";
-            debug = debug + name + ".\n";
-            console.error(debug + gl.getShaderInfoLog(item));
-            gl.deleteShader(item);
-        } else {
-            return item;
-        }
+    createIndexBuffer(options:Omit<IndexBufferOption,"context">){
+        return new IndexBuffer({...options,context:this} as any);
     }
 
-    private preSetAttributeLocation(
-        gl: WebGLRenderingContext,
-        program: WebGLProgram,
-        attInfo: { [attName: string]: VertexAttEnum }
-    ): { [attName: string]: IAttributeInfo } {
-        const attDic: { [attName: string]: IAttributeInfo } = {};
-        const numAttribs = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
-        for (let i = 0; i < numAttribs; i++) {
-            const attribInfo = gl.getActiveAttrib(program, i);
-            if (!attribInfo) break;
-            const attName = attribInfo.name;
-            const type = attInfo[attName] ?? VertexAttEnum.fromShaderAttName(attName);
-            if (type == null) {
-                console.error(`cannot get Vertex Attribute type from shader definition or deduced from shader attName! Info: attName In shader [${attName}]`);
-            } else {
-                const location = VertexAttEnum.toShaderLocation(type);
-                gl.bindAttribLocation(program, location, attName);
-                attDic[type] = { name: attName, type, location: location };
-            }
-        }
-        return attDic;
+    createTextureFromTypedArray(options:Omit<ITypedArrayTexOpts,"context">){
+        return Texture.fromTypedArray({...options,context:this});
     }
 
-    private getUniformsInfo(gl: WebGLRenderingContext, program: WebGLProgram) {
-        const uniformDic: { [name: string]: IUniformInfo } = {};
+    createTextureFromFrameBuffer(options:Omit<IFrameBufferTexOpts,"context">){
+        return Texture.fromFrameBuffer({...options,context:this});
+    }
 
-        const numUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
-        const sampleArr: IUniformInfo[] = [];
-        for (let i = 0; i < numUniforms; i++) {
-            const uniformInfo = gl.getActiveUniform(program, i);
-            if (!uniformInfo) break;
+    createTextureFromImageSource(options:Omit<IImageSourceTexOpts,"context">){
+        return Texture.fromImageSource({...options,context:this});
+    }
 
-            let name = uniformInfo.name;
-            const type = uniformInfo.type;
-            const location = gl.getUniformLocation(program, name);
-
-            let beArray = false;
-            // remove the array suffix.
-            if (name.substr(-3) === "[0]") {
-                beArray = true;
-                name = name.substr(0, name.length - 3);
-            }
-            if (location == null) continue;
-
-            const uniformType = this.getUniformTypeFromGLType(type, beArray);
-            const newUniformElement: IUniformInfo = {
-                name: name,
-                location: location,
-                type: uniformType
-            } as any;
-            uniformDic[name] = newUniformElement;
-
-            if (uniformType == UniformTypeEnum.SAMPLER_2D || uniformType == UniformTypeEnum.SAMPLER_CUBE) {
-                newUniformElement.beTexture = true;
-                sampleArr.push(newUniformElement);
-            } else {
-                uniformDic[name] = newUniformElement;
-                newUniformElement.beTexture = false;
-                newUniformElement.setter = this.uniformSetter[uniformType];
-                if (newUniformElement.setter == null) {
-                    console.error("cannot find uniform setter!");
-                }
-            }
-        }
-
-        sampleArr.forEach((item, index) => {
-            item.setter = (info: IUniformInfo, value: any) => { this.uniformSamplerSetter[item.type](info, value, index); };
-        });
-        return uniformDic;
+    createFrameBuffer(options:Omit<IFrameBufferOptions,"context">){
+        return new FrameBuffer({...options,context:this});
     }
 
     // -----------------------------gl state
@@ -633,9 +399,9 @@ export class GraphicsDevice {
 }
 
 declare global {
-    interface WebGLVertexArrayObject extends WebGLObject { }
+    interface WebGLVertexArrayObject { }
 
-    interface WebGLQuery extends WebGLObject { }
+    interface WebGLQuery{ }
 
     interface EXT_disjoint_timer_query {
         QUERY_COUNTER_BITS_EXT: number;
@@ -651,7 +417,7 @@ declare global {
         getQueryObjectEXT(query: WebGLQuery, target: number): any;
         deleteQueryEXT(query: WebGLQuery): void;
     }
-    interface WebGLVertexArrayObject extends WebGLObject { }
+    interface WebGLVertexArrayObject { }
 
     interface WebGLRenderingContext {
         addExtension(extName: string): void;

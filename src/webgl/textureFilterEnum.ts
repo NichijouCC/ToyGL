@@ -1,6 +1,6 @@
 import { GlConstants } from "./glConstant";
 /**
- * 由mipmap filter type 和 texture filter type 来决定最终的 filter ttype
+ * 由mipmap filter type 和 texture filter type 来决定最终的 filter type
  */
 export enum TextureFilterEnum {
     NEAREST = GlConstants.NEAREST,
@@ -8,8 +8,8 @@ export enum TextureFilterEnum {
 }
 
 export namespace TextureFilterEnum {
-    export function realfilter(filter: TextureFilterEnum, enableMimap: boolean, mipmapFilter: TextureFilterEnum): number {
-        if (enableMimap) {
+    export function realFilter(filter: TextureFilterEnum, enableMipmap: boolean, mipmapFilter: TextureFilterEnum): number {
+        if (enableMipmap) {
             if (mipmapFilter == TextureFilterEnum.LINEAR) {
                 if (filter == TextureFilterEnum.LINEAR) {
                     return GlConstants.LINEAR_MIPMAP_LINEAR;

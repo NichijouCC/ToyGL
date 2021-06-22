@@ -81,22 +81,4 @@ export enum BufferUsageEnum {
     DYNAMIC_DRAW = GlConstants.DYNAMIC_DRAW
 }
 
-export class BufferConfig {
-    static bufferUsageToGLNumber: { [usage: string]: number } = {};
-    static bufferTargetToGLNumber: { [usage: string]: number } = {};
-    static vertexAttributeSetter: { [size: number]: (index: number, value: any) => any } = {};
-    static init(context: GraphicsDevice) {
-        this.vertexAttributeSetter[1] = (index, value) => {
-            context.gl.vertexAttrib1f(index, value);
-        };
-        this.vertexAttributeSetter[2] = (index, value) => {
-            context.gl.vertexAttrib2fv(index, value);
-        };
-        this.vertexAttributeSetter[3] = (index, value) => {
-            context.gl.vertexAttrib3fv(index, value);
-        };
-        this.vertexAttributeSetter[4] = (index, value) => {
-            context.gl.vertexAttrib4fv(index, value);
-        };
-    }
-}
+
