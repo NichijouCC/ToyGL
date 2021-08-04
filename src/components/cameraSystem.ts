@@ -3,7 +3,7 @@ import { CameraComponent } from "./cameraComponent";
 import { Entity, Screen, System } from "../scene/index";
 
 export class CameraSystem extends System {
-    caries = { "comps": [CameraComponent] };
+    caries = { comps: [CameraComponent] };
     private scene: InterScene;
     private screen: Screen;
     constructor(scene: InterScene, screen: Screen) {

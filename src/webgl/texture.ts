@@ -142,7 +142,6 @@ export class Texture {
         const flipY = options.flipY ?? false;
         const preMultiplyAlpha = options.preMultiplyAlpha || pixelFormat === PixelFormatEnum.RGB || pixelFormat === PixelFormatEnum.LUMINANCE;
 
-
         const target = gl.TEXTURE_2D;
         const texture = gl.createTexture();
         gl.activeTexture(gl.TEXTURE0);
@@ -248,7 +247,7 @@ export class Texture {
 
         gl.texParameteri(target, gl.TEXTURE_WRAP_S, this.wrapS);
         gl.texParameteri(target, gl.TEXTURE_WRAP_T, this.wrapT);
-        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, TextureFilterEnum.realfilter(this.filterMin, this.enableMipmap, this.mipmapFilter));
+        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, TextureFilterEnum.realFilter(this.filterMin, this.enableMipmap, this.mipmapFilter));
         gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, this.filterMax);
         if (this._textureFilterAnisotropic) {
             gl.texParameteri(target, this._textureFilterAnisotropic.TEXTURE_MAX_ANISOTROPY_EXT, this.maximumAnisotropy);
@@ -269,7 +268,6 @@ export class Texture {
         this.preMultiplyAlpha = preMultiplyAlpha;
         this.flipY = flipY;
         this.initialized = initialized;
-
     }
 
     bind(unit: number = 0) {
@@ -365,7 +363,6 @@ export interface IFrameBufferTexOpts{
     sampler?: ISamplerOptions;
     flipY?: boolean;
 }
-
 
 export interface ISamplerOptions {
     // ----------------texParameteri-------------

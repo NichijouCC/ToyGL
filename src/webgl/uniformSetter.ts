@@ -7,8 +7,9 @@ export class UniformSetter {
     static get(uniformType:UniformTypeEnum) {
         return this.uniformSetter[uniformType];
     }
+
     static init(context: GraphicsDevice) {
-        let { gl } = context;
+        const { gl } = context;
         var scopeX, scopeY, scopeZ, scopeW;
         var uniformValue;
         this.uniformSetter[UniformTypeEnum.BOOL] = (uniform: IUniformInfo, value) => {

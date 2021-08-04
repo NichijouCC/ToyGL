@@ -1,6 +1,6 @@
 import { IndicesArray, IndexBuffer } from "../../../webgl/indexBuffer";
 import { AbstractGeometryAsset } from "./abstractGeometryAsset";
-import { GeometryAttribute, IgeometryAttributeOptions } from "./geometryAttribute";
+import { GeometryAttribute, IGeometryAttributeOptions } from "./geometryAttribute";
 import { PrimitiveTypeEnum } from "../../../webgl/PrimitiveTypeEnum";
 import { BoundingBox, BoundingSphere } from "../../bounds";
 import { GlConstants } from "../../../webgl/glConstant";
@@ -37,14 +37,14 @@ export class Geometry extends AbstractGeometryAsset {
     attributes: { [keyName: string]: GeometryAttribute } = {};
     indices?: IndicesArray;
     primitiveType: PrimitiveTypeEnum;
-    constructor(option: IgeometryOptions) {
+    constructor(option: IGeometryOptions) {
         super();
         // this.attributes = option.attributes;
         option.attributes.forEach(item => {
             this.addAttribute(item.type, item);
         });
         this.indices = option.indices instanceof Array ? new Uint16Array(option.indices) : option.indices;
-        this.primitiveType = option.primitiveType != null ? option.primitiveType : GlConstants.TRIANGLES;
+        this.primitiveType = option?.primitiveType ?? GlConstants.TRIANGLES;
         this._bounding = option.boundingBox;
     }
 
@@ -59,7 +59,7 @@ export class Geometry extends AbstractGeometryAsset {
 
     private newAtts: { [name: string]: GeometryAttribute } = {};
     private dirtyAtt: { [name: string]: TypedArray } = {};
-    addAttribute(attributeType: VertexAttEnum, options: Omit<IgeometryAttributeOptions, "type">) {
+    addAttribute(attributeType: VertexAttEnum, options: Omit<IGeometryAttributeOptions, "type">) {
         const geAtt = new GeometryAttribute({ ...options, type: attributeType });
         this.attributes[attributeType] = geAtt;
         if (attributeType === VertexAttEnum.POSITION) {
@@ -142,8 +142,8 @@ export class Geometry extends AbstractGeometryAsset {
     }
 }
 
-export interface IgeometryOptions {
-    attributes?: IgeometryAttributeOptions[];
+export interface IGeometryOptions {
+    attributes?: IGeometryAttributeOptions[];
     indices?: IndicesArray | Array<number>;
     primitiveType?: number;
     boundingBox?: BoundingBox;

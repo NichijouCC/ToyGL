@@ -1,11 +1,9 @@
 import { Rect } from "../mathD/rect";
-import { mat4 } from '../mathD';
+import { mat4 } from "../mathD";
 import { Texture2D } from "./asset/texture/texture2d";
 import { Camera } from "./camera";
 import { Light } from "./light/light";
 import { MemoryTexture } from "./asset/texture/memoryTexture";
-
-
 
 export class UniformState {
     viewPortPixel: Rect = new Rect(0, 0, 0, 0); // 像素的viewport
@@ -33,7 +31,7 @@ export class UniformState {
 
     private _matMVP: mat4 = mat4.create();
     get matrixModelViewProject(): mat4 {
-        return mat4.multiply(this._matMVP, this.curCamera.viewProjectMatrix, this.matrixModel,);
+        return mat4.multiply(this._matMVP, this.curCamera.viewProjectMatrix, this.matrixModel);
     }
 
     get matrixView(): mat4 {

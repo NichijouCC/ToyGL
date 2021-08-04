@@ -1,10 +1,9 @@
 import { Hud } from "./hud";
 import { InterScene } from "../scene/scene";
 import { DefaultGeometry, DefaultMaterial } from "../resources/index";
-import { mat4, quat, vec3 } from '../mathD';
+import { mat4, quat, vec3 } from "../mathD";
 import { Entity, System, TextureAsset } from "../scene/index";
 import { TextureFilterEnum, TextureWrapEnum } from "../webgl/index";
-
 
 export class HudSystem extends System {
     caries = { comps: [Hud] };
@@ -35,7 +34,7 @@ export class HudSystem extends System {
         const rot = mat4.getRotation(quat.create(), mainCamera.worldMatrix);
 
         this.queries.comps.forEach((node) => {
-            let hud = node.getComponent(Hud);
+            const hud = node.getComponent(Hud);
             let { command, rect, entity, _mat, _text2d } = hud;
             if (hud._contentDirty) {
                 hud._contentDirty = false;

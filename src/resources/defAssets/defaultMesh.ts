@@ -6,7 +6,7 @@ export class DefaultMesh {
     static get cube() {
         if (this._cube == null) {
             this._cube = new StaticMesh();
-            this._cube.subMeshes = [DefaultGeometry.cube as any]
+            this._cube.subMeshes = [DefaultGeometry.cube as any];
         }
         return this._cube;
     }
@@ -15,7 +15,7 @@ export class DefaultMesh {
     static get plan() {
         if (this._plan == null) {
             this._plan = new StaticMesh();
-            this._plan.subMeshes = [DefaultGeometry.plan as any]
+            this._plan.subMeshes = [DefaultGeometry.plan as any];
         }
         return this._plan;
     }
@@ -24,7 +24,7 @@ export class DefaultMesh {
     static get quad() {
         if (this._quad == null) {
             this._quad = new StaticMesh();
-            this._quad.subMeshes = [DefaultGeometry.quad as any]
+            this._quad.subMeshes = [DefaultGeometry.quad as any];
         }
         return this._quad;
     }

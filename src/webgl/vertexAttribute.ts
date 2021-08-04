@@ -6,30 +6,28 @@ import { VertexAttSetter } from "./vertexAttSetter";
 import { GlType } from "../core/typedArray";
 
 export interface IVertexAttribute {
-    // index: number; // 0;
     type: string | VertexAttEnum
-    enabled: boolean; // true;
-    vertexBuffer: VertexBuffer; // positionBuffer;
+    enabled: boolean;
+    vertexBuffer: VertexBuffer;
     value: any;
-    componentsPerAttribute: number; // 3;
-    componentDatatype: number; // ComponentDatatype.FLOAT;
-    normalize: boolean; // false;
-    offsetInBytes: number; // 0;
-    strideInBytes: number; // 0; // tightly packed
-    instanceDivisor: number; // 0; // not instanced
+    componentsPerAttribute: number;
+    componentDatatype: number;
+    normalize: boolean;
+    offsetInBytes: number; 
+    strideInBytes: number; 
+    instanceDivisor: number;
 }
 export interface IVertexAttributeOption {
-    // index?: number; // 0;
     type: string | VertexAttEnum
-    enabled?: boolean; // true;
-    vertexBuffer?: VertexBuffer; // positionBuffer;
+    enabled?: boolean;
+    vertexBuffer?: VertexBuffer; 
     value?: any;
-    componentsPerAttribute?: number; // 3;
-    componentDatatype?: number; // ComponentDatatype.FLOAT;
-    normalize?: boolean; // false;
-    offsetInBytes?: number; // 0;
-    strideInBytes?: number; // 0; // tightly packed
-    instanceDivisor?: number; // 0; // not instanced
+    componentsPerAttribute?: number; 
+    componentDatatype?: number; 
+    normalize?: boolean;
+    offsetInBytes?: number;
+    strideInBytes?: number; 
+    instanceDivisor?: number;
 }
 
 export class VertexAttribute implements IVertexAttribute {
@@ -58,15 +56,15 @@ export class VertexAttribute implements IVertexAttribute {
         const att = options;
         this.type = att.type;
         this.index = VertexAttEnum.toShaderLocation(this.type);
-        this.enabled = att.enabled ?? true;// true;
-        this.vertexBuffer = att.vertexBuffer;// positionBuffer;
+        this.enabled = att.enabled ?? true;
+        this.vertexBuffer = att.vertexBuffer;
         this.value = att.value;
-        this.componentsPerAttribute = att.componentsPerAttribute ?? VertexAttEnum.toComponentSize(att.type);// 3;
-        this.componentDatatype = att.componentDatatype ?? ComponentDatatypeEnum.FLOAT; // ComponentDatatype.FLOAT;
-        this.normalize = att.normalize ?? false; // false;
-        this.offsetInBytes = att.offsetInBytes ?? 0; // 0;
-        this.strideInBytes = att.strideInBytes ?? 0; // 0; // tightly packed
-        this.instanceDivisor = att.instanceDivisor; // 0; // not instanced
+        this.componentsPerAttribute = att.componentsPerAttribute ?? VertexAttEnum.toComponentSize(att.type);
+        this.componentDatatype = att.componentDatatype ?? ComponentDatatypeEnum.FLOAT;
+        this.normalize = att.normalize ?? false;
+        this.offsetInBytes = att.offsetInBytes ?? 0;
+        this.strideInBytes = att.strideInBytes ?? 0;
+        this.instanceDivisor = att.instanceDivisor;
 
         if (this.vertexBuffer) {
             const bytes = this.vertexBuffer.sizeInBytes - this.offsetInBytes;

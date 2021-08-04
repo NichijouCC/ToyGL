@@ -180,12 +180,12 @@ export class ParseMaterialNode {
                 await ParseTextureNode.parse(node.pbrMetallicRoughness?.baseColorTexture.index, gltf)
                     .then(tex => {
                         mat.setUniformParameter("MainTex", tex);
-                    })
+                    });
             } else {
                 mat.shader = DefaultMaterial.color_3d.shader.clone();
-                let baseColor = node.pbrMetallicRoughness?.baseColorFactor;
+                const baseColor = node.pbrMetallicRoughness?.baseColorFactor;
                 if (baseColor) {
-                    mat.setUniformParameter("MainColor", Color.create(baseColor[0], baseColor[1], baseColor[2], baseColor[3]))
+                    mat.setUniformParameter("MainColor", Color.create(baseColor[0], baseColor[1], baseColor[2], baseColor[3]));
                 }
             }
             if (node.doubleSided) {

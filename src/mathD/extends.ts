@@ -1,6 +1,6 @@
 import { ObjectPool } from "@mtgoo/ctool";
-import { vec4 } from "gl-matrix";
-import { vec3, mat4 } from "gl-matrix";
+import { vec4, vec3, mat4 } from "gl-matrix";
+
 import { TypedArray } from "../core/typedArray";
 
 (vec3 as any).FORWARD = vec3.fromValues(0, 0, 1);
@@ -32,14 +32,14 @@ import { TypedArray } from "../core/typedArray";
     out[1] = 0;
     out[2] = 0;
     return out;
-}
+};
 (vec4 as any).identity = (out: vec3) => {
     out[0] = 0;
     out[1] = 0;
     out[2] = 0;
     out[3] = 0;
     return out;
-}
+};
 
 (mat4 as any).IDENTITY = mat4.create();
 (mat4 as any).fromNumberArray = (array: ArrayLike<number>) => {

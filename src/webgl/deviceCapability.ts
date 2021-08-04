@@ -166,13 +166,9 @@ export class DeviceCapability {
 
             if (vertexArrayObjectExtension != null) {
                 this.vertexArrayObject = true;
-                _gl.createVertexArray = vertexArrayObjectExtension.createVertexArrayOES.bind(
-                    vertexArrayObjectExtension
-                );
+                _gl.createVertexArray = vertexArrayObjectExtension.createVertexArrayOES.bind(vertexArrayObjectExtension);
                 _gl.bindVertexArray = vertexArrayObjectExtension.bindVertexArrayOES.bind(vertexArrayObjectExtension);
-                _gl.deleteVertexArray = vertexArrayObjectExtension.deleteVertexArrayOES.bind(
-                    vertexArrayObjectExtension
-                );
+                _gl.deleteVertexArray = vertexArrayObjectExtension.deleteVertexArrayOES.bind(vertexArrayObjectExtension);
             } else {
                 this.vertexArrayObject = false;
             }
@@ -220,8 +216,8 @@ export function CheckCanRenderToFrameBuffer(
 
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
-    const interFromat = texType === GlConstants.FLOAT ? GlConstants.RGBA32F : GlConstants.RGBA16F;
-    gl.texImage2D(gl.TEXTURE_2D, 0, interFromat, 1, 1, 0, gl.RGBA, texType, null);
+    const interFormat = texType === GlConstants.FLOAT ? GlConstants.RGBA32F : GlConstants.RGBA16F;
+    gl.texImage2D(gl.TEXTURE_2D, 0, interFormat, 1, 1, 0, gl.RGBA, texType, null);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 

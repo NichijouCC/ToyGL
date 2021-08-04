@@ -191,7 +191,7 @@ export class VertexArray implements IglElement {
 
             this._vao = gl.createVertexArray();
             this._bind();
-            bindVertexAttributes(gl, this._vertexAttributes, this._indexBuffer);
+            bindVertexAttributes(this._vertexAttributes, this._indexBuffer);
             this._unbind();
 
             this.destroy = () => {
@@ -225,7 +225,7 @@ export class VertexArray implements IglElement {
                 }
             };
             this._unbind = () => {
-                unbindAttributes(gl, this._vertexAttributes, this._indexBuffer);
+                unbindAttributes(this._vertexAttributes, this._indexBuffer);
             };
         }
     }
@@ -258,7 +258,7 @@ export interface IVaoOptions {
     primitiveCount?: number;
 }
 
-function bindVertexAttributes(gl: WebGLRenderingContext, vertexAtts: { [type: string]: VertexAttribute }, indexBuffer?: IndexBuffer): void {
+function bindVertexAttributes(vertexAtts: { [type: string]: VertexAttribute }, indexBuffer?: IndexBuffer): void {
     for (const key in vertexAtts) {
         vertexAtts[key].bind();
     }
@@ -266,7 +266,7 @@ function bindVertexAttributes(gl: WebGLRenderingContext, vertexAtts: { [type: st
         indexBuffer.bind();
     }
 }
-function unbindAttributes(gl: WebGLRenderingContext, vertexAtts: { [type: string]: VertexAttribute }, indexBuffer?: IndexBuffer) {
+function unbindAttributes(vertexAtts: { [type: string]: VertexAttribute }, indexBuffer?: IndexBuffer) {
     for (const key in vertexAtts) {
         vertexAtts[key].unbind();
     }

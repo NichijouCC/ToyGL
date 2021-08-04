@@ -61,8 +61,6 @@ export class ThirdPersonCtrSystem extends System {
         const temptStartPos = vec3.create();
         const temptEndPos = vec3.create();
 
-
-
         const dir = vec3.create();
         const targetRot = quat.create();
         const temptRot = quat.create();
@@ -92,7 +90,7 @@ export class ThirdPersonCtrSystem extends System {
             const { moveSpeed, rotSpeed, offsetToCamera, entity } = comp;
             const cam = this._toy.scene.mainCamera;
             if (vec3.len(dir) != 0) {
-                let worldPos = entity.worldPosition;
+                const worldPos = entity.worldPosition;
                 mat4.transformVector(moveForward, dir, cam.worldMatrix);
                 vec3.projectToPlan(moveForward, moveForward, vec3.UP);
                 vec3.normalize(moveForward, moveForward);
@@ -104,7 +102,7 @@ export class ThirdPersonCtrSystem extends System {
                     vec3.copy(temptStartPos, worldPos);
                     temptStartPos[1] += 1;
                     vec3.scaleAndAdd(temptEndPos, temptStartPos, moveForward, 1.3);
-                    let result = this._toy.scene.intersectCollider(temptStartPos, temptEndPos);
+                    const result = this._toy.scene.intersectCollider(temptStartPos, temptEndPos);
                     // this._toy.gizmos.drawLine(temptStartPos, temptEndPos);
 
                     if (!result.hasHit) {

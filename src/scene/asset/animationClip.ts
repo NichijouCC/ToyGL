@@ -39,5 +39,5 @@ export enum AnimationSamplerInterpolation {
     /**
      * The animation's interpolation is computed using a cubic spline with specified tangents
      */
-    CUBICSPLINE = "CUBICSPLINE",
+    CUBIC_SPLINE = "CUBICSPLINE",
 }

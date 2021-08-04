@@ -1,6 +1,6 @@
 export function applyMixins(derivedCtor: any, constructors: any[]) {
     constructors.forEach((baseCtor) => {
-        let props = Object.getOwnPropertyNames(baseCtor.prototype);
+        const props = Object.getOwnPropertyNames(baseCtor.prototype);
         props.forEach((name) => {
             Object.defineProperty(
                 derivedCtor.prototype,
@@ -29,10 +29,12 @@ export function Mixin<T extends Array<any>>(constructors: T) {
 }
 
 export function copyProperties(target: any, source: any) {
-    for (let key of Reflect.ownKeys(source)) {
+    for (const key of Reflect.ownKeys(source)) {
         if (key !== "constructor" && key !== "prototype" && key !== "name") {
-            let desc = Object.getOwnPropertyDescriptor(source, key);
+            const desc = Object.getOwnPropertyDescriptor(source, key);
             Object.defineProperty(target, key, desc);
         }
     }
 }
+
+export type DistributiveOmit<T, K extends keyof any> = T extends any? Omit<T, K>: never;

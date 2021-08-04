@@ -4,7 +4,7 @@ import { Frustum } from "./frustum";
 import { Transform } from "./transform";
 import { UniqueObject } from "../core/uniqueObject";
 
-import { vec3, mat4 } from '../mathD';
+import { vec3, mat4 } from "../mathD";
 import { Entity } from "./entity";
 
 export enum ProjectionEnum {
@@ -19,7 +19,6 @@ export enum ClearEnum {
     NONE = 0b00,
 }
 export class Camera extends UniqueObject {
-
     private _projectionType: ProjectionEnum = ProjectionEnum.PERSPECTIVE;
     get projectionType() { return this._projectionType; }
     set projectionType(type: ProjectionEnum) { this._projectionType = type; this.projectMatBeDirty = true; }
@@ -77,9 +76,8 @@ export class Camera extends UniqueObject {
         }
     }
 
-
     _node: Transform;
-    get node() { return this._node };
+    get node() { return this._node; };
     set node(value: Transform) { this._node = value; };
     /**
      * 计算相机投影矩阵
@@ -90,9 +88,9 @@ export class Camera extends UniqueObject {
             if (this._projectionType == ProjectionEnum.PERSPECTIVE) {
                 mat4.perspective(this._projectMatrix, this._fov, (this._aspect * this._viewport.width) / this._viewport.height, this.near, this.far);
             } else {
-                let width = 0.5 * (this._size * (this._aspect * this._viewport.width)) / this._viewport.height;
-                let height = 0.5 * this._size;
-                mat4.ortho(this._projectMatrix, -width, width, -height, height, this.near, this.far)
+                const width = 0.5 * (this._size * (this._aspect * this._viewport.width)) / this._viewport.height;
+                const height = 0.5 * this._size;
+                mat4.ortho(this._projectMatrix, -width, width, -height, height, this.near, this.far);
             }
             this.projectMatBeDirty = false;
         }
@@ -127,6 +125,7 @@ export class Camera extends UniqueObject {
     get forwardInWorld() {
         return this.node.getForwardInWorld(this._forward);
     }
+
     lookAtPoint(point: vec3) {
         this.node?.lookAtPoint(point);
     }

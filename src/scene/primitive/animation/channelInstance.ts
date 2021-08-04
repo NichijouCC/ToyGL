@@ -2,7 +2,6 @@ import { AnimationChannel } from "../../asset/animationClip";
 import { Entity } from "../../entity";
 import { AnimationChannelTargetPath } from "./clipInstance";
 
-
 export class ChannelInstance {
     channel: AnimationChannel;
 
@@ -31,19 +30,16 @@ export class ChannelInstance {
     }
 
     jumpToStart() {
-        if (!this.beInit)
-            return;
+        if (!this.beInit) { return; }
         this.setFunc(this.channel.values[0], this.target);
         this.temptLastStartIndex = null;
     }
 
     execute(currentFrame: number) {
-        if (!this.beInit)
-            return;
-        if (currentFrame < this.channel.startFrame || currentFrame > this.channel.endFrame)
-            return;
+        if (!this.beInit) { return; }
+        if (currentFrame < this.channel.startFrame || currentFrame > this.channel.endFrame) { return; }
 
-        let { keyframes, endFrame, values } = this.channel;
+        const { keyframes, endFrame, values } = this.channel;
         // ---------------------------------寻找lerp start end frame
         let startIndex = this.temptLastStartIndex ?? ((keyframes.length - 1) * currentFrame / endFrame) | 0;
         if (keyframes[startIndex] < currentFrame) {
@@ -54,15 +50,15 @@ export class ChannelInstance {
             while (keyframes[startIndex] > currentFrame) { startIndex--; }
         }
         this.temptLastStartIndex = startIndex;
-        let endIndex = startIndex + 1;
+        const endIndex = startIndex + 1;
 
         if (keyframes[endIndex] == null) {
             this.setFunc(values[startIndex], this.target);
         } else {
-            let frameOffset = keyframes[endIndex] - keyframes[startIndex];
+            const frameOffset = keyframes[endIndex] - keyframes[startIndex];
             if (frameOffset == 0) return;
             const lerp = (currentFrame - keyframes[startIndex]) / frameOffset;
-            let value = this.lerpFunc(values[startIndex], values[endIndex], lerp);
+            const value = this.lerpFunc(values[startIndex], values[endIndex], lerp);
             this.setFunc(value, this.target);
         }
     }

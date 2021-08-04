@@ -2,7 +2,7 @@ import { CullingMask } from "./camera";
 import { Material } from "./asset/material/material";
 import { VertexArray } from "../webgl/vertexArray";
 import { BoundingSphere, BoundingBox } from "./bounds";
-import { mat4 } from '../mathD';
+import { mat4 } from "../mathD";
 
 export abstract class DrawCommand {
     beVisible: boolean = true;

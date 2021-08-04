@@ -1,5 +1,4 @@
-import { EventTarget } from "@mtgoo/ctool";
-import { DebuffAction } from '@mtgoo/ctool'
+import { EventTarget, DebuffAction } from "@mtgoo/ctool";
 
 export class Timer implements Itimer {
     private beActive: boolean = true;

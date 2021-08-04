@@ -236,7 +236,6 @@ export namespace Private {
 }
 
 export class DefaultGeometry {
-
     private static _quad2d: Geometry;
     static get quad2d() {
         if (this._quad2d == null) {

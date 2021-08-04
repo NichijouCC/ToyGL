@@ -24,7 +24,7 @@ export class GeometryAttribute {
     values?: TypedArray;
     value?: any;
     beDynamic: boolean;
-    constructor(option: IgeometryAttributeOptions) {
+    constructor(option: IGeometryAttributeOptions) {
         this.value = option.value;
         this.type = option.type;
         this.componentsPerAttribute = option.componentsPerAttribute ?? VertexAttEnum.toComponentSize(option.type);
@@ -48,7 +48,7 @@ export class GeometryAttribute {
     }
 }
 
-export interface IgeometryAttributeOptions {
+export interface IGeometryAttributeOptions {
     componentDatatype?: ComponentDatatypeEnum;
     componentsPerAttribute: number;
     normalize?: boolean;

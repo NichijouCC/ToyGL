@@ -1,7 +1,7 @@
 import { ECS } from "../core/ecs/ecs";
 import { Rect } from "../mathD/rect";
 import { Component, Entity, Material, Texture2D } from "../scene/index";
-import { vec3 } from '../mathD/index';
+import { vec3 } from "../mathD/index";
 
 @ECS.registerComp
 export class Hud extends Component {
@@ -23,6 +23,7 @@ export class Hud extends Component {
         this._command = command;
         this._size = vec3.fromValues(width3d, width3d * rect.height / rect.width, 1.0);
     }
+
     clone(): Hud {
         throw new Error("Method not implemented.");
     }

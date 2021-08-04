@@ -6,7 +6,7 @@ export class Prefab extends Asset {
     set root(root: Entity) { this._root = root; };
     static instance(prefab: Prefab): Entity {
         // TODO 先暂时直接返回root
-        //return prefab._root;
+        // return prefab._root;
         return prefab._root.clone();
     }
 

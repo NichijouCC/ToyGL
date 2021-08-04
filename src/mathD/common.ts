@@ -1,4 +1,4 @@
-import { vec4 } from './index'
+import { vec4 } from "./index";
 export const EPSILON = 0.000001;
 
 export function clamp(v: number, min: number = 0, max: number = 1): number {

@@ -36,6 +36,7 @@ export class Shader extends Asset {
         this.fsStr = options.fsStr;
         this.attributes = options.attributes;
     }
+
     private _bucketFeats: number = 0;
 
     set bucketFeats(feat: ShaderBucket | number) { this._bucketFeats = feat; }
@@ -44,7 +45,7 @@ export class Shader extends Asset {
         bucketId = bucketId | this._bucketFeats;
         if (!this._programs.has(bucketId)) {
             const packStr = ShaderBucket.packShaderStr(bucketId);
-            const program =device.createShaderProgram({
+            const program = device.createShaderProgram({
                 attributes: this.attributes,
                 vsStr: packStr + this.vsStr,
                 fsStr: packStr + this.fsStr
@@ -58,7 +59,7 @@ export class Shader extends Asset {
     destroy() { }
 
     clone() {
-        let newShader = new Shader({ vsStr: this.vsStr, fsStr: this.fsStr, attributes: this.attributes });
+        const newShader = new Shader({ vsStr: this.vsStr, fsStr: this.fsStr, attributes: this.attributes });
         newShader._bucketFeats = this._bucketFeats;
         newShader._layer = this._layer;
         newShader._layerIndex = this._layerIndex;
@@ -66,7 +67,7 @@ export class Shader extends Asset {
     }
 }
 
-export type IShaderOption =Omit<IShaderProgramOption,"context">
+export type IShaderOption =Omit<IShaderProgramOption, "context">
 
 export interface ILayerIndexEvent {
     layer: RenderLayerEnum;

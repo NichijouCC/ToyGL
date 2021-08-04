@@ -53,8 +53,8 @@ export class ParseAccessorNode {
 
         if (accessor.bufferView != null) {
             const viewIndex = accessor.bufferView;
-            let value = await ParseBufferViewNode.parse(viewIndex, gltf)
-            let hasSparse = accessor.sparse != null;
+            const value = await ParseBufferViewNode.parse(viewIndex, gltf);
+            const hasSparse = accessor.sparse != null;
             arrayInfo.bytesOffset = accessor.byteOffset ?? 0;
             arrayInfo.bytesStride = value.byteStride;
             arrayInfo.target = value.target;
@@ -70,8 +70,8 @@ export class ParseAccessorNode {
                     ParseBufferViewNode.parse(indicesInfo.bufferView, gltf),
                     ParseBufferViewNode.parse(valuesInfo.bufferView, gltf)
                 ]).then(arr => {
-                    let indicesArr = TypedArray.fromGlType(indicesInfo.componentType, arr[0].viewBuffer, indicesInfo.byteOffset);
-                    let sparseValueArr = TypedArray.fromGlType(accessor.componentType, arr[1].viewBuffer, valuesInfo.byteOffset);
+                    const indicesArr = TypedArray.fromGlType(indicesInfo.componentType, arr[0].viewBuffer, indicesInfo.byteOffset);
+                    const sparseValueArr = TypedArray.fromGlType(accessor.componentType, arr[1].viewBuffer, valuesInfo.byteOffset);
 
                     const componentNumber = this.getComponentSize(accessor.type);
                     for (let i = 0; i < count; i++) {
@@ -81,7 +81,6 @@ export class ParseAccessorNode {
                         }
                     }
                 });
-
             }
             arrayInfo.typedArray = typedArray;
             if (bufferOptions?.target != null || value.target != null) {

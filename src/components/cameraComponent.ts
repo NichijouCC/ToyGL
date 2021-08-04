@@ -6,9 +6,10 @@ import { Camera } from "../scene/camera";
 
 @ECS.registerComp
 export class CameraComponent extends Component {
-    onInit() {
+    init() {
         this._node = this.entity;
     }
+
     clone(): CameraComponent {
         throw new Error("Method not implemented.");
     }

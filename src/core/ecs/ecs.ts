@@ -2,7 +2,7 @@ import { BitKey, UnitedBitKey } from "./bitKey";
 import { ISystem, IComponent, COMPS, UNIT_BIT_KEY, UPDATE, UNIT_BIT_KEY_DIC, ENTITIES, IEntity } from "./iecs";
 
 export class ECS {
-    private static registeredComps: { [name: string]: { ctr: new () => any; bitKey: BitKey; relatedSystem: { system: ISystem, query: string }[]; }; } = {};
+    private static registeredComps: { [name: string]: { Ctr: new () => any; bitKey: BitKey; relatedSystem: { system: ISystem, query: string }[]; }; } = {};
     static systems: { system: ISystem; priority: number; }[] = [];
     static entities = new Map<string, IEntity>();
     static comps = new Set<IComponent>();
@@ -12,6 +12,7 @@ export class ECS {
             this.entities.set(entity.id, entity);
         }
     }
+
     static containEntity(entity: IEntity) { return this.entities.has(entity.id); }
     static findEntityById(id: string) { return this.entities.get(id); }
     static removeEntity(entity: IEntity) {
@@ -22,7 +23,7 @@ export class ECS {
     static registerComp = (comp: Function) => {
         const compName = comp.name;
         if (ECS.registeredComps[compName] == null) {
-            ECS.registeredComps[compName] = { ctr: comp as any, bitKey: BitKey.create(), relatedSystem: [] };
+            ECS.registeredComps[compName] = { Ctr: comp as any, bitKey: BitKey.create(), relatedSystem: [] };
         } else {
             throw new Error("重复注册组件: " + compName);
         }
@@ -31,7 +32,7 @@ export class ECS {
     static createComp<T extends IComponent, P extends Partial<T>>(comp: new () => T, properties?: P): T {
         const compInfo = this.registeredComps[comp.name];
         if (compInfo == null) return;
-        const newComp = new compInfo.ctr();
+        const newComp = new compInfo.Ctr();
         this.comps.add(newComp);
         if (properties) {
             Object.keys(properties).forEach(item => newComp[item] = (properties as any)[item]);
@@ -75,42 +76,44 @@ export class ECS {
     }
 
     static addSystem(system: ISystem, priority?: number) {
-        let { caries } = system;
+        const { caries } = system;
         system[UNIT_BIT_KEY_DIC] = {};
         system[ENTITIES] = {};
-        for (let query in caries) {
-            let unit_keys = new UnitedBitKey();
+        for (const query in caries) {
+            const unit_keys = new UnitedBitKey();
             caries[query].forEach(item => {
                 const info = this.registeredComps[item.name];
                 info.relatedSystem.push({ system, query });
                 unit_keys.addBitKey(info.bitKey);
-            })
+            });
             system[UNIT_BIT_KEY_DIC][query] = unit_keys;
             system[ENTITIES][query] = [];
         }
         this.systems.push({ system, priority: priority ?? this.systems.length });
         this.systems.sort((a, b) => a.priority - b.priority);
     }
+
     static removeSystem(system: ISystem) {
-        let targetIndex = this.systems.findIndex((item) => item.system = system);
+        const targetIndex = this.systems.findIndex((item) => item.system = system);
         if (targetIndex != -1) {
             this.systems.splice(targetIndex - 1, 1);
         }
 
-        for (let key in this.registeredComps) {
+        for (const key in this.registeredComps) {
             this.registeredComps[key].relatedSystem = this.registeredComps[key].relatedSystem.filter(item => item.system != system);
         }
     }
+
     /**
      * 单位秒
      * @param deltaTime 
      */
     static update(deltaTime: number) {
         this.entities.forEach(item => {
-            for (let key in item[COMPS]) {
+            for (const key in item[COMPS]) {
                 item[COMPS][key][UPDATE]();
             }
-        })
+        });
         this.systems.forEach(item => item.system.update(deltaTime));
     }
 }

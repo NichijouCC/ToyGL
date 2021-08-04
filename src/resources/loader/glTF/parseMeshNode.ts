@@ -90,8 +90,8 @@ export class ParseMeshNode {
                     });
 
                     if (attType == VertexAttEnum.POSITION && arrayInfo.min && arrayInfo.max) {
-                        let min = arrayInfo.min;
-                        let max = arrayInfo.max;
+                        const min = arrayInfo.min;
+                        const max = arrayInfo.max;
                         aabb = BoundingBox.create(
                             vec3.fromValues((max[0] + min[0]) * 0.5, (max[1] + min[1]) * 0.5, (max[2] + min[2]) * 0.5),
                             vec3.fromValues((max[0] - min[0]) * 0.5, (max[1] - min[1]) * 0.5, (max[2] - min[2]) * 0.5)
@@ -104,7 +104,7 @@ export class ParseMeshNode {
         if (index != null) {
             const indexTask = ParseAccessorNode.parse(index, gltf, { target: BufferTargetEnum.ELEMENT_ARRAY_BUFFER, context })
                 .then(arrayInfo => {
-                    let indexBuffer = arrayInfo.buffer as IndexBuffer;
+                    const indexBuffer = arrayInfo.buffer as IndexBuffer;
                     vaoOptions.indexBuffer = indexBuffer;
                     vaoOptions.primitiveByteOffset = arrayInfo.bytesOffset;
                     vaoOptions.primitiveCount = arrayInfo.count;
@@ -115,12 +115,12 @@ export class ParseMeshNode {
         return Promise.all(taskAtts)
             .then(() => {
                 const mesh = new PrimitiveMesh();
-                mesh.vertexArray =context.createVertexArray(vaoOptions);
+                mesh.vertexArray = context.createVertexArray(vaoOptions);
                 mesh.boundingBox = aabb;
                 return mesh;
             }).catch(err => {
                 console.error("ParseMeshNode->parseMesh error", err);
                 return Promise.reject(err);
-            })
+            });
     }
 }

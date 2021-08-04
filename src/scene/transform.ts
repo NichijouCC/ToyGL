@@ -18,8 +18,8 @@ export class Transform extends BaseEntity {
     // -----------------------------------------------------------------------------------------------------------
     //  本节点是否显示由节点自身是否显示和递归的父节点是否显示综合决定，【beActive = selfBeActive & p1_beActive & p2_beActive & .... 】 
     // -----------------------------------------------------------------------------------------------------------
-    private _selfBeActive = true;
-    private _parentsBeActive = false;
+    protected _selfBeActive = true;
+    protected _parentsBeActive = false;
     private _setParentsBeActive = (active: boolean) => {
         if (active != this._parentsBeActive) {
             this._parentsBeActive = active;
@@ -86,18 +86,21 @@ export class Transform extends BaseEntity {
         vec3.copy(this._localPosition, value);
         this.markDirty();
     }
+
     get localPosition(): vec3 { return this._proxyLocalPosition; }
 
     set localRotation(value: quat) {
         quat.copy(this._localRotation, value);
         this.markDirty();
     }
+
     get localRotation(): quat { return this._proxyLocalRotation; }
 
     set localScale(value: vec3) {
         vec3.copy(this._localScale, value);
         this.markDirty();
     }
+
     get localScale(): vec3 { return this._proxyLocalScale; }
 
     private _localMatrix: mat4 = mat4.create();

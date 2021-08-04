@@ -28,7 +28,7 @@ export class Animation extends AbsComponent<Entity> {
         }
     }
 
-    onInit() {
+    init() {
         this._clipsMap.forEach(item => item._init());
     }
 
@@ -44,13 +44,14 @@ export class Animation extends AbsComponent<Entity> {
             this._currentClip._reset();
         }
     }
+
     playByIndex(index: number, options?: { onEnd?: () => void }) {
-        let clip = this._clips[index];
+        const clip = this._clips[index];
         if (clip) {
             this._currentClip = this._clipsMap.get(clip.id);
             this._currentClip._reset();
             if (options?.onEnd != null) {
-                this._currentClip.onEnd.addEventListener(options.onEnd)
+                this._currentClip.onEnd.addEventListener(options.onEnd);
             }
         }
     }
@@ -60,10 +61,10 @@ export class Animation extends AbsComponent<Entity> {
     }
 
     clone(): Animation {
-        let newComp = Animation.create();
+        const newComp = Animation.create();
         this._clips.forEach(item => {
             newComp.addAnimationClip(item);
-        })
+        });
         return newComp;
     }
 }

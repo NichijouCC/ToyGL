@@ -2,7 +2,7 @@ import { ToyGL, Material, DefaultGeometry, DefaultTexture, Color, VertexAttEnum,
 import { initToy } from "./util";
 
 const toy = initToy();
-let { scene } = toy;
+const { scene } = toy;
 const geometry = DefaultGeometry.quad2d;
 const material = new Material({
     uniformParameters: {
@@ -32,20 +32,19 @@ const material = new Material({
     }
 });
 
-
 TextureAsset.fromUrl({ image: "./resources/glTF/duck/DuckCM.png" })
     .then(tex => {
         material.setUniformParameter("_MainTex", tex);
-    })
+    });
 
 const ins = MeshInstance.create({
     geometry,
     material,
     node: scene.addNewChild()
-})
+});
 toy.scene.addRenderIns(ins);
 
-let cam = toy.scene.addNewCamera();
+const cam = toy.scene.addNewCamera();
 cam.node.localPosition[2] = 5;
 
 let roty = 0;
@@ -56,4 +55,3 @@ toy.scene.preUpdate.addEventListener((delta) => {
     ins.node.localRotation = quat.fromEuler(ins.node.localRotation, 0, roty, 0);
     material.setUniformParameter("timer", totalTime);
 });
-

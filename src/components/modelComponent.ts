@@ -9,7 +9,6 @@ import { Component, Entity } from "../scene";
 
 @ECS.registerComp
 export class ModelComponent extends Component {
-
     protected _mesh = new AssetReference<StaticMesh>();
     get mesh() { return this._mesh.current; };
     set mesh(asset: StaticMesh) { this._mesh.current = asset; };
@@ -39,7 +38,7 @@ export class ModelComponent extends Component {
     }
 
     clone(): ModelComponent {
-        let comp = ModelComponent.create();
+        const comp = ModelComponent.create();
         comp.mesh = this.mesh;
         comp.materials = this.materials;
         comp.skin = this.skin;

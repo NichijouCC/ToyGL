@@ -33,7 +33,7 @@ export class ShaderProgram implements IShaderProgram {
     private static _cachedProgram: WebGLProgram;
 
     constructor(options: IShaderProgramOption) {
-        const res = compileAndLinkShader(options.context.gl,options);
+        const res = compileAndLinkShader(options.context.gl, options);
         if (res) {
             this.program = res.shader;
             this.uniforms = res.uniforms;
@@ -54,7 +54,7 @@ export class ShaderProgram implements IShaderProgram {
 
         const gl = options.context.gl;
         this.bind = () => {
-            let beChanged = this.program != ShaderProgram._cachedProgram;
+            const beChanged = this.program != ShaderProgram._cachedProgram;
             if (beChanged) {
                 gl.useProgram(this.program);
                 ShaderProgram._cachedProgram = this.program;
@@ -65,15 +65,13 @@ export class ShaderProgram implements IShaderProgram {
             gl.useProgram(null);
             ShaderProgram._cachedProgram = null;
         };
-
-        this.bindUniform = (name: string, value: any) => {
-            this.uniforms[name].setter(this.uniforms[name],value);
-        };
     }
 
-    bindUniform(key: string, value: any) { }
+    bindUniform(key: string, value: any) { 
+        this.uniforms[key].setter(this.uniforms[key], value);
+    }
 
-    bindUniforms(device: GraphicsDevice, values: { [name: string]: any }) {
+    bindUniforms(values: { [name: string]: any }) {
         let uniformInfo: IUniformInfo;
         for (const key in values) {
             uniformInfo = this.uniforms[key];
@@ -126,12 +124,11 @@ export interface IShaderProgramOption {
     fsStr: string;
 }
 
-
 /**
  * 创建shader
  * @param definition 
  */
-function  compileAndLinkShader(gl:WebGLRenderingContext,definition: Pick<IShaderProgramOption,"vsStr"|"fsStr"|"attributes">) {
+function compileAndLinkShader(gl:WebGLRenderingContext, definition: Pick<IShaderProgramOption, "vsStr"|"fsStr"|"attributes">) {
     const vsShader = compileShaderSource(gl, definition.vsStr, true);
     const fsShader = compileShaderSource(gl, definition.fsStr, false);
 
@@ -173,7 +170,7 @@ function compileShaderSource(gl: WebGLRenderingContext, source: string, beVertex
     }
 }
 
-function preSetAttributeLocation(gl: WebGLRenderingContext,program: WebGLProgram, attInfo: { [attName: string]: VertexAttEnum }): { [attName: string]: IAttributeInfo } {
+function preSetAttributeLocation(gl: WebGLRenderingContext, program: WebGLProgram, attInfo: { [attName: string]: VertexAttEnum }): { [attName: string]: IAttributeInfo } {
     const attDic: { [attName: string]: IAttributeInfo } = {};
     const numAttribs = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
     for (let i = 0; i < numAttribs; i++) {
@@ -228,7 +225,7 @@ function getUniformsInfo(gl: WebGLRenderingContext, program: WebGLProgram) {
         } else {
             uniformDic[name] = newUniformElement;
             newUniformElement.beTexture = false;
-            newUniformElement.setter =UniformSetter.get(uniformType);
+            newUniformElement.setter = UniformSetter.get(uniformType);
             if (newUniformElement.setter == null) {
                 console.error("cannot find uniform setter!");
             }
@@ -236,7 +233,7 @@ function getUniformsInfo(gl: WebGLRenderingContext, program: WebGLProgram) {
     }
 
     sampleArr.forEach((item, index) => {
-        let setter=UniformSetter.get(item.type);
+        const setter = UniformSetter.get(item.type);
         item.setter = (info: IUniformInfo, value: any) => { setter(info, value, index); };
     });
     return uniformDic;

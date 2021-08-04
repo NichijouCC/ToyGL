@@ -80,6 +80,6 @@ export class ParseNode {
         }).catch(err => {
             console.error("ParseNode error", err);
             return Promise.reject(err);
-        })
+        });
     }
 }

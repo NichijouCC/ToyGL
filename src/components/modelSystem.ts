@@ -14,7 +14,7 @@ export class ModelSystem extends System {
 
     update(deltaTime: number): void {
         this.queries.comps.forEach((node) => {
-            let comp = node.getComponent(ModelComponent);
+            const comp = node.getComponent(ModelComponent);
             if (comp.entity.beActive == true) {
                 comp.mesh?.subMeshes.forEach((subMeshItem, index) => {
                     const renderIns: IRenderable = {
@@ -28,6 +28,6 @@ export class ModelSystem extends System {
                     // this._toy.gizmos.drawAABB(subMeshItem.boundingBox, comp.entity.worldMatrix);
                 });
             }
-        })
+        });
     }
 }

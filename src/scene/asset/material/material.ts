@@ -9,7 +9,7 @@ export class Material extends Asset {
 
     name: string;
     uniformParameters: { [name: string]: any } = {};
-    constructor(options?: ImatOption) {
+    constructor(options?: IMatOption) {
         super();
         this.name = options?.name;
         Material.totalCount++;
@@ -27,6 +27,7 @@ export class Material extends Asset {
         this.onDirty.addEventListener(() => { this._beDirty = true; });
         this.shaderRef.onDirty.addEventListener(() => { this.onDirty.raiseEvent(); });
     }
+
     /**
      * private
      */
@@ -71,7 +72,7 @@ export class Material extends Asset {
     }
 }
 
-export interface ImatOption {
+export interface IMatOption {
     name?: string;
     uniformParameters?: { [name: string]: any };
     shaderOption?: IShaderOption | Shader;

@@ -28,13 +28,12 @@ export class ParseAnimationNode {
         const chan = new AnimationChannel();
         chan.targetName = GlTF.getNodeName(channelTarget.node, gltf);
         chan.propertyName = channelTarget.path;
-        chan.interPolation = sampleNode.interpolation;
+        chan.interPolation = sampleNode.interpolation as any;
 
         return Promise.all([
             ParseAccessorNode.parse(sampleNode.input, gltf),
             ParseAccessorNode.parse(sampleNode.output, gltf)
         ]).then(([inputData, outputData]) => {
-
             const keyframes = Accessor.getTypedData(inputData);
             for (let i = 0; i < keyframes.length; i++) {
                 chan.keyframes[i] = (keyframes[i] * AnimationClip.FPS) | 0;// 变成frame

@@ -39,59 +39,59 @@ export enum UniformTypeEnum {
 
 export namespace UniformTypeEnum {
     const gltypeToUniformType: { [glType: number]: UniformTypeEnum } = {}; {
-        gltypeToUniformType[GlConstants.FLOAT] = UniformTypeEnum.FLOAT;
-        gltypeToUniformType[GlConstants.FLOAT_VEC2] = UniformTypeEnum.FLOAT_VEC2;
-        gltypeToUniformType[GlConstants.FLOAT_VEC3] = UniformTypeEnum.FLOAT_VEC3;
-        gltypeToUniformType[GlConstants.FLOAT_VEC4] = UniformTypeEnum.FLOAT_VEC4;
-        gltypeToUniformType[GlConstants.INT] = UniformTypeEnum.INT;
-        gltypeToUniformType[GlConstants.INT_VEC2] = UniformTypeEnum.INT_VEC2;
-        gltypeToUniformType[GlConstants.INT_VEC3] = UniformTypeEnum.INT_VEC3;
-        gltypeToUniformType[GlConstants.INT_VEC4] = UniformTypeEnum.INT_VEC4;
-        gltypeToUniformType[GlConstants.BOOL] = UniformTypeEnum.BOOL;
-        gltypeToUniformType[GlConstants.BOOL_VEC2] = UniformTypeEnum.BOOL_VEC2;
-        gltypeToUniformType[GlConstants.BOOL_VEC3] = UniformTypeEnum.BOOL_VEC3;
-        gltypeToUniformType[GlConstants.BOOL_VEC4] = UniformTypeEnum.BOOL_VEC4;
-        gltypeToUniformType[GlConstants.FLOAT_MAT2] = UniformTypeEnum.FLOAT_MAT2;
-        gltypeToUniformType[GlConstants.FLOAT_MAT3] = UniformTypeEnum.FLOAT_MAT3;
-        gltypeToUniformType[GlConstants.FLOAT_MAT4] = UniformTypeEnum.FLOAT_MAT4;
-        gltypeToUniformType[GlConstants.SAMPLER_2D] = UniformTypeEnum.SAMPLER_2D;
-        gltypeToUniformType[GlConstants.SAMPLER_CUBE] = UniformTypeEnum.SAMPLER_CUBE;
-    }
+    gltypeToUniformType[GlConstants.FLOAT] = UniformTypeEnum.FLOAT;
+    gltypeToUniformType[GlConstants.FLOAT_VEC2] = UniformTypeEnum.FLOAT_VEC2;
+    gltypeToUniformType[GlConstants.FLOAT_VEC3] = UniformTypeEnum.FLOAT_VEC3;
+    gltypeToUniformType[GlConstants.FLOAT_VEC4] = UniformTypeEnum.FLOAT_VEC4;
+    gltypeToUniformType[GlConstants.INT] = UniformTypeEnum.INT;
+    gltypeToUniformType[GlConstants.INT_VEC2] = UniformTypeEnum.INT_VEC2;
+    gltypeToUniformType[GlConstants.INT_VEC3] = UniformTypeEnum.INT_VEC3;
+    gltypeToUniformType[GlConstants.INT_VEC4] = UniformTypeEnum.INT_VEC4;
+    gltypeToUniformType[GlConstants.BOOL] = UniformTypeEnum.BOOL;
+    gltypeToUniformType[GlConstants.BOOL_VEC2] = UniformTypeEnum.BOOL_VEC2;
+    gltypeToUniformType[GlConstants.BOOL_VEC3] = UniformTypeEnum.BOOL_VEC3;
+    gltypeToUniformType[GlConstants.BOOL_VEC4] = UniformTypeEnum.BOOL_VEC4;
+    gltypeToUniformType[GlConstants.FLOAT_MAT2] = UniformTypeEnum.FLOAT_MAT2;
+    gltypeToUniformType[GlConstants.FLOAT_MAT3] = UniformTypeEnum.FLOAT_MAT3;
+    gltypeToUniformType[GlConstants.FLOAT_MAT4] = UniformTypeEnum.FLOAT_MAT4;
+    gltypeToUniformType[GlConstants.SAMPLER_2D] = UniformTypeEnum.SAMPLER_2D;
+    gltypeToUniformType[GlConstants.SAMPLER_CUBE] = UniformTypeEnum.SAMPLER_CUBE;
+}
 
     const gltypeArrayToUniformType: { [glType: number]: UniformTypeEnum } = {}; {
-        gltypeArrayToUniformType[GlConstants.FLOAT] = UniformTypeEnum.FLOAT_ARRAY;
-        gltypeArrayToUniformType[GlConstants.FLOAT_VEC2] = UniformTypeEnum.FLOAT_VEC2_ARRAY;
-        gltypeArrayToUniformType[GlConstants.FLOAT_VEC3] = UniformTypeEnum.FLOAT_VEC3_ARRAY;
-        gltypeArrayToUniformType[GlConstants.FLOAT_VEC4] = UniformTypeEnum.FLOAT_VEC4_ARRAY;
-        gltypeArrayToUniformType[GlConstants.INT] = UniformTypeEnum.INT_ARRAY;
-        gltypeArrayToUniformType[GlConstants.INT_VEC2] = UniformTypeEnum.INT_VEC2_ARRAY;
-        gltypeArrayToUniformType[GlConstants.INT_VEC3] = UniformTypeEnum.INT_VEC3_ARRAY;
-        gltypeArrayToUniformType[GlConstants.INT_VEC4] = UniformTypeEnum.INT_VEC4_ARRAY;
-        gltypeArrayToUniformType[GlConstants.BOOL] = UniformTypeEnum.BOOL_ARRAY;
-        gltypeArrayToUniformType[GlConstants.BOOL_VEC2] = UniformTypeEnum.BOOL_VEC2_ARRAY;
-        gltypeArrayToUniformType[GlConstants.BOOL_VEC3] = UniformTypeEnum.BOOL_VEC3_ARRAY;
-        gltypeArrayToUniformType[GlConstants.BOOL_VEC4] = UniformTypeEnum.BOOL_VEC4_ARRAY;
-        gltypeArrayToUniformType[GlConstants.FLOAT_MAT2] = UniformTypeEnum.FLOAT_MAT2_ARRAY;
-        gltypeArrayToUniformType[GlConstants.FLOAT_MAT3] = UniformTypeEnum.FLOAT_MAT3_ARRAY;
-        gltypeArrayToUniformType[GlConstants.FLOAT_MAT4] = UniformTypeEnum.FLOAT_MAT4_ARRAY;
-        gltypeArrayToUniformType[GlConstants.SAMPLER_2D] = UniformTypeEnum.SAMPLER_2D_ARRAY;
-        gltypeArrayToUniformType[GlConstants.SAMPLER_CUBE] = UniformTypeEnum.SAMPLER_CUBE_ARRAY;
-    }
+    gltypeArrayToUniformType[GlConstants.FLOAT] = UniformTypeEnum.FLOAT_ARRAY;
+    gltypeArrayToUniformType[GlConstants.FLOAT_VEC2] = UniformTypeEnum.FLOAT_VEC2_ARRAY;
+    gltypeArrayToUniformType[GlConstants.FLOAT_VEC3] = UniformTypeEnum.FLOAT_VEC3_ARRAY;
+    gltypeArrayToUniformType[GlConstants.FLOAT_VEC4] = UniformTypeEnum.FLOAT_VEC4_ARRAY;
+    gltypeArrayToUniformType[GlConstants.INT] = UniformTypeEnum.INT_ARRAY;
+    gltypeArrayToUniformType[GlConstants.INT_VEC2] = UniformTypeEnum.INT_VEC2_ARRAY;
+    gltypeArrayToUniformType[GlConstants.INT_VEC3] = UniformTypeEnum.INT_VEC3_ARRAY;
+    gltypeArrayToUniformType[GlConstants.INT_VEC4] = UniformTypeEnum.INT_VEC4_ARRAY;
+    gltypeArrayToUniformType[GlConstants.BOOL] = UniformTypeEnum.BOOL_ARRAY;
+    gltypeArrayToUniformType[GlConstants.BOOL_VEC2] = UniformTypeEnum.BOOL_VEC2_ARRAY;
+    gltypeArrayToUniformType[GlConstants.BOOL_VEC3] = UniformTypeEnum.BOOL_VEC3_ARRAY;
+    gltypeArrayToUniformType[GlConstants.BOOL_VEC4] = UniformTypeEnum.BOOL_VEC4_ARRAY;
+    gltypeArrayToUniformType[GlConstants.FLOAT_MAT2] = UniformTypeEnum.FLOAT_MAT2_ARRAY;
+    gltypeArrayToUniformType[GlConstants.FLOAT_MAT3] = UniformTypeEnum.FLOAT_MAT3_ARRAY;
+    gltypeArrayToUniformType[GlConstants.FLOAT_MAT4] = UniformTypeEnum.FLOAT_MAT4_ARRAY;
+    gltypeArrayToUniformType[GlConstants.SAMPLER_2D] = UniformTypeEnum.SAMPLER_2D_ARRAY;
+    gltypeArrayToUniformType[GlConstants.SAMPLER_CUBE] = UniformTypeEnum.SAMPLER_CUBE_ARRAY;
+}
 
-    export const fromGlType=(()=>{
+    export const fromGlType = (() => {
         let _type:UniformTypeEnum;
-        return  (glType: number, beArray: boolean = false)=> {
+        return (glType: number, beArray: boolean = false) => {
             if (beArray) {
-                _type= gltypeArrayToUniformType[glType];
+                _type = gltypeArrayToUniformType[glType];
             } else {
-                _type=  gltypeToUniformType[glType];
+                _type = gltypeToUniformType[glType];
             }
-            if(_type==null){
-                let message=`unhanded uniform GLType:${glType}`;
+            if (_type == null) {
+                const message = `unhanded uniform GLType:${glType}`;
                 console.error(message);
-                throw new Error(message)
+                throw new Error(message);
             }
             return _type;
-        }
-    })()
+        };
+    })();
 }

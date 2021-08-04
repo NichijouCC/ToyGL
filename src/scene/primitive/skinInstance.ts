@@ -29,7 +29,7 @@ export class SkinInstance {
     private bones: Entity[] = [];
     private rootBone: Entity;
     private _boneInverses!: mat4[];
-    private get attachEntity() { return this.getEntity?.() };
+    private get attachEntity() { return this.getEntity?.(); };
     private getEntity: () => Entity;
     /**
      * 方式1：
@@ -48,7 +48,6 @@ export class SkinInstance {
     private _boneData!: Float32Array;
 
     static skinWay = SkinWay.UNIFORM_ARRAY;
-
 
     constructor(skin: Skin, getEntity: () => Entity) {
         this.skin = skin;
@@ -90,7 +89,7 @@ export class SkinInstance {
                 this._boneMatrixes = new Float32Array(bones.length * 16);
                 break;
             case SkinWay.UNIFORM_ARRAY:
-                this._boneData = new Float32Array(bones.length * 7)
+                this._boneData = new Float32Array(bones.length * 7);
                 break;
             case SkinWay.UNIFORM_TEXTURE:
                 // layout (1 matrix = 4 pixels)
@@ -138,13 +137,14 @@ export class SkinInstance {
             state.matrixModel = this.rootBone.worldMatrix;
         }
     }
+
     destroy() { }
 }
 /**
  * 每个骨骼计算对应的mat4ToRoot
  */
 const boneUpdate_a = (() => {
-    let offsetMatrix = mat4.create();
+    const offsetMatrix = mat4.create();
     return (frameState: FrameState, rootBone: Entity, bones: Entity[], boneInverses: mat4[], data: Float32Array) => {
         const mat = rootBone.worldToLocalMatrix;
         if (frameState.dirtyNode.has(rootBone)) { // root dirty 全部重新计算
@@ -164,15 +164,14 @@ const boneUpdate_a = (() => {
                 }
             }
         }
-    }
-})()
-
+    };
+})();
 
 /**
  * 每个骨骼计算对应的worldLocation,worldRot
  */
 const boneUpdate_c = (() => {
-    let offsetMatrix = mat4.create();
+    const offsetMatrix = mat4.create();
     return (frameState: FrameState, rootBone: Entity, bones: Entity[], boneInverses: mat4[], data: Float32Array) => {
         const mat = rootBone.worldToLocalMatrix;
         if (frameState.dirtyNode.has(rootBone)) { // root dirty 全部重新计算
@@ -194,16 +193,16 @@ const boneUpdate_c = (() => {
                 }
             }
         }
-    }
-})()
+    };
+})();
 
 const saveBoneMatToArray = (() => {
-    let temptMove = vec3.create();
-    let temptRot = quat.create();
+    const temptMove = vec3.create();
+    const temptRot = quat.create();
 
     return (array: Float32Array, mat: mat4, index: number) => {
-        let move = mat4.getTranslation(temptMove, mat);
-        let rot = mat4.getRotation(temptRot, mat);
+        const move = mat4.getTranslation(temptMove, mat);
+        const rot = mat4.getRotation(temptRot, mat);
         array[index * 7 + 0] = move[0];
         array[index * 7 + 1] = move[1];
         array[index * 7 + 2] = move[2];
@@ -211,19 +210,18 @@ const saveBoneMatToArray = (() => {
         array[index * 7 + 4] = rot[1];
         array[index * 7 + 5] = rot[2];
         array[index * 7 + 6] = rot[3];
-    }
-})()
-
+    };
+})();
 
 const findRootBone = (start: Entity, rootName: string) => {
     let target = start.find((item) => item.name == rootName);
     if (target != null) return target;
-    let checked = new Set<Entity>();
+    const checked = new Set<Entity>();
     checked.add(start);
     let parent = start.parent;
     while (parent != null && target == null) {
         for (let i = 0; i < parent.children.length; i++) {
-            let child = parent.children[i] as Entity;
+            const child = parent.children[i] as Entity;
             if (!checked.has(child)) {
                 target = child.find((item) => item.name == rootName);
                 if (target != null) return target;
@@ -233,4 +231,4 @@ const findRootBone = (start: Entity, rootName: string) => {
         parent = parent.parent;
     }
     return target;
-}
+};

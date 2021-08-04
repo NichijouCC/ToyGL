@@ -1,5 +1,5 @@
 import { Plane } from "./plane";
-import { mat4 } from '../mathD';
+import { mat4 } from "../mathD";
 import { BoundingSphere } from "./bounds";
 
 export class Frustum {

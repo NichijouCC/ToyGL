@@ -113,7 +113,7 @@ export class PhysicsWorld {
     }
 
     static rayTest(from: vec3, to?: vec3) {
-        let result = new CANNON.RaycastResult();
+        const result = new CANNON.RaycastResult();
         this.world?.rayTest(new CANNON.Vec3(from[0], from[1], from[2]), new CANNON.Vec3(to[0], to[1], to[2]), result);
         return result;
     }

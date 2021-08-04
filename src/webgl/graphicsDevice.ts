@@ -1,13 +1,10 @@
 
 import { DeviceCapability } from "./deviceCapability";
-import { IAttributeInfo, IUniformInfo, IShaderProgramOption, ShaderProgram } from "./shaderProgram";
-import { UniformTypeEnum } from "./uniformType";
-import { BufferTargetEnum, BufferUsageEnum } from "./buffer";
+import { IShaderProgramOption, ShaderProgram } from "./shaderProgram";
 import { VertexAttSetter } from "./vertexAttSetter";
 import { DeviceLimit } from "./deviceLimit";
-import { DepthFuncEnum, BlendEquationEnum, BlendParamEnum } from "../scene/renderState";
+import { BlendEquationEnum, BlendParamEnum } from "./shaderState";
 import { IVaoOptions, VertexArray } from "./vertexArray";
-import { VertexAttEnum } from "./vertexAttEnum";
 import { UniformSetter } from "./UniformSetter";
 import { VertexBuffer, VertexBufferOption } from "./vertexBuffer";
 import { IndexBuffer, IndexBufferOption } from "./indexBuffer";
@@ -17,6 +14,7 @@ import { FrameBuffer, IFrameBufferOptions } from "./framebuffer";
 export interface IEngineOption {
     disableWebgl2?: boolean;
 }
+type DistributiveOmit<T, K extends keyof any> = T extends any? Omit<T, K>: never;
 
 export class GraphicsDevice {
     gl: WebGLRenderingContext;
@@ -66,41 +64,47 @@ export class GraphicsDevice {
         throw new Error("Method not implemented.");
     }
 
-    createShaderProgram(options:Omit<IShaderProgramOption,"context">){
-        return new ShaderProgram({...options,context:this});
+    createShaderProgram(options:Omit<IShaderProgramOption, "context">) {
+        return new ShaderProgram({ ...options, context: this });
     }
 
-    createVertexArray(options:Omit<IVaoOptions,"context">){
-        return new VertexArray({...options,context:this});
+    createVertexArray(options:Omit<IVaoOptions, "context">) {
+        return new VertexArray({ ...options, context: this });
     }
 
-    createVertexBuffer(options:Omit<VertexBufferOption,"context">){
-        return new VertexBuffer({...options,context:this} as any);
+    createVertexBuffer(options:DistributiveOmit<VertexBufferOption, "context">) {
+        return new VertexBuffer({ ...options, context: this } as any);
     }
 
-    createIndexBuffer(options:Omit<IndexBufferOption,"context">){
-        return new IndexBuffer({...options,context:this} as any);
+    createIndexBuffer(options:DistributiveOmit<IndexBufferOption, "context">) {
+        return new IndexBuffer({ ...options, context: this } as any);
     }
 
-    createTextureFromTypedArray(options:Omit<ITypedArrayTexOpts,"context">){
-        return Texture.fromTypedArray({...options,context:this});
+    createTextureFromTypedArray(options:Omit<ITypedArrayTexOpts, "context">) {
+        return Texture.fromTypedArray({ ...options, context: this });
     }
 
-    createTextureFromFrameBuffer(options:Omit<IFrameBufferTexOpts,"context">){
-        return Texture.fromFrameBuffer({...options,context:this});
+    createTextureFromFrameBuffer(options:Omit<IFrameBufferTexOpts, "context">) {
+        return Texture.fromFrameBuffer({ ...options, context: this });
     }
 
-    createTextureFromImageSource(options:Omit<IImageSourceTexOpts,"context">){
-        return Texture.fromImageSource({...options,context:this});
+    createTextureFromImageSource(options:Omit<IImageSourceTexOpts, "context">) {
+        return Texture.fromImageSource({ ...options, context: this });
     }
 
-    createFrameBuffer(options:Omit<IFrameBufferOptions,"context">){
-        return new FrameBuffer({...options,context:this});
+    createFrameBuffer(options:Omit<IFrameBufferOptions, "context">) {
+        return new FrameBuffer({ ...options, context: this });
     }
 
     // -----------------------------gl state
     private _cachedClearDepth: number;
     private _cachedClearColor: Float32Array = new Float32Array(4);
+    /**
+     * 
+     * @param clearDepth 默认值：1.0
+     * @param clearColor 默认值：1,1,1,1
+     * @param clearStencil 默认值：0
+     */
     setClear(clearDepth: number | null, clearColor: Float32Array | null, clearStencil: number | null) {
         let clearTag = 0;
         if (clearDepth != null) {
@@ -122,7 +126,7 @@ export class GraphicsDevice {
             clearTag |= this.gl.COLOR_BUFFER_BIT;
         }
         if (clearStencil != null) {
-            this.gl.clearStencil(0);
+            this.gl.clearStencil(clearStencil);
             clearTag |= this.gl.STENCIL_BUFFER_BIT;
         }
         if (clearTag != 0) {
@@ -134,6 +138,9 @@ export class GraphicsDevice {
     private _cachedViewPortY: number;
     private _cachedViewPortWidth: number;
     private _cachedViewPortHeight: number;
+    /**
+     * 0-1范围
+     */
     setViewPort(x: number, y: number, width: number, height: number, force = false) {
         if (
             force ||
@@ -142,7 +149,7 @@ export class GraphicsDevice {
             width != this._cachedViewPortWidth ||
             height != this._cachedViewPortHeight
         ) {
-            this.gl.viewport(x, y, width, height);
+            this.gl.viewport(x * this.width, y * this.height, width * this.width, height * this.height);
             this._cachedViewPortX = x;
             this._cachedViewPortY = y;
             this._cachedViewPortWidth = width;

@@ -41,7 +41,7 @@ export class ParseTextureNode {
                     .catch(err => {
                         console.error("ParseTextureNode->img error", err);
                         return Promise.reject(err);
-                    })
+                    });
                 gltf.cache.textureNodeCache[index] = task;
                 return task;
             } else {
@@ -85,7 +85,7 @@ export class ParseTextureNode {
                     .catch(err => {
                         console.error("ParseTextureNode->bufferView error", err);
                         return Promise.reject(err);
-                    })
+                    });
                 gltf.cache.textureNodeCache[index] = task;
                 return task;
             }

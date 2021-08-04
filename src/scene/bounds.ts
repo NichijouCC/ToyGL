@@ -1,8 +1,8 @@
-import { vec3, mat4 } from '../mathD/index';
+import { vec3, mat4 } from "../mathD/index";
 import { VertexAttEnum } from "../webgl/vertexAttEnum";
 import { VertexArray } from "../webgl/vertexArray";
 import { TypedArray } from "../core/typedArray";
-import { Vec3 } from 'cannon-es';
+import { Vec3 } from "cannon-es";
 
 namespace Private {
     export const min = vec3.fromValues(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
@@ -228,13 +228,13 @@ export class BoundingBox {
     center: vec3;
     halfSize: vec3;
     private constructor(center?: vec3, halfSize?: vec3) {
-        this.center = center ? center : vec3.create();
-        this.halfSize = halfSize ? halfSize : vec3.fromValues(1, 1, 1);
+        this.center = center || vec3.create();
+        this.halfSize = halfSize || vec3.fromValues(1, 1, 1);
     }
 
     static fromTypedArray(positions: TypedArray, center: vec3 = null) {
-        let min = vec3.fromValues(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
-        let max = vec3.fromValues(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
+        const min = vec3.fromValues(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
+        const max = vec3.fromValues(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
         let x, y, z;
         for (let i = 0; i < positions.length; i += 3) {
             x = positions[i];
@@ -260,28 +260,27 @@ export class BoundingBox {
     }
 
     static fromMinMax = (() => {
-        let _tempt = vec3.create();
+        const _tempt = vec3.create();
         return (min: ArrayLike<number>, max: ArrayLike<number>, out?: BoundingBox) => {
             out = out ?? new BoundingBox();
             vec3.copy(out.center, vec3.set(_tempt, (min[0] + max[0]) * 0.5, (min[1] + max[1]) * 0.5, (min[2] + max[2]) * 0.5));
             vec3.copy(out.halfSize, vec3.set(_tempt, (max[0] - min[0]) * 0.5, (max[1] - min[1]) * 0.5, (max[2] - min[2]) * 0.5));
             return out;
-        }
+        };
     })()
 
     private static pool: BoundingBox[] = [];
     static create(center?: vec3, halfSize?: vec3) {
         if (this.pool.length > 0) {
-            let ins = this.pool.pop();
+            const ins = this.pool.pop();
             vec3.copy(ins.center, center ?? vec3.ZERO);
             vec3.copy(ins.halfSize, halfSize ?? vec3.ONE);
         } else {
             return new BoundingBox(center, halfSize);
         }
     }
+
     static recycle(item: BoundingBox) {
         this.pool.push(item);
     }
-
-
 }

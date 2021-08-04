@@ -80,5 +80,3 @@ export enum BufferUsageEnum {
     STATIC_DRAW = GlConstants.STATIC_DRAW,
     DYNAMIC_DRAW = GlConstants.DYNAMIC_DRAW
 }
-
-

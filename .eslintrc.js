@@ -13,20 +13,22 @@ module.exports = {
         "@typescript-eslint"
     ],
     rules: {
-        indent: ["error", 4, { SwitchCase: 1 }], // 缩进4空格
-        semi: ["error", "always"], // 结尾;号
-        quotes: ["error", "double"], // 双引号
+        indent: ["error", 4, { SwitchCase: 1 }],
+        semi: ["error", "always"],
+        quotes: ["error", "double"],
         "no-unused-vars": "off",
         "accessor-pairs": "off",
         "import/export": "off",
         "no-trailing-spaces": "off",
         eqeqeq: "off",
         "no-use-before-define": "off",
-        // "space-before-function-paren": ["error", "never"], // 方法体前面无空格
+        // "space-before-function-paren": ["error", "never"],
         "no-redeclare": "off",
-        camelcase: "off", // 驼峰
+        camelcase: "off", 
         "no-void": "off",
         "no-inner-declarations": "off",
-        "space-before-function-paren": ["error", { anonymous: "always", named: "never", asyncArrow: "always" }]
+        "space-before-function-paren": ["error", { anonymous: "always", named: "never", asyncArrow: "always" }],
+        "no-prototype-builtins": "off",
+        "no-return-assign": "off"
     }
 };

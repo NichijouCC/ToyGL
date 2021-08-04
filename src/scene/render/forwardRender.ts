@@ -32,30 +32,30 @@ export class ForwardRender {
     }
 
     private bindShaderUniforms(shaderIns: ShaderProgram, uniformValues: { [name: string]: any }) {
-        let values = { ...uniformValues };
-        let uniforms = shaderIns.uniforms;
-        for (let key in uniforms) {
+        const values = { ...uniformValues };
+        const uniforms = shaderIns.uniforms;
+        for (const key in uniforms) {
             if (AutoUniforms.containAuto(key)) {
                 values[key] = AutoUniforms.getAutoUniformValue(key, this.uniformState);
             }
         }
-        shaderIns.bindUniforms(this.device, values);
+        shaderIns.bindUniforms(values);
     }
 
     private bindShaderAutoUniforms(shaderIns: ShaderProgram) {
-        let values: { [key: string]: any } = {};
-        let uniforms = shaderIns.uniforms;
-        for (let key in uniforms) {
+        const values: { [key: string]: any } = {};
+        const uniforms = shaderIns.uniforms;
+        for (const key in uniforms) {
             if (AutoUniforms.containAuto(key)) {
                 values[key] = AutoUniforms.getAutoUniformValue(key, this.uniformState);
             }
         }
-        shaderIns.bindUniforms(this.device, values);
+        shaderIns.bindUniforms(values);
     }
 
     private setCamera(camera: Camera) {
         this.uniformState.curCamera = camera;
-        this.device.setViewPort(camera.viewport.x, camera.viewport.y, camera.viewport.width * this.device.width, camera.viewport.height * this.device.height);
+        this.device.setViewPort(camera.viewport.x, camera.viewport.y, camera.viewport.width, camera.viewport.height);
         this.device.setClear(
             camera.enableClearDepth ? camera.dePthValue : null,
             camera.enableClearColor ? camera.backgroundColor : null,
@@ -82,7 +82,7 @@ export class ForwardRender {
         }
 
         // ----------------collect render Ins
-        let renderArr = frameState.renders;
+        const renderArr = frameState.renders;
         for (let i = 0; i < renderArr.length; i++) {
             renderItem = renderArr[i];
             if (renderItem.beVisible == false || renderItem.geometry == null || renderItem.material?.shader == null) continue;
@@ -135,7 +135,7 @@ export class ForwardRender {
             }
 
             shaderIns = material.shader.getProgram(bucketId, this.device);
-            let shaderChanged = shaderIns.bind();
+            const shaderChanged = shaderIns.bind();
 
             if (shaderChanged || material != Private.preMaterial || material._beDirty || Private.preBucketID != bucketId) {
                 Private.preMaterial = material;
@@ -186,12 +186,12 @@ export class ForwardRender {
     }
 
     private frustumCull = (() => {
-        let _temptSphere = new BoundingSphere();
+        const _temptSphere = new BoundingSphere();
         return (frustum: Frustum, drawCall: IRenderable) => {
-            let aabb = drawCall.boundingBox ?? drawCall.geometry.boundingBox;
+            const aabb = drawCall.boundingBox ?? drawCall.geometry.boundingBox;
             vec3.copy(_temptSphere.center, aabb.center);
             _temptSphere.radius = vec3.len(aabb.halfSize);
             return frustum.containSphere(_temptSphere, drawCall.worldMat);
-        }
+        };
     })()
 }

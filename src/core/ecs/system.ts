@@ -8,6 +8,7 @@ export abstract class AbsSystem<T extends IEntity> extends EventEmitter<ISystemE
         this.onCreate();
         this.emit("onCreate");
     }
+
     /**
      * 在 addSystem 的时候进行初始化
      */
@@ -15,20 +16,20 @@ export abstract class AbsSystem<T extends IEntity> extends EventEmitter<ISystemE
     [ENTITIES]: { [queryKey: string]: T[]; };
 
     abstract caries: { [queryKey: string]: (new () => IComponent)[]; }
-    get queries() { return this[ENTITIES] }
+    get queries() { return this[ENTITIES]; }
 
     onCreate(): void { }
 
     addEntity(queryKey: string, entity: T): void {
-        let results = this[ENTITIES][queryKey];
+        const results = this[ENTITIES][queryKey];
         if (!results.includes(entity)) {
             results.push(entity);
-            this.emit("addEntity", { queryKey, entity })
+            this.emit("addEntity", { queryKey, entity });
         }
     }
 
     removeEntity(entity: T): void {
-        let results: T[], index: number
+        let results: T[], index: number;
         for (const key in this[ENTITIES]) {
             results = this[ENTITIES][key];
             index = results.indexOf(entity);
@@ -40,8 +41,8 @@ export abstract class AbsSystem<T extends IEntity> extends EventEmitter<ISystemE
     }
 
     removeQueriedEntity(queryKey: string, entity: T) {
-        let results = this[ENTITIES][queryKey];
-        let index = results.indexOf(entity);
+        const results = this[ENTITIES][queryKey];
+        const index = results.indexOf(entity);
         if (index >= 0) {
             results.splice(index, 1);
             this.emit("removeEntity", { queryKey, entity });

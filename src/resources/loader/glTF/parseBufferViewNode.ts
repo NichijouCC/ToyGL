@@ -16,7 +16,7 @@ export class ParseBufferViewNode {
                 .catch(err => {
                     console.error("ParseBufferViewNode error", err);
                     return Promise.reject(err);
-                })
+                });
             gltf.cache.bufferViewNodeCache[index] = task;
             return task;
         }

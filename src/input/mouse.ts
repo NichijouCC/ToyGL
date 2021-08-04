@@ -1,5 +1,5 @@
 import { EventEmitter } from "@mtgoo/ctool";
-import { vec2 } from '../mathD/index';
+import { vec2 } from "../mathD/index";
 
 export enum MouseKeyEnum {
     Left = "Left",

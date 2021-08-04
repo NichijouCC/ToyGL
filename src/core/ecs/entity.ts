@@ -14,6 +14,7 @@ export class Entity implements IEntity {
         if (newComp) ECS.bindCompToEntity(this, newComp);
         return newComp;
     }
+
     addComponentIns<T extends IComponent>(comp: T) {
         if (comp) ECS.bindCompToEntity(this, comp);
         return comp;

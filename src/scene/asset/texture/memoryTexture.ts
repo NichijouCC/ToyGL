@@ -3,7 +3,7 @@ import { GraphicsDevice } from "../../../webgl/graphicsDevice";
 import { TypedArray } from "../../../core/typedArray";
 import { PixelFormatEnum } from "../../../webgl/pixelFormatEnum";
 import { PixelDatatypeEnum } from "../../../webgl/pixelDatatype";
-import { IsamplerOptions, Sampler, Texture } from "../../../webgl/texture";
+import { ISamplerOptions, Sampler, Texture } from "../../../webgl/texture";
 import { BaseTexture } from "./baseTexture";
 
 export class MemoryTexture extends BaseTexture {
@@ -65,5 +65,5 @@ export interface ImemoryTextureOption {
     flipY?: boolean;
 
     // ----------------texParameteri-------------
-    sampler?: IsamplerOptions;
+    sampler?: ISamplerOptions;
 }
