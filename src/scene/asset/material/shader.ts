@@ -35,6 +35,7 @@ export class Shader extends Asset {
         this.vsStr = options.vsStr;
         this.fsStr = options.fsStr;
         this.attributes = options.attributes;
+        this.setLayerIndex(RenderLayerEnum.Geometry);
     }
 
     private _bucketFeats: number = 0;
@@ -67,7 +68,7 @@ export class Shader extends Asset {
     }
 }
 
-export type IShaderOption =Omit<IShaderProgramOption, "context">
+export type IShaderOption = Omit<IShaderProgramOption, "context">
 
 export interface ILayerIndexEvent {
     layer: RenderLayerEnum;

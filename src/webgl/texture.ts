@@ -11,6 +11,8 @@ import { isPowerOf2 } from "../mathD/common";
 
 export class Texture {
     texture: WebGLTexture;
+    unitId: number;
+    private beBind = false;
     pixelFormat: PixelFormatEnum;
     pixelDatatype: PixelDatatypeEnum;
     width: number;
@@ -270,14 +272,19 @@ export class Texture {
         this.initialized = initialized;
     }
 
-    bind(unit: number = 0) {
+    bind() {
         const gl = this._gl;
-        gl.activeTexture(gl.TEXTURE0 + unit);
-        gl.bindTexture(gl.TEXTURE_2D, this.texture);
+        let id = this._context.units.checkNeedReAssignID(this);
+        if (id !== false || this.beBind == false) {
+            gl.activeTexture(gl.TEXTURE0 + this.unitId);
+            gl.bindTexture(gl.TEXTURE_2D, this.texture);
+        }
+        this.beBind = true;
     }
 
     unbind() {
         this._gl.bindTexture(this._gl.TEXTURE_2D, null);
+        this.beBind = false;
     }
 
     update() { }
@@ -290,7 +297,7 @@ export class Texture {
      * // Source: typed array
      * @param options 
      */
-    static fromTypedArray(options:ITypedArrayTexOpts) {
+    static fromTypedArray(options: ITypedArrayTexOpts) {
         return new Texture({ ...options, source: { arrayBufferView: options.arrayBufferView } });
     }
 
@@ -331,7 +338,7 @@ export interface ITextureOptions {
     sampler?: ISamplerOptions;
 }
 
-export interface ITypedArrayTexOpts{
+export interface ITypedArrayTexOpts {
     context: GraphicsDevice;
     width: number;
     height: number;
@@ -342,7 +349,7 @@ export interface ITypedArrayTexOpts{
     flipY?: boolean;
 }
 
-export interface IImageSourceTexOpts{
+export interface IImageSourceTexOpts {
     context: GraphicsDevice;
     image: TexImageSource;
     pixelFormat?: PixelFormatEnum;
@@ -351,7 +358,7 @@ export interface IImageSourceTexOpts{
     flipY?: boolean;
 }
 
-export interface IFrameBufferTexOpts{
+export interface IFrameBufferTexOpts {
     context: GraphicsDevice;
     width: number;
     height: number;

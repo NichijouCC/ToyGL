@@ -42,7 +42,7 @@ export class MemoryTexture extends BaseTexture {
     set flipY(value: boolean) { this._flipY = value; }
     private sampler: Sampler;
 
-    constructor(options: ImemoryTextureOption) {
+    constructor(options: IMemoryTextureOption) {
         super();
         this.arrayBufferView = options.arrayBufferView;
         this.width = options.width;
@@ -55,7 +55,7 @@ export class MemoryTexture extends BaseTexture {
     }
 }
 
-export interface ImemoryTextureOption {
+export interface IMemoryTextureOption {
     width: number;
     height: number;
     arrayBufferView: TypedArray;

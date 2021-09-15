@@ -12,6 +12,7 @@ import { IRenderable } from "./irenderable";
 import { FrameState } from "../frameState";
 import { ShaderProgram } from "../../webgl";
 import { vec3 } from "../../mathD";
+import { BaseTexture } from "../asset/texture/baseTexture";
 
 const Private: {
     preMaterial: Material,
@@ -37,6 +38,12 @@ export class ForwardRender {
         for (const key in uniforms) {
             if (AutoUniforms.containAuto(key)) {
                 values[key] = AutoUniforms.getAutoUniformValue(key, this.uniformState);
+            }
+            if (uniformValues[key] instanceof BaseTexture) {
+                let tex = (uniformValues[key] as BaseTexture)
+                tex.bind(this.device);
+                // shaderIns.bindUniform(key, tex.graphicAsset);
+                values[key] = tex.graphicAsset
             }
         }
         shaderIns.bindUniforms(values);

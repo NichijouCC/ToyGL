@@ -4,9 +4,13 @@
 ### 设定
 1. 根据attribute type来决定 attributelocation
 
-
-## TODO
-1.texture unit 命中缓存
+### TODO
+- [x] 全局状态缓存，具体包括：clearDepth,clearColor,clearStencil等；  
+具体参见：https://www.khronos.org/registry/webgl/specs/latest/1.0/#5.14.3
+- [x] shaderProgram 缓存
+- [x] shaderUniformValue 缓存
+- [x] textureUnit 缓存
+- [ ] vao 缓存
 
 
 ## EXAMPLE

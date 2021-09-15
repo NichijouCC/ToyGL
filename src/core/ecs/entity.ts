@@ -5,8 +5,6 @@ import { UUID } from "@mtgoo/ctool";
 
 export class Entity implements IEntity {
     readonly id: string = UUID.create_v4();
-    [COMPS]: { [compName: string]: IComponent; };
-    [UNIT_BIT_KEY]: UnitedBitKey;
     [COMPS]: { [compName: string]: IComponent } = {};
     [UNIT_BIT_KEY]: UnitedBitKey = new UnitedBitKey();
     addComponent<T extends IComponent, P extends Partial<T>>(comp: new () => T, properties?: P): T {

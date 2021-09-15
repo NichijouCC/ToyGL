@@ -1,10 +1,10 @@
-import { COMPS, IComponent } from "../core/ecs/iecs";
+import { COMPS, IComponent, IEntity } from "../core/ecs/iecs";
 import { ECS } from "../core/ecs/ecs";
 import { Transform } from "./transform";
 import { EventTarget } from "@mtgoo/ctool";
 import { AbsComponent, AbsSystem } from "../core/ecs";
 
-export class Entity extends Transform {
+export class Entity extends Transform implements IEntity {
     name: string;
     constructor(properties?: Partial<Entity>) {
         super();

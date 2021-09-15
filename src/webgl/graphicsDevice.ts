@@ -10,18 +10,19 @@ import { VertexBuffer, VertexBufferOption } from "./vertexBuffer";
 import { IndexBuffer, IndexBufferOption } from "./indexBuffer";
 import { IFrameBufferTexOpts, IImageSourceTexOpts, ITypedArrayTexOpts, Texture } from "./texture";
 import { FrameBuffer, IFrameBufferOptions } from "./framebuffer";
+import { TextureUnit } from "./textureUnit";
 
 export interface IEngineOption {
     disableWebgl2?: boolean;
 }
-type DistributiveOmit<T, K extends keyof any> = T extends any? Omit<T, K>: never;
+type DistributiveOmit<T, K extends keyof any> = T extends any ? Omit<T, K> : never;
 
 export class GraphicsDevice {
     gl: WebGLRenderingContext;
     readonly webGLVersion: number;
     readonly caps: DeviceCapability;
     readonly limit: DeviceLimit;
-
+    readonly units: TextureUnit;
     bindingVao: WebGLVertexArrayObject = null;
     // beCreatingVao = false;
     get width() { return this.gl.drawingBufferWidth; };
@@ -58,41 +59,42 @@ export class GraphicsDevice {
         // -------------config init
         VertexAttSetter.init(this);
         UniformSetter.init(this);
+        this.units = new TextureUnit(this.limit.maximumCombinedTextureImageUnits);
     }
 
     handleContextLost = () => {
         throw new Error("Method not implemented.");
     }
 
-    createShaderProgram(options:Omit<IShaderProgramOption, "context">) {
+    createShaderProgram(options: Omit<IShaderProgramOption, "context">) {
         return new ShaderProgram({ ...options, context: this });
     }
 
-    createVertexArray(options:Omit<IVaoOptions, "context">) {
+    createVertexArray(options: Omit<IVaoOptions, "context">) {
         return new VertexArray({ ...options, context: this });
     }
 
-    createVertexBuffer(options:DistributiveOmit<VertexBufferOption, "context">) {
+    createVertexBuffer(options: DistributiveOmit<VertexBufferOption, "context">) {
         return new VertexBuffer({ ...options, context: this } as any);
     }
 
-    createIndexBuffer(options:DistributiveOmit<IndexBufferOption, "context">) {
+    createIndexBuffer(options: DistributiveOmit<IndexBufferOption, "context">) {
         return new IndexBuffer({ ...options, context: this } as any);
     }
 
-    createTextureFromTypedArray(options:Omit<ITypedArrayTexOpts, "context">) {
+    createTextureFromTypedArray(options: Omit<ITypedArrayTexOpts, "context">) {
         return Texture.fromTypedArray({ ...options, context: this });
     }
 
-    createTextureFromFrameBuffer(options:Omit<IFrameBufferTexOpts, "context">) {
+    createTextureFromFrameBuffer(options: Omit<IFrameBufferTexOpts, "context">) {
         return Texture.fromFrameBuffer({ ...options, context: this });
     }
 
-    createTextureFromImageSource(options:Omit<IImageSourceTexOpts, "context">) {
+    createTextureFromImageSource(options: Omit<IImageSourceTexOpts, "context">) {
         return Texture.fromImageSource({ ...options, context: this });
     }
 
-    createFrameBuffer(options:Omit<IFrameBufferOptions, "context">) {
+    createFrameBuffer(options: Omit<IFrameBufferOptions, "context">) {
         return new FrameBuffer({ ...options, context: this });
     }
 
@@ -408,7 +410,7 @@ export class GraphicsDevice {
 declare global {
     interface WebGLVertexArrayObject { }
 
-    interface WebGLQuery{ }
+    interface WebGLQuery { }
 
     interface EXT_disjoint_timer_query {
         QUERY_COUNTER_BITS_EXT: number;

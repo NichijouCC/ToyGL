@@ -152,53 +152,52 @@ export class VertexArray implements IglElement {
         const gl = options.context.gl;
 
         if (options.context.caps.vertexArrayObject) {
-            this._bind = () => {
+            this.bind = () => {
                 if (this._vao != this._context.bindingVao) {
                     this._context.bindingVao = this._vao;
                     gl.bindVertexArray(this._vao);
-
-                    const dirtyAtts = Object.keys(this.dirtyMeta);
-                    if (dirtyAtts.length > 0) {
-                        for (const key in this.dirtyMeta) {
-                            const { beDirty, newData } = this.dirtyMeta[key];
-                            if (beDirty) {
-                                if (newData) {
-                                    this._vertexAttributes[key].vertexBuffer.update(newData);
-                                } else {
-                                    this._vertexAttributes[key].bind();
-                                }
-                            }
-                        }
-                        this.dirtyMeta = {};
-                    }
-                    if (this.indicesDirtyMeta != null) {
-                        const { newData, beDirty } = this.indicesDirtyMeta;
+                }
+                const dirtyAtts = Object.keys(this.dirtyMeta);
+                if (dirtyAtts.length > 0) {
+                    for (const key in this.dirtyMeta) {
+                        const { beDirty, newData } = this.dirtyMeta[key];
                         if (beDirty) {
                             if (newData) {
-                                this.indexBuffer.update(this.indicesDirtyMeta.newData);
+                                this._vertexAttributes[key].vertexBuffer.update(newData);
                             } else {
-                                this.indexBuffer.bind();
+                                this._vertexAttributes[key].bind();
                             }
                         }
-                        this.indicesDirtyMeta = null;
                     }
+                    this.dirtyMeta = {};
+                }
+                if (this.indicesDirtyMeta != null) {
+                    const { newData, beDirty } = this.indicesDirtyMeta;
+                    if (beDirty) {
+                        if (newData) {
+                            this.indexBuffer.update(this.indicesDirtyMeta.newData);
+                        } else {
+                            this.indexBuffer.bind();
+                        }
+                    }
+                    this.indicesDirtyMeta = null;
                 }
             };
-            this._unbind = () => {
+            this.unbind = () => {
                 this._context.bindingVao = null;
                 gl.bindVertexArray(null);
             };
 
             this._vao = gl.createVertexArray();
-            this._bind();
+            this.bind();
             bindVertexAttributes(this._vertexAttributes, this._indexBuffer);
-            this._unbind();
+            this.unbind();
 
             this.destroy = () => {
                 gl.deleteVertexArray(this._vao);
             };
         } else {
-            this._bind = () => {
+            this.bind = () => {
                 const dirtyAtts = Object.keys(this.dirtyMeta);
                 if (dirtyAtts.length > 0) {
                     for (const key in this._vertexAttributes) {
@@ -224,7 +223,7 @@ export class VertexArray implements IglElement {
                     }
                 }
             };
-            this._unbind = () => {
+            this.unbind = () => {
                 unbindAttributes(this._vertexAttributes, this._indexBuffer);
             };
         }
@@ -232,18 +231,8 @@ export class VertexArray implements IglElement {
 
     hasAttribute(att: VertexAttEnum | string) { return this._vertexAttributes[att] != null; }
 
-    private _bind() { }
-    private _unbind() { }
-    static _cachedVertexArray: VertexArray;
-
-    bind() {
-        this._bind();
-    }
-
-    unbind() {
-        this._unbind();
-        VertexArray._cachedVertexArray = null;
-    }
+    bind() { }
+    unbind() { }
 
     destroy() { }
 }

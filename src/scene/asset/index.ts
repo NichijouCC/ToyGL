@@ -11,7 +11,6 @@ export * from "./geometry/staticMesh";
 
 export * from "./material/material";
 export * from "./material/shader";
-export * from "./material/shaderInstance";
 export * from "./material/shaderBucket";
 
 export * from "./texture/baseTexture";

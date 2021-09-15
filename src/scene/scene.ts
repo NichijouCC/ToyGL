@@ -86,7 +86,8 @@ export class InterScene {
         this.afterRender.raiseEvent();
     }
 
-    pick(screenPos: vec2) {
+    pick(screenPos?: vec2) {
+        screenPos = screenPos ?? Input.mouse.position;
         const { screen } = this._toy;
         const ndc_x = (screenPos[0] / screen.width) * 2 - 1;
         const ndc_y = -1 * ((screenPos[1] / screen.height) * 2 - 1);

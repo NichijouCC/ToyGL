@@ -67,7 +67,7 @@ export class ShaderProgram implements IShaderProgram {
         };
     }
 
-    bindUniform(key: string, value: any) { 
+    bindUniform(key: string, value: any) {
         this.uniforms[key].setter(this.uniforms[key], value);
     }
 
@@ -128,7 +128,7 @@ export interface IShaderProgramOption {
  * 创建shader
  * @param definition 
  */
-function compileAndLinkShader(gl:WebGLRenderingContext, definition: Pick<IShaderProgramOption, "vsStr"|"fsStr"|"attributes">) {
+function compileAndLinkShader(gl: WebGLRenderingContext, definition: Pick<IShaderProgramOption, "vsStr" | "fsStr" | "attributes">) {
     const vsShader = compileShaderSource(gl, definition.vsStr, true);
     const fsShader = compileShaderSource(gl, definition.fsStr, false);
 
@@ -147,8 +147,6 @@ function compileAndLinkShader(gl:WebGLRenderingContext, definition: Pick<IShader
             const attributes = preSetAttributeLocation(gl, shader, definition.attributes);
             gl.linkProgram(shader);
             const uniformDic = getUniformsInfo(gl, shader);
-            // TODO :SAMPLES
-            const samples = {};
             return { shader, attributes, uniforms: uniformDic };
         }
     }
@@ -193,7 +191,6 @@ function getUniformsInfo(gl: WebGLRenderingContext, program: WebGLProgram) {
     const uniformDic: { [name: string]: IUniformInfo } = {};
 
     const numUniforms = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
-    const sampleArr: IUniformInfo[] = [];
     for (let i = 0; i < numUniforms; i++) {
         const uniformInfo = gl.getActiveUniform(program, i);
         if (!uniformInfo) break;
@@ -221,20 +218,13 @@ function getUniformsInfo(gl: WebGLRenderingContext, program: WebGLProgram) {
 
         if (uniformType == UniformTypeEnum.SAMPLER_2D || uniformType == UniformTypeEnum.SAMPLER_CUBE) {
             newUniformElement.beTexture = true;
-            sampleArr.push(newUniformElement);
-        } else {
-            uniformDic[name] = newUniformElement;
-            newUniformElement.beTexture = false;
-            newUniformElement.setter = UniformSetter.get(uniformType);
-            if (newUniformElement.setter == null) {
-                console.error("cannot find uniform setter!");
-            }
+        }
+        uniformDic[name] = newUniformElement;
+        newUniformElement.beTexture = false;
+        newUniformElement.setter = UniformSetter.get(uniformType);
+        if (newUniformElement.setter == null) {
+            console.error("cannot find uniform setter!");
         }
     }
-
-    sampleArr.forEach((item, index) => {
-        const setter = UniformSetter.get(item.type);
-        item.setter = (info: IUniformInfo, value: any) => { setter(info, value, index); };
-    });
     return uniformDic;
 }

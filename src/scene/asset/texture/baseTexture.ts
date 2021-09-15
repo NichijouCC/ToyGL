@@ -3,12 +3,12 @@ import { Texture } from "../../../webgl/texture";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
 
 export abstract class BaseTexture extends Asset {
-    protected graphicAsset: Texture;
+    graphicAsset: Texture;
     protected beNeedRefreshGraphicAsset: boolean = false;
     protected abstract create(device: GraphicsDevice): Texture
     protected abstract refresh(device: GraphicsDevice): void
 
-    bind(device: GraphicsDevice, unit: number = 0) {
+    bind(device: GraphicsDevice) {
         if (this.graphicAsset == null) {
             this.graphicAsset = this.create(device);
             this.onCreated.raiseEvent();
@@ -18,7 +18,7 @@ export abstract class BaseTexture extends Asset {
             this.refresh(device);
             this.beNeedRefreshGraphicAsset = false;
         }
-        this.graphicAsset?.bind(unit);
+        // this.graphicAsset?.bind();
     }
 
     unbind() {

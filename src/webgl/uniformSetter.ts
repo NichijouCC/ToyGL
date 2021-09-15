@@ -1,10 +1,11 @@
 import { GraphicsDevice } from "./graphicsDevice";
 import { UniformTypeEnum } from "./uniformType";
 import { IUniformInfo } from "./shaderProgram";
+import { Texture } from "src";
 
 export class UniformSetter {
-    static uniformSetter: { [uniformType: string]:(uniform: any, value: any, unit?: number) => void } = {};
-    static get(uniformType:UniformTypeEnum) {
+    static uniformSetter: { [uniformType: string]: (uniform: any, value: any, unit?: number) => void } = {};
+    static get(uniformType: UniformTypeEnum) {
         return this.uniformSetter[uniformType];
     }
 
@@ -118,9 +119,13 @@ export class UniformSetter {
         this.uniformSetter[UniformTypeEnum.FLOAT_ARRAY] = (uniform: IUniformInfo, value) => {
             gl.uniform1fv(uniform.location, value);
         };
-        this.uniformSetter[UniformTypeEnum.SAMPLER_2D] = (uniform: IUniformInfo, value, unit: number) => {
-            value.bind(this, unit);
-            gl.uniform1i(uniform.location, unit);
+        this.uniformSetter[UniformTypeEnum.SAMPLER_2D] = (uniform: IUniformInfo, value: Texture) => {
+            value.bind();
+            uniformValue = uniform.value;
+            if (value.unitId != uniformValue) {
+                gl.uniform1i(uniform.location, value.unitId);
+                uniform.value = value.unitId;
+            }
         };
     }
 }
