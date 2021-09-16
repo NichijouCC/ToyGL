@@ -146,7 +146,8 @@ export class Texture {
 
         const target = gl.TEXTURE_2D;
         const texture = gl.createTexture();
-        gl.activeTexture(gl.TEXTURE0);
+        this._context.units.assignID(this);
+        gl.activeTexture(gl.TEXTURE0 + this.unitId);
         gl.bindTexture(target, texture);
 
         let unpackAlignment = 4;
@@ -254,7 +255,6 @@ export class Texture {
         if (this._textureFilterAnisotropic) {
             gl.texParameteri(target, this._textureFilterAnisotropic.TEXTURE_MAX_ANISOTROPY_EXT, this.maximumAnisotropy);
         }
-        gl.bindTexture(target, null);
 
         const sizeInBytes = isCompressed
             ? PixelFormatEnum.compressedTextureSizeInBytes(pixelFormat, width, height)
@@ -274,8 +274,8 @@ export class Texture {
 
     bind() {
         const gl = this._gl;
-        let id = this._context.units.checkNeedReAssignID(this);
-        if (id !== false || this.beBind == false) {
+        let beAssigned = this._context.units.assignID(this);
+        if (beAssigned != false || this.beBind == false) {
             gl.activeTexture(gl.TEXTURE0 + this.unitId);
             gl.bindTexture(gl.TEXTURE_2D, this.texture);
         }

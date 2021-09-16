@@ -17,12 +17,12 @@ export class TextureUnit {
         }
     }
 
-    checkNeedReAssignID(texture: Texture) {
+    assignID(texture: Texture) {
         if (texture.unitId == null || this.unitDic[texture.unitId] != texture) {
             let id = this.newID();
             this.unitDic[id] = texture;
             texture.unitId = id;
-            return id
+            return true
         } else {
             return false
         }
