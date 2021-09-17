@@ -2,8 +2,9 @@ import { VertexArray } from "../../../webgl/vertexArray";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
 import { AbstractGeometryAsset } from "./abstractGeometryAsset";
 import { Asset } from "../asset";
+import { Geometry } from "src";
 export class StaticMesh extends Asset {
-    subMeshes: PrimitiveMesh[] = [];
+    subMeshes: Geometry[] = [];
     destroy(): void {
         throw new Error("Method not implemented.");
     }

@@ -6,11 +6,12 @@ import { DeviceLimit } from "./deviceLimit";
 import { BlendEquationEnum, BlendParamEnum } from "./shaderState";
 import { IVaoOptions, VertexArray } from "./vertexArray";
 import { UniformSetter } from "./UniformSetter";
-import { VertexBuffer, VertexBufferOption } from "./vertexBuffer";
 import { IndexBuffer, IndexBufferOption } from "./indexBuffer";
 import { IFrameBufferTexOpts, IImageSourceTexOpts, ITypedArrayTexOpts, Texture } from "./texture";
 import { FrameBuffer, IFrameBufferOptions } from "./framebuffer";
 import { TextureUnit } from "./textureUnit";
+import { IVertexAttributeOption, VertexAttribute } from "./vertexAttribute";
+import { Buffer, bufferOption } from "./buffer";
 
 export interface IEngineOption {
     disableWebgl2?: boolean;
@@ -74,12 +75,20 @@ export class GraphicsDevice {
         return new VertexArray({ ...options, context: this });
     }
 
-    createVertexBuffer(options: DistributiveOmit<VertexBufferOption, "context">) {
-        return new VertexBuffer({ ...options, context: this } as any);
+    createVertexAtt(options: IVertexAttributeOption) {
+        return new VertexAttribute(this, options);
     }
+
+    // createVertexBuffer(options: DistributiveOmit<VertexBufferOption, "context">) {
+    //     return new VertexBuffer({ ...options, context: this } as any);
+    // }
 
     createIndexBuffer(options: DistributiveOmit<IndexBufferOption, "context">) {
         return new IndexBuffer({ ...options, context: this } as any);
+    }
+
+    createBuffer(options: DistributiveOmit<bufferOption, "context">) {
+        return new Buffer({ ...options, context: this });
     }
 
     createTextureFromTypedArray(options: Omit<ITypedArrayTexOpts, "context">) {
@@ -390,15 +399,15 @@ export class GraphicsDevice {
         const indexBuffer = vertexArray.indexBuffer;
         if (indexBuffer) {
             if (instanceCount != 0) {
-                this.gl.drawElementsInstanced(vertexArray.primitiveType, vertexArray.primitiveCount, indexBuffer.indexDatatype, vertexArray.primitiveByteOffset, instanceCount);
+                this.gl.drawElementsInstanced(vertexArray.primitiveType, vertexArray.count, indexBuffer.datatype, vertexArray.bytesOffset, instanceCount);
             } else {
-                this.gl.drawElements(vertexArray.primitiveType, vertexArray.primitiveCount, indexBuffer.indexDatatype, vertexArray.primitiveByteOffset);
+                this.gl.drawElements(vertexArray.primitiveType, vertexArray.count, indexBuffer.datatype, vertexArray.bytesOffset);
             }
         } else {
             if (instanceCount != 0) {
-                this.gl.drawArraysInstanced(vertexArray.primitiveType, vertexArray.primitiveByteOffset, vertexArray.primitiveCount, instanceCount);
+                this.gl.drawArraysInstanced(vertexArray.primitiveType, vertexArray.bytesOffset, vertexArray.count, instanceCount);
             } else {
-                this.gl.drawArrays(vertexArray.primitiveType, vertexArray.primitiveByteOffset, vertexArray.primitiveCount);
+                this.gl.drawArrays(vertexArray.primitiveType, vertexArray.bytesOffset, vertexArray.count);
             }
         }
         if (this.bindingVao != null) {

@@ -5,6 +5,7 @@ import { IglElement } from "../core/iglElement";
 import { VertexAttEnum } from "./vertexAttEnum";
 import { TypedArray } from "../core/typedArray";
 import { PrimitiveTypeEnum } from "./primitiveTypeEnum";
+import { Buffer } from './buffer';
 
 /**
  * @example
@@ -73,7 +74,7 @@ import { PrimitiveTypeEnum } from "./primitiveTypeEnum";
  *         vertexBuffer           : buffer,
  *         componentsPerAttribute : 3,
  *         componentDatatype      : ComponentDatatype.FLOAT,
- *         offsetInBytes          : 0,
+ *         bytesOffset          : 0,
  *         strideInBytes          : 24
  *     },
  *     {
@@ -82,7 +83,7 @@ import { PrimitiveTypeEnum } from "./primitiveTypeEnum";
  *         componentsPerAttribute : 3,
  *         componentDatatype      : ComponentDatatype.FLOAT,
  *         normalize              : true,
- *         offsetInBytes          : 12,
+ *         bytesOffset          : 12,
  *         strideInBytes          : 24
  *     }
  * ];
@@ -99,8 +100,7 @@ export class VertexArray implements IglElement {
     private _vao: any;
     private _context: GraphicsDevice;
     private _primitiveType: PrimitiveTypeEnum;
-    private _primitiveCount: number;
-    private _primitiveByteOffset: number = 0;
+
 
     private dirtyMeta: { [att: string]: { newData: TypedArray | number, beDirty: boolean } } = {};
     private indicesDirtyMeta: { newData: TypedArray | number, beDirty: boolean } = null;
@@ -109,45 +109,34 @@ export class VertexArray implements IglElement {
     get vertexCount() {
         return this._vertexAttributes[VertexAttEnum.POSITION].count;
     }
-
     get primitiveType() { return this._primitiveType; }
     set primitiveType(type: PrimitiveTypeEnum) { this._primitiveType = type; };
 
-    set primitiveCount(count: number) { this._primitiveCount = count; }
-    get primitiveCount() { return this._primitiveCount ?? this._indexBuffer?.numberOfIndices ?? this.vertexCount; }
-
-    get primitiveByteOffset() { return this._primitiveByteOffset; }
-    set primitiveByteOffset(offset: number) {
-        this._primitiveByteOffset = offset;
-    }
-
+    private _count: number;
+    private _bytesOffset: number = 0;
+    set count(count: number) { this._count = count; }
+    get count() { return this._count ?? this._indexBuffer?.count ?? this.vertexCount; }
+    get bytesOffset() { return this._bytesOffset; }
+    set bytesOffset(offset: number) { this._bytesOffset = offset; }
     get indexBuffer() { return this._indexBuffer; }
-
-    updateAttributesData(data: { att: VertexAttEnum, value: TypedArray | number }[]) {
-        data.forEach(({ att, value }) => {
-            this.dirtyMeta[att] = { beDirty: true, newData: value };
-        });
-    }
-
-    updateIndicesData(data: TypedArray | number) {
-        this.indicesDirtyMeta = { beDirty: true, newData: data };
-    }
-
-    addNewAttribute(att: IVertexAttributeOption) {
-        this._vertexAttributes[att.type] = new VertexAttribute(this._context, att);
-        this.dirtyMeta[att.type] = { beDirty: true, newData: null };
-    }
-
     constructor(options: IVaoOptions) {
         this._context = options.context;
         // this.vertexAttributes = options.vertexAttributes.map(item => new VertexAttribute(options.context, item));
-        options.vertexAttributes.forEach(item => {
-            this._vertexAttributes[item.type] = new VertexAttribute(options.context, item);
-        });
+        let atts: VertexAttribute[] = [];
+        if (options.vertexAttributes[0] instanceof VertexAttribute) {
+            atts = options.vertexAttributes as any;
+        } else {
+            options.vertexAttributes.forEach(item => {
+                atts.push(new VertexAttribute(options.context, item));
+            });
+        }
+        atts.forEach(item => {
+            this._vertexAttributes[item.type] = item;
+        })
         this._indexBuffer = options.indexBuffer;
         this._primitiveType = options.primitiveType ?? PrimitiveTypeEnum.TRIANGLES;
-        this._primitiveByteOffset = options.primitiveByteOffset ?? 0;
-        this._primitiveCount = options.primitiveCount;
+        this._bytesOffset = options.bytesOffset ?? 0;
+        this._count = options.count;
 
         const gl = options.context.gl;
 
@@ -156,31 +145,6 @@ export class VertexArray implements IglElement {
                 if (this._vao != this._context.bindingVao) {
                     this._context.bindingVao = this._vao;
                     gl.bindVertexArray(this._vao);
-                }
-                const dirtyAtts = Object.keys(this.dirtyMeta);
-                if (dirtyAtts.length > 0) {
-                    for (const key in this.dirtyMeta) {
-                        const { beDirty, newData } = this.dirtyMeta[key];
-                        if (beDirty) {
-                            if (newData) {
-                                this._vertexAttributes[key].vertexBuffer.update(newData);
-                            } else {
-                                this._vertexAttributes[key].bind();
-                            }
-                        }
-                    }
-                    this.dirtyMeta = {};
-                }
-                if (this.indicesDirtyMeta != null) {
-                    const { newData, beDirty } = this.indicesDirtyMeta;
-                    if (beDirty) {
-                        if (newData) {
-                            this.indexBuffer.update(this.indicesDirtyMeta.newData);
-                        } else {
-                            this.indexBuffer.bind();
-                        }
-                    }
-                    this.indicesDirtyMeta = null;
                 }
             };
             this.unbind = () => {
@@ -198,30 +162,10 @@ export class VertexArray implements IglElement {
             };
         } else {
             this.bind = () => {
-                const dirtyAtts = Object.keys(this.dirtyMeta);
-                if (dirtyAtts.length > 0) {
-                    for (const key in this._vertexAttributes) {
-                        if (this.dirtyMeta[key]?.newData) {
-                            this._vertexAttributes[key].vertexBuffer.update(this.dirtyMeta[key].newData);
-                        } else {
-                            this._vertexAttributes[key].bind();
-                        }
-                    }
-                    this.dirtyMeta = {};
-                } else {
-                    for (const key in this._vertexAttributes) {
-                        this._vertexAttributes[key].bind();
-                    }
+                for (const key in this._vertexAttributes) {
+                    this._vertexAttributes[key].bind();
                 }
-
-                if (this._indexBuffer) {
-                    if (this.indicesDirtyMeta?.newData) {
-                        this._indexBuffer.update(this.indicesDirtyMeta.newData);
-                        this.indicesDirtyMeta = null;
-                    } else {
-                        this._indexBuffer.bind();
-                    }
-                }
+                this._indexBuffer?.bind();
             };
             this.unbind = () => {
                 unbindAttributes(this._vertexAttributes, this._indexBuffer);
@@ -239,12 +183,11 @@ export class VertexArray implements IglElement {
 
 export interface IVaoOptions {
     context: GraphicsDevice;
-    vertexAttributes: IVertexAttributeOption[];
+    vertexAttributes: IVertexAttributeOption[] | VertexAttribute[];
     indexBuffer?: IndexBuffer;
-    offset?: number
     primitiveType?: PrimitiveTypeEnum;
-    primitiveByteOffset?: number;
-    primitiveCount?: number;
+    bytesOffset?: number;
+    count?: number;
 }
 
 function bindVertexAttributes(vertexAtts: { [type: string]: VertexAttribute }, indexBuffer?: IndexBuffer): void {
@@ -263,3 +206,5 @@ function unbindAttributes(vertexAtts: { [type: string]: VertexAttribute }, index
         indexBuffer.unbind();
     }
 }
+
+

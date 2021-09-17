@@ -3,44 +3,33 @@ import { IglElement } from "../core/iglElement";
 import { TypedArray } from "../core/typedArray";
 import { GlConstants } from "./glConstant";
 
-export type bufferOption =
-    | {
-        context: GraphicsDevice;
-        target: BufferTargetEnum;
-        typedArray: TypedArray;
-        usage?: BufferUsageEnum;
-    }
-    | {
-        context: GraphicsDevice;
-        target: BufferTargetEnum;
-        sizeInBytes: number;
-        usage?: BufferUsageEnum;
-    };
+export interface bufferOption {
+    context: GraphicsDevice;
+    target: BufferTargetEnum;
+    data: number | TypedArray;
+    usage?: BufferUsageEnum;
+}
 export class Buffer implements IglElement {
     protected target: BufferTargetEnum;
     readonly usage: BufferUsageEnum;
-    protected _typedArray: TypedArray;
-    get typedArray() { return this._typedArray; };
-    protected _sizeInBytes: number;
-    get sizeInBytes() { return this._sizeInBytes; };
+    protected _data: TypedArray | number;
+    get data() { return this._data; };
+    get sizeInBytes() {
+        if (typeof this._data == "number") {
+            return this._data;
+        } else {
+            return this._data.byteLength;
+        }
+    };
     protected _buffer: WebGLBuffer;
-    private device: GraphicsDevice;
-    private _gl: WebGLRenderingContext;
-    protected constructor(options: bufferOption) {
-        this.device = options.context;
+    constructor(options: bufferOption) {
         this.target = options.target;
         this.usage = options.usage ?? BufferUsageEnum.STATIC_DRAW;
-        this._typedArray = (options as any).typedArray;
-        this._sizeInBytes = (options as any).sizeInBytes;
-
-        if (this._typedArray != null) {
-            this._sizeInBytes = this._typedArray.byteLength;
-        }
-
+        this._data = (options as any).data;
         const gl = options.context.gl;
         const buffer = gl.createBuffer();
         gl.bindBuffer(this.target, buffer);
-        gl.bufferData(this.target, this._typedArray ?? this._sizeInBytes as any, this.usage);
+        gl.bufferData(this.target, this._data as any, this.usage);
         gl.bindBuffer(this.target, null);
 
         this.bind = () => {
@@ -50,15 +39,9 @@ export class Buffer implements IglElement {
             gl.bindBuffer(this.target, null);
         };
 
-        this.update = (sizeInBytesOrTypedArray: TypedArray | number) => {
+        this.update = (data: TypedArray | number) => {
             gl.bindBuffer(this.target, buffer);
-            gl.bufferData(this.target, sizeInBytesOrTypedArray as any, this.usage);
-            if (typeof sizeInBytesOrTypedArray == "number") {
-                this._sizeInBytes = sizeInBytesOrTypedArray;
-            } else {
-                this._typedArray = sizeInBytesOrTypedArray;
-            }
-            // gl.bindBuffer(this.target, null);
+            gl.bufferData(this.target, data as any, this.usage);
         };
 
         this.destroy = () => {
@@ -68,7 +51,7 @@ export class Buffer implements IglElement {
 
     bind() { }
     unbind() { }
-    update(sizeInBytesOrTypedArray: TypedArray | number) { }
+    update(data?: TypedArray | number) { }
     destroy() { }
 }
 

@@ -1,8 +1,10 @@
 
-将graphicDevice的功能分割到各个小的class中.
+
+webgl层主要对webgl图形api进行封装简化，同时尽可能在这一层做cache,免掉底层api的调用。
 
 ### 设定
 1. 根据attribute type来决定 attributelocation
+2. 封装后的gl对象基本都包含 bind(绑定gl对象)，unbind(解绑gl对象), destroy(销毁gl对象), update(更新gl对象)
 
 ### TODO
 - [x] 全局状态缓存，具体包括：clearDepth,clearColor,clearStencil等；  

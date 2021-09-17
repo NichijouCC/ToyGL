@@ -3,8 +3,8 @@ export * from "./animationClip";
 export * from "./prefab";
 export * from "./Skin";
 
-export * from "./geometry/geometry";
-export * from "./geometry/geometryAttribute";
+export * from "../render/geometry";
+export * from "../render/geometryAttribute";
 export * from "./geometry/abstractGeometryAsset";
 export * from "./geometry/skinMesh";
 export * from "./geometry/staticMesh";

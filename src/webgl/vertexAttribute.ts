@@ -4,51 +4,52 @@ import { ComponentDatatypeEnum } from "./componentDatatypeEnum";
 import { VertexAttEnum } from "./vertexAttEnum";
 import { VertexAttSetter } from "./vertexAttSetter";
 import { GlType } from "../core/typedArray";
+import { Buffer } from "./buffer";
 
 export interface IVertexAttribute {
     type: string | VertexAttEnum
     enabled: boolean;
-    vertexBuffer: VertexBuffer;
+    buffer: Buffer;
     value: any;
-    componentsPerAttribute: number;
+    componentSize: number;
     componentDatatype: number;
     normalize: boolean;
-    offsetInBytes: number; 
-    strideInBytes: number; 
+    bytesOffset: number;
+    bytesStride: number;
     instanceDivisor: number;
 }
 export interface IVertexAttributeOption {
     type: string | VertexAttEnum
     enabled?: boolean;
-    vertexBuffer?: VertexBuffer; 
+    buffer?: Buffer;
     value?: any;
-    componentsPerAttribute?: number; 
-    componentDatatype?: number; 
+    componentSize?: number;
+    componentDatatype?: number;
     normalize?: boolean;
-    offsetInBytes?: number;
-    strideInBytes?: number; 
+    bytesOffset?: number;
+    bytesStride?: number;
     instanceDivisor?: number;
 }
 
 export class VertexAttribute implements IVertexAttribute {
-    readonly type: string | VertexAttEnum;
-    readonly index: number;
-    readonly enabled: boolean;
-    readonly vertexBuffer: VertexBuffer;
-    readonly value: any;
-    readonly componentsPerAttribute: number;
-    readonly componentDatatype: number;
-    readonly normalize: boolean;
-    readonly offsetInBytes: number;
-    readonly strideInBytes: number;
-    readonly instanceDivisor: number;
+    type: string | VertexAttEnum;
+    index: number;
+    enabled: boolean;
+    buffer: Buffer;
+    value: any;
+    componentSize: number;
+    componentDatatype: number;
+    normalize: boolean;
+    bytesOffset: number;
+    bytesStride: number;
+    instanceDivisor: number;
 
-    readonly count: number;
+    count: number;
 
     private _gl: WebGLRenderingContext;
     constructor(context: GraphicsDevice, options: IVertexAttributeOption) {
         // todo  check
-        if (options.vertexBuffer == null && options.value == null) {
+        if (options.buffer == null && options.value == null) {
             throw new Error("attribute must have a vertexBuffer or a value.");
         }
 
@@ -57,35 +58,35 @@ export class VertexAttribute implements IVertexAttribute {
         this.type = att.type;
         this.index = VertexAttEnum.toShaderLocation(this.type);
         this.enabled = att.enabled ?? true;
-        this.vertexBuffer = att.vertexBuffer;
+        this.buffer = att.buffer;
         this.value = att.value;
-        this.componentsPerAttribute = att.componentsPerAttribute ?? VertexAttEnum.toComponentSize(att.type);
+        this.componentSize = att.componentSize ?? VertexAttEnum.toComponentSize(att.type);
         this.componentDatatype = att.componentDatatype ?? ComponentDatatypeEnum.FLOAT;
         this.normalize = att.normalize ?? false;
-        this.offsetInBytes = att.offsetInBytes ?? 0;
-        this.strideInBytes = att.strideInBytes ?? 0;
+        this.bytesOffset = att.bytesOffset ?? 0;
+        this.bytesStride = att.bytesStride ?? 0;
         this.instanceDivisor = att.instanceDivisor;
 
-        if (this.vertexBuffer) {
-            const bytes = this.vertexBuffer.sizeInBytes - this.offsetInBytes;
-            if (this.strideInBytes == 0) {
-                this.count = bytes / (this.componentsPerAttribute * GlType.bytesPerElement(this.componentDatatype));
+        if (this.buffer) {
+            const bytes = this.buffer.sizeInBytes - this.bytesOffset;
+            if (this.bytesStride == 0) {
+                this.count = bytes / (this.componentSize * GlType.bytesPerElement(this.componentDatatype));
             } else {
-                this.count = bytes / this.strideInBytes;
+                this.count = bytes / this.bytesStride;
             }
         }
 
-        if (att.vertexBuffer) {
+        if (this.buffer) {
             this.bind = () => {
-                att.vertexBuffer.bind();
+                this.buffer.bind();
                 this._gl.enableVertexAttribArray(this.index);
                 this._gl.vertexAttribPointer(
                     this.index,
-                    this.componentsPerAttribute,
+                    this.componentSize,
                     this.componentDatatype,
                     this.normalize,
-                    this.strideInBytes,
-                    this.offsetInBytes
+                    this.bytesStride,
+                    this.bytesOffset
                 );
                 if (this.instanceDivisor != null) {
                     this._gl.vertexAttribDivisor(this.index, att.instanceDivisor);
@@ -93,15 +94,35 @@ export class VertexAttribute implements IVertexAttribute {
             };
             this.unbind = () => {
                 this._gl.disableVertexAttribArray(this.index);
-                if (att.instanceDivisor != null) {
+                if (this.instanceDivisor != null) {
                     this._gl.vertexAttribDivisor(this.index, 0);
                 }
             };
         } else {
-            const bindFunc = VertexAttSetter.get(att.componentsPerAttribute);
+            const bindFunc = VertexAttSetter.get(att.componentSize);
             this.bind = () => {
                 bindFunc(this.index, this.value);
             };
+        }
+    }
+
+    update(options: Partial<Omit<IVertexAttributeOption, "type">>) {
+        if (options.componentDatatype) this.componentDatatype = options.componentDatatype;
+        if (options.componentSize) this.componentSize = options.componentSize;
+        if (options.enabled) this.enabled = options.enabled;
+        if (options.instanceDivisor) this.instanceDivisor = options.instanceDivisor;
+        if (options.normalize) this.normalize = options.normalize;
+        if (options.bytesOffset) this.bytesOffset = options.bytesOffset;
+        if (options.bytesStride) this.bytesStride = options.bytesStride;
+        if (options.value) this.value = options.value;
+        if (options.buffer) {
+            this.buffer = options.buffer;
+            const bytes = this.buffer.sizeInBytes - this.bytesOffset;
+            if (this.bytesStride == 0) {
+                this.count = bytes / (this.componentSize * GlType.bytesPerElement(this.componentDatatype));
+            } else {
+                this.count = bytes / this.bytesStride;
+            }
         }
     }
 

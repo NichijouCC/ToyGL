@@ -67,6 +67,7 @@ export class ThirdPersonCtrSystem extends System {
 
         // ----cam
         const camOffset = vec3.create();
+        const camDir = vec3.create();
 
         return (delta: number) => {
             if (this.queries.comps.length == 0) return;
@@ -87,7 +88,7 @@ export class ThirdPersonCtrSystem extends System {
                 vec3.add(dir, dir, vec3.FORWARD);
             }
 
-            const { moveSpeed, rotSpeed, offsetToCamera, entity } = comp;
+            const { moveSpeed, rotSpeed, dirToCamera, distanceToCam, entity } = comp;
             const cam = this._toy.scene.mainCamera;
             if (vec3.len(dir) != 0) {
                 const worldPos = entity.worldPosition;
@@ -115,7 +116,9 @@ export class ThirdPersonCtrSystem extends System {
                 quat.slerp(temptRot, entity.worldRotation, targetRot, delta * rotSpeed);
                 entity.worldRotation = temptRot;
             }
-            vec3.rotateY(camOffset, offsetToCamera, vec3.ZERO, -1 * this.rotAngle * Math.PI / 180);
+            vec3.normalize(camDir, dirToCamera);
+            vec3.scale(camDir, camDir, distanceToCam);
+            vec3.rotateY(camOffset, camDir, vec3.ZERO, -1 * this.rotAngle * Math.PI / 180);
             vec3.add(cam.node.worldPosition, entity.worldPosition, camOffset);
             cam.lookAt(entity);
         };

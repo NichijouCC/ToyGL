@@ -3,16 +3,12 @@ import { IGltfMeshPrimitive } from "./gltfJsonStruct";
 import { ParseMaterialNode } from "./parseMaterialNode";
 import { ParseAccessorNode } from "./parseAccessorNode";
 import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
-import { GraphicsDevice } from "../../../webgl/graphicsDevice";
-import { VertexArray, IVaoOptions } from "../../../webgl/vertexArray";
 import { Material } from "../../../scene/asset/material/material";
-import { PrimitiveMesh } from "../../../scene/asset/geometry/staticMesh";
-import { IndexBuffer } from "../../../webgl/indexBuffer";
-import { VertexBuffer } from "../../../webgl/vertexBuffer";
 import { BufferTargetEnum } from "../../../webgl/buffer";
 import { DefaultMaterial } from "../../defAssets/defaultMaterial";
-import { BoundingBox } from "../../../scene/index";
+import { BoundingBox, Geometry, IGeometryOptions } from "../../../scene/index";
 import { vec3 } from "../../../mathD";
+import { GraphicIndexBuffer } from "../../../scene/render/buffer";
 
 const MapGltfAttributeToToyAtt: { [name: string]: VertexAttEnum } = {
     POSITION: VertexAttEnum.POSITION,
@@ -25,7 +21,7 @@ const MapGltfAttributeToToyAtt: { [name: string]: VertexAttEnum } = {
     JOINTS_0: VertexAttEnum.JOINTS_0
 };
 export class ParseMeshNode {
-    static parse(index: number, gltf: IGltfJson, context: GraphicsDevice): Promise<IGltfPrimitive[]> {
+    static parse(index: number, gltf: IGltfJson): Promise<IGltfPrimitive[]> {
         if (gltf.cache.meshNodeCache[index]) {
             return gltf.cache.meshNodeCache[index];
         } else {
@@ -35,7 +31,7 @@ export class ParseMeshNode {
             if (node.primitives) {
                 for (const key in node.primitives) {
                     const primitive = node.primitives[key];
-                    const data = this.parsePrimitive(primitive, gltf, context);
+                    const data = this.parsePrimitive(primitive, gltf);
                     dataArr.push(data);
                 }
             }
@@ -49,13 +45,13 @@ export class ParseMeshNode {
         }
     }
 
-    static parsePrimitive(node: IGltfMeshPrimitive, gltf: IGltfJson, context: GraphicsDevice): Promise<IGltfPrimitive> {
+    static parsePrimitive(node: IGltfMeshPrimitive, gltf: IGltfJson): Promise<IGltfPrimitive> {
         return Promise.all([
-            this.parsePrimitiveVertexData(node, gltf, context),
+            this.parsePrimitiveVertexData(node, gltf),
             this.parseMaterial(node, gltf)]
         ).then(
-            ([mesh, material]) => {
-                return { mesh: mesh, material: material };
+            ([geometry, material]) => {
+                return { geometry: geometry, material: material };
             }
         );
     }
@@ -69,30 +65,31 @@ export class ParseMeshNode {
         }
     }
 
-    static parsePrimitiveVertexData(node: IGltfMeshPrimitive, gltf: IGltfJson, context: GraphicsDevice): Promise<PrimitiveMesh> {
+    static parsePrimitiveVertexData(node: IGltfMeshPrimitive, gltf: IGltfJson): Promise<Geometry> {
         const taskAtts: Promise<void>[] = [];
-        const vaoOptions: IVaoOptions = { vertexAttributes: [], context };
+        const geoOpts: IGeometryOptions = { attributes: [] };
         const attributes = node.attributes;
-        let aabb: BoundingBox;
+        let box: BoundingBox;
         for (const attName in attributes) {
             const attIndex = attributes[attName];
             const attType = MapGltfAttributeToToyAtt[attName];
-            const attTask = ParseAccessorNode.parse(attIndex, gltf, { target: BufferTargetEnum.ARRAY_BUFFER, context })
+            const attTask = ParseAccessorNode.parse(attIndex, gltf, BufferTargetEnum.ARRAY_BUFFER)
                 .then(arrayInfo => {
-                    vaoOptions.vertexAttributes.push({
+                    geoOpts.attributes.push({
                         type: attType,
-                        vertexBuffer: arrayInfo.buffer as VertexBuffer,
-                        componentsPerAttribute: arrayInfo.componentSize,
+                        data: arrayInfo.buffer,
+                        componentSize: arrayInfo.componentSize,
                         componentDatatype: arrayInfo.componentDataType,
                         normalize: arrayInfo.normalize ?? false,
-                        offsetInBytes: arrayInfo.bytesOffset,
-                        strideInBytes: arrayInfo.bytesStride
+                        bytesOffset: arrayInfo.bytesOffset,
+                        bytesStride: arrayInfo.bytesStride,
+                        count: arrayInfo.count,
                     });
 
                     if (attType == VertexAttEnum.POSITION && arrayInfo.min && arrayInfo.max) {
                         const min = arrayInfo.min;
                         const max = arrayInfo.max;
-                        aabb = BoundingBox.create(
+                        box = BoundingBox.create(
                             vec3.fromValues((max[0] + min[0]) * 0.5, (max[1] + min[1]) * 0.5, (max[2] + min[2]) * 0.5),
                             vec3.fromValues((max[0] - min[0]) * 0.5, (max[1] - min[1]) * 0.5, (max[2] - min[2]) * 0.5)
                         );
@@ -102,22 +99,25 @@ export class ParseMeshNode {
         }
         const index = node.indices;
         if (index != null) {
-            const indexTask = ParseAccessorNode.parse(index, gltf, { target: BufferTargetEnum.ELEMENT_ARRAY_BUFFER, context })
+            const indexTask = ParseAccessorNode.parse(index, gltf, BufferTargetEnum.ELEMENT_ARRAY_BUFFER)
                 .then(arrayInfo => {
-                    const indexBuffer = arrayInfo.buffer as IndexBuffer;
-                    vaoOptions.indexBuffer = indexBuffer;
-                    vaoOptions.primitiveByteOffset = arrayInfo.bytesOffset;
-                    vaoOptions.primitiveCount = arrayInfo.count;
+                    geoOpts.indices = new GraphicIndexBuffer({
+                        data: arrayInfo.buffer,
+                        datatype: arrayInfo.componentDataType,
+                        byteOffset: arrayInfo.bytesOffset,
+                        drawCount: arrayInfo.count,
+                    });
+                    geoOpts.bytesOffset = arrayInfo.bytesOffset;
+                    geoOpts.count = arrayInfo.count;
                 });
             taskAtts.push(indexTask);
         }
-        vaoOptions.primitiveType = node.mode as any;
+        geoOpts.primitiveType = node.mode as any;
         return Promise.all(taskAtts)
             .then(() => {
-                const mesh = new PrimitiveMesh();
-                mesh.vertexArray = context.createVertexArray(vaoOptions);
-                mesh.boundingBox = aabb;
-                return mesh;
+                const geo = new Geometry(geoOpts);
+                geo.boundingBox = box;
+                return geo;
             }).catch(err => {
                 console.error("ParseMeshNode->parseMesh error", err);
                 return Promise.reject(err);

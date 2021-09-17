@@ -10,7 +10,8 @@ export class ThirdPersonController extends Component {
     moveSpeed: number = 10 * 3.0;
     rotSpeed = 16.0;
     camRotSpeed = 1.0;
-    offsetToCamera = vec3.fromValues(0, 3 * 10, 5 * 10);
+    dirToCamera = vec3.fromValues(0, 3 * 10, 5 * 10);
+    distanceToCam: number = 20;
 
     // useRigidbody: boolean = true;
     beIntersectCollision = true;

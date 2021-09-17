@@ -9,17 +9,17 @@ import { StaticMesh, PrimitiveMesh } from "../../scene/asset/geometry/staticMesh
 import { IAssetLoader } from "../resource";
 import { Prefab } from "../../scene/asset/prefab";
 import { Texture2D } from "../../scene/asset/texture/texture2d";
-import { VertexBuffer } from "../../webgl/vertexBuffer";
-import { IndexBuffer } from "../../webgl/indexBuffer";
 import { ParseAnimationNode } from "./glTF/parseAnimationNode";
 import { Animation } from "../../components/animation";
+import { GraphicBuffer, GraphicIndexBuffer } from "../../scene/render/buffer";
+import { Geometry } from "../../scene/render/geometry";
 
 export interface IglTFExtension {
     load(extensionNode: any, loader: LoadGlTF): Promise<any>;
 }
 
 export interface IGltfPrimitive {
-    mesh: PrimitiveMesh;
+    geometry: Geometry;
     material: Material;
 }
 
@@ -34,8 +34,7 @@ export class GltfNodeCache {
     bufferNodeCache: { [index: number]: Promise<Uint8Array> } = {};
     materialNodeCache: { [index: number]: Promise<Material> } = {};
     textureNodeCache: { [index: number]: Promise<Texture2D> } = {};
-    vertexBufferCache: { [index: number]: VertexBuffer } = {};
-    indexBufferCache: { [index: number]: IndexBuffer } = {};
+    bufferCache: { [index: number]: GraphicBuffer } = {};
 }
 
 export interface IGltfJson extends IGltf {

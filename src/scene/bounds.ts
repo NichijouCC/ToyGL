@@ -38,7 +38,7 @@ export class Bounds {
 
     static fromVertexArray(vertexArr: VertexArray) {
         const { vertexAttributes } = vertexArr;
-        return Bounds.fromTypedArray(vertexAttributes[VertexAttEnum.POSITION]?.vertexBuffer.typedArray);
+        return Bounds.fromTypedArray(vertexAttributes[VertexAttEnum.POSITION]?.buffer.data as any);
     }
 
     static fromTypedArray(positions: TypedArray) {
@@ -166,7 +166,7 @@ export class BoundingSphere {
 
     static fromVertexArray(vertexArr: VertexArray, center: vec3 = null) {
         const { vertexAttributes } = vertexArr;
-        return BoundingSphere.fromTypedArray(vertexAttributes[VertexAttEnum.POSITION]?.vertexBuffer.typedArray);
+        return BoundingSphere.fromTypedArray(vertexAttributes[VertexAttEnum.POSITION]?.buffer.data as any);
     }
 
     static fromTypedArray(positions: TypedArray, center: vec3 = null) {

@@ -36,10 +36,10 @@ export class ParseNode {
         const allTask: Promise<void>[] = [];
         if (node.mesh != null) {
             const comp = sceneNode.addComponent(ModelComponent);
-            const task = ParseMeshNode.parse(node.mesh, gltf, context)
+            const task = ParseMeshNode.parse(node.mesh, gltf)
                 .then(primitives => {
                     const newMesh = new StaticMesh();
-                    newMesh.subMeshes = primitives.map(item => item.mesh);
+                    newMesh.subMeshes = primitives.map(item => item.geometry);
                     comp.mesh = newMesh;
                     comp.materials = primitives.map(item => item.material);
                 });

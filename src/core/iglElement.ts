@@ -1,5 +1,5 @@
-export interface IglElement{
-    bind():void;
-    unbind():void;
-    destroy():void;
+export interface IglElement {
+    bind(): void;
+    unbind(): void;
+    destroy(): void;
 }

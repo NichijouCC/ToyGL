@@ -1,10 +1,9 @@
 import { IGltfBufferView, IGltfJson } from "../loadGltf";
 import { ParseBufferViewNode } from "./parseBufferViewNode";
-import { BufferTargetEnum, Buffer, BufferUsageEnum } from "../../../webgl/buffer";
+import { BufferTargetEnum } from "../../../webgl/buffer";
 import { TypedArray } from "../../../core/typedArray";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
-import { IndexBuffer } from "../../../webgl/indexBuffer";
-import { VertexBuffer } from "../../../webgl/vertexBuffer";
+import { GraphicBuffer } from "../../../scene/render/buffer";
 
 export interface IaccessorData {
     componentSize: number;
@@ -15,8 +14,7 @@ export interface IaccessorData {
     bytesStride?: number;
     target?: BufferTargetEnum;
     typedArray: TypedArray;
-
-    buffer?: Buffer;
+    buffer?: GraphicBuffer;
     min?: number[];
     max?: number[];
 }
@@ -39,7 +37,7 @@ export namespace Accessor {
 }
 
 export class ParseAccessorNode {
-    static async parse(index: number, gltf: IGltfJson, bufferOptions?: { target?: BufferTargetEnum, context: GraphicsDevice }): Promise<IaccessorData> {
+    static async parse(index: number, gltf: IGltfJson, _target?: BufferTargetEnum): Promise<IaccessorData> {
         const arrayInfo: IaccessorData = {} as any;
         // return new Promise<AccessorNode>((resolve,reject)=>{
         const accessor = gltf.accessors[index];
@@ -83,43 +81,55 @@ export class ParseAccessorNode {
                 });
             }
             arrayInfo.typedArray = typedArray;
-            if (bufferOptions?.target != null || value.target != null) {
-                const context = bufferOptions.context;
-                const target = bufferOptions.target || value.target;
-                switch (target) {
-                    case BufferTargetEnum.ARRAY_BUFFER:
-                        if (!hasSparse) {
-                            var newVertexBuffer = gltf.cache.vertexBufferCache[viewIndex];
-                            if (newVertexBuffer == null) {
-                                newVertexBuffer = new VertexBuffer({ context, typedArray: value.viewBuffer });
-                                gltf.cache.vertexBufferCache[viewIndex] = newVertexBuffer;
-                            } else {
-                                console.warn("命中！！");
-                            }
-                            arrayInfo.buffer = newVertexBuffer;
-                        } else {
-                            arrayInfo.buffer = new VertexBuffer({ context, typedArray });
-                        }
-                        break;
-                    case BufferTargetEnum.ELEMENT_ARRAY_BUFFER:
-                        if (!hasSparse) {
-                            let newIndexBuffer = gltf.cache.indexBufferCache[viewIndex];
-                            if (newIndexBuffer == null) {
-                                newIndexBuffer = new IndexBuffer({ context, typedArray: value.viewBuffer, indexDatatype: accessor.componentType as any });
-                                gltf.cache.indexBufferCache[viewIndex] = newIndexBuffer;
-                            } else {
-                                console.warn("命中！！");
-                            }
-                            arrayInfo.buffer = newIndexBuffer;
-                        } else {
-                            arrayInfo.buffer = new IndexBuffer({ context, typedArray: typedArray as any });
-                        }
-
-                        break;
-                    default:
-                        console.error("why ！！");
-                        break;
+            if (_target != null || value.target != null) {
+                const target = _target || value.target;
+                if (!hasSparse) {
+                    var newBuffer = gltf.cache.bufferCache[viewIndex];
+                    if (newBuffer == null) {
+                        newBuffer = new GraphicBuffer({ target: target, data: value.viewBuffer });
+                        gltf.cache.bufferCache[viewIndex] = newBuffer;
+                    } else {
+                        console.warn("命中！！");
+                    }
+                    arrayInfo.buffer = newBuffer;
+                } else {
+                    arrayInfo.buffer = new GraphicBuffer({ target: target, data: value.viewBuffer });
                 }
+
+                // switch (target) {
+                //     case BufferTargetEnum.ARRAY_BUFFER:
+                //         if (!hasSparse) {
+                //             var newVertexBuffer = gltf.cache.vertexBufferCache[viewIndex];
+                //             if (newVertexBuffer == null) {
+                //                 newVertexBuffer = new GraphicVertexBuffer(value.viewBuffer, accessor.componentType as any);
+                //                 gltf.cache.vertexBufferCache[viewIndex] = newVertexBuffer;
+                //             } else {
+                //                 console.warn("命中！！");
+                //             }
+                //             arrayInfo.buffer = newVertexBuffer;
+                //         } else {
+                //             arrayInfo.buffer = new GraphicVertexBuffer(typedArray);
+                //         }
+                //         break;
+                //     case BufferTargetEnum.ELEMENT_ARRAY_BUFFER:
+                //         if (!hasSparse) {
+                //             let newIndexBuffer = gltf.cache.indexBufferCache[viewIndex];
+                //             if (newIndexBuffer == null) {
+                //                 newIndexBuffer = new GraphicIndexBuffer(value.viewBuffer, accessor.componentType as any);
+                //                 gltf.cache.indexBufferCache[viewIndex] = newIndexBuffer;
+                //             } else {
+                //                 console.warn("命中！！");
+                //             }
+                //             arrayInfo.buffer = newIndexBuffer;
+                //         } else {
+                //             arrayInfo.buffer = new GraphicIndexBuffer(typedArray as any);
+                //         }
+
+                //         break;
+                //     default:
+                //         console.error("why ！！");
+                //         break;
+                // }
             }
             return arrayInfo;
         } else {

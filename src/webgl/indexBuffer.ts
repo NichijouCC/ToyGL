@@ -6,26 +6,67 @@ export type IndicesArray = Uint8Array | Uint16Array | Uint32Array;
 export type IndexBufferOption = {
     context: GraphicsDevice;
     usage?: BufferUsageEnum;
-    sizeInBytes: number;
-    indexDatatype: IndexDatatypeEnum;
-} | {
-    context: GraphicsDevice;
-    usage?: BufferUsageEnum;
-    typedArray: IndicesArray;
-    indexDatatype?: IndexDatatypeEnum;
-};
-export class IndexBuffer extends Buffer {
-    readonly indexDatatype: number;
-    readonly bytesPerIndex: number;
-    readonly numberOfIndices: number;
-    constructor(options: IndexBufferOption) {
-        super({ ...options, target: BufferTargetEnum.ELEMENT_ARRAY_BUFFER });
-        this.indexDatatype = (options as any).indexDatatype;
-        const typedArray = (options as any).typedArray;
-        this.indexDatatype = options.indexDatatype ?? TypedArray.getGLType(typedArray);
-        this.bytesPerIndex = GlType.bytesPerElement(this.indexDatatype);
-        this.numberOfIndices = this._sizeInBytes / this.bytesPerIndex;
+    data: number | IndicesArray | Buffer;
+    datatype?: IndexDatatypeEnum;
+    bytesOffset?: number;
+    drawCount?: number;
+}
+export class IndexBuffer {
+    private _count: number;
+    private _drawCount: number;
+    get count(): number {
+        return this._drawCount ?? this._count;
     }
+    datatype: number;
+    bytesOffset: number;
+    private _buffer: Buffer;
+    constructor(options: IndexBufferOption) {
+        if (options.data instanceof Buffer) {
+            this._buffer = options.data;
+        } else {
+            this._buffer = new Buffer({ ...options, target: BufferTargetEnum.ELEMENT_ARRAY_BUFFER } as any);
+        }
+
+        this.bytesOffset = options.bytesOffset ?? 0;
+        this._drawCount = options.drawCount;
+        if (options.datatype != null) {
+            this.datatype = options.datatype;
+        } else if (typeof this._buffer.data != "number") {
+            this.datatype = TypedArray.getGLType(this._buffer.data);
+        } else {
+            throw new Error("index buffer datatype need be set in Params");
+        }
+        this._count = this._buffer.sizeInBytes / GlType.bytesPerElement(this.datatype);
+
+        this.bind = () => {
+            this._buffer.bind();
+        };
+        this.unbind = () => {
+            this._buffer.unbind();
+        };
+        this.destroy = () => {
+            this._buffer.destroy();
+        };
+
+    }
+    update(options: { data?: TypedArray | number | Buffer, datatype?: number, byteOffset?: number }) {
+        if (options.data instanceof Buffer) {
+            this._buffer = options.data;
+        } else {
+            this._buffer = new Buffer({ ...options, target: BufferTargetEnum.ELEMENT_ARRAY_BUFFER } as any);
+        }
+        if (options.byteOffset) this.bytesOffset = options.byteOffset;
+        if (options.datatype != null) {
+            this.datatype = options.datatype;
+        } else if (typeof this._buffer.data != "number") {
+            this.datatype = TypedArray.getGLType(this._buffer.data);
+        }
+        this._count = this._buffer.sizeInBytes / GlType.bytesPerElement(this.datatype);
+    }
+
+    bind() { }
+    unbind() { }
+    destroy() { }
 }
 
 export enum IndexDatatypeEnum {

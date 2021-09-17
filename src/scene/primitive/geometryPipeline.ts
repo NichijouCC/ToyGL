@@ -1,7 +1,7 @@
 import { GeometryInstance } from "./geometryInstance";
 import { mat4 } from "../../mathD";
 import { VertexAttEnum } from "../../webgl/vertexAttEnum";
-import { Geometry } from "../asset/geometry/geometry";
+import { Geometry } from "../render/geometry";
 import { TypedArray } from "../../core/typedArray";
 
 export class GeometryPipeline {
@@ -12,15 +12,15 @@ export class GeometryPipeline {
         const attributes = instance.geometry.attributes;
         const posAtt = attributes[VertexAttEnum.POSITION];
         if (posAtt) {
-            transformPoint(modelMatrix, posAtt.values as any);
+            transformPoint(modelMatrix, posAtt.data as any);
         }
         const normalAtt = attributes[VertexAttEnum.NORMAL];
         if (normalAtt) {
-            transformVector(modelMatrix, normalAtt.values as any);
+            transformVector(modelMatrix, normalAtt.data as any);
         }
         const tangentAtt = attributes[VertexAttEnum.TANGENT];
         if (normalAtt) {
-            transformVector(modelMatrix, tangentAtt.values as any);
+            transformVector(modelMatrix, tangentAtt.data as any);
         }
         return instance;
     }

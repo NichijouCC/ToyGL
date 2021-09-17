@@ -17,8 +17,8 @@ export class Gizmos {
         scene.addRenderIns({
             geometry: new Geometry({
                 attributes: [{
-                    values: [point[0], point[1], point[2]],
-                    componentsPerAttribute: 3,
+                    data: [point[0], point[1], point[2]],
+                    componentSize: 3,
                     componentDatatype: ComponentDatatypeEnum.FLOAT,
                     type: VertexAttEnum.POSITION
                 }],
@@ -34,8 +34,8 @@ export class Gizmos {
         scene.addRenderIns({
             geometry: new Geometry({
                 attributes: [{
-                    values: [from[0], from[1], from[2], to[0], to[1], to[2]],
-                    componentsPerAttribute: 3,
+                    data: [from[0], from[1], from[2], to[0], to[1], to[2]],
+                    componentSize: 3,
                     componentDatatype: ComponentDatatypeEnum.FLOAT,
                     type: VertexAttEnum.POSITION
                 }],
@@ -64,12 +64,12 @@ export class Gizmos {
             scene._addFrameRenderIns({
                 geometry: new Geometry({
                     attributes: [{
-                        values: [
+                        data: [
                             -x, -y, -z, x, -y, -z, x, -y, -z, x, -y, z, x, -y, z, -x, -y, z, -x, -y, z, -x, -y, -z, // bottom box
                             -x, y, -z, x, y, -z, x, y, -z, x, y, z, x, y, z, -x, y, z, -x, y, z, -x, y, -z, // top box
                             -x, -y, -z, -x, y, -z, x, -y, -z, x, y, -z, x, -y, z, x, y, z, -x, -y, z, -x, y, z// 边柱子
                         ],
-                        componentsPerAttribute: 3,
+                        componentSize: 3,
                         componentDatatype: ComponentDatatypeEnum.FLOAT,
                         type: VertexAttEnum.POSITION
                     }],

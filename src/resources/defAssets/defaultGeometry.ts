@@ -1,13 +1,13 @@
 import { VertexAttEnum } from "../../webgl/vertexAttEnum";
-import { Geometry } from "../../scene/asset/geometry/geometry";
+import { Geometry } from "../../scene/render/geometry";
 
 export namespace Private {
     export const plan = () => new Geometry({
         attributes: [
             {
                 type: VertexAttEnum.POSITION,
-                componentsPerAttribute: 3,
-                values: [
+                componentSize: 3,
+                data: [
                     -1.0, 0, 1.0,
                     1.0, 0, 1.0,
                     1.0, 0, -1.0,
@@ -16,8 +16,8 @@ export namespace Private {
             },
             {
                 type: VertexAttEnum.TEXCOORD_0,
-                componentsPerAttribute: 2,
-                values: [
+                componentSize: 2,
+                data: [
                     0.0, 0.0,
                     1.0, 0.0,
                     1.0, 1.0,
@@ -26,8 +26,8 @@ export namespace Private {
             },
             {
                 type: VertexAttEnum.NORMAL,
-                componentsPerAttribute: 3,
-                values: [
+                componentSize: 3,
+                data: [
                     0.0, 1.0, 0.0,
                     0.0, 1.0, 0.0,
                     0.0, 1.0, 0.0,
@@ -42,8 +42,8 @@ export namespace Private {
         attributes: [
             {
                 type: VertexAttEnum.POSITION,
-                componentsPerAttribute: 3,
-                values: [
+                componentSize: 3,
+                data: [
                     -1.0, -1.0, 0,
                     1.0, -1.0, 0,
                     1.0, 1.0, 0,
@@ -52,8 +52,8 @@ export namespace Private {
             },
             {
                 type: VertexAttEnum.TEXCOORD_0,
-                componentsPerAttribute: 2,
-                values: [
+                componentSize: 2,
+                data: [
                     0.0, 0.0,
                     1.0, 0.0,
                     1.0, 1.0,
@@ -62,8 +62,8 @@ export namespace Private {
             },
             {
                 type: VertexAttEnum.NORMAL,
-                componentsPerAttribute: 3,
-                values: [
+                componentSize: 3,
+                data: [
                     0.0, 0.0, 1.0,
                     0.0, 0.0, 1.0,
                     0.0, 0.0, 1.0,
@@ -78,8 +78,8 @@ export namespace Private {
         attributes: [
             {
                 type: VertexAttEnum.POSITION,
-                componentsPerAttribute: 2,
-                values: [
+                componentSize: 2,
+                data: [
                     -1.0, -1.0,
                     1.0, -1.0,
                     1.0, 1.0,
@@ -90,8 +90,8 @@ export namespace Private {
             },
             {
                 type: VertexAttEnum.TEXCOORD_0,
-                componentsPerAttribute: 2,
-                values: [
+                componentSize: 2,
+                data: [
                     0.0, 0.0,
                     1.0, 0.0,
                     1.0, 1.0,
@@ -107,8 +107,8 @@ export namespace Private {
         attributes: [
             {
                 type: VertexAttEnum.POSITION,
-                componentsPerAttribute: 3,
-                values: [
+                componentSize: 3,
+                data: [
                     // Front face
                     -1.0, -1.0, 1.0,
                     1.0, -1.0, 1.0,
@@ -148,8 +148,8 @@ export namespace Private {
             },
             {
                 type: VertexAttEnum.TEXCOORD_0,
-                componentsPerAttribute: 2,
-                values: [
+                componentSize: 2,
+                data: [
                     // Front
                     0.0, 0.0,
                     1.0, 0.0,
@@ -184,8 +184,8 @@ export namespace Private {
             },
             {
                 type: VertexAttEnum.NORMAL,
-                componentsPerAttribute: 3,
-                values: [
+                componentSize: 3,
+                data: [
                     // Front
                     0.0, 0.0, 1.0,
                     0.0, 0.0, 1.0,
