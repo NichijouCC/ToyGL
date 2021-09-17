@@ -99,15 +99,9 @@ export class Geometry extends AbstractGeometryAsset {
 
     protected create(device: GraphicsDevice): VertexArray {
         const geAtts = this.attributes;
+        device.unbindVao();
         const vertexAtts = Object.keys(geAtts).map(attName => {
             const geAtt = geAtts[attName] as GeometryAttribute;
-            const att: IVertexAttributeOption = {
-                type: geAtt.type,
-                componentDatatype: geAtt.componentDatatype,
-                componentSize: geAtt.componentSize,
-                normalize: geAtt.normalize,
-                buffer: geAtt.buffer.getGlTarget(device),
-            };
             return geAtt.getGlTarget(device);
         });
 

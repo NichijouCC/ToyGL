@@ -12,7 +12,7 @@ webgl层主要对webgl图形api进行封装简化，同时尽可能在这一层�
 - [x] shaderProgram 缓存
 - [x] shaderUniformValue 缓存
 - [x] textureUnit 缓存
-- [ ] vao 缓存
+- [x] vao 缓存
 
 
 ## EXAMPLE

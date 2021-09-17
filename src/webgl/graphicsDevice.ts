@@ -395,6 +395,13 @@ export class GraphicsDevice {
         }
     }
 
+    unbindVao() {
+        if (this.caps.vertexArrayObject) {
+            this.gl.bindVertexArray(null);
+            this.bindingVao = null;
+        }
+    }
+
     draw(vertexArray: VertexArray, instanceCount: number = 0) {
         const indexBuffer = vertexArray.indexBuffer;
         if (indexBuffer) {
@@ -410,9 +417,9 @@ export class GraphicsDevice {
                 this.gl.drawArrays(vertexArray.primitiveType, vertexArray.bytesOffset, vertexArray.count);
             }
         }
-        if (this.bindingVao != null) {
-            vertexArray.unbind();
-        }
+        // if (this.bindingVao != null) {
+        //     vertexArray.unbind();
+        // }
     }
 }
 

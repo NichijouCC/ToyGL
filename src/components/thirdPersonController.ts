@@ -11,7 +11,7 @@ export class ThirdPersonController extends Component {
     rotSpeed = 16.0;
     camRotSpeed = 1.0;
     dirToCamera = vec3.fromValues(0, 3 * 10, 5 * 10);
-    distanceToCam: number = 20;
+    distanceToCam: number = 40;
 
     // useRigidbody: boolean = true;
     beIntersectCollision = true;
