@@ -89,7 +89,7 @@ export class VertexAttribute implements IVertexAttribute {
                     this.bytesOffset
                 );
                 if (this.instanceDivisor != null) {
-                    this._gl.vertexAttribDivisor(this.index, att.instanceDivisor);
+                    this._gl.vertexAttribDivisor(this.index, this.instanceDivisor);
                 }
             };
             this.unbind = () => {
@@ -99,13 +99,12 @@ export class VertexAttribute implements IVertexAttribute {
                 }
             };
         } else {
-            const bindFunc = VertexAttSetter.get(att.componentSize);
+            const bindFunc = VertexAttSetter.get(this.componentSize);
             this.bind = () => {
                 bindFunc(this.index, this.value);
             };
         }
     }
-
     update(options: Partial<Omit<IVertexAttributeOption, "type">>) {
         if (options.componentDatatype) this.componentDatatype = options.componentDatatype;
         if (options.componentSize) this.componentSize = options.componentSize;
@@ -123,6 +122,19 @@ export class VertexAttribute implements IVertexAttribute {
             } else {
                 this.count = bytes / this.bytesStride;
             }
+        }
+        this.buffer.bind();
+        this._gl.enableVertexAttribArray(this.index);
+        this._gl.vertexAttribPointer(
+            this.index,
+            this.componentSize,
+            this.componentDatatype,
+            this.normalize,
+            this.bytesStride,
+            this.bytesOffset
+        );
+        if (this.instanceDivisor != null) {
+            this._gl.vertexAttribDivisor(this.index, this.instanceDivisor);
         }
     }
 

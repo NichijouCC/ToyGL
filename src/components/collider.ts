@@ -2,7 +2,7 @@ import { ECS } from "../core/ecs";
 import { IComponent } from "../core/ecs/iecs";
 import { vec3 } from "../mathD";
 import { Component, Entity } from "../scene";
-import { StaticMesh } from "../scene/asset";
+import { StaticGeometry } from "../scene/asset";
 
 @ECS.registerComp
 export class BoxCollider extends Component {
@@ -24,7 +24,7 @@ export class SphereCollider extends Component {
 
 @ECS.registerComp
 export class MeshCollider extends Component {
-    mesh: StaticMesh
+    mesh: StaticGeometry
     clone(): IComponent {
         throw new Error("Method not implemented.");
     }

@@ -1,13 +1,13 @@
 import { Entity } from "../../entity";
-import { StaticMesh } from "./staticMesh";
+import { StaticGeometry } from "./staticGeometry";
 
-export interface Iskin {
+export interface ISkin {
     rootBone: Entity;
     bones: Entity[];
     inverseBindMatrices: Float32Array;
 }
 
-export class SkinMesh extends StaticMesh {
+export class SkinGeometry extends StaticGeometry {
     inverseBindMatrices!: Float32Array;
     boneIds!: number[];
     rootBone!: Entity;

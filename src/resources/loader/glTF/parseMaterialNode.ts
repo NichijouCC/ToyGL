@@ -4,9 +4,9 @@ import { Color } from "../../../mathD/color";
 import { Material } from "../../../scene/asset/material/material";
 import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
 import { DefaultMaterial } from "../../defAssets/defaultMaterial";
-import { SkinInstance, SkinWay } from "../../../scene/primitive/skinInstance";
+import { SkinInstance, SkinWay } from "../../../scene/primitive/animation/skinInstance";
 import { MaterialAlphaMode } from "./gltfJsonStruct";
-import { ShaderBucket } from "../../../scene/asset";
+import { ShaderBucket } from "../../../scene/render/shaderBucket";
 
 namespace Private {
     /**
@@ -16,7 +16,7 @@ namespace Private {
         uniformParameters: {
             MainColor: Color.create(1.0, 1.0, 1.0, 1.0)
         },
-        shaderOption: {
+        shader: {
             attributes: {
                 POSITION: VertexAttEnum.POSITION,
                 TEXCOORD_0: VertexAttEnum.TEXCOORD_0
@@ -84,7 +84,7 @@ namespace Private {
         uniformParameters: {
             MainColor: Color.create(1.0, 1.0, 1.0, 1.0)
         },
-        shaderOption: {
+        shader: {
             attributes: {
                 POSITION: VertexAttEnum.POSITION,
                 TEXCOORD_0: VertexAttEnum.TEXCOORD_0

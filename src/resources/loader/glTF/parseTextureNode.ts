@@ -1,7 +1,7 @@
 import { loadImg } from "../../../io/loadTool";
 import { ParseBufferViewNode } from "./parseBufferViewNode";
 import { IGltfJson } from "../loadGltf";
-import { Texture2D } from "../../../scene/asset/texture/texture2d";
+import { Texture2D } from "../../../scene/render/texture2d";
 import { retryFn } from "@mtgoo/ctool";
 
 export class ParseTextureNode {

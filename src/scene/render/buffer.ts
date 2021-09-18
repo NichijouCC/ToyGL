@@ -68,10 +68,7 @@ export class GraphicBuffer {
     getGlTarget(device: GraphicsDevice) {
         if (this._glTarget == null) {
             this._glTarget = device.createBuffer({ data: this.data, target: this.target });
-        } else if (this._beDirty) {
-            this._glTarget.update(this.data);
         }
-        this._beDirty = false;
         return this._glTarget;
     }
 

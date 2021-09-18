@@ -1,16 +1,14 @@
-import { IndicesArray, IndexBuffer } from "../../webgl/indexBuffer";
-import { AbstractGeometryAsset } from "../asset/geometry/abstractGeometryAsset";
+import { IndicesArray } from "../../webgl/indexBuffer";
 import { GeometryAttribute, IGeometryAttributeOptions } from "./geometryAttribute";
 import { PrimitiveTypeEnum } from "../../webgl/PrimitiveTypeEnum";
-import { BoundingBox, BoundingSphere } from "../bounds";
+import { BoundingBox } from "../bounds";
 import { GlConstants } from "../../webgl/glConstant";
 import { VertexAttEnum } from "../../webgl/vertexAttEnum";
 import { TypedArray } from "../../core/typedArray";
 import { GraphicsDevice } from "../../webgl/graphicsDevice";
 import { VertexArray } from "../../webgl/vertexArray";
-import { IVertexAttributeOption, VertexAttribute } from "../../webgl/vertexAttribute";
-import { GraphicBuffer, GraphicIndexBuffer } from "./buffer";
-import { BufferTargetEnum, ComponentDatatypeEnum } from "../../webgl";
+import { GraphicIndexBuffer } from "./buffer";
+import { ComponentDatatypeEnum } from "../../webgl";
 
 /**
  * 
@@ -33,18 +31,27 @@ import { BufferTargetEnum, ComponentDatatypeEnum } from "../../webgl";
  * });
  * ```
  */
-export class Geometry extends AbstractGeometryAsset {
-    protected updateDirtyAtts(device: GraphicsDevice): void {
-        throw new Error("Method not implemented.");
-    }
+export class Geometry {
     attributes: { [keyName: string]: GeometryAttribute } = {};
     indices?: GraphicIndexBuffer;
     primitiveType: PrimitiveTypeEnum;
     bytesOffset: number;
     count?: number;
+
+    private _vertexCount: number;
+    get vertexCount() { return this._vertexCount; };
+
+    private _bounding: BoundingBox;
+    get boundingBox() {
+        if (this._bounding == null) {
+            this._bounding = BoundingBox.fromTypedArray(this.attributes[VertexAttEnum.POSITION]?.data);
+        }
+        return this._bounding;
+    }
+    set boundingBox(box: BoundingBox) {
+        this._bounding = box;
+    }
     constructor(option: IGeometryOptions) {
-        super();
-        // this.attributes = option.attributes;
         option.attributes.forEach(item => {
             this.addAttribute(item.type, item);
         });
@@ -59,18 +66,6 @@ export class Geometry extends AbstractGeometryAsset {
         this._bounding = option.boundingBox;
     }
 
-    private _vertexCount: number;
-    get vertexCount() { return this._vertexCount; };
-    get boundingBox() {
-        if (this._bounding == null) {
-            this._bounding = BoundingBox.fromTypedArray(this.attributes[VertexAttEnum.POSITION]?.data);
-        }
-        return this._bounding;
-    }
-    set boundingBox(box: BoundingBox) {
-        this._bounding = box;
-    }
-
     addAttribute(attributeType: VertexAttEnum, options: Omit<IGeometryAttributeOptions, "type">) {
         const geAtt = new GeometryAttribute({ ...options, type: attributeType });
         this.attributes[attributeType] = geAtt;
@@ -81,20 +76,25 @@ export class Geometry extends AbstractGeometryAsset {
 
     updateAttributeData(attributeType: VertexAttEnum, data: TypedArray, dataType?: ComponentDatatypeEnum) {
         if (this.attributes[attributeType]) {
-            this.attributes[attributeType].update({ data: data, componentDatatype: dataType });
+            this.attributes[attributeType].changeData({ data: data, componentDatatype: dataType });
         } else {
             console.warn("updateAttributeData failed");
         }
     }
 
+    private glTarget: VertexArray;
+    /**
+     * Private
+     */
     bind(device: GraphicsDevice) {
-        if (this.graphicAsset == null) {
-            this.graphicAsset = this.create(device);
+        if (this.glTarget == null) {
+            this.glTarget = this.create(device);
         }
-        this.graphicAsset.bind();
+        this.glTarget.bind();
         for (let key in this.attributes) {
             this.attributes[key].bind(device);
         }
+        return this.glTarget;
     }
 
     protected create(device: GraphicsDevice): VertexArray {
@@ -113,6 +113,9 @@ export class Geometry extends AbstractGeometryAsset {
             bytesOffset: this.bytesOffset,
             count: this.count,
         });
+    }
+    destroy(): void {
+        this.glTarget?.destroy();
     }
 }
 

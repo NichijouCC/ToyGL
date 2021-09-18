@@ -30,20 +30,6 @@ export class GeometryAttribute {
     get data(): TypedArray {
         return this.buffer.data;
     }
-    // get elements() {
-    //     const result: any[] = [];
-    //     const { _count, data, componentSize, bytesStride, bytesOffset } = this;
-    //     const startOffset = bytesOffset / data.BYTES_PER_ELEMENT;
-    //     let elementOffset = 0;
-    //     if (bytesStride > 0) {
-    //         elementOffset = bytesStride / data.BYTES_PER_ELEMENT;
-    //     };
-    //     for (let i = 0; i < _count; i++) {
-    //         const start = startOffset + i * componentSize + i * elementOffset;
-    //         result.push(data.subarray(start, componentSize + start));
-    //     }
-    //     return result;
-    // }
     private _beDirty = true;
     constructor(option: IGeometryAttributeOptions) {
         this.type = option.type;
@@ -69,8 +55,6 @@ export class GeometryAttribute {
             this.componentDatatype = GlType.fromTypedArray(this.buffer.data);
         }
     }
-
-
 
     getGlTarget(device: GraphicsDevice) {
         if (this._glTarget == null) {
@@ -100,13 +84,15 @@ export class GeometryAttribute {
                 bytesOffset: this.bytesOffset,
                 bytesStride: this.bytesStride,
             });
-            this._glTarget.bind();
+            this._beDirty = false;
+            // this._glTarget.bind();
         }
-        this._beDirty = false;
         return this._glTarget;
     }
-
-    update(option: Partial<Omit<IGeometryAttributeOptions, "data" | "type"> & { data: TypedArray | Array<number> }>) {
+    /**
+     * Private
+     */
+    changeData(option: Partial<Omit<IGeometryAttributeOptions, "data" | "type"> & { data: TypedArray | Array<number> }>) {
         if (option.componentSize != null) this.componentSize = option.componentSize;
         if (option.normalize != null) this.normalize = option.normalize;
         if (option.beDynamic != null) this.beDynamic = option.beDynamic;
@@ -114,13 +100,13 @@ export class GeometryAttribute {
             option.data = new Float32Array(option.data);
         }
         this.buffer.changeData(option.data);
-        this._glTarget.update({
-            componentSize: this.componentSize,
-            componentDatatype: this.componentDatatype,
-            normalize: this.normalize,
-            bytesOffset: this.bytesOffset,
-            bytesStride: this.bytesStride,
-        });
+        // this._glTarget.update({
+        //     componentSize: this.componentSize,
+        //     componentDatatype: this.componentDatatype,
+        //     normalize: this.normalize,
+        //     bytesOffset: this.bytesOffset,
+        //     bytesStride: this.bytesStride,
+        // });
         this._beDirty = true;
     }
 }

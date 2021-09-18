@@ -1,4 +1,4 @@
-import { MemoryTexture } from "../../scene/asset/texture/memoryTexture";
+import { MemoryTexture } from "../../scene/render/memoryTexture";
 
 namespace Private {
     export const white: MemoryTexture = new MemoryTexture({

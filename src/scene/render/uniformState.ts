@@ -1,9 +1,9 @@
-import { Rect } from "../mathD/rect";
-import { mat4 } from "../mathD";
-import { Texture2D } from "./asset/texture/texture2d";
-import { Camera } from "./camera";
-import { Light } from "./light/light";
-import { MemoryTexture } from "./asset/texture/memoryTexture";
+import { Rect } from "../../mathD/rect";
+import { mat4 } from "../../mathD";
+import { Texture2D } from "./texture2d";
+import { Camera } from "../camera";
+import { Light } from "../light/light";
+import { MemoryTexture } from "./memoryTexture";
 
 export class UniformState {
     viewPortPixel: Rect = new Rect(0, 0, 0, 0); // 像素的viewport
@@ -70,6 +70,5 @@ export class UniformState {
 
     // lightShadowTex: RenderTexture[] = [];
 
-    boneMatrices: Float32Array;
-    boneTexture: MemoryTexture;
+    boneMatrices: Float32Array | MemoryTexture;
 }

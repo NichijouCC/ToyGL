@@ -10,7 +10,7 @@ export * from "./layerComposition";
 export * from "./renderLayer";
 export * from "./renderState";
 export * from "./shaderCodeInjector";
-export * from "./uniformState";
+
 export * from "./plane";
 export * from "./scene";
 export * from "../core/toyScreen";
@@ -20,3 +20,6 @@ export * from "./primitive/index";
 
 export * from "./entity";
 export * from "./transform";
+
+export * from "./render/uniformState";
+export * from './render/shader'

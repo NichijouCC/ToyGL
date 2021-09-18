@@ -4,11 +4,11 @@ import { Color } from "../../mathD/color";
 import { DefaultTexture } from "./defaultTexture";
 
 namespace Private {
-    export const color_2d = new Material({ name: "color_2d", shaderOption: DefaultShader.color_2d, uniformParameters: { MainColor: Color.create(1, 1, 1, 1) } });
-    export const color_3d = new Material({ name: "color_3d", shaderOption: DefaultShader.color_3d, uniformParameters: { MainColor: Color.create(1, 0, 0, 1) } });
+    export const color_2d = new Material({ name: "color_2d", shader: DefaultShader.color_2d, uniformParameters: { MainColor: Color.create(1, 1, 1, 1) } });
+    export const color_3d = new Material({ name: "color_3d", shader: DefaultShader.color_3d, uniformParameters: { MainColor: Color.create(1, 0, 0, 1) } });
     export const tex_2d = new Material({
         name: "tex_2d",
-        shaderOption: DefaultShader.tex_2d,
+        shader: DefaultShader.tex_2d,
         uniformParameters: {
             MainColor: Color.create(1, 1, 1, 1),
             MainTex: DefaultTexture.white
@@ -16,7 +16,7 @@ namespace Private {
     });
     export const tex_3d = new Material({
         name: "tex_3d",
-        shaderOption: DefaultShader.tex_3d,
+        shader: DefaultShader.tex_3d,
         uniformParameters: {
             MainColor: Color.create(1, 1, 1, 1),
             MainTex: DefaultTexture.white
@@ -25,7 +25,7 @@ namespace Private {
 
     export const unlit_3d = new Material({
         name: "unlit_3d",
-        shaderOption: DefaultShader.unlit_3d,
+        shader: DefaultShader.unlit_3d,
         uniformParameters: {
             MainColor: Color.create(1, 1, 1, 1)
         }

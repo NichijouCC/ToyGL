@@ -1,13 +1,11 @@
-import { Entity } from "../entity";
-import { mat4, quat, vec3 } from "../../mathD";
-import { MemoryTexture } from "../asset/texture/memoryTexture";
-import { GraphicsDevice } from "../../webgl/graphicsDevice";
-import { CeilingPOT, ceilPowerOfTwo } from "../../mathD/common";
-import { PixelFormatEnum } from "../../webgl/pixelFormatEnum";
-import { PixelDatatypeEnum } from "../../webgl/pixelDatatype";
-import { Skin } from "../asset/Skin";
-import { UniformState } from "../uniformState";
-import { FrameState } from "../frameState";
+import { Entity } from "../../entity";
+import { mat4, quat, vec3 } from "../../../mathD";
+import { MemoryTexture } from "../../render/memoryTexture";
+import { GraphicsDevice } from "../../../webgl/graphicsDevice";
+import { CeilingPOT, ceilPowerOfTwo } from "../../../mathD/common";
+import { PixelFormatEnum } from "../../../webgl/pixelFormatEnum";
+import { PixelDatatypeEnum } from "../../../webgl/pixelDatatype";
+import { Skin } from "../../asset/skin";
 
 export enum SkinWay {
     /**
@@ -118,26 +116,30 @@ export class SkinInstance {
         this.beInit = true;
     }
 
-    update(device: GraphicsDevice, state: UniformState, frameState: FrameState) {
+    get uniformMatrixModel() { return this.rootBone.worldMatrix; }
+    get uniformBoneData() {
+        if (SkinInstance.skinWay == SkinWay.UNIFORM_MATS) {
+            return this._boneMatrixes;
+        } else if (SkinInstance.skinWay == SkinWay.UNIFORM_ARRAY) {
+            return this._boneData;
+        } else if (SkinInstance.skinWay == SkinWay.UNIFORM_TEXTURE) {
+            return this._boneTexture;
+        }
+    }
+
+    frameUpdate(device: GraphicsDevice) {
         if (this.attachEntity.beActive == false) return;
         if (!this.beInit) { this.init(device); }
         const { bones, rootBone } = this;
         if (SkinInstance.skinWay == SkinWay.UNIFORM_MATS) {
-            boneUpdate_a(frameState, rootBone, bones, this._boneInverses, this._boneMatrixes);
-            state.boneMatrices = this._boneMatrixes;
-            state.matrixModel = this.rootBone.worldMatrix;
+            boneUpdate_a(rootBone, bones, this._boneInverses, this._boneMatrixes);
         } else if (SkinInstance.skinWay == SkinWay.UNIFORM_ARRAY) {
-            boneUpdate_c(frameState, rootBone, bones, this._boneInverses, this._boneData);
-            state.boneMatrices = this._boneData;
-            state.matrixModel = this.rootBone.worldMatrix;
+            boneUpdate_c(rootBone, bones, this._boneInverses, this._boneData);
         } else if (SkinInstance.skinWay == SkinWay.UNIFORM_TEXTURE) {
-            boneUpdate_a(frameState, rootBone, bones, this._boneInverses, this._boneTextureData);
+            boneUpdate_a(rootBone, bones, this._boneInverses, this._boneTextureData);
             this._boneTexture.markDirty();
-            state.boneTexture = this._boneTexture;
-            state.matrixModel = this.rootBone.worldMatrix;
         }
     }
-
     destroy() { }
 }
 /**
@@ -145,24 +147,13 @@ export class SkinInstance {
  */
 const boneUpdate_a = (() => {
     const offsetMatrix = mat4.create();
-    return (frameState: FrameState, rootBone: Entity, bones: Entity[], boneInverses: mat4[], data: Float32Array) => {
+    return (rootBone: Entity, bones: Entity[], boneInverses: mat4[], data: Float32Array) => {
         const mat = rootBone.worldToLocalMatrix;
-        if (frameState.dirtyNode.has(rootBone)) { // root dirty 全部重新计算
-            for (let i = 0; i < bones.length; i++) {
-                const matrix = bones[i] ? bones[i].worldMatrix : mat4.IDENTITY;
-                mat4.multiply(offsetMatrix, matrix, boneInverses[i]);
-                mat4.multiply(offsetMatrix, mat, offsetMatrix);
-                mat4.toArray(data, offsetMatrix, i * 16);
-            }
-        } else {
-            for (let i = 0; i < bones.length; i++) {
-                if (frameState.dirtyNode.has(bones[i])) {
-                    const matrix = bones[i] ? bones[i].worldMatrix : mat4.IDENTITY;
-                    mat4.multiply(offsetMatrix, matrix, boneInverses[i]);
-                    mat4.multiply(offsetMatrix, mat, offsetMatrix);
-                    mat4.toArray(data, offsetMatrix, i * 16);
-                }
-            }
+        for (let i = 0; i < bones.length; i++) {
+            const matrix = bones[i] ? bones[i].worldMatrix : mat4.IDENTITY;
+            mat4.multiply(offsetMatrix, matrix, boneInverses[i]);
+            mat4.multiply(offsetMatrix, mat, offsetMatrix);
+            mat4.toArray(data, offsetMatrix, i * 16);
         }
     };
 })();
@@ -172,26 +163,13 @@ const boneUpdate_a = (() => {
  */
 const boneUpdate_c = (() => {
     const offsetMatrix = mat4.create();
-    return (frameState: FrameState, rootBone: Entity, bones: Entity[], boneInverses: mat4[], data: Float32Array) => {
+    return (rootBone: Entity, bones: Entity[], boneInverses: mat4[], data: Float32Array) => {
         const mat = rootBone.worldToLocalMatrix;
-        if (frameState.dirtyNode.has(rootBone)) { // root dirty 全部重新计算
-            for (let i = 0; i < bones.length; i++) {
-                const matrix = bones[i] ? bones[i].worldMatrix : mat4.IDENTITY;
-
-                mat4.multiply(offsetMatrix, matrix, boneInverses[i]);
-                mat4.multiply(offsetMatrix, mat, offsetMatrix);
-                saveBoneMatToArray(data, offsetMatrix, i);
-            }
-        } else {
-            for (let i = 0; i < bones.length; i++) {
-                if (frameState.dirtyNode.has(bones[i])) {
-                    const matrix = bones[i] ? bones[i].worldMatrix : mat4.IDENTITY;
-
-                    mat4.multiply(offsetMatrix, matrix, boneInverses[i]);
-                    mat4.multiply(offsetMatrix, mat, offsetMatrix);
-                    saveBoneMatToArray(data, offsetMatrix, i);
-                }
-            }
+        for (let i = 0; i < bones.length; i++) {
+            const matrix = bones[i] ? bones[i].worldMatrix : mat4.IDENTITY;
+            mat4.multiply(offsetMatrix, matrix, boneInverses[i]);
+            mat4.multiply(offsetMatrix, mat, offsetMatrix);
+            saveBoneMatToArray(data, offsetMatrix, i);
         }
     };
 })();

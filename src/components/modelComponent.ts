@@ -1,17 +1,17 @@
 import { ECS } from "../core/ecs/ecs";
 import { AssetReferenceArray } from "../scene/assetReferenceArray";
 import { AssetReference } from "../scene/assetReference";
-import { StaticMesh } from "../scene/asset/geometry/staticMesh";
+import { StaticGeometry } from "../scene/asset/geometry/staticGeometry";
 import { Material } from "../scene/asset/material/material";
-import { SkinInstance } from "../scene/primitive/skinInstance";
-import { Skin } from "../scene/asset/Skin";
+import { SkinInstance } from "../scene/primitive/animation/skinInstance";
+import { Skin } from "../scene/asset/skin";
 import { Component, Entity } from "../scene";
 
 @ECS.registerComp
 export class ModelComponent extends Component {
-    protected _mesh = new AssetReference<StaticMesh>();
+    protected _mesh = new AssetReference<StaticGeometry>();
     get mesh() { return this._mesh.current; };
-    set mesh(asset: StaticMesh) { this._mesh.current = asset; };
+    set mesh(asset: StaticGeometry) { this._mesh.current = asset; };
     protected _materials = new AssetReferenceArray<Material>();
     set material(asset: Material) { this._materials.setValue(asset); };
     get material() { return this._materials.current[0]; };

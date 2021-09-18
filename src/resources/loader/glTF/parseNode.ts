@@ -6,7 +6,7 @@ import { IGltfJson } from "../loadGltf";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
 import { Entity } from "../../../scene/entity";
 import { ModelComponent } from "../../../components/modelComponent";
-import { StaticMesh } from "../../../scene/asset/geometry/staticMesh";
+import { StaticGeometry } from "../../../scene/asset/geometry/staticGeometry";
 import { ParseSkinNode } from "./parseSkinNode";
 import { GlTF } from "./util";
 
@@ -38,7 +38,7 @@ export class ParseNode {
             const comp = sceneNode.addComponent(ModelComponent);
             const task = ParseMeshNode.parse(node.mesh, gltf)
                 .then(primitives => {
-                    const newMesh = new StaticMesh();
+                    const newMesh = new StaticGeometry();
                     newMesh.subMeshes = primitives.map(item => item.geometry);
                     comp.mesh = newMesh;
                     comp.materials = primitives.map(item => item.material);

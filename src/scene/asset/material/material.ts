@@ -1,4 +1,4 @@
-import { Shader, ILayerIndexEvent, IShaderOption } from "./shader";
+import { Shader, ILayerIndexEvent, IShaderOption } from "../../render/shader";
 import { RenderLayerEnum } from "../../renderLayer";
 import { RenderState } from "../../renderState";
 import { Asset } from "../asset";
@@ -6,32 +6,8 @@ import { AssetReference } from "../../assetReference";
 
 export class Material extends Asset {
     static totalCount: number = 0;
-
-    name: string;
     uniformParameters: { [name: string]: any } = {};
-    constructor(options?: IMatOption) {
-        super();
-        this.name = options?.name;
-        Material.totalCount++;
 
-        if (options?.shaderOption != null) {
-            if (options?.shaderOption instanceof Shader) {
-                this.shader = options.shaderOption;
-            } else {
-                this.shader = new Shader(options.shaderOption);
-            }
-        }
-        if (options?.uniformParameters) {
-            this.uniformParameters = { ...options.uniformParameters };
-        }
-        this.onDirty.addEventListener(() => { this._beDirty = true; });
-        this.shaderRef.onDirty.addEventListener(() => { this.onDirty.raiseEvent(); });
-    }
-
-    /**
-     * private
-     */
-    _beDirty: boolean = false;
     private shaderRef = new AssetReference<Shader>();
     get shader() { return this.shaderRef.current; };
     set shader(value: Shader) { this.shaderRef.current = value; };
@@ -45,10 +21,30 @@ export class Material extends Asset {
         this._layerIndex = layer + queue;
         this.onDirty.raiseEvent();
     }
-
     get layerIndex() { return this._layerIndex ?? this.shader.layerIndex; };
 
     renderState = new RenderState();
+
+    /**
+     * private
+     */
+    _beDirty: boolean = false;
+    constructor(options?: IMatOption) {
+        super();
+        this.name = options?.name;
+        Material.totalCount++;
+
+        if (options?.shader != null) {
+            if (options?.shader instanceof Shader) {
+                this.shader = options.shader;
+            } else {
+                this.shader = new Shader(options.shader);
+            }
+        }
+        if (options?.uniformParameters) {
+            this.uniformParameters = { ...options.uniformParameters };
+        }
+    }
 
     setUniformParameter(uniformKey: string, value: any) {
         this.uniformParameters[uniformKey] = value;
@@ -75,5 +71,5 @@ export class Material extends Asset {
 export interface IMatOption {
     name?: string;
     uniformParameters?: { [name: string]: any };
-    shaderOption?: IShaderOption | Shader;
+    shader?: IShaderOption | Shader;
 }

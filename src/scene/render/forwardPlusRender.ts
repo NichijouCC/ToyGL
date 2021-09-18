@@ -9,7 +9,7 @@ import { VertexAttEnum } from "../../webgl/vertexAttEnum";
 
 import lightCull_vs from "./glsl/lightCulling.vert.glsl";
 import lightCull_fs from "./glsl/lightCulling.frag.glsl";
-import { UniformState } from "../uniformState";
+import { UniformState } from "./uniformState";
 
 export class ForwardPlusRender {
     private device!: GraphicsDevice;
@@ -30,7 +30,7 @@ export class ForwardPlusRender {
             }]
         }),
         mat: new Material({
-            shaderOption: {
+            shader: {
                 vsStr: depthPrePass_vs,
                 fsStr: depthPrePass_fs,
                 attributes: {
@@ -52,7 +52,7 @@ export class ForwardPlusRender {
             }]
         }),
         mat: new Material({
-            shaderOption: {
+            shader: {
                 vsStr: lightCull_vs,
                 fsStr: lightCull_fs,
                 attributes: {

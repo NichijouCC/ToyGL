@@ -4,22 +4,24 @@ import { GraphicsDevice } from "../../webgl/graphicsDevice";
 import { RenderState } from "../renderState";
 import { Frustum } from "../frustum";
 import { BoundingSphere } from "../bounds";
-import { UniformState } from "../uniformState";
+import { UniformState } from "./uniformState";
 import { AutoUniforms } from "./autoUniform";
-import { ShaderBucket } from "../asset/material/shaderBucket";
+import { ShaderBucket } from "./shaderBucket";
 import { LayerComposition } from "../layerComposition";
 import { IRenderable } from "./irenderable";
 import { FrameState } from "../frameState";
 import { ShaderProgram } from "../../webgl";
 import { vec3 } from "../../mathD";
-import { BaseTexture } from "../asset/texture/baseTexture";
+import { BaseTexture } from "./baseTexture";
 
 const Private: {
+    preShader: ShaderProgram,
     preMaterial: Material,
     preBucketID: number,
     preRenderState: RenderState,
     temptSphere: BoundingSphere
 } = {
+    preShader: null,
     preMaterial: null,
     preBucketID: null,
     preRenderState: null,
@@ -43,7 +45,7 @@ export class ForwardRender {
                 let tex = (uniformValues[key] as BaseTexture)
                 tex.bind(this.device);
                 // shaderIns.bindUniform(key, tex.graphicAsset);
-                values[key] = tex.graphicAsset
+                values[key] = tex.glTarget
             }
         }
         shaderIns.bindUniforms(values);
@@ -128,9 +130,12 @@ export class ForwardRender {
             renderItem = renderInsArr[i];
 
             let bucketId = 0;
-            if (renderItem.skinIns) {
+            if (renderItem.skin) {
                 bucketId = bucketId | ShaderBucket.SKIN;
-                renderItem.skinIns.update(this.device, this.uniformState, frameState);
+                // renderItem.skinIns.update(this.device, this.uniformState);
+                // renderItem.skinIns.applyToUniformState(this.uniformState);
+                this.uniformState.matrixModel = renderItem.skin.worldMat;
+                this.uniformState.boneMatrices = renderItem.skin.boneMatrices;
             } else {
                 this.uniformState.matrixModel = renderItem.worldMat;
             }
@@ -140,18 +145,20 @@ export class ForwardRender {
             if (uniforms.MainTex) {
                 bucketId = bucketId | ShaderBucket.DIFFUSE_MAP;
             }
+            let shaderIns = material.shader.bind(bucketId, this.device);
+            // shaderIns = material.shader.getProgram(bucketId, this.device);
+            // const shaderChanged = shaderIns.bind();
 
-            shaderIns = material.shader.getProgram(bucketId, this.device);
-            const shaderChanged = shaderIns.bind();
-
-            if (shaderChanged || material != Private.preMaterial || material._beDirty || Private.preBucketID != bucketId) {
-                Private.preMaterial = material;
-                Private.preBucketID = bucketId;
-                material._beDirty = false;
-                this.bindShaderUniforms(shaderIns, uniforms);
-            } else {
-                this.bindShaderAutoUniforms(shaderIns);
-            }
+            // if (shaderIns != Private.preShader || material != Private.preMaterial || material._beDirty || Private.preBucketID != bucketId) {
+            //     Private.preShader = shaderIns;
+            //     Private.preMaterial = material;
+            //     Private.preBucketID = bucketId;
+            //     material._beDirty = false;
+            //     this.bindShaderUniforms(shaderIns, uniforms);
+            // } else {
+            //     this.bindShaderAutoUniforms(shaderIns);
+            // }
+            this.bindShaderUniforms(shaderIns, uniforms);
 
             renderState = material.renderState;
             if (Private.preRenderState != renderState) {
@@ -187,17 +194,17 @@ export class ForwardRender {
                 );
             }
 
-            renderItem.geometry.bind(this.device);
-            this.device.draw(renderItem.geometry.graphicAsset, renderItem.instanceCount);
+            let vao = renderItem.geometry.bind(this.device);
+            this.device.draw(vao, renderItem.instanceCount);
         }
     }
 
     private frustumCull = (() => {
         const _temptSphere = new BoundingSphere();
         return (frustum: Frustum, drawCall: IRenderable) => {
-            const aabb = drawCall.boundingBox ?? drawCall.geometry.boundingBox;
-            vec3.copy(_temptSphere.center, aabb.center);
-            _temptSphere.radius = vec3.len(aabb.halfSize);
+            const box = drawCall.boundingBox ?? drawCall.geometry.boundingBox;
+            vec3.copy(_temptSphere.center, box.center);
+            _temptSphere.radius = vec3.len(box.halfSize);
             return frustum.containSphere(_temptSphere, drawCall.worldMat);
         };
     })()

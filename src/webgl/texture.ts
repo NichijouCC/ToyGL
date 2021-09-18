@@ -347,6 +347,7 @@ export interface ITypedArrayTexOpts {
     pixelDatatype?: PixelDatatypeEnum;
     sampler?: ISamplerOptions;
     flipY?: boolean;
+    preMultiplyAlpha?: boolean;
 }
 
 export interface IImageSourceTexOpts {
@@ -356,6 +357,7 @@ export interface IImageSourceTexOpts {
     pixelDatatype?: PixelDatatypeEnum;
     sampler?: ISamplerOptions;
     flipY?: boolean;
+    preMultiplyAlpha?: boolean;
 }
 
 export interface IFrameBufferTexOpts {
