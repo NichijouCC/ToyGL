@@ -1,5 +1,5 @@
 import { ShaderProgram, IShaderProgramOption } from "../../webgl/shaderProgram";
-import { RenderLayerEnum } from "../renderLayer";
+import { RenderLayerEnum } from "./renderLayer";
 import { Asset, IGraphicAsset } from "../asset/asset";
 import { VertexAttEnum } from "../../webgl/vertexAttEnum";
 import { ShaderBucket } from "./shaderBucket";
@@ -73,8 +73,7 @@ export class Shader extends Asset {
     }
 }
 
-export type IShaderOption = Omit<IShaderProgramOption, "context">
-
+export type IShaderOption = IShaderProgramOption
 export interface ILayerIndexEvent {
     layer: RenderLayerEnum;
     layerIndex: number

@@ -5,8 +5,8 @@ import { IglElement } from "../core/iglElement";
 export class FrameBuffer implements IframeBufferInfo, IglElement {
     frameBuffer: WebGLFramebuffer;
     attachInfos: IframeBufferAttachmentItem[];
-    constructor(options:IFrameBufferOptions) {
-        const gl = options.context.gl;
+    constructor(context: GraphicsDevice, options: IFrameBufferOptions) {
+        const gl = context.gl;
         const fbo = gl.createFramebuffer();
         gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
 
@@ -20,8 +20,8 @@ export class FrameBuffer implements IframeBufferInfo, IglElement {
                     const attachmentPoint = gl.COLOR_ATTACHMENT0 + colorAttachmentCount++;
                     if (attachmentOp.beTexture) {
                         const tex = Texture.fromTypedArray(
+                            context,
                             {
-                                context: options.context,
                                 width: width,
                                 height: height,
                                 arrayBufferView: null,
@@ -46,8 +46,8 @@ export class FrameBuffer implements IframeBufferInfo, IglElement {
                 case "depth":
                     if (attachmentOp.beTexture) {
                         const tex = Texture.fromTypedArray(
+                            context,
                             {
-                                context: options.context,
                                 width: width,
                                 height: height,
                                 arrayBufferView: null,
@@ -119,7 +119,6 @@ export class FrameBuffer implements IframeBufferInfo, IglElement {
 }
 
 export interface IFrameBufferOptions {
-    context: GraphicsDevice,
     attachments: IframeBufferAttachment[]
 }
 export interface IframeBufferAttachment {

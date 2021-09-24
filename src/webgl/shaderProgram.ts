@@ -32,8 +32,8 @@ export class ShaderProgram implements IShaderProgram {
     attributes: { [type: string]: IAttributeInfo; };
     private static _cachedProgram: WebGLProgram;
 
-    constructor(options: IShaderProgramOption) {
-        const res = compileAndLinkShader(options.context.gl, options);
+    constructor(context: GraphicsDevice, options: IShaderProgramOption) {
+        const res = compileAndLinkShader(context.gl, options);
         if (res) {
             this.program = res.shader;
             this.uniforms = res.uniforms;
@@ -52,7 +52,7 @@ export class ShaderProgram implements IShaderProgram {
             }
         }
 
-        const gl = options.context.gl;
+        const gl = context.gl;
         this.bind = () => {
             const beChanged = this.program != ShaderProgram._cachedProgram;
             if (beChanged) {
@@ -118,7 +118,6 @@ export interface IShaderProgram {
 }
 
 export interface IShaderProgramOption {
-    context: GraphicsDevice;
     attributes: { [attName: string]: VertexAttEnum };
     vsStr: string;
     fsStr: string;

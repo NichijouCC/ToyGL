@@ -3,7 +3,7 @@ import { loadText, loadJson, loadArrayBuffer } from "../../io/loadTool";
 import { BinReader } from "../../io/stream";
 import { IGltf, IProperty } from "./glTF/gltfJsonStruct";
 import { ParseSceneNode } from "./glTF/parseSceneNode";
-import { Material } from "../../scene/asset/material/material";
+import { Material } from "../../scene/render/material";
 import { GraphicsDevice } from "../../webgl/graphicsDevice";
 import { StaticGeometry, PrimitiveMesh } from "../../scene/asset/geometry/staticGeometry";
 import { IAssetLoader } from "../resource";

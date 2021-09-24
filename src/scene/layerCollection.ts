@@ -1,7 +1,7 @@
 import { SortTypeEnum } from "./render/sortTypeEnum";
 import { IRenderable } from "./render/irenderable";
 import { Camera } from "./camera";
-import { RenderLayerEnum } from "./renderLayer";
+import { RenderLayerEnum } from "./render/renderLayer";
 import { mat4, vec3 } from "../mathD";
 namespace Private {
     const sortByMatLayerIndex = (drawA: IRenderable, drawB: IRenderable): number => {
@@ -21,27 +21,27 @@ namespace Private {
     };
     const _tempt = vec3.create();
     export const sortTypeInfo: { [type: string]: ISortInfo } = {}; {
-    sortTypeInfo[SortTypeEnum.MAT_LAYER_INDEX] = { sortFunc: sortByMatLayerIndex };
-    sortTypeInfo[SortTypeEnum.SHADER_ID] = { sortFunc: sortByShaderId };
-    sortTypeInfo[SortTypeEnum.Z_DIST_FRONT_TO_BACK] = {
-        sortFunc: sortByzDist_FrontToBack,
-        beforeSort: (ins: IRenderable[], cam: Camera) => {
-            const camPos = cam.worldPos;
-            const camFwd = cam.forwardInWorld;
-            let i, drawCall, insPos;
-            let tempX, tempY, tempZ;
-            for (i = 0; i < ins.length; i++) {
-                drawCall = ins[i];
-                insPos = mat4.getTranslation(_tempt, drawCall.worldMat);
-                tempX = insPos[0] - camPos[0];
-                tempY = insPos[1] - camPos[1];
-                tempZ = insPos[2] - camPos[2];
+        sortTypeInfo[SortTypeEnum.MAT_LAYER_INDEX] = { sortFunc: sortByMatLayerIndex };
+        sortTypeInfo[SortTypeEnum.SHADER_ID] = { sortFunc: sortByShaderId };
+        sortTypeInfo[SortTypeEnum.Z_DIST_FRONT_TO_BACK] = {
+            sortFunc: sortByzDist_FrontToBack,
+            beforeSort: (ins: IRenderable[], cam: Camera) => {
+                const camPos = cam.worldPos;
+                const camFwd = cam.forwardInWorld;
+                let i, drawCall, insPos;
+                let tempX, tempY, tempZ;
+                for (i = 0; i < ins.length; i++) {
+                    drawCall = ins[i];
+                    insPos = mat4.getTranslation(_tempt, drawCall.worldMat);
+                    tempX = insPos[0] - camPos[0];
+                    tempY = insPos[1] - camPos[1];
+                    tempZ = insPos[2] - camPos[2];
 
-                drawCall.zDist = tempX * camFwd[0] + tempY * camFwd[1] + tempZ * camFwd[2];
+                    drawCall.zDist = tempX * camFwd[0] + tempY * camFwd[1] + tempZ * camFwd[2];
+                }
             }
-        }
-    };
-}
+        };
+    }
 
     export interface ISortInfo {
         sortFunc: (drawA: IRenderable, drawB: IRenderable) => number,

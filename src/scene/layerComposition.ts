@@ -1,7 +1,8 @@
-import { RenderLayerEnum } from "./renderLayer";
+import { RenderLayerEnum } from "./render/renderLayer";
 import { LayerCollection } from "./layerCollection";
 import { SortTypeEnum } from "./render/sortTypeEnum";
 import { IRenderable } from "./render/irenderable";
+import { Camera } from "./camera";
 export class LayerComposition {
     private layers: Map<number, LayerCollection> = new Map();
     constructor() {
@@ -22,8 +23,23 @@ export class LayerComposition {
         return Array.from(this.layers.values());
     }
 
-    getSortedRenderArr() {
+    getSortedRenderArr(cam: Camera) {
+        let items: IRenderable[] = [];
+        this._addLayerSortedResult(RenderLayerEnum.Background, cam, items);
+        this._addLayerSortedResult(RenderLayerEnum.Geometry, cam, items);
+        this._addLayerSortedResult(RenderLayerEnum.AlphaTest, cam, items);
+        this._addLayerSortedResult(RenderLayerEnum.Transparent, cam, items);
+        return items;
+    }
 
+    private _addLayerSortedResult(layerType: RenderLayerEnum, cam: Camera, items: IRenderable[]) {
+        let layer = this.layers.get(layerType);
+        if (layer.insCount != 0) {
+            let arr = layer.getSortedInsArr(cam);
+            arr.forEach(item => {
+                items.push(item);
+            })
+        }
     }
 
     addRenderableItem(ins: IRenderable) {

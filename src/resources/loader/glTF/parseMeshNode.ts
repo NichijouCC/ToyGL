@@ -3,12 +3,12 @@ import { IGltfMeshPrimitive } from "./gltfJsonStruct";
 import { ParseMaterialNode } from "./parseMaterialNode";
 import { ParseAccessorNode } from "./parseAccessorNode";
 import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
-import { Material } from "../../../scene/asset/material/material";
+import { Material } from "../../../scene/render/material";
 import { BufferTargetEnum } from "../../../webgl/buffer";
 import { DefaultMaterial } from "../../defAssets/defaultMaterial";
 import { BoundingBox, Geometry, IGeometryOptions } from "../../../scene/index";
 import { vec3 } from "../../../mathD";
-import { GraphicIndexBuffer } from "../../../scene/render/buffer";
+import { GraphicBuffer, GraphicIndexBuffer } from "../../../scene/render/buffer";
 
 const MapGltfAttributeToToyAtt: { [name: string]: VertexAttEnum } = {
     POSITION: VertexAttEnum.POSITION,
@@ -73,11 +73,21 @@ export class ParseMeshNode {
         for (const attName in attributes) {
             const attIndex = attributes[attName];
             const attType = MapGltfAttributeToToyAtt[attName];
-            const attTask = ParseAccessorNode.parse(attIndex, gltf, BufferTargetEnum.ARRAY_BUFFER)
+            const attTask = ParseAccessorNode.parse(attIndex, gltf)
                 .then(arrayInfo => {
+                    if (arrayInfo.target != null && arrayInfo.target != BufferTargetEnum.ARRAY_BUFFER) {
+                        throw new Error("gltf解析：buffer target 不匹配")
+                    }
+                    var newBuffer = gltf.cache.bufferCache[arrayInfo.viewIndex];
+                    if (newBuffer == null) {
+                        newBuffer = new GraphicBuffer({ target: BufferTargetEnum.ARRAY_BUFFER, data: arrayInfo.viewBuffer });
+                        gltf.cache.bufferCache[arrayInfo.viewIndex] = newBuffer;
+                    } else {
+                        console.warn("命中！！");
+                    }
                     geoOpts.attributes.push({
                         type: attType,
-                        data: arrayInfo.buffer,
+                        data: newBuffer,
                         componentSize: arrayInfo.componentSize,
                         componentDatatype: arrayInfo.componentDataType,
                         normalize: arrayInfo.normalize ?? false,
@@ -99,13 +109,16 @@ export class ParseMeshNode {
         }
         const index = node.indices;
         if (index != null) {
-            const indexTask = ParseAccessorNode.parse(index, gltf, BufferTargetEnum.ELEMENT_ARRAY_BUFFER)
+            const indexTask = ParseAccessorNode.parse(index, gltf,)
                 .then(arrayInfo => {
+                    if (arrayInfo.target != null && arrayInfo.target != BufferTargetEnum.ELEMENT_ARRAY_BUFFER) {
+                        throw new Error("gltf解析：buffer target 不匹配")
+                    }
                     geoOpts.indices = new GraphicIndexBuffer({
-                        data: arrayInfo.buffer,
+                        data: arrayInfo.viewBuffer,
                         datatype: arrayInfo.componentDataType,
                         byteOffset: arrayInfo.bytesOffset,
-                        drawCount: arrayInfo.count,
+                        count: arrayInfo.count,
                     });
                     geoOpts.bytesOffset = arrayInfo.bytesOffset;
                     geoOpts.count = arrayInfo.count;

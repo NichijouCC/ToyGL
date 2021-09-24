@@ -13,6 +13,8 @@ export interface IaccessorData {
     bytesOffset: number;
     bytesStride?: number;
     target?: BufferTargetEnum;
+    viewIndex: number;
+    viewBuffer: Uint8Array;
     typedArray: TypedArray;
     buffer?: GraphicBuffer;
     min?: number[];
@@ -37,7 +39,7 @@ export namespace Accessor {
 }
 
 export class ParseAccessorNode {
-    static async parse(index: number, gltf: IGltfJson, _target?: BufferTargetEnum): Promise<IaccessorData> {
+    static async parse(index: number, gltf: IGltfJson): Promise<IaccessorData> {
         const arrayInfo: IaccessorData = {} as any;
         // return new Promise<AccessorNode>((resolve,reject)=>{
         const accessor = gltf.accessors[index];
@@ -56,6 +58,9 @@ export class ParseAccessorNode {
             arrayInfo.bytesOffset = accessor.byteOffset ?? 0;
             arrayInfo.bytesStride = value.byteStride;
             arrayInfo.target = value.target;
+            arrayInfo.viewIndex = viewIndex;
+            arrayInfo.viewBuffer = value.viewBuffer;
+
             let typedArray = TypedArray.fromGlType(accessor.componentType, value.viewBuffer);
             if (hasSparse) {
                 typedArray = typedArray.slice(0);
@@ -81,56 +86,6 @@ export class ParseAccessorNode {
                 });
             }
             arrayInfo.typedArray = typedArray;
-            if (_target != null || value.target != null) {
-                const target = _target || value.target;
-                if (!hasSparse) {
-                    var newBuffer = gltf.cache.bufferCache[viewIndex];
-                    if (newBuffer == null) {
-                        newBuffer = new GraphicBuffer({ target: target, data: value.viewBuffer });
-                        gltf.cache.bufferCache[viewIndex] = newBuffer;
-                    } else {
-                        console.warn("命中！！");
-                    }
-                    arrayInfo.buffer = newBuffer;
-                } else {
-                    arrayInfo.buffer = new GraphicBuffer({ target: target, data: value.viewBuffer });
-                }
-
-                // switch (target) {
-                //     case BufferTargetEnum.ARRAY_BUFFER:
-                //         if (!hasSparse) {
-                //             var newVertexBuffer = gltf.cache.vertexBufferCache[viewIndex];
-                //             if (newVertexBuffer == null) {
-                //                 newVertexBuffer = new GraphicVertexBuffer(value.viewBuffer, accessor.componentType as any);
-                //                 gltf.cache.vertexBufferCache[viewIndex] = newVertexBuffer;
-                //             } else {
-                //                 console.warn("命中！！");
-                //             }
-                //             arrayInfo.buffer = newVertexBuffer;
-                //         } else {
-                //             arrayInfo.buffer = new GraphicVertexBuffer(typedArray);
-                //         }
-                //         break;
-                //     case BufferTargetEnum.ELEMENT_ARRAY_BUFFER:
-                //         if (!hasSparse) {
-                //             let newIndexBuffer = gltf.cache.indexBufferCache[viewIndex];
-                //             if (newIndexBuffer == null) {
-                //                 newIndexBuffer = new GraphicIndexBuffer(value.viewBuffer, accessor.componentType as any);
-                //                 gltf.cache.indexBufferCache[viewIndex] = newIndexBuffer;
-                //             } else {
-                //                 console.warn("命中！！");
-                //             }
-                //             arrayInfo.buffer = newIndexBuffer;
-                //         } else {
-                //             arrayInfo.buffer = new GraphicIndexBuffer(typedArray as any);
-                //         }
-
-                //         break;
-                //     default:
-                //         console.error("why ！！");
-                //         break;
-                // }
-            }
             return arrayInfo;
         } else {
             throw new Error("accessor.bufferView is null");

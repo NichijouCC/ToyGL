@@ -1,13 +1,12 @@
 import { Camera } from "../camera";
-import { Material } from "../asset/material/material";
+import { Material } from "./material";
 import { GraphicsDevice } from "../../webgl/graphicsDevice";
-import { RenderState } from "../renderState";
+import { RenderState } from "./renderState";
 import { Frustum } from "../frustum";
 import { BoundingSphere } from "../bounds";
 import { UniformState } from "./uniformState";
 import { AutoUniforms } from "./autoUniform";
 import { ShaderBucket } from "./shaderBucket";
-import { LayerComposition } from "../layerComposition";
 import { IRenderable } from "./irenderable";
 import { FrameState } from "../frameState";
 import { ShaderProgram } from "../../webgl";
@@ -41,8 +40,8 @@ export class ForwardRender {
             if (AutoUniforms.containAuto(key)) {
                 values[key] = AutoUniforms.getAutoUniformValue(key, this.uniformState);
             }
-            if (uniformValues[key] instanceof BaseTexture) {
-                let tex = (uniformValues[key] as BaseTexture)
+            if (values[key] instanceof BaseTexture) {
+                let tex = (values[key] as BaseTexture)
                 tex.bind(this.device);
                 // shaderIns.bindUniform(key, tex.graphicAsset);
                 values[key] = tex.glTarget
@@ -51,16 +50,16 @@ export class ForwardRender {
         shaderIns.bindUniforms(values);
     }
 
-    private bindShaderAutoUniforms(shaderIns: ShaderProgram) {
-        const values: { [key: string]: any } = {};
-        const uniforms = shaderIns.uniforms;
-        for (const key in uniforms) {
-            if (AutoUniforms.containAuto(key)) {
-                values[key] = AutoUniforms.getAutoUniformValue(key, this.uniformState);
-            }
-        }
-        shaderIns.bindUniforms(values);
-    }
+    // private bindShaderAutoUniforms(shaderIns: ShaderProgram) {
+    //     const values: { [key: string]: any } = {};
+    //     const uniforms = shaderIns.uniforms;
+    //     for (const key in uniforms) {
+    //         if (AutoUniforms.containAuto(key)) {
+    //             values[key] = AutoUniforms.getAutoUniformValue(key, this.uniformState);
+    //         }
+    //     }
+    //     shaderIns.bindUniforms(values);
+    // }
 
     private setCamera(camera: Camera) {
         this.uniformState.curCamera = camera;
@@ -72,58 +71,35 @@ export class ForwardRender {
         );
     }
 
-    private cameraRenderLayers = new Map<Camera, LayerComposition>();
-
-    render(cameras: Camera[], frameState: FrameState) {
+    renderCameras(cameras: Camera[], renderArr: IRenderable[], options?: { onAfterFrustumCull?: (renderInsArr: IRenderable[], cam: Camera) => IRenderable[] }) {
         cameras = cameras.sort(item => item.priority);
-        let cam: Camera, layerComps: LayerComposition, renderItem: IRenderable;
+        renderArr = renderArr.filter(item => { return !(item.beVisible == false || item.geometry == null || item.material?.shader == null) });
 
-        // ---------------clear preFrame Data
+        let cam: Camera, renderItem: IRenderable;
+        let _renderList: IRenderable[];
+        // ----------------collect render Ins
         for (let k = 0; k < cameras.length; k++) {
             cam = cameras[k];
-            if (!this.cameraRenderLayers.has(cam)) {
-                layerComps = new LayerComposition();
-                this.cameraRenderLayers.set(cam, layerComps);
-            } else {
-                layerComps = this.cameraRenderLayers.get(cam);
-                layerComps.clear();
-            }
-        }
-
-        // ----------------collect render Ins
-        const renderArr = frameState.renders;
-        for (let i = 0; i < renderArr.length; i++) {
-            renderItem = renderArr[i];
-            if (renderItem.beVisible == false || renderItem.geometry == null || renderItem.material?.shader == null) continue;
-            for (let k = 0; k < cameras.length; k++) {
-                cam = cameras[k];
-                const { cullingMask, frustum } = cam;
-                layerComps = this.cameraRenderLayers.get(cam);
-
+            const { cullingMask, frustum } = cam;
+            _renderList = [];
+            for (let i = 0; i < renderArr.length; i++) {
+                renderItem = renderArr[i];
                 if (renderItem.cullingMask != null && ((renderItem.cullingMask & cullingMask) == 0)) continue;
                 if (renderItem.enableCull) {
                     if (this.frustumCull(frustum, renderItem)) {
-                        layerComps.addRenderableItem(renderItem);
+                        _renderList.push(renderItem);
                     }
                 } else {
-                    layerComps.addRenderableItem(renderItem);
+                    _renderList.push(renderItem);
                 }
             }
-        }
-
-        // ------------------------render per camera
-        for (let k = 0; k < cameras.length; k++) {
-            cam = cameras[k];
-            layerComps = this.cameraRenderLayers.get(cam);
-            layerComps.getLayers().forEach(layer => {
-                if (layer.insCount == 0) return;
-                const renderInsArr = layer.getSortedInsArr(cam);
-                this.renderList(cam, renderInsArr, frameState);
-            });
+            if (options?.onAfterFrustumCull != null) {
+                _renderList = options?.onAfterFrustumCull(_renderList, cam);
+            }
+            this.renderList(cam, _renderList);
         }
     }
-
-    private renderList(cam: Camera, renderInsArr: IRenderable[], frameState: FrameState) {
+    renderList(cam: Camera, renderInsArr: IRenderable[]) {
         this.setCamera(cam);
         let renderItem: IRenderable, material: Material, uniforms, renderState, vertexArray, shaderIns: ShaderProgram, uniformValue;
         for (let i = 0; i < renderInsArr.length; i++) {

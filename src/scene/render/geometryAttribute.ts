@@ -61,8 +61,7 @@ export class GeometryAttribute {
             let buffer = this.buffer.getGlTarget(device);
             this._glTarget = device.createVertexAtt({
                 type: this.type,
-                enabled: true,
-                buffer: buffer,
+                data: buffer,
                 componentSize: this.componentSize,
                 componentDatatype: this.componentDatatype,
                 normalize: this.normalize,
@@ -77,7 +76,7 @@ export class GeometryAttribute {
         if (this._beDirty) {
             let buffer = this.buffer.getGlTarget(device);
             this._glTarget.update({
-                buffer: buffer,
+                data: buffer,
                 componentSize: this.componentSize,
                 componentDatatype: this.componentDatatype,
                 normalize: this.normalize,

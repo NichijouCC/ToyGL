@@ -12,6 +12,7 @@ import { FrameBuffer, IFrameBufferOptions } from "./framebuffer";
 import { TextureUnit } from "./textureUnit";
 import { IVertexAttributeOption, VertexAttribute } from "./vertexAttribute";
 import { Buffer, bufferOption } from "./buffer";
+import { VertexBuffer } from "./vertexBuffer";
 
 export interface IEngineOption {
     disableWebgl2?: boolean;
@@ -25,7 +26,7 @@ export class GraphicsDevice {
     readonly limit: DeviceLimit;
     readonly units: TextureUnit;
     bindingVao: WebGLVertexArrayObject = null;
-    // beCreatingVao = false;
+    bindingBuffer: WebGLBuffer = null;
     get width() { return this.gl.drawingBufferWidth; };
     get height() { return this.gl.drawingBufferHeight; };
     constructor(canvasOrContext: HTMLCanvasElement | WebGLRenderingContext, option?: IEngineOption) {
@@ -67,44 +68,44 @@ export class GraphicsDevice {
         throw new Error("Method not implemented.");
     }
 
-    createShaderProgram(options: Omit<IShaderProgramOption, "context">) {
-        return new ShaderProgram({ ...options, context: this });
+    createShaderProgram(options: IShaderProgramOption) {
+        return new ShaderProgram(this, options);
     }
 
-    createVertexArray(options: Omit<IVaoOptions, "context">) {
-        return new VertexArray({ ...options, context: this });
+    createVertexArray(options: IVaoOptions) {
+        return new VertexArray(this, options);
     }
 
     createVertexAtt(options: IVertexAttributeOption) {
         return new VertexAttribute(this, options);
     }
 
-    // createVertexBuffer(options: DistributiveOmit<VertexBufferOption, "context">) {
-    //     return new VertexBuffer({ ...options, context: this } as any);
-    // }
-
-    createIndexBuffer(options: DistributiveOmit<IndexBufferOption, "context">) {
-        return new IndexBuffer({ ...options, context: this } as any);
+    createVertexBuffer(options: bufferOption) {
+        return new VertexBuffer(this, options);
     }
 
-    createBuffer(options: DistributiveOmit<bufferOption, "context">) {
-        return new Buffer({ ...options, context: this });
+    createIndexBuffer(options: IndexBufferOption) {
+        return new IndexBuffer(this, options);
     }
 
-    createTextureFromTypedArray(options: Omit<ITypedArrayTexOpts, "context">) {
-        return Texture.fromTypedArray({ ...options, context: this });
+    createBuffer(options: bufferOption) {
+        return new Buffer(this, options);
     }
 
-    createTextureFromFrameBuffer(options: Omit<IFrameBufferTexOpts, "context">) {
-        return Texture.fromFrameBuffer({ ...options, context: this });
+    createTextureFromTypedArray(options: ITypedArrayTexOpts) {
+        return Texture.fromTypedArray(this, options);
     }
 
-    createTextureFromImageSource(options: Omit<IImageSourceTexOpts, "context">) {
-        return Texture.fromImageSource({ ...options, context: this });
+    createTextureFromFrameBuffer(options: IFrameBufferTexOpts) {
+        return Texture.fromFrameBuffer(this, options);
     }
 
-    createFrameBuffer(options: Omit<IFrameBufferOptions, "context">) {
-        return new FrameBuffer({ ...options, context: this });
+    createTextureFromImageSource(options: IImageSourceTexOpts) {
+        return Texture.fromImageSource(this, options);
+    }
+
+    createFrameBuffer(options: IFrameBufferOptions) {
+        return new FrameBuffer(this, options);
     }
 
     // -----------------------------gl state
@@ -417,9 +418,6 @@ export class GraphicsDevice {
                 this.gl.drawArrays(vertexArray.primitiveType, vertexArray.bytesOffset, vertexArray.count);
             }
         }
-        // if (this.bindingVao != null) {
-        //     vertexArray.unbind();
-        // }
     }
 }
 

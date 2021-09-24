@@ -35,8 +35,8 @@ export class Texture {
     sourceType: TextureDataFromEnum;
     private _context: GraphicsDevice;
     private _gl: WebGLRenderingContext;
-    private constructor(options: ITextureOptions) {
-        let { context, width, height, source, pixelFormat = PixelFormatEnum.RGBA, pixelDatatype = PixelDatatypeEnum.UNSIGNED_BYTE } = options;
+    private constructor(context: GraphicsDevice, options: ITextureOptions) {
+        let { width, height, source, pixelFormat = PixelFormatEnum.RGBA, pixelDatatype = PixelDatatypeEnum.UNSIGNED_BYTE } = options;
         this._context = context;
         this._textureFilterAnisotropic = context.caps.textureAnisotropicFilterExtension;
         const gl = context.gl;
@@ -297,20 +297,20 @@ export class Texture {
      * // Source: typed array
      * @param options 
      */
-    static fromTypedArray(options: ITypedArrayTexOpts) {
-        return new Texture({ ...options, source: { arrayBufferView: options.arrayBufferView } });
+    static fromTypedArray(context: GraphicsDevice, options: ITypedArrayTexOpts) {
+        return new Texture(context, { ...options, source: { arrayBufferView: options.arrayBufferView } });
     }
 
     /**
      * // Source: ImageData, HTMLImageElement, HTMLCanvasElement, or HTMLVideoElement
      * @param options 
      */
-    static fromImageSource(options: IImageSourceTexOpts) {
-        return new Texture({ ...options, source: options.image });
+    static fromImageSource(context: GraphicsDevice, options: IImageSourceTexOpts) {
+        return new Texture(context, { ...options, source: options.image });
     }
 
-    static fromFrameBuffer(options: IFrameBufferTexOpts) {
-        return new Texture({ ...options, source: { framebuffer: options.framebuffer, xOffset: options.xOffset, yOffset: options.yOffset } });
+    static fromFrameBuffer(context: GraphicsDevice, options: IFrameBufferTexOpts) {
+        return new Texture(context, { ...options, source: { framebuffer: options.framebuffer, xOffset: options.xOffset, yOffset: options.yOffset } });
     }
 }
 
@@ -321,7 +321,6 @@ export enum TextureDataFromEnum {
 }
 
 export interface ITextureOptions {
-    context: GraphicsDevice;
     width?: number;
     height?: number;
     source: {
@@ -339,7 +338,6 @@ export interface ITextureOptions {
 }
 
 export interface ITypedArrayTexOpts {
-    context: GraphicsDevice;
     width: number;
     height: number;
     arrayBufferView: TypedArray;
@@ -351,7 +349,6 @@ export interface ITypedArrayTexOpts {
 }
 
 export interface IImageSourceTexOpts {
-    context: GraphicsDevice;
     image: TexImageSource;
     pixelFormat?: PixelFormatEnum;
     pixelDatatype?: PixelDatatypeEnum;
@@ -361,7 +358,6 @@ export interface IImageSourceTexOpts {
 }
 
 export interface IFrameBufferTexOpts {
-    context: GraphicsDevice;
     width: number;
     height: number;
     framebuffer: FrameBuffer;

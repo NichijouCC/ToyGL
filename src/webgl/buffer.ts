@@ -4,7 +4,6 @@ import { TypedArray } from "../core/typedArray";
 import { GlConstants } from "./glConstant";
 
 export interface bufferOption {
-    context: GraphicsDevice;
     target: BufferTargetEnum;
     data: number | TypedArray;
     usage?: BufferUsageEnum;
@@ -22,31 +21,41 @@ export class Buffer implements IglElement {
         }
     };
     protected _buffer: WebGLBuffer;
-    constructor(options: bufferOption) {
+    constructor(context: GraphicsDevice, options: bufferOption) {
         this.target = options.target;
         this.usage = options.usage ?? BufferUsageEnum.STATIC_DRAW;
         this._data = (options as any).data;
-        const gl = options.context.gl;
+        const gl = context.gl;
         const buffer = gl.createBuffer();
-        gl.bindBuffer(this.target, buffer);
-        gl.bufferData(this.target, this._data as any, this.usage);
-        gl.bindBuffer(this.target, null);
 
         this.bind = () => {
-            gl.bindBuffer(this.target, buffer);
+            if (this.target == BufferTargetEnum.ARRAY_BUFFER) {
+                if (context.bindingBuffer != buffer) {
+                    gl.bindBuffer(this.target, buffer);
+                    context.bindingBuffer = buffer;
+                }
+            } else {
+                gl.bindBuffer(this.target, buffer);
+            }
         };
         this.unbind = () => {
             gl.bindBuffer(this.target, null);
+            if (this.target == BufferTargetEnum.ARRAY_BUFFER) {
+                context.bindingBuffer = null;
+            }
         };
 
         this.update = (data: TypedArray | number) => {
-            gl.bindBuffer(this.target, buffer);
+            this.bind();
             gl.bufferSubData(this.target, 0, data as any);
         };
 
         this.destroy = () => {
             gl.deleteBuffer(buffer);
         };
+
+        this.bind();
+        gl.bufferData(this.target, this._data as any, this.usage);
     }
 
     bind() { }

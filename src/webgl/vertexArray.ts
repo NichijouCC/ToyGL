@@ -1,30 +1,26 @@
-import { IndexBuffer, IndicesArray } from "./indexBuffer";
+import { IndexBuffer, IndexBufferOption } from "./indexBuffer";
 import { GraphicsDevice } from "./graphicsDevice";
 import { IVertexAttributeOption, VertexAttribute } from "./vertexAttribute";
 import { IglElement } from "../core/iglElement";
 import { VertexAttEnum } from "./vertexAttEnum";
-import { TypedArray } from "../core/typedArray";
 import { PrimitiveTypeEnum } from "./primitiveTypeEnum";
-import { Buffer } from './buffer';
 
 /**
  * @example
- * var positionBuffer = Buffer.createVertexBuffer({
+ * var positionBuffer = new VertexBuffer({
  *     context : context,
  *     sizeInBytes : 12,
  *     usage : BufferUsage.STATIC_DRAW
  * });
  * var attributes = [
  *     {
- *         index                  : 0,
- *         enabled                : true,
- *         vertexBuffer           : positionBuffer,
- *         componentsPerAttribute : 3,
+ *         buffer                 : positionBuffer,
+ *         componentSize          : 3,
  *         componentDatatype      : ComponentDatatype.FLOAT,
  *         normalize              : false,
- *         offsetInBytes          : 0,
- *         strideInBytes          : 0 // tightly packed
- *         instanceDivisor        : 0 // not instanced
+ *         bytesOffset            : 0,
+ *         bytesStride            : 0 
+ *         instanceDivisor        : 0
  *     }
  * ];
  * var va = new VertexArray({
@@ -33,12 +29,12 @@ import { Buffer } from './buffer';
  * });
  *
  * @example
- * var positionBuffer = Buffer.createVertexBuffer({
+ * var positionBuffer = new VertexBuffer({
  *     context : context,
  *     sizeInBytes : 12,
  *     usage : BufferUsage.STATIC_DRAW
  * });
- * var normalBuffer = Buffer.createVertexBuffer({
+ * var normalBuffer = new VertexBuffer({
  *     context : context,
  *     sizeInBytes : 12,
  *     usage : BufferUsage.STATIC_DRAW
@@ -46,14 +42,14 @@ import { Buffer } from './buffer';
  * var attributes = [
  *     {
  *         type                   : VertexAttEnum.POSITION
- *         vertexBuffer           : positionBuffer,
- *         componentsPerAttribute : 3,
+ *         buffer                 : positionBuffer,
+ *         componentSize          : 3,
  *         componentDatatype      : ComponentDatatype.FLOAT
  *     },
  *     {
  *         type                   : VertexAttEnum.TANGENT
- *         vertexBuffer           : normalBuffer,
- *         componentsPerAttribute : 3,
+ *         buffer                 : normalBuffer,
+ *         componentSize          : 3,
  *         componentDatatype      : ComponentDatatype.FLOAT
  *     }
  * ];
@@ -63,7 +59,7 @@ import { Buffer } from './buffer';
  * });
  *
  * @example
- * var buffer = Buffer.createVertexBuffer({
+ * var buffer = new VertexBuffer({
  *     context : context,
  *     sizeInBytes : 24,
  *     usage : BufferUsage.STATIC_DRAW
@@ -71,20 +67,20 @@ import { Buffer } from './buffer';
  * var attributes = [
  *     {
  *         type                   : VertexAttEnum.POSITION
- *         vertexBuffer           : buffer,
- *         componentsPerAttribute : 3,
+ *         buffer           : buffer,
+ *         componentSize : 3,
  *         componentDatatype      : ComponentDatatype.FLOAT,
  *         bytesOffset          : 0,
- *         strideInBytes          : 24
+ *         bytesStride          : 24
  *     },
  *     {
  *         type                   : VertexAttEnum.TANGENT
- *         vertexBuffer           : buffer,
- *         componentsPerAttribute : 3,
+ *         buffer           : buffer,
+ *         componentSize : 3,
  *         componentDatatype      : ComponentDatatype.FLOAT,
  *         normalize              : true,
  *         bytesOffset          : 12,
- *         strideInBytes          : 24
+ *         bytesStride          : 24
  *     }
  * ];
  * var va = new VertexArray({
@@ -101,10 +97,6 @@ export class VertexArray implements IglElement {
     private _context: GraphicsDevice;
     private _primitiveType: PrimitiveTypeEnum;
 
-
-    private dirtyMeta: { [att: string]: { newData: TypedArray | number, beDirty: boolean } } = {};
-    private indicesDirtyMeta: { newData: TypedArray | number, beDirty: boolean } = null;
-
     get vertexAttributes() { return this._vertexAttributes; }
     get vertexCount() {
         return this._vertexAttributes[VertexAttEnum.POSITION].count;
@@ -119,28 +111,33 @@ export class VertexArray implements IglElement {
     get bytesOffset() { return this._bytesOffset; }
     set bytesOffset(offset: number) { this._bytesOffset = offset; }
     get indexBuffer() { return this._indexBuffer; }
-    constructor(options: IVaoOptions) {
-        this._context = options.context;
+    constructor(context: GraphicsDevice, options: IVaoOptions) {
+        this._context = context;
         // this.vertexAttributes = options.vertexAttributes.map(item => new VertexAttribute(options.context, item));
-        let atts: VertexAttribute[] = [];
         if (options.vertexAttributes[0] instanceof VertexAttribute) {
-            atts = options.vertexAttributes as any;
+            options.vertexAttributes.forEach(item => {
+                let att = item as VertexAttribute;
+                this._vertexAttributes[att.type] = att;
+            })
         } else {
             options.vertexAttributes.forEach(item => {
-                atts.push(new VertexAttribute(options.context, item));
+                this._vertexAttributes[item.type] = new VertexAttribute(context, item);
             });
         }
-        atts.forEach(item => {
-            this._vertexAttributes[item.type] = item;
-        })
-        this._indexBuffer = options.indexBuffer;
+        if (options.indices != null) {
+            if (options.indices instanceof IndexBuffer) {
+                this._indexBuffer = options.indices;
+            } else {
+                this._indexBuffer = new IndexBuffer(context, options.indices);
+            }
+        }
         this._primitiveType = options.primitiveType ?? PrimitiveTypeEnum.TRIANGLES;
         this._bytesOffset = options.bytesOffset ?? 0;
         this._count = options.count;
 
-        const gl = options.context.gl;
+        const gl = context.gl;
 
-        if (options.context.caps.vertexArrayObject) {
+        if (context.caps.vertexArrayObject) {
             this.bind = () => {
                 if (this._vao != this._context.bindingVao) {
                     this._context.bindingVao = this._vao;
@@ -152,14 +149,15 @@ export class VertexArray implements IglElement {
                 gl.bindVertexArray(null);
             };
 
+            this.destroy = () => {
+                gl.deleteVertexArray(this._vao);
+            };
+
             this._vao = gl.createVertexArray();
             this.bind();
             bindVertexAttributes(this._vertexAttributes, this._indexBuffer);
             this.unbind();
 
-            this.destroy = () => {
-                gl.deleteVertexArray(this._vao);
-            };
         } else {
             this.bind = () => {
                 for (const key in this._vertexAttributes) {
@@ -182,9 +180,8 @@ export class VertexArray implements IglElement {
 }
 
 export interface IVaoOptions {
-    context: GraphicsDevice;
     vertexAttributes: IVertexAttributeOption[] | VertexAttribute[];
-    indexBuffer?: IndexBuffer;
+    indices?: IndexBufferOption | IndexBuffer;
     primitiveType?: PrimitiveTypeEnum;
     bytesOffset?: number;
     count?: number;

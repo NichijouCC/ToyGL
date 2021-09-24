@@ -1,16 +1,15 @@
-import { Shader, ILayerIndexEvent, IShaderOption } from "../../render/shader";
-import { RenderLayerEnum } from "../../renderLayer";
-import { RenderState } from "../../renderState";
-import { Asset } from "../asset";
-import { AssetReference } from "../../assetReference";
+import { Shader, IShaderOption } from "./shader";
+import { RenderLayerEnum } from "./renderLayer";
+import { RenderState } from "./renderState";
+import { Asset } from "../asset/asset";
 
 export class Material extends Asset {
     static totalCount: number = 0;
     uniformParameters: { [name: string]: any } = {};
 
-    private shaderRef = new AssetReference<Shader>();
-    get shader() { return this.shaderRef.current; };
-    set shader(value: Shader) { this.shaderRef.current = value; };
+    private _shader: Shader;
+    get shader() { return this._shader; };
+    set shader(value: Shader) { this._shader = value; };
 
     private _layer: RenderLayerEnum;
     get layer() { return this._layer || this.shader.layer || RenderLayerEnum.Geometry; }
@@ -19,10 +18,8 @@ export class Material extends Asset {
     setLayerIndex(layer: RenderLayerEnum, queue: number = 0) {
         this._layer = layer;
         this._layerIndex = layer + queue;
-        this.onDirty.raiseEvent();
     }
     get layerIndex() { return this._layerIndex ?? this.shader.layerIndex; };
-
     renderState = new RenderState();
 
     /**

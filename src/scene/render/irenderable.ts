@@ -1,4 +1,4 @@
-import { Material } from "../asset/material/material";
+import { Material } from "./material";
 import { BoundingBox } from "../bounds";
 import { mat4 } from "../../mathD";
 import { Geometry } from "./geometry";

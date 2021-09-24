@@ -8,6 +8,7 @@ import { ToyGL } from "../toygl";
 import { mat4, vec2, vec3, vec4 } from "../mathD";
 import { PhysicsWorld } from "../components";
 import { Input } from "../input";
+import { LayerComposition } from "./layerComposition";
 
 export class InterScene {
     private _cameras: Map<string, Camera> = new Map();
@@ -36,9 +37,9 @@ export class InterScene {
     constructor(toy: ToyGL) {
         this._toy = toy;
         this.root = new Entity({ beActive: true, _parentsBeActive: true } as any);
-        Entity.onDirty.addEventListener((node) => {
-            this.frameState.dirtyNode.add(node as Entity);
-        });
+        // Entity.onDirty.addEventListener((node) => {
+        //     this.frameState.dirtyNode.add(node as Entity);
+        // });
     }
 
     addNewChild(): Entity {
@@ -78,11 +79,30 @@ export class InterScene {
 
     preRender = new EventTarget();
     afterRender = new EventTarget();
+
     private tickRender = (state: FrameState) => {
         this.preRender.raiseEvent();
-        state.renders = state.renders.concat(this._renders);
+        let renders = state.renders.concat(this._renders);
         const { cameras } = this;
-        this._toy.render.render(Array.from(cameras.values()), state);
+        this._toy.render.renderCameras(Array.from(cameras.values()), renders, {
+            onAfterFrustumCull: (() => {
+                let cameraRenderLayers = new Map<Camera, LayerComposition>();
+                return (items: IRenderable[], cam: Camera) => {
+                    let layerComps: LayerComposition
+                    if (!cameraRenderLayers.has(cam)) {
+                        layerComps = new LayerComposition();
+                        cameraRenderLayers.set(cam, layerComps);
+                    } else {
+                        layerComps = cameraRenderLayers.get(cam);
+                        layerComps.clear();
+                    }
+                    items.forEach(item => {
+                        layerComps.addRenderableItem(item);
+                    })
+                    return layerComps.getSortedRenderArr(cam);
+                }
+            })()
+        });
         this.afterRender.raiseEvent();
     }
 
@@ -121,14 +141,6 @@ export class InterScene {
     }
 }
 
-export class Ray {
-    pos: vec3;
-    dir: vec3;
-    constructor(pos: vec3, dir: vec3) {
-        this.pos = pos;
-        this.dir = dir;
-    }
-}
 
 function ndcToView(ndcPos: vec3, projectMat: mat4) {
     const inversePrjMat = mat4.invert(mat4.create(), projectMat);

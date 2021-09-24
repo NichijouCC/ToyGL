@@ -1,5 +1,5 @@
 import { ObjectPool } from "@mtgoo/ctool";
-import { vec4, vec3, mat4 } from "gl-matrix";
+import { vec4, vec3, mat4, quat } from "gl-matrix";
 
 import { TypedArray } from "../core/typedArray";
 
@@ -98,6 +98,7 @@ import { TypedArray } from "../core/typedArray";
 
 (mat4 as any).transformPoint = vec3.transformMat4;
 
+(quat as any).IDENTITY = quat.create();
 declare module "gl-matrix" {
     namespace vec3 {
         const ZERO: vec3;
@@ -122,6 +123,9 @@ declare module "gl-matrix" {
         export function transformPoint(out: vec3, a: vec3, m: mat4): vec3;
         export function getMaxScaleOnAxis(array: mat4): number;
         export function toArray<T = number[] | TypedArray>(out: T, mat: mat4, offset: number): T;
+    }
+    namespace quat {
+        const IDENTITY: quat;
     }
 }
 

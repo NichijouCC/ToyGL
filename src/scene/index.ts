@@ -7,8 +7,7 @@ export * from "./drawCommand";
 export * from "./frustum";
 export * from "./layerCollection";
 export * from "./layerComposition";
-export * from "./renderLayer";
-export * from "./renderState";
+export * from "./render/renderLayer";
 export * from "./shaderCodeInjector";
 
 export * from "./plane";

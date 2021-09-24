@@ -1,6 +1,6 @@
 
 
-webgl层主要对webgl图形api进行封装简化，同时尽可能在这一层做cache,免掉底层api的调用。
+webgl模块主要对webgl图形api进行封装简化，同时尽可能在这一层做cache,最小化底层api的调用。
 
 ### 设定
 1. 根据attribute type来决定 attributelocation
@@ -13,10 +13,13 @@ webgl层主要对webgl图形api进行封装简化，同时尽可能在这一层�
 - [x] shaderUniformValue 缓存
 - [x] textureUnit 缓存
 - [x] vao 缓存
+- [x] vbo 缓存
 
 
 ## EXAMPLE
 ``` typescript
+const device = new GraphicsDevice(document.getElementById("canvas") as HTMLCanvasElement);
+
 // 创建shader
 const shader = device.createShaderProgram({
     attributes: {
@@ -36,26 +39,21 @@ const shader = device.createShaderProgram({
 });
 
 // 创建vbo
-const positionBuffer = device.createVertexBuffer({
-    usage: BufferUsageEnum.STATIC_DRAW,
-    typedArray: new Float32Array([1, 1, -1, 1, -1, -1, 1, -1])
+const positionBuffer = device.createVertexAtt({
+    data: new Float32Array([1, 1, -1, 1, -1, -1, 1, -1]),
+    type: VertexAttEnum.POSITION,
+    componentSize: 3
 });
 
 // 创建 ibo
 const indexBuffer = device.createIndexBuffer({
-    typedArray: new Uint16Array([1, 2, 3, 1, 3, 4]),
-    indexDatatype: IndexDatatypeEnum.Uint16Array
+    data: new Uint16Array([1, 2, 3, 1, 3, 4]),
 });
 
 // 创建vao
 const vao = device.createVertexArray({
-    vertexAttributes: [{
-        type: VertexAttEnum.POSITION,
-        vertexBuffer: positionBuffer,
-        componentDatatype: ComponentDatatypeEnum.FLOAT,
-        componentsPerAttribute: 3
-    }],
-    indexBuffer: indexBuffer
+    vertexAttributes: [positionBuffer],
+    indices: indexBuffer
 });
 
 // 绘制
@@ -74,4 +72,22 @@ device.setDepthState(true, true, DepthFuncEnum.LEQUAL);
 device.setStencilState(false);
 // 6 .draw call
 device.draw(vao);
+
+
+// texture -from image/canvas/..
+let image = new Image();
+image.src = "xx";
+image.onload = () => {
+    let tex1 = device.createTextureFromImageSource({
+        image: image
+    })
+}
+// texture -from typedArray
+let tex2 = device.createTextureFromTypedArray({
+    arrayBufferView: new Uint8Array([0, 0, 0, 255]),
+    width: 1,
+    height: 1
+});
+
+
 ```

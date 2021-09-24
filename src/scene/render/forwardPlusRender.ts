@@ -1,5 +1,5 @@
 import { FrameBuffer } from "../../webgl/framebuffer";
-import { Material } from "../asset/material/material";
+import { Material } from "./material";
 import { GraphicsDevice } from "../../webgl/graphicsDevice";
 import { GlConstants } from "../../webgl/glConstant";
 
@@ -19,8 +19,7 @@ export class ForwardPlusRender {
     }
 
     private depthPrePass = {
-        frameBuffer: new FrameBuffer({
-            context: this.device,
+        frameBuffer: new FrameBuffer(this.device, {
             attachments: [{
                 type: "depth",
                 beTexture: true,
@@ -41,8 +40,7 @@ export class ForwardPlusRender {
     }
 
     private lightCullPass = {
-        frameBuffer: new FrameBuffer({
-            context: this.device,
+        frameBuffer: new FrameBuffer(this.device, {
             attachments: [{
                 type: "color",
                 beTexture: true,

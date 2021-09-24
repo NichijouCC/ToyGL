@@ -15,19 +15,19 @@ import { ComponentDatatypeEnum } from "../../webgl";
  * @example useage
  * ```
  * var geometry = new Geometry({
- *   attributes : [
- * ]{
- *    {
- *       componentDatatype : ComponentDatatype.FLOAT,
- *       componentSize : 3,
- *       values : new Float32Array([
- *         0.0, 0.0, 0.0,
- *         7500000.0, 0.0, 0.0,
- *         0.0, 7500000.0, 0.0
- *       ])
- *     })
- *   },
- *   primitiveType : PrimitiveType.LINE_LOOP
+ *     attributes: [
+ *         {
+ *             type: VertexAttEnum.POSITION,
+ *             componentSize: 3,
+ *             data: new Float32Array([
+ *                 1.0, 0.0, 0.0,
+ *                 1.0, 1.0, 0.0,
+ *                 -1.0, 1.0, 0.0,
+ *                 -1.0,0.0,0.0
+ *             ])
+ *         }
+ *     ],
+ *     indices: new Uint16Array([1, 2, 3, 1, 3, 4])
  * });
  * ```
  */
@@ -108,7 +108,7 @@ export class Geometry {
         let indexBuffer = this.indices?.getGlTarget(device);
         return device.createVertexArray({
             vertexAttributes: vertexAtts,
-            indexBuffer: indexBuffer,
+            indices: indexBuffer,
             primitiveType: this.primitiveType,
             bytesOffset: this.bytesOffset,
             count: this.count,

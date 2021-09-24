@@ -4,16 +4,16 @@ import { GraphicsDevice, IndexBuffer, IndexDatatypeEnum, IndicesArray, Buffer, B
 export class GraphicIndexBuffer {
     dataType: IndexDatatypeEnum;
     byteOffset: number;
-    drawCount?: number;
+    count?: number;
     _beDirty: boolean = true;
     private _buffer: GraphicBuffer;
-    constructor(options: { data: IndicesArray | GraphicBuffer, datatype?: IndexDatatypeEnum, byteOffset?: number, drawCount?: number }) {
+    constructor(options: { data: IndicesArray | GraphicBuffer, datatype?: IndexDatatypeEnum, byteOffset?: number, count?: number }) {
         if (options.data instanceof GraphicBuffer) {
             this._buffer = options.data;
         } else {
             this._buffer = new GraphicBuffer({ data: options.data, target: BufferTargetEnum.ELEMENT_ARRAY_BUFFER });
         }
-        this.drawCount = options.drawCount;
+        this.count = options.count;
         this.byteOffset = options.byteOffset ?? 0;
 
         if (options.datatype) {
@@ -34,7 +34,7 @@ export class GraphicIndexBuffer {
     getGlTarget(device: GraphicsDevice) {
         if (this._glTarget == null) {
             let buffer = this._buffer.getGlTarget(device)
-            this._glTarget = device.createIndexBuffer({ data: buffer, datatype: this.dataType, bytesOffset: this.byteOffset, drawCount: this.drawCount });
+            this._glTarget = device.createIndexBuffer({ data: buffer, datatype: this.dataType, bytesOffset: this.byteOffset, count: this.count });
         }
         return this._glTarget;
     }

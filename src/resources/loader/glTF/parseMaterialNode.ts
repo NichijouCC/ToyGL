@@ -1,7 +1,7 @@
 import { IGltfJson } from "../loadGltf";
 import { ParseTextureNode } from "./parseTextureNode";
 import { Color } from "../../../mathD/color";
-import { Material } from "../../../scene/asset/material/material";
+import { Material } from "../../../scene/render/material";
 import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
 import { DefaultMaterial } from "../../defAssets/defaultMaterial";
 import { SkinInstance, SkinWay } from "../../../scene/primitive/animation/skinInstance";
