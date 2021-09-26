@@ -1,4 +1,4 @@
-import { Geometry } from "../render/geometry";
+import { Geometry } from "../../render/geometry";
 import { TypedArray } from "../../core/typedArray";
 
 /**

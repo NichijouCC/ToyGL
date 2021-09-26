@@ -1,5 +1,5 @@
-import { GlType, TypedArray } from "../../core/typedArray";
-import { GraphicsDevice, IndexBuffer, IndexDatatypeEnum, IndicesArray, Buffer, BufferTargetEnum } from "../../webgl";
+import { GlType, TypedArray } from "../core/typedArray";
+import { GraphicsDevice, IndexBuffer, IndexDatatypeEnum, IndicesArray, Buffer, BufferTargetEnum } from "../webgl";
 
 export class GraphicIndexBuffer {
     dataType: IndexDatatypeEnum;

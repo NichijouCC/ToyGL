@@ -55,19 +55,20 @@ export class ThirdPersonCtrSystem extends System {
         /**
          * dirZ
          */
-        const moveForward = vec3.create();
-        const moved = vec3.create();
-        const targetPos = vec3.create();
-        const temptStartPos = vec3.create();
-        const temptEndPos = vec3.create();
+        let moveForward = vec3.create();
+        let moved = vec3.create();
+        let targetPos = vec3.create();
+        let temptStartPos = vec3.create();
+        let temptEndPos = vec3.create();
 
-        const dir = vec3.create();
-        const targetRot = quat.create();
-        const temptRot = quat.create();
+        let dir = vec3.create();
+        let targetRot = quat.create();
+        let temptRot = quat.create();
 
         // ----cam
-        const camOffset = vec3.create();
-        const camDir = vec3.create();
+        let camOffset = vec3.create();
+        let camDir = vec3.create();
+        let camWorldPos = vec3.create();
 
         return (delta: number) => {
             if (this.queries.comps.length == 0) return;
@@ -119,7 +120,8 @@ export class ThirdPersonCtrSystem extends System {
             vec3.normalize(camDir, dirToCamera);
             vec3.scale(camDir, camDir, distanceToCam);
             vec3.rotateY(camOffset, camDir, vec3.ZERO, -1 * this.rotAngle * Math.PI / 180);
-            vec3.add(cam.node.worldPosition, entity.worldPosition, camOffset);
+            vec3.add(camWorldPos, entity.worldPosition, camOffset);
+            cam.entity.worldPosition = camWorldPos;
             cam.lookAt(entity);
         };
     })();

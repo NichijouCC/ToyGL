@@ -1,45 +1,31 @@
 import { EventTarget } from "@mtgoo/ctool";
-import { Camera } from "./camera";
 import { Entity } from "./entity";
 import { ECS } from "../core/ecs/ecs";
-import { IRenderable } from "./render/irenderable";
+import { IRenderable } from "../render/irenderable";
 import { FrameState } from "./frameState";
 import { ToyGL } from "../toygl";
 import { mat4, vec2, vec3, vec4 } from "../mathD";
-import { PhysicsWorld } from "../components";
+import { CameraComponent, PhysicsWorld } from "../components";
 import { Input } from "../input";
-import { LayerComposition } from "./layerComposition";
+import { ICamera } from "../render/camera";
+import { RenderTypeEnum } from "../render/renderLayer";
 
 export class InterScene {
-    private _cameras: Map<string, Camera> = new Map();
-    private _mainCam: Camera
     private _toy: ToyGL;
-    get mainCamera() { return this._mainCam; }
-    set mainCamera(cam: Camera) { this._mainCam = cam; }
+    /**
+     * private
+     */
+    _cameras: CameraComponent[] = [];
+    get mainCamera() { return this._cameras[0]; }
     addNewCamera() {
-        const cam = new Camera();
-        cam.node = this.addNewChild();
-        this.addCamera(cam);
-        return cam;
+        let node = this.addNewChild();
+        let comp = node.addComponent(CameraComponent)
+        return comp;
     }
-
-    addCamera(cam: Camera) {
-        if (this._cameras.size == 0) {
-            this._mainCam = cam;
-        }
-        if (!this._cameras.has(cam.id)) {
-            this._cameras.set(cam.id, cam);
-        }
-    }
-
-    get cameras() { return this._cameras; }
     private root: Entity;
     constructor(toy: ToyGL) {
         this._toy = toy;
         this.root = new Entity({ beActive: true, _parentsBeActive: true } as any);
-        // Entity.onDirty.addEventListener((node) => {
-        //     this.frameState.dirtyNode.add(node as Entity);
-        // });
     }
 
     addNewChild(): Entity {
@@ -73,37 +59,15 @@ export class InterScene {
         return render;
     }
 
-    _addFrameMesh() {
-
-    }
-
     preRender = new EventTarget();
     afterRender = new EventTarget();
 
     private tickRender = (state: FrameState) => {
         this.preRender.raiseEvent();
         let renders = state.renders.concat(this._renders);
-        const { cameras } = this;
-        this._toy.render.renderCameras(Array.from(cameras.values()), renders, {
-            onAfterFrustumCull: (() => {
-                let cameraRenderLayers = new Map<Camera, LayerComposition>();
-                return (items: IRenderable[], cam: Camera) => {
-                    let layerComps: LayerComposition
-                    if (!cameraRenderLayers.has(cam)) {
-                        layerComps = new LayerComposition();
-                        cameraRenderLayers.set(cam, layerComps);
-                    } else {
-                        layerComps = cameraRenderLayers.get(cam);
-                        layerComps.clear();
-                    }
-                    items.forEach(item => {
-                        layerComps.addRenderableItem(item);
-                    })
-                    return layerComps.getSortedRenderArr(cam);
-                }
-            })()
+        this._toy.render.renderList(this._cameras, renders, {
+            onAfterFrustumCull: sortRenderItems
         });
-        this.afterRender.raiseEvent();
     }
 
     pick(screenPos?: vec2) {
@@ -151,4 +115,71 @@ function ndcToView(ndcPos: vec3, projectMat: mat4) {
 function ndcToWorld(ndcPos: vec3, projectMat: mat4, camToWorld: mat4) {
     const view_pos = ndcToView(ndcPos, projectMat);
     return vec3.transformMat4(vec3.create(), view_pos, camToWorld);
+}
+
+function sortRenderItems(items: IRenderable[], cam: ICamera) {
+    if (items.length <= 1) return items;
+    let zdistDic: Map<IRenderable, number> = new Map();
+    let camera: CameraComponent = cam as any;
+    const camPos = camera.worldPos;
+    const camFwd = camera.forwardInWorld;
+    let tempX, tempY, tempZ;
+
+    items.sort((a, b) => {
+        let firstSortOrder = a.sortOrder - b.sortOrder;
+        if (!isNaN(firstSortOrder) && firstSortOrder != 0) return firstSortOrder;
+        let renderType = a.material.renderType - b.material.renderType;
+        if (renderType != 0) return renderType;
+        let sortOrder = a.material.sortOrder - b.material.sortOrder
+        if (!isNaN(sortOrder) && sortOrder) return sortOrder;
+        if (a.material.renderType == RenderTypeEnum.OPAQUE) {
+            //先shader排序
+            let shaderId = a.material.shader.create_id - b.material.shader.create_id;
+            if (shaderId != 0) return shaderId;
+
+            //由近到远
+            let aZdist: number = zdistDic.get(a);
+            let bZdist: number = zdistDic.get(b);
+            if (aZdist == null) {
+                let insPos = mat4.getTranslation(vec3.create(), a.worldMat);
+                tempX = insPos[0] - camPos[0];
+                tempY = insPos[1] - camPos[1];
+                tempZ = insPos[2] - camPos[2];
+                aZdist = tempX * camFwd[0] + tempY * camFwd[1] + tempZ * camFwd[2];
+                zdistDic.set(a, aZdist);
+            }
+            if (bZdist == null) {
+                let insPos = mat4.getTranslation(vec3.create(), b.worldMat);
+                tempX = insPos[0] - camPos[0];
+                tempY = insPos[1] - camPos[1];
+                tempZ = insPos[2] - camPos[2];
+                bZdist = tempX * camFwd[0] + tempY * camFwd[1] + tempZ * camFwd[2];
+                zdistDic.set(b, bZdist);
+            }
+            return bZdist - aZdist;
+        } else if (a.material.renderType == RenderTypeEnum.TRANSPARENT || a.material.renderType == RenderTypeEnum.ALPHA_CUT) {
+            //由远到近
+            let aZdist: number = zdistDic.get(a);
+            let bZdist: number = zdistDic.get(b);
+            if (aZdist == null) {
+                let insPos = mat4.getTranslation(vec3.create(), a.worldMat);
+                tempX = insPos[0] - camPos[0];
+                tempY = insPos[1] - camPos[1];
+                tempZ = insPos[2] - camPos[2];
+                aZdist = tempX * camFwd[0] + tempY * camFwd[1] + tempZ * camFwd[2];
+                zdistDic.set(a, aZdist);
+            }
+            if (bZdist == null) {
+                let insPos = mat4.getTranslation(vec3.create(), b.worldMat);
+                tempX = insPos[0] - camPos[0];
+                tempY = insPos[1] - camPos[1];
+                tempZ = insPos[2] - camPos[2];
+                bZdist = tempX * camFwd[0] + tempY * camFwd[1] + tempZ * camFwd[2];
+                zdistDic.set(b, bZdist);
+            }
+            return aZdist - bZdist;
+        }
+        return 0;
+    });
+    return items;
 }

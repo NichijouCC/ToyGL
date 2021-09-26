@@ -3,12 +3,12 @@ import { IGltfMeshPrimitive } from "./gltfJsonStruct";
 import { ParseMaterialNode } from "./parseMaterialNode";
 import { ParseAccessorNode } from "./parseAccessorNode";
 import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
-import { Material } from "../../../scene/render/material";
+import { Material } from "../../../render/material";
 import { BufferTargetEnum } from "../../../webgl/buffer";
 import { DefaultMaterial } from "../../defAssets/defaultMaterial";
 import { BoundingBox, Geometry, IGeometryOptions } from "../../../scene/index";
 import { vec3 } from "../../../mathD";
-import { GraphicBuffer, GraphicIndexBuffer } from "../../../scene/render/buffer";
+import { GraphicBuffer, GraphicIndexBuffer } from "../../../render/buffer";
 
 const MapGltfAttributeToToyAtt: { [name: string]: VertexAttEnum } = {
     POSITION: VertexAttEnum.POSITION,

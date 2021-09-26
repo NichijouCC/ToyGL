@@ -1,4 +1,4 @@
-import { Shader } from "../../scene/render/shader";
+import { Shader } from "../../render/shader";
 import { VertexAttEnum } from "../../webgl/vertexAttEnum";
 import baseVs from "../../shaders/Unlit.vert.glsl";
 import baseFs from "../../shaders/Unlit.frag.glsl";

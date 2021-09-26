@@ -1,12 +1,13 @@
 import { IGltfJson } from "../loadGltf";
 import { ParseTextureNode } from "./parseTextureNode";
 import { Color } from "../../../mathD/color";
-import { Material } from "../../../scene/render/material";
+import { Material } from "../../../render/material";
 import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
 import { DefaultMaterial } from "../../defAssets/defaultMaterial";
 import { SkinInstance, SkinWay } from "../../../scene/primitive/animation/skinInstance";
 import { MaterialAlphaMode } from "./gltfJsonStruct";
-import { ShaderBucket } from "../../../scene/render/shaderBucket";
+import { ShaderBucket } from "../../../render/shaderBucket";
+import { RenderTypeEnum } from "../../../render/renderLayer";
 
 namespace Private {
     /**
@@ -197,6 +198,8 @@ export class ParseMaterialNode {
                         break;
                     case MaterialAlphaMode.BLEND:
                         mat.renderState.blend.enabled = true;
+                        mat.customRenderType = RenderTypeEnum.TRANSPARENT;
+                        mat.renderState.depthWrite = false;
                         break;
                     case MaterialAlphaMode.MASK:
                         mat.shader.bucketFeats = ShaderBucket.AlPHA_CUT;

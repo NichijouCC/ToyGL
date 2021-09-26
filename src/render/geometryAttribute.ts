@@ -1,5 +1,5 @@
-import { GlType, TypedArray } from "../../core/typedArray";
-import { BufferTargetEnum, GraphicsDevice, VertexAttribute, VertexAttEnum, ComponentDatatypeEnum } from "../../webgl";
+import { GlType, TypedArray } from "../core/typedArray";
+import { BufferTargetEnum, GraphicsDevice, VertexAttribute, VertexAttEnum, ComponentDatatypeEnum } from "../webgl";
 import { GraphicBuffer } from "./buffer";
 /**
  * 
@@ -84,7 +84,6 @@ export class GeometryAttribute {
                 bytesStride: this.bytesStride,
             });
             this._beDirty = false;
-            // this._glTarget.bind();
         }
         return this._glTarget;
     }
@@ -99,13 +98,6 @@ export class GeometryAttribute {
             option.data = new Float32Array(option.data);
         }
         this.buffer.changeData(option.data);
-        // this._glTarget.update({
-        //     componentSize: this.componentSize,
-        //     componentDatatype: this.componentDatatype,
-        //     normalize: this.normalize,
-        //     bytesOffset: this.bytesOffset,
-        //     bytesStride: this.bytesStride,
-        // });
         this._beDirty = true;
     }
 }

@@ -13,9 +13,10 @@ export class CameraSystem extends System {
     }
 
     update(deltaTime: number): void {
-        const { cameras } = this.scene;
-        cameras.forEach(item => {
-            item.aspect = this.screen.aspect;
+        let cameras = this.queries.comps.map((node) => {
+            let cam = node.getComponent(CameraComponent);
+            return cam;
         });
+        this.scene._cameras = cameras.sort((a, b) => a.priority - b.priority);
     }
 }

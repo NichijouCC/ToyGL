@@ -1,4 +1,4 @@
-import { Material } from "../../scene/render/material";
+import { Material } from "../../render/material";
 import { DefaultShader } from "./defaultShader";
 import { Color } from "../../mathD/color";
 import { DefaultTexture } from "./defaultTexture";

@@ -1,4 +1,4 @@
-import { ToyGL, Material, DefaultGeometry, DefaultTexture, Color, VertexAttEnum, Texture2D, Camera, MeshInstance, quat, TextureAsset } from "TOYGL";
+import { ToyGL, Material, DefaultGeometry, DefaultTexture, Color, VertexAttEnum, Texture2D, IViewer, MeshInstance, quat, TextureAsset } from "TOYGL";
 import { initToy } from "./util";
 
 const toy = initToy();

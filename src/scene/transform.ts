@@ -212,8 +212,6 @@ export class Transform extends BaseEntity {
         return this._worldMatrix;
     }
 
-    get worldMatrixBeDirty() { return this.dirtyFlag & (DirtyFlagEnum.WORLD_MAT | DirtyFlagEnum.LOCAL_MAT); }
-
     set worldMatrix(value: mat4) {
         if (this._parent == null) {
             return;

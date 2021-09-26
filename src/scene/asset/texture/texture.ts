@@ -1,6 +1,6 @@
-import { IMemoryTextureOption, MemoryTexture } from "../../render/memoryTexture";
+import { IMemoryTextureOption, MemoryTexture } from "../../../render/memoryTexture";
 import { loadImg } from "../../../io/loadTool";
-import { ITexture2dOption, Texture2D } from "../../render/texture2d";
+import { ITexture2dOption, Texture2D } from "../../../render/texture2d";
 
 export class TextureAsset {
     static fromTypeArray(options: IMemoryTextureOption) {

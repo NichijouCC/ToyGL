@@ -30,7 +30,7 @@ export class ParseNode {
 
         if (node.camera != null) {
             const cam = ParseCameraNode.parse(node.camera, gltf);
-            cam.node = sceneNode;
+            sceneNode.addComponentIns(cam)
         }
 
         const allTask: Promise<void>[] = [];

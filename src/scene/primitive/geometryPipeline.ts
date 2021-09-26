@@ -1,7 +1,7 @@
 import { GeometryInstance } from "./geometryInstance";
 import { mat4 } from "../../mathD";
 import { VertexAttEnum } from "../../webgl/vertexAttEnum";
-import { Geometry } from "../render/geometry";
+import { Geometry } from "../../render/geometry";
 import { TypedArray } from "../../core/typedArray";
 
 export class GeometryPipeline {

@@ -1,5 +1,5 @@
 import { VertexAttEnum } from "../../webgl/vertexAttEnum";
-import { Geometry } from "../../scene/render/geometry";
+import { Geometry } from "../../render/geometry";
 
 export namespace Private {
     export const plan = () => new Geometry({

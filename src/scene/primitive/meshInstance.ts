@@ -1,11 +1,11 @@
 import { CullingMask } from "../camera";
 import { AssetReference } from "../assetReference";
-import { Material } from "../render/material";
+import { Material } from "../../render/material";
 import { EventTarget } from "@mtgoo/ctool";
 import { Skin } from "../asset/skin";
 import { SkinInstance } from "./animation/skinInstance";
 import { Entity } from "../entity";
-import { IRenderable } from "../render/irenderable";
+import { IRenderable } from "../../render/irenderable";
 
 // instance onDirty 触发 layerComposition 对instance 重新分层，重新sort
 
@@ -15,7 +15,7 @@ export class MeshInstance implements IRenderable {
     readonly id: number;
     beVisible: boolean = true;
     enableCull: boolean = false;
-    cullingMask?: CullingMask;
+    layerMask?: CullingMask;
     zDist?: number;
     instanceCount?: number;
     constructor() {

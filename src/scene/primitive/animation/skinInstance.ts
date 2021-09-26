@@ -1,6 +1,6 @@
 import { Entity } from "../../entity";
 import { mat4, quat, vec3 } from "../../../mathD";
-import { MemoryTexture } from "../../render/memoryTexture";
+import { MemoryTexture } from "../../../render/memoryTexture";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
 import { CeilingPOT, ceilPowerOfTwo } from "../../../mathD/common";
 import { PixelFormatEnum } from "../../../webgl/pixelFormatEnum";

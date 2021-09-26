@@ -1,9 +1,9 @@
-import { Asset, IGraphicAsset } from "../asset/asset";
-import { GraphicsDevice } from "../../webgl/graphicsDevice";
-import { TypedArray } from "../../core/typedArray";
-import { PixelFormatEnum } from "../../webgl/pixelFormatEnum";
-import { PixelDatatypeEnum } from "../../webgl/pixelDatatype";
-import { ISamplerOptions, Sampler, Texture } from "../../webgl/texture";
+import { Asset, IGraphicAsset } from "../scene/asset/asset";
+import { GraphicsDevice } from "../webgl/graphicsDevice";
+import { TypedArray } from "../core/typedArray";
+import { PixelFormatEnum } from "../webgl/pixelFormatEnum";
+import { PixelDatatypeEnum } from "../webgl/pixelDatatype";
+import { ISamplerOptions, Sampler, Texture } from "../webgl/texture";
 import { BaseTexture } from "./baseTexture";
 
 export class MemoryTexture extends BaseTexture {

@@ -3,16 +3,16 @@ import { loadText, loadJson, loadArrayBuffer } from "../../io/loadTool";
 import { BinReader } from "../../io/stream";
 import { IGltf, IProperty } from "./glTF/gltfJsonStruct";
 import { ParseSceneNode } from "./glTF/parseSceneNode";
-import { Material } from "../../scene/render/material";
+import { Material } from "../../render/material";
 import { GraphicsDevice } from "../../webgl/graphicsDevice";
 import { StaticGeometry, PrimitiveMesh } from "../../scene/asset/geometry/staticGeometry";
 import { IAssetLoader } from "../resource";
 import { Prefab } from "../../scene/asset/prefab";
-import { Texture2D } from "../../scene/render/texture2d";
+import { Texture2D } from "../../render/texture2d";
 import { ParseAnimationNode } from "./glTF/parseAnimationNode";
 import { Animation } from "../../components/animation";
-import { GraphicBuffer, GraphicIndexBuffer } from "../../scene/render/buffer";
-import { Geometry } from "../../scene/render/geometry";
+import { GraphicBuffer, GraphicIndexBuffer } from "../../render/buffer";
+import { Geometry } from "../../render/geometry";
 
 export interface IglTFExtension {
     load(extensionNode: any, loader: LoadGlTF): Promise<any>;

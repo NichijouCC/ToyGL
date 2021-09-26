@@ -3,9 +3,11 @@ import { ECS } from "../core/ecs/ecs";
 import { Transform } from "./transform";
 import { EventTarget } from "@mtgoo/ctool";
 import { AbsComponent, AbsSystem } from "../core/ecs";
+import { LayerMask } from "../render/camera";
 
 export class Entity extends Transform implements IEntity {
     name: string;
+    layer: LayerMask = LayerMask.default;
     constructor(properties?: Partial<Entity>) {
         super();
         if (properties) {

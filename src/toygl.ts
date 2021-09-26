@@ -4,7 +4,7 @@ import { GraphicsDevice } from "./webgl/graphicsDevice";
 import { Resource } from "./resources/resource";
 import { LoadGlTF } from "./resources/loader/loadGltf";
 import { ECS } from "./core/ecs/ecs";
-import { ForwardRender } from "./scene/render/forwardRender";
+import { ForwardRender } from "./render/forwardRender";
 import { EventTarget } from "@mtgoo/ctool";
 import { AnimationSystem, ModelSystem, CameraSystem } from "./components/index";
 import { Screen } from "./core/toyScreen";

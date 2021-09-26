@@ -1,35 +1,33 @@
 import { Shader, IShaderOption } from "./shader";
-import { RenderLayerEnum } from "./renderLayer";
+import { RenderTypeEnum } from "./renderLayer";
 import { RenderState } from "./renderState";
-import { Asset } from "../asset/asset";
+import { Asset } from "../scene/asset/asset";
 
 export class Material extends Asset {
     static totalCount: number = 0;
     uniformParameters: { [name: string]: any } = {};
 
     private _shader: Shader;
+    readonly create_id: number;
     get shader() { return this._shader; };
     set shader(value: Shader) { this._shader = value; };
-
-    private _layer: RenderLayerEnum;
-    get layer() { return this._layer || this.shader.layer || RenderLayerEnum.Geometry; }
-
-    private _layerIndex: number;
-    setLayerIndex(layer: RenderLayerEnum, queue: number = 0) {
-        this._layer = layer;
-        this._layerIndex = layer + queue;
-    }
-    get layerIndex() { return this._layerIndex ?? this.shader.layerIndex; };
     renderState = new RenderState();
 
     /**
-     * private
+     * 用于覆盖shader renderType,默认：undefined
      */
-    _beDirty: boolean = false;
+    customRenderType: RenderTypeEnum;
+    /**
+     * 用于覆盖shader SortOrder，默认：undefined
+     */
+    customSortOrder: number;
+    get renderType() { return this.customRenderType ?? this.shader?.renderType }
+    get sortOrder() { return this.customSortOrder ?? this.shader?.sortOrder }
+
     constructor(options?: IMatOption) {
         super();
         this.name = options?.name;
-        Material.totalCount++;
+        this.create_id = Material.totalCount++;
 
         if (options?.shader != null) {
             if (options?.shader instanceof Shader) {
@@ -45,7 +43,6 @@ export class Material extends Asset {
 
     setUniformParameter(uniformKey: string, value: any) {
         this.uniformParameters[uniformKey] = value;
-        this._beDirty = true;
     }
 
     destroy(): void {
@@ -55,12 +52,12 @@ export class Material extends Asset {
     clone() {
         const mat = new Material();
         mat.shader = this.shader;
-        mat.setLayerIndex(this._layer, this._layerIndex);
+        mat.customRenderType = this.customRenderType;
+        mat.customSortOrder = this.customSortOrder;
         mat.renderState = JSON.parse(JSON.stringify(this.renderState));
         for (const key in this.uniformParameters) {
             mat.uniformParameters[key] = this.uniformParameters[key];
         }
-        mat._beDirty = true;
         return mat;
     }
 }

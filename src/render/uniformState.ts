@@ -1,14 +1,11 @@
-import { Rect } from "../../mathD/rect";
-import { mat4 } from "../../mathD";
+import { Rect } from "../mathD/rect";
+import { mat4 } from "../mathD";
 import { Texture2D } from "./texture2d";
-import { Camera } from "../camera";
-import { Light } from "../light/light";
+import { Light } from "../scene/light/light";
 import { MemoryTexture } from "./memoryTexture";
+import { ICamera } from "./camera";
 
 export class UniformState {
-    viewPortPixel: Rect = new Rect(0, 0, 0, 0); // 像素的viewport
-    // campos: vec3;
-
     matrixModel: mat4;
     private _matrixNormalToWorld: mat4 = mat4.create();
     get matrixNormalToWorld(): mat4 {
@@ -24,37 +21,35 @@ export class UniformState {
         return this._matrixNormalToView;
     }
 
+    viewer: ICamera;
+    matrixViewProject = mat4.create();
     private _matrixMV: mat4 = mat4.create();
     get matrixModelView(): mat4 {
-        return mat4.multiply(this._matrixMV, this.curCamera.viewMatrix, this.matrixModel);
+        return mat4.multiply(this._matrixMV, this.viewer.viewMatrix, this.matrixModel);
     }
 
     private _matMVP: mat4 = mat4.create();
     get matrixModelViewProject(): mat4 {
-        return mat4.multiply(this._matMVP, this.curCamera.viewProjectMatrix, this.matrixModel);
+        return mat4.multiply(this._matMVP, this.matrixViewProject, this.matrixModel);
     }
 
     get matrixView(): mat4 {
-        return this.curCamera.viewMatrix;
+        return this.viewer.viewMatrix;
     }
 
     get matrixProject(): mat4 {
-        return this.curCamera.projectMatrix;
+        return this.viewer.projectMatrix;
     }
+    // get fov(): number {
+    //     return this.viewer.fov;
+    // }
 
-    get matrixViewProject(): mat4 {
-        return this.curCamera.viewProjectMatrix;
-    }
-
-    get fov(): number {
-        return this.curCamera.fov;
-    }
-
-    get aspect(): number {
-        return this.curCamera.aspect;
-    }
-    // matrixNormal: matrix = new matrix();
-
+    // get aspect(): number {
+    //     return this.viewer.aspect;
+    // }
+    // get far(): number {
+    //     return this.viewer.far;
+    // }
     private _lights: Light[] = [];
     set lights(value: Light[]) {
         this._lights = value;
@@ -63,12 +58,6 @@ export class UniformState {
     get lightCount() { return this._lights.length; };
 
     lightmap: Texture2D[] = null;
-    // lightmapUV: number = 1;
-    // lightmapOffset: vec4 = vec4.create(1, 1, 0, 0);
-    // curRender: Irenderable;
-    curCamera: Camera;
-
-    // lightShadowTex: RenderTexture[] = [];
 
     boneMatrices: Float32Array | MemoryTexture;
 }

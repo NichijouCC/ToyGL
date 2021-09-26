@@ -1,12 +1,26 @@
-import { Color, mat4, Rect, vec3 } from "../mathD";
-import { ECS } from "../core/ecs/ecs";
-import { applyMixins } from "../core/util";
-import { Component, Entity } from "../scene";
-import { Camera, LayerMask, ProjectionEnum } from "../render/camera";
-import { ISceneCamera } from "../scene/isceneCamera";
+import { Color, mat4, Rect } from "../mathD";
 
-@ECS.registerComp
-export class CameraComponent extends Component implements ISceneCamera {
+
+export interface ICamera {
+    viewport: Rect;
+    viewMatrix: mat4,
+    projectMatrix: mat4,
+    enableClearColor: boolean;
+    backgroundColor: Color;
+    enableClearDepth: boolean;
+    dePthValue: number;
+    enableClearStencil: boolean;
+    stencilValue: number;
+    cullingMask: LayerMask;
+}
+
+
+export enum ProjectionEnum {
+    PERSPECTIVE,
+    ORTHOGRAPH,
+}
+
+export class Camera implements ICamera {
     private _projectMatBeDirty = true;
     private _projectionType: ProjectionEnum = ProjectionEnum.PERSPECTIVE;
     get projectionType() { return this._projectionType; }
@@ -53,7 +67,10 @@ export class CameraComponent extends Component implements ISceneCamera {
     enableClearDepth: boolean = true;
     stencilValue: number = 0;
     enableClearStencil = false;
-    cullingMask: LayerMask = LayerMask.default;
+    /**
+     * 控制需要渲染的层级
+     */
+    cullingMask: number = LayerMask.everything;
 
     private _aspect: number = 16 / 9;
     get aspect(): number { return this._aspect; }
@@ -64,11 +81,7 @@ export class CameraComponent extends Component implements ISceneCamera {
         }
     }
 
-    private _viewMatrix: mat4 = mat4.create();
-
-    get viewMatrix() {
-        return mat4.invert(this._viewMatrix, this.worldMatrix);
-    }
+    viewMatrix: mat4 = mat4.create();
     /**
      * 计算相机投影矩阵
      */
@@ -87,17 +100,12 @@ export class CameraComponent extends Component implements ISceneCamera {
         return this._projectMatrix;
     }
 
-    priority: number = 0;
-    get worldPos() { return this.entity.worldPosition; }
-    get worldMatrix() { return this.entity.worldMatrix; }
-
-    private _forward: vec3 = vec3.create();
-    get forwardInWorld() {
-        return this.entity.getForwardInWorld(this._forward);
-    }
-
-    constructor(props?: Partial<Camera>) {
-        super(props as any);
+    constructor(options?: Partial<Omit<Camera, "projectMatrix">>) {
+        if (options) {
+            for (let key in options) {
+                (this as any)[key] = (options as any)[key];
+            }
+        }
         Object.defineProperty(this._viewport, "x", {
             get: () => { return this._viewport[0]; },
             set: (value: number) => { this._viewport[0] = value; this._projectMatBeDirty = true; }
@@ -115,16 +123,16 @@ export class CameraComponent extends Component implements ISceneCamera {
             set: (value: number) => { this._viewport[3] = value; this._projectMatBeDirty = true; }
         });
     }
+}
 
-    lookAtPoint(point: vec3) {
-        this.entity?.lookAtPoint(point);
-    }
 
-    lookAt(node: Entity) {
-        this.entity?.lookAt(node);
-    }
-
-    clone(): CameraComponent {
-        throw new Error("Method not implemented.");
-    }
+/**
+ * 物体分层,一层占一个二进制位
+ */
+export enum LayerMask {
+    everything = 0xffffffff,
+    default = 0x00000001,
+    ui = 0x00000002,
+    editor = 0x00000004,
+    model = 0x00000008,
 }

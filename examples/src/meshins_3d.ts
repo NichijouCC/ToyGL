@@ -1,4 +1,4 @@
-import { ToyGL, Material, DefaultGeometry, DefaultTexture, Color, VertexAttEnum, Texture2D, Camera, MeshInstance, quat, TextureAsset, DefaultMaterial } from "TOYGL";
+import { ToyGL, Material, DefaultGeometry, DefaultTexture, Color, VertexAttEnum, Texture2D, IViewer, MeshInstance, quat, TextureAsset, DefaultMaterial } from "TOYGL";
 
 const toy = ToyGL.create(document.getElementById("canvas") as HTMLCanvasElement);
 

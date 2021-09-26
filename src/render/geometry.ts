@@ -1,14 +1,14 @@
-import { IndicesArray } from "../../webgl/indexBuffer";
+import { IndicesArray } from "../webgl/indexBuffer";
 import { GeometryAttribute, IGeometryAttributeOptions } from "./geometryAttribute";
-import { PrimitiveTypeEnum } from "../../webgl/PrimitiveTypeEnum";
-import { BoundingBox } from "../bounds";
-import { GlConstants } from "../../webgl/glConstant";
-import { VertexAttEnum } from "../../webgl/vertexAttEnum";
-import { TypedArray } from "../../core/typedArray";
-import { GraphicsDevice } from "../../webgl/graphicsDevice";
-import { VertexArray } from "../../webgl/vertexArray";
+import { PrimitiveTypeEnum } from "../webgl/PrimitiveTypeEnum";
+import { BoundingBox } from "../scene/bounds";
+import { GlConstants } from "../webgl/glConstant";
+import { VertexAttEnum } from "../webgl/vertexAttEnum";
+import { TypedArray } from "../core/typedArray";
+import { GraphicsDevice } from "../webgl/graphicsDevice";
+import { VertexArray } from "../webgl/vertexArray";
 import { GraphicIndexBuffer } from "./buffer";
-import { ComponentDatatypeEnum } from "../../webgl";
+import { ComponentDatatypeEnum } from "../webgl";
 
 /**
  * 

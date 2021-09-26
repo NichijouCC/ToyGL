@@ -3,7 +3,7 @@ import { ParseBufferViewNode } from "./parseBufferViewNode";
 import { BufferTargetEnum } from "../../../webgl/buffer";
 import { TypedArray } from "../../../core/typedArray";
 import { GraphicsDevice } from "../../../webgl/graphicsDevice";
-import { GraphicBuffer } from "../../../scene/render/buffer";
+import { GraphicBuffer } from "../../../render/buffer";
 
 export interface IaccessorData {
     componentSize: number;

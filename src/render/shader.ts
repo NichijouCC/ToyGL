@@ -1,9 +1,9 @@
-import { ShaderProgram, IShaderProgramOption } from "../../webgl/shaderProgram";
-import { RenderLayerEnum } from "./renderLayer";
-import { Asset, IGraphicAsset } from "../asset/asset";
-import { VertexAttEnum } from "../../webgl/vertexAttEnum";
+import { ShaderProgram, IShaderProgramOption } from "../webgl/shaderProgram";
+import { RenderTypeEnum } from "./renderLayer";
+import { Asset, IGraphicAsset } from "../scene/asset/asset";
+import { VertexAttEnum } from "../webgl/vertexAttEnum";
 import { ShaderBucket } from "./shaderBucket";
-import { GraphicsDevice } from "../../webgl";
+import { GraphicsDevice } from "../webgl";
 
 export class Shader extends Asset {
     static totalCount: number = 0;
@@ -13,19 +13,14 @@ export class Shader extends Asset {
     private _attributes: { [attName: string]: VertexAttEnum };
     readonly create_id: number;
 
-    private _layer: RenderLayerEnum;
-    get layer() { return this._layer; }
-
-    private _layerIndex: number;
-    get layerIndex() { return this._layerIndex; };
-
-    setLayerIndex(layer: RenderLayerEnum, queue: number = 0) {
-        const layerIndex = layer + queue;
-        if (this._layerIndex != layerIndex) {
-            this._layer = layer;
-            this._layerIndex = layerIndex;
-        }
-    }
+    /**
+     * 用于调整绘制顺序
+     */
+    renderType: RenderTypeEnum = RenderTypeEnum.OPAQUE;
+    /**
+     * 用于调整绘制顺序
+     */
+    sortOrder: number = 0;
 
     private _bucketFeats: number = 0;
     set bucketFeats(feat: ShaderBucket | number) { this._bucketFeats = feat; }
@@ -38,7 +33,6 @@ export class Shader extends Asset {
         this._vsStr = options.vsStr;
         this._fsStr = options.fsStr;
         this._attributes = options.attributes;
-        this.setLayerIndex(RenderLayerEnum.Geometry);
     }
 
     getProgram(bucketId: ShaderBucket, device: GraphicsDevice) {
@@ -67,14 +61,14 @@ export class Shader extends Asset {
     clone() {
         const newShader = new Shader({ vsStr: this._vsStr, fsStr: this._fsStr, attributes: this._attributes });
         newShader._bucketFeats = this._bucketFeats;
-        newShader._layer = this._layer;
-        newShader._layerIndex = this._layerIndex;
+        newShader.renderType = this.renderType;
+        newShader.sortOrder = this.sortOrder;
         return newShader;
     }
 }
 
 export type IShaderOption = IShaderProgramOption
 export interface ILayerIndexEvent {
-    layer: RenderLayerEnum;
+    layer: RenderTypeEnum;
     layerIndex: number
 }

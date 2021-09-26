@@ -1,4 +1,4 @@
-import { UniformTypeEnum } from "../../webgl/uniformType";
+import { UniformTypeEnum } from "../webgl/uniformType";
 import { UniformState } from "./uniformState";
 
 namespace Private {
@@ -80,34 +80,34 @@ export class AutoUniforms {
                 return uniformState.matrixNormalToView;
             }
         },
-        czm_fov: {
-            size: 1,
-            datatype: UniformTypeEnum.FLOAT,
-            getValue: (uniformState: UniformState) => {
-                return uniformState.curCamera.fov;
-            }
-        },
-        czm_aspect: {
-            size: 1,
-            datatype: UniformTypeEnum.FLOAT,
-            getValue: (uniformState: UniformState) => {
-                return uniformState.curCamera.aspect;
-            }
-        },
-        czm_near: {
-            size: 1,
-            datatype: UniformTypeEnum.FLOAT,
-            getValue: (uniformState: UniformState) => {
-                return uniformState.curCamera.near;
-            }
-        },
-        czm_far: {
-            size: 1,
-            datatype: UniformTypeEnum.FLOAT,
-            getValue: (uniformState: UniformState) => {
-                return uniformState.curCamera.far;
-            }
-        },
+        // czm_fov: {
+        //     size: 1,
+        //     datatype: UniformTypeEnum.FLOAT,
+        //     getValue: (uniformState: UniformState) => {
+        //         return uniformState.fov;
+        //     }
+        // },
+        // czm_aspect: {
+        //     size: 1,
+        //     datatype: UniformTypeEnum.FLOAT,
+        //     getValue: (uniformState: UniformState) => {
+        //         return uniformState.aspect;
+        //     }
+        // },
+        // czm_near: {
+        //     size: 1,
+        //     datatype: UniformTypeEnum.FLOAT,
+        //     getValue: (uniformState: UniformState) => {
+        //         return uniformState.near;
+        //     }
+        // },
+        // czm_far: {
+        //     size: 1,
+        //     datatype: UniformTypeEnum.FLOAT,
+        //     getValue: (uniformState: UniformState) => {
+        //         return uniformState.far;
+        //     }
+        // },
         czm_boneMatrices: {
             size: 110,
             datatype: UniformTypeEnum.FLOAT_ARRAY,

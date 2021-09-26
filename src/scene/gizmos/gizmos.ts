@@ -4,7 +4,7 @@ import { ToyGL } from "../../toygl";
 import { VertexAttEnum, ComponentDatatypeEnum, PrimitiveTypeEnum } from "../../webgl";
 import { Geometry } from "../asset";
 import { BoundingBox } from "../bounds";
-import { IRenderable } from "../render/irenderable";
+import { IRenderable } from "../../render/irenderable";
 
 export class Gizmos {
     private _toy: ToyGL;

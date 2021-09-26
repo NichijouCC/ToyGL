@@ -1,6 +1,6 @@
-import { Asset } from "../asset/asset";
-import { Texture } from "../../webgl/texture";
-import { GraphicsDevice } from "../../webgl/graphicsDevice";
+import { Asset } from "../scene/asset/asset";
+import { Texture } from "../webgl/texture";
+import { GraphicsDevice } from "../webgl/graphicsDevice";
 
 export abstract class BaseTexture extends Asset {
     glTarget: Texture;

@@ -3,11 +3,11 @@ export * from "./animationClip";
 export * from "./prefab";
 export * from "./skin";
 
-export * from "../render/geometry";
-export * from "../render/geometryAttribute";
+export * from "../../render/geometry";
+export * from "../../render/geometryAttribute";
 export * from "./geometry/skinGeometry";
 export * from "./geometry/staticGeometry";
 
-export * from "../render/material";
+export * from "../../render/material";
 
 export * from './texture/texture'

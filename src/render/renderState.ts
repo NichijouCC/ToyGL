@@ -1,5 +1,5 @@
-import { GlConstants, DepthFuncEnum, BlendParamEnum, BlendEquationEnum, StencilFuncEnum } from "../../webgl";
-import { Rect } from "../../mathD/rect";
+import { GlConstants, DepthFuncEnum, BlendParamEnum, BlendEquationEnum, StencilFuncEnum } from "../webgl";
+import { Rect } from "../mathD/rect";
 
 export class RenderState {
     cull: {

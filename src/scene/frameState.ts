@@ -1,5 +1,5 @@
 import { Entity } from "./entity";
-import { IRenderable } from "./render/irenderable";
+import { IRenderable } from "../render/irenderable";
 
 export class FrameState {
     deltaTime: number;

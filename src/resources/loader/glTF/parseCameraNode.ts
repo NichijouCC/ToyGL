@@ -1,12 +1,13 @@
 import { CameraType } from "./gltfJsonStruct";
 // import { Camera, ProjectionEnum } from "../../ec/components/camera";
 import { IGltfJson } from "../loadGltf";
-import { Camera, ProjectionEnum } from "../../../scene/camera";
+import { CameraComponent } from "../../../components";
+import { ProjectionEnum } from "../../../render/camera";
 
 export class ParseCameraNode {
     static parse(index: number, gltf: IGltfJson) {
         const node = gltf.cameras[index];
-        const cam = new Camera();
+        const cam = new CameraComponent();
 
         switch (node.type) {
             case CameraType.PERSPECTIVE: {

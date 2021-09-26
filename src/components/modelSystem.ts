@@ -1,5 +1,5 @@
 import { ModelComponent } from "./modelComponent";
-import { IRenderable } from "../scene/render/irenderable";
+import { IRenderable } from "../render/irenderable";
 import { Entity, System } from "../scene";
 import { ToyGL } from "../toygl";
 
