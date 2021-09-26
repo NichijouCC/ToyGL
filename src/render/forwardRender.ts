@@ -43,14 +43,14 @@ export class ForwardRender {
             //检查mask,做视锥体剔除
             for (let i = 0; i < renderItems.length; i++) {
                 renderItem = renderItems[i];
-                // if (renderItem.layerMask != null && ((renderItem.layerMask & cullingMask) == 0)) continue;
-                // if (renderItem.enableCull) {
-                //     if (this.frustumCull(frustum, renderItem)) {
-                //         renderList.push(renderItem);
-                //     }
-                // } else {
-                //     renderList.push(renderItem);
-                // }
+                if (renderItem.layerMask != null && ((renderItem.layerMask & cullingMask) == 0)) continue;
+                if (renderItem.enableCull) {
+                    if (this.frustumCull(frustum, renderItem)) {
+                        renderList.push(renderItem);
+                    }
+                } else {
+                    renderList.push(renderItem);
+                }
                 renderList.push(renderItem);
             }
             //做renderItems排序
