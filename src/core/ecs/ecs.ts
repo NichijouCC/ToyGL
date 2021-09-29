@@ -111,7 +111,7 @@ export class ECS {
     static update(deltaTime: number) {
         this.entities.forEach(item => {
             for (const key in item[COMPS]) {
-                item[COMPS][key][UPDATE]();
+                item[COMPS][key][UPDATE](deltaTime);
             }
         });
         this.systems.forEach(item => item.system.update(deltaTime));

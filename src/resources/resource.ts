@@ -28,9 +28,9 @@ export class Resource {
      * @param url 地址
      * @param onFinish  load回调]
      */
-    load(url: string): Promise<Asset> {
+    load<T = Asset>(url: string): Promise<T> {
         if (this.loadMap[url]) {
-            return this.loadMap[url];
+            return this.loadMap[url] as any;
         } else {
             const loader = this.getAssetLoader(url);
             if (loader == null) {
@@ -38,7 +38,7 @@ export class Resource {
                 return Promise.reject(errorMsg);
             } else {
                 this.loadMap[url] = loader.load(url);
-                return this.loadMap[url];
+                return this.loadMap[url] as any;
             }
         }
     }

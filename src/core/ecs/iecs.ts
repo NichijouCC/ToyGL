@@ -11,7 +11,7 @@ export const ENTITIES = Symbol("entities");
 export interface IComponent {
     readonly entity: IEntity;
     readonly compName: string;
-    [UPDATE](): void;
+    [UPDATE](deltaTime: number): void;
     clone(): IComponent;
 }
 

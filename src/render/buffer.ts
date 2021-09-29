@@ -4,7 +4,11 @@ import { GraphicsDevice, IndexBuffer, IndexDatatypeEnum, IndicesArray, Buffer, B
 export class GraphicIndexBuffer {
     dataType: IndexDatatypeEnum;
     byteOffset: number;
-    count?: number;
+    private _count?: number;
+    private _computeCount: number;
+    get count() {
+        return this._count ?? this._computeCount;
+    }
     _beDirty: boolean = true;
     private _buffer: GraphicBuffer;
     constructor(options: { data: IndicesArray | GraphicBuffer, datatype?: IndexDatatypeEnum, byteOffset?: number, count?: number }) {
@@ -13,7 +17,7 @@ export class GraphicIndexBuffer {
         } else {
             this._buffer = new GraphicBuffer({ data: options.data, target: BufferTargetEnum.ELEMENT_ARRAY_BUFFER });
         }
-        this.count = options.count;
+        this._count = options.count;
         this.byteOffset = options.byteOffset ?? 0;
 
         if (options.datatype) {
@@ -23,18 +27,20 @@ export class GraphicIndexBuffer {
         } else {
             throw new Error("datatype must be set in params.");
         }
+        this._computeCount = this._buffer.data.byteLength / GlType.bytesPerElement(this.dataType);
     }
 
     changeData(options: { data: IndicesArray, datatype?: IndexDatatypeEnum, byteOffset?: number }) {
         this._beDirty = true;
         this._buffer.changeData(options.data);
+        this._computeCount = this._buffer.data.byteLength / GlType.bytesPerElement(this.dataType);
     }
 
     private _glTarget: IndexBuffer
     getGlTarget(device: GraphicsDevice) {
         if (this._glTarget == null) {
             let buffer = this._buffer.getGlTarget(device)
-            this._glTarget = device.createIndexBuffer({ data: buffer, datatype: this.dataType, bytesOffset: this.byteOffset, count: this.count });
+            this._glTarget = device.createIndexBuffer({ data: buffer, datatype: this.dataType, bytesOffset: this.byteOffset, count: this._count });
         }
         return this._glTarget;
     }

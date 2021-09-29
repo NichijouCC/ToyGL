@@ -27,6 +27,10 @@ export class GeometryAttribute {
     bytesOffset: number;
     bytesStride: number;
     private _count: number;
+    private _computeCount: number;
+    get count() {
+        return this._count ?? this._computeCount;
+    }
     get data(): TypedArray {
         return this.buffer.data;
     }
@@ -54,6 +58,8 @@ export class GeometryAttribute {
         } else {
             this.componentDatatype = GlType.fromTypedArray(this.buffer.data);
         }
+
+        this._computeCount = this.buffer.data.byteLength / GlType.bytesPerElement(this.componentDatatype);
     }
 
     getGlTarget(device: GraphicsDevice) {
@@ -98,6 +104,7 @@ export class GeometryAttribute {
             option.data = new Float32Array(option.data);
         }
         this.buffer.changeData(option.data);
+        this._computeCount = this.buffer.data.byteLength / GlType.bytesPerElement(this.componentDatatype);
         this._beDirty = true;
     }
 }

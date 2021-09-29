@@ -1,11 +1,10 @@
-import { getFileName, getAssetDirectory } from "../util";
-import { loadText, loadJson, loadArrayBuffer } from "../../io/loadTool";
+import { getAssetDirectory } from "../util";
+import { loadJson, loadArrayBuffer } from "../../io/loadTool";
 import { BinReader } from "../../io/stream";
 import { IGltf, IProperty } from "./glTF/gltfJsonStruct";
 import { ParseSceneNode } from "./glTF/parseSceneNode";
 import { Material } from "../../render/material";
 import { GraphicsDevice } from "../../webgl/graphicsDevice";
-import { StaticGeometry, PrimitiveMesh } from "../../scene/asset/geometry/staticGeometry";
 import { IAssetLoader } from "../resource";
 import { Prefab } from "../../scene/asset/prefab";
 import { Texture2D } from "../../render/texture2d";

@@ -34,7 +34,7 @@ export abstract class AbsComponent<T extends IEntity> implements IComponent {
     /**
      * private
      */
-    [UPDATE]() {
+    [UPDATE](deltaTime: number) {
         if (!this._beInit) {
             this._beInit = true;
             this.init();

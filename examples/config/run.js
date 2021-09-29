@@ -66,9 +66,10 @@ function findeExampleFile() {
     const path = require("path");
     const fs = require("fs");
     let src_dir = path.resolve("./src");
+    console.log("src dir", src_dir);
     return new Promise((resolve) => {
         fs.readdir(src_dir, (err, items) => {
-            let item = items.find(item => item.startsWith(file_prefix));
+            let item = items.find(item => item.startsWith(file_prefix) || item.toLowerCase().startsWith(file_prefix.toLowerCase()));
             if (item != null) {
                 console.warn(`@@------------执行：${item}-----------------------`);
                 resolve(path.resolve(src_dir, item))

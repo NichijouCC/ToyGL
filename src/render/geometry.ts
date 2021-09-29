@@ -9,6 +9,7 @@ import { GraphicsDevice } from "../webgl/graphicsDevice";
 import { VertexArray } from "../webgl/vertexArray";
 import { GraphicIndexBuffer } from "./buffer";
 import { ComponentDatatypeEnum } from "../webgl";
+import { Asset } from "../scene/asset";
 
 /**
  * 
@@ -31,13 +32,15 @@ import { ComponentDatatypeEnum } from "../webgl";
  * });
  * ```
  */
-export class Geometry {
+export class Geometry extends Asset {
     attributes: { [keyName: string]: GeometryAttribute } = {};
     indices?: GraphicIndexBuffer;
     primitiveType: PrimitiveTypeEnum;
     bytesOffset: number;
-    count?: number;
-
+    private _count?: number;
+    get count() {
+        return this._count ?? this.attributes[VertexAttEnum.POSITION]?.count
+    }
     private _vertexCount: number;
     get vertexCount() { return this._vertexCount; };
 
@@ -51,8 +54,10 @@ export class Geometry {
     set boundingBox(box: BoundingBox) {
         this._bounding = box;
     }
-    constructor(option: IGeometryOptions) {
-        option.attributes.forEach(item => {
+    constructor(option?: IGeometryOptions) {
+        super();
+        option = option ?? {};
+        option.attributes?.forEach(item => {
             this.addAttribute(item.type, item);
         });
         if (option.indices instanceof Array) {
@@ -60,9 +65,9 @@ export class Geometry {
         } else if (option.indices instanceof GraphicIndexBuffer) {
             this.indices = option.indices;
         }
-        this.primitiveType = option?.primitiveType ?? GlConstants.TRIANGLES;
+        this.primitiveType = option.primitiveType ?? GlConstants.TRIANGLES;
         this.bytesOffset = option.bytesOffset ?? 0;
-        this.count = option.count;
+        this._count = option.count;
         this._bounding = option.boundingBox;
     }
 
@@ -79,6 +84,31 @@ export class Geometry {
             this.attributes[attributeType].changeData({ data: data, componentDatatype: dataType });
         } else {
             console.warn("updateAttributeData failed");
+        }
+    }
+
+    setIndices(data: IndicesArray | Array<number> | GraphicIndexBuffer) {
+        if (this.glTarget != null) {
+            throw new Error("出问题了,VAO已创建")
+        } else {
+            if (this.indices != null) {
+                if (data instanceof Array) {
+                    this.indices.changeData({ data: new Uint16Array(data) })
+                } else if (ArrayBuffer.isView(data)) {
+                    this.indices.changeData({ data })
+                } else {
+                    //TODO
+                    throw new Error("出问题了")
+                }
+            } else {
+                if (data instanceof Array) {
+                    this.indices = new GraphicIndexBuffer({ data: new Uint16Array(data) });
+                } else if (data instanceof GraphicIndexBuffer) {
+                    this.indices = data;
+                } else if (ArrayBuffer.isView(data)) {
+                    this.indices = new GraphicIndexBuffer({ data });
+                }
+            }
         }
     }
 
