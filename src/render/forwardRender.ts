@@ -30,7 +30,6 @@ export class ForwardRender {
     }
 
     private _renderList = (() => {
-        var preRenderState: RenderState = null;
         var viewProjectMatrix: mat4 = mat4.create();
         var frustum = new Frustum();
         return (camera: ICamera, renderItems: IRenderable[], options?: { onAfterFrustumCull?: (renderInsArr: IRenderable[], viewer: ICamera) => IRenderable[] }) => {
@@ -38,20 +37,20 @@ export class ForwardRender {
             mat4.multiply(viewProjectMatrix, projectMatrix, viewMatrix);
             frustum.setFromMatrix(viewProjectMatrix);
             this.uniformState.matrixViewProject = viewProjectMatrix;
-            let renderItem: IRenderable
+            let item: IRenderable
             let renderList = [];
             //检查mask,做视锥体剔除
             for (let i = 0; i < renderItems.length; i++) {
-                renderItem = renderItems[i];
-                if (renderItem.layerMask != null && ((renderItem.layerMask & cullingMask) == 0)) continue;
-                if (renderItem.enableCull) {
-                    if (this.frustumCull(frustum, renderItem)) {
-                        renderList.push(renderItem);
+                item = renderItems[i];
+                if (item.layerMask != null && ((item.layerMask & cullingMask) == 0)) continue;
+                if (item.enableCull) {
+                    if (this.frustumCull(frustum, item)) {
+                        renderList.push(item);
                     }
                 } else {
-                    renderList.push(renderItem);
+                    renderList.push(item);
                 }
-                renderList.push(renderItem);
+                renderList.push(item);
             }
             //做renderItems排序
             if (options?.onAfterFrustumCull != null) {
@@ -66,65 +65,71 @@ export class ForwardRender {
                 camera.enableClearStencil ? camera.stencilValue : null
             );
             //遍历渲染
-            let material: Material, uniforms, renderState, vertexArray, shaderIns: ShaderProgram, uniformValue;
             for (let i = 0; i < renderList.length; i++) {
-                renderItem = renderList[i];
-                let bucketId = 0;
-                if (renderItem.skin) {
-                    bucketId = bucketId | ShaderBucket.SKIN;
-                    this.uniformState.matrixModel = renderItem.skin.worldMat;
-                    this.uniformState.boneMatrices = renderItem.skin.boneMatrices;
-                } else {
-                    this.uniformState.matrixModel = renderItem.worldMat;
-                }
-
-                material = renderItem.material;
-                uniforms = material.uniformParameters;
-                if (uniforms.MainTex) {
-                    bucketId = bucketId | ShaderBucket.DIFFUSE_MAP;
-                }
-                //shader bind
-                let shaderIns = material.shader.bind(bucketId, this.device);
-                //shader uniform bind
-                this.bindShaderUniforms(shaderIns, uniforms);
-                //vao bind
-                let vao = renderItem.geometry.bind(this.device);
-                //render state bind
-                renderState = material.renderState;
-                if (preRenderState != renderState) {
-                    preRenderState = renderState;
-                    this.device.setCullFaceState(renderState.cull.enabled, renderState.cull.cullBack);
-                    this.device.setDepthState(renderState.depthWrite, renderState.depthTest.enabled, renderState.depthTest.depthFunc);
-                    this.device.setColorMask(renderState.colorWrite.red, renderState.colorWrite.green, renderState.colorWrite.blue, renderState.colorWrite.alpha);
-                    this.device.setBlendState(
-                        renderState.blend.enabled,
-                        renderState.blend.blendEquation,
-                        renderState.blend.blendSrc,
-                        renderState.blend.blendDst,
-                        renderState.blend.enableSeparateBlend,
-                        renderState.blend.blendAlphaEquation,
-                        renderState.blend.blendSrcAlpha,
-                        renderState.blend.blendDstAlpha
-                    );
-                    this.device.setStencilState(
-                        renderState.stencilTest.enabled,
-                        renderState.stencilTest.stencilFunction,
-                        renderState.stencilTest.stencilRefValue,
-                        renderState.stencilTest.stencilMask,
-                        renderState.stencilTest.stencilFail,
-                        renderState.stencilTest.stencilFailZpass,
-                        renderState.stencilTest.stencilPassZfail,
-                        renderState.stencilTest.enableSeparateStencil,
-                        renderState.stencilTest.stencilFunctionBack,
-                        renderState.stencilTest.stencilRefValueBack,
-                        renderState.stencilTest.stencilMaskBack,
-                        renderState.stencilTest.stencilFailBack,
-                        renderState.stencilTest.stencilFailZpassBack,
-                        renderState.stencilTest.stencilPassZfailBack
-                    );
-                }
-                this.device.draw(vao, renderItem.instanceCount);
+                this._renderItem(renderList[i]);
             }
+        }
+    })()
+
+    private _renderItem = (() => {
+        let material: Material, uniforms, preRenderState: RenderState, renderState: RenderState;
+        return (renderItem: IRenderable) => {
+            let bucketId = 0;
+            if (renderItem.skin) {
+                bucketId = bucketId | ShaderBucket.SKIN;
+                this.uniformState.matrixModel = renderItem.skin.worldMat;
+                this.uniformState.boneMatrices = renderItem.skin.boneMatrices;
+            } else {
+                this.uniformState.matrixModel = renderItem.worldMat;
+            }
+
+            material = renderItem.material;
+            uniforms = material.uniformParameters;
+            if (uniforms.MainTex) {
+                bucketId = bucketId | ShaderBucket.DIFFUSE_MAP;
+            }
+            //shader bind
+            let shaderIns = material.shader.bind(bucketId, this.device);
+            //shader uniform bind
+            this.bindShaderUniforms(shaderIns, uniforms);
+            //vao bind
+            let vao = renderItem.geometry.bind(this.device);
+            //render state bind
+            renderState = material.renderState;
+            if (preRenderState != renderState) {
+                preRenderState = renderState;
+                this.device.setCullFaceState(renderState.cull.enabled, renderState.cull.cullBack);
+                this.device.setDepthState(renderState.depthWrite, renderState.depthTest.enabled, renderState.depthTest.depthFunc);
+                this.device.setColorMask(renderState.colorWrite.red, renderState.colorWrite.green, renderState.colorWrite.blue, renderState.colorWrite.alpha);
+                this.device.setBlendState(
+                    renderState.blend.enabled,
+                    renderState.blend.blendEquation,
+                    renderState.blend.blendSrc,
+                    renderState.blend.blendDst,
+                    renderState.blend.enableSeparateBlend,
+                    renderState.blend.blendAlphaEquation,
+                    renderState.blend.blendSrcAlpha,
+                    renderState.blend.blendDstAlpha
+                );
+                this.device.setStencilState(
+                    renderState.stencilTest.enabled,
+                    renderState.stencilTest.stencilFunction,
+                    renderState.stencilTest.stencilRefValue,
+                    renderState.stencilTest.stencilMask,
+                    renderState.stencilTest.stencilFail,
+                    renderState.stencilTest.stencilFailZpass,
+                    renderState.stencilTest.stencilPassZfail,
+                    renderState.stencilTest.enableSeparateStencil,
+                    renderState.stencilTest.stencilFunctionBack,
+                    renderState.stencilTest.stencilRefValueBack,
+                    renderState.stencilTest.stencilMaskBack,
+                    renderState.stencilTest.stencilFailBack,
+                    renderState.stencilTest.stencilFailZpassBack,
+                    renderState.stencilTest.stencilPassZfailBack
+                );
+            }
+            this.device.draw(vao, renderItem.instanceCount);
+            renderItem.children?.forEach(item => this._renderItem(item))
         }
     })()
 
