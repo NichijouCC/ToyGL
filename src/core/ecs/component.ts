@@ -39,11 +39,11 @@ export abstract class AbsComponent<T extends IEntity> implements IComponent {
             this._beInit = true;
             this.init();
         }
-        this.update();
+        this.update(deltaTime);
     }
 
     init() { }
-    update() { }
+    update(deltaTime: number) { }
 
     abstract clone(): IComponent
 

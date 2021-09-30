@@ -96,6 +96,15 @@ export class CameraComponent extends Component implements ISceneCamera {
         return this.entity.getForwardInWorld(this._forward);
     }
 
+    private _right: vec3 = vec3.create();
+    get rightInWorld() {
+        return this.entity.getRightInWorld(this._right);
+    }
+
+    private _up: vec3 = vec3.create();
+    get upInWorld() {
+        return this.entity.getUpInWorld(this._up);
+    }
     constructor(props?: Partial<Camera>) {
         super(props as any);
         Object.defineProperty(this._viewport, "x", {
