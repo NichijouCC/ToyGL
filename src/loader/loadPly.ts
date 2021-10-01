@@ -1,8 +1,8 @@
-import { DefaultMaterial } from "..";
-import { PrimitiveTypeEnum, VertexAttEnum } from "../..";
-import { loadArrayBuffer } from "../../io";
-import { Asset, Geometry, StaticGeometry } from "../../scene";
-import { IAssetLoader } from "../resource";
+import { DefaultMaterial } from "../resources";
+import { PrimitiveTypeEnum, VertexAttEnum } from "..";
+import { loadArrayBuffer } from "../io";
+import { Asset, Geometry, StaticGeometry } from "../scene";
+import { IAssetLoader } from "../resources/resource";
 
 interface IHeader {
     format: string,

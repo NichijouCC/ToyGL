@@ -20,7 +20,7 @@ export class ECS {
         this.systems.forEach(item => item.system.removeEntity(entity));
     }
 
-    static registerComp = (comp: Function) => {
+    static registComp = (comp: Function) => {
         const compName = comp.name;
         if (ECS.registeredComps[compName] == null) {
             ECS.registeredComps[compName] = { Ctr: comp as any, bitKey: BitKey.create(), relatedSystem: [] };

@@ -103,7 +103,7 @@ export class Mouse extends EventEmitter<MyMouseEvent> {
         this._position[1] = ev.offsetY;
 
         event.movementX = ev.movementX;
-        event.movementY = ev.movementY;
+        event.movementY = -ev.movementY;
 
         event.rotateDelta = ev.detail | ev.wheelDelta;
         return event;

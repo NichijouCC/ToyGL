@@ -38,9 +38,7 @@ export class Geometry extends Asset {
     primitiveType: PrimitiveTypeEnum;
     bytesOffset: number;
     private _count?: number;
-    get count() {
-        return this._count ?? this.attributes[VertexAttEnum.POSITION]?.count
-    }
+    get count() { return this._count }
     private _vertexCount: number;
     get vertexCount() { return this._vertexCount; };
 

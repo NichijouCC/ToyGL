@@ -1,6 +1,6 @@
-import { Entity } from "./entity";
-import { AbsComponent } from "./component";
-import { AbsSystem } from "./system";
-import { ECS } from "./ecs";
-
-export { Entity, AbsComponent, AbsSystem, ECS };
+export * from './iecs';
+export * from './bitKey';
+export * from './component';
+export * from './entity';
+export * from './system';
+export * from './ecs';

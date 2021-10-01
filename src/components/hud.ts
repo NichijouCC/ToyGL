@@ -3,7 +3,7 @@ import { Rect } from "../mathD/rect";
 import { Component, Entity, Material, Texture2D } from "../scene/index";
 import { vec3 } from "../mathD/index";
 
-@ECS.registerComp
+@ECS.registComp
 export class Hud extends Component {
     private _rect: Rect = new Rect(0, 0, 1, 1);
     private _command: (context: CanvasRenderingContext2D) => void;

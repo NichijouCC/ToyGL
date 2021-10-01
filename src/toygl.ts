@@ -2,14 +2,13 @@ import { Timer } from "./core/timer";
 import { InterScene } from "./scene/scene";
 import { GraphicsDevice } from "./webgl/graphicsDevice";
 import { Resource } from "./resources/resource";
-import { LoadGlTF } from "./resources/loader/loadGltf";
+import { LoadGlTF } from "./loader/loadGltf";
 import { ECS } from "./core/ecs/ecs";
 import { ForwardRender } from "./render/forwardRender";
 import { EventTarget } from "@mtgoo/ctool";
 import { AnimationSystem, ModelSystem, CameraSystem } from "./components/index";
 import { Screen } from "./core/toyScreen";
-import { Entity } from "./scene";
-import { Gizmos } from "./scene/gizmos/gizmos";
+import { Gizmos } from "./gizmos/gizmos";
 
 export class ToyGL {
     onresize = new EventTarget<{ width: number, height: number }>();
@@ -23,8 +22,8 @@ export class ToyGL {
         const render = new ForwardRender(device);
         const resource = new Resource();
         const scene = new InterScene(toy);
-        resource.registerAssetLoader(".gltf", new LoadGlTF(device));
-        resource.registerAssetLoader(".glb", new LoadGlTF(device));
+        resource.registAssetLoader(".gltf", new LoadGlTF(device));
+        resource.registAssetLoader(".glb", new LoadGlTF(device));
         ECS.addSystem(new CameraSystem(scene, screen));
         ECS.addSystem(new AnimationSystem());
         ECS.addSystem(new ModelSystem(toy), Number.POSITIVE_INFINITY);

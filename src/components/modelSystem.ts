@@ -20,7 +20,9 @@ export class ModelSystem extends System {
                     geometry: mesh.subMeshes[0],
                     material: materials[0],
                     worldMat: worldMatrix,
+                    boundingBox: mesh.boundingBox,
                 }
+                this._toy.gizmos.drawAABB(mesh.boundingBox, comp.entity.worldMatrix);
                 if (skinIns != null) {
                     skinIns.frameUpdate(this._toy.graphicsDevice);
                     let skin = {
@@ -28,7 +30,6 @@ export class ModelSystem extends System {
                         boneMatrices: skinIns.uniformBoneData
                     };
                     baseRender.skin = skin;
-                    // this._toy.gizmos.drawAABB(subMeshItem.boundingBox, comp.entity.worldMatrix);
                 }
                 if (mesh.subMeshes.length > 1) {
                     baseRender.children = [];
@@ -41,7 +42,7 @@ export class ModelSystem extends System {
                         })
                     }
                 }
-                this._toy.scene._addFrameRenderIns(baseRender);
+                this._toy.scene.addFrameRenderIns(baseRender);
             }
         });
     }

@@ -4,7 +4,7 @@ import { vec3 } from "../mathD";
 import { Component, Entity } from "../scene";
 import { StaticGeometry } from "../scene/asset";
 
-@ECS.registerComp
+@ECS.registComp
 export class BoxCollider extends Component {
     center: vec3 = vec3.create();
     halfSize: vec3 = vec3.clone(vec3.ONE);
@@ -13,7 +13,7 @@ export class BoxCollider extends Component {
     }
 }
 
-@ECS.registerComp
+@ECS.registComp
 export class SphereCollider extends Component {
     center: vec3 = vec3.create();
     radius = 1.0;
@@ -22,7 +22,7 @@ export class SphereCollider extends Component {
     }
 }
 
-@ECS.registerComp
+@ECS.registComp
 export class MeshCollider extends Component {
     mesh: StaticGeometry
     clone(): IComponent {

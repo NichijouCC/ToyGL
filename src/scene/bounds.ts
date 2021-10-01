@@ -36,11 +36,6 @@ export class Bounds {
         return this;
     }
 
-    static fromVertexArray(vertexArr: VertexArray) {
-        const { vertexAttributes } = vertexArr;
-        return Bounds.fromTypedArray(vertexAttributes[VertexAttEnum.POSITION]?.buffer.data as any);
-    }
-
     static fromTypedArray(positions: TypedArray) {
         const bb = new Bounds();
         bb.setMinPoint(Private.max);
@@ -231,7 +226,6 @@ export class BoundingBox {
         this.center = center || vec3.create();
         this.halfSize = halfSize || vec3.fromValues(1, 1, 1);
     }
-
     static fromTypedArray(positions: TypedArray, center: vec3 = null) {
         const min = vec3.fromValues(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
         const max = vec3.fromValues(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
@@ -283,4 +277,28 @@ export class BoundingBox {
     static recycle(item: BoundingBox) {
         this.pool.push(item);
     }
+}
+
+export function computeMinMax(points: TypedArray[], min?: vec3, max?: vec3) {
+    min = min ?? vec3.fromValues(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
+    max = max ?? vec3.fromValues(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
+    for (let i = 0; i < points.length; i++) {
+        let point = points[i];
+        if (point[0] < min[0]) {
+            min[0] = point[0];
+        } else if (point[0] > max[0]) {
+            max[0] = point[0];
+        }
+        if (point[1] < min[1]) {
+            min[1] = point[1];
+        } else if (point[1] > max[1]) {
+            max[1] = point[1];
+        }
+        if (point[2] < min[2]) {
+            min[2] = point[2];
+        } else if (point[2] > max[2]) {
+            max[2] = point[2];
+        }
+    }
+    return { min, max }
 }

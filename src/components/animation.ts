@@ -4,7 +4,7 @@ import { Entity } from "../scene";
 import { AnimationClip } from "../scene/asset/animationClip";
 import { ClipInstance, ClipOptions } from "../scene/primitive/animation/clipInstance";
 
-@ECS.registerComp
+@ECS.registComp
 export class Animation extends AbsComponent<Entity> {
     beAutoPlay: boolean = true;
     private _clips: AnimationClip[] = [];

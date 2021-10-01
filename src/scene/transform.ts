@@ -203,7 +203,7 @@ export class Transform extends BaseEntity {
             if (this._parent) {
                 mat4.multiply(this._worldMatrix, this._parent.worldMatrix, this.localMatrix);
             } else {
-                mat4.copy(this.localMatrix, this._worldMatrix);
+                mat4.copy(this._worldMatrix, this.localMatrix);
             }
             this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLD_MAT;
             this.dirtyFlag =
@@ -218,11 +218,12 @@ export class Transform extends BaseEntity {
         }
         mat4.copy(this._worldMatrix, value);
         if (this._parent._parent == null) {
-            mat4.copy(this._localMatrix, value);
+            this.localMatrix = value;
         } else {
             const invParentWorld = mat4Pool.create();
             mat4.invert(invParentWorld, this._parent.worldMatrix);
-            mat4.multiply(this.localMatrix, invParentWorld, value);
+            mat4.multiply(invParentWorld, invParentWorld, value);
+            this.localMatrix = invParentWorld;
             mat4Pool.recycle(invParentWorld);
         }
         this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLD_MAT;

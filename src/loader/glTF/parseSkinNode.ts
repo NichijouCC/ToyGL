@@ -1,8 +1,8 @@
-import { Skin } from "../../../scene/asset/skin";
+import { Skin } from "../../scene/asset/skin";
 import { IGltfJson } from "../loadGltf";
 import { ParseAccessorNode, Accessor } from "./parseAccessorNode";
 import { GlTF } from "./util";
-import { Entity } from "../../../scene/entity";
+import { Entity } from "../../scene/entity";
 
 export class ParseSkinNode {
     static parse(index: number, nodeName: string, root: Entity, gltf: IGltfJson): Promise<Skin> {

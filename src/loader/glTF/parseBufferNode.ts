@@ -1,4 +1,4 @@
-import { loadArrayBuffer } from "../../../io/loadTool";
+import { loadArrayBuffer } from "../../io/loadTool";
 import { IGltfJson } from "../loadGltf";
 
 export class ParseBufferNode {

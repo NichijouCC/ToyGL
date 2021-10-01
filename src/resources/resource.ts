@@ -7,7 +7,7 @@ export interface IAssetLoader {
 
 export class Resource {
     private resLoaderDic: { [extraName: string]: IAssetLoader } = {};
-    registerAssetLoader(extra: string, factory: IAssetLoader) {
+    registAssetLoader(extra: string, factory: IAssetLoader) {
         console.warn("loader type:", extra);
         this.resLoaderDic[extra] = factory;
     }

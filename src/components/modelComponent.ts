@@ -7,7 +7,7 @@ import { SkinInstance } from "../scene/primitive/animation/skinInstance";
 import { Skin } from "../scene/asset/skin";
 import { Component, Entity } from "../scene";
 
-@ECS.registerComp
+@ECS.registComp
 export class ModelComponent extends Component {
     protected _mesh = new AssetReference<StaticGeometry>();
     get mesh() { return this._mesh.current; };

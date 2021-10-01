@@ -5,7 +5,7 @@ import { Component, Entity } from "../scene";
 import { Camera, LayerMask, ProjectionEnum } from "../render/camera";
 import { ISceneCamera } from "../scene/isceneCamera";
 
-@ECS.registerComp
+@ECS.registComp
 export class CameraComponent extends Component implements ISceneCamera {
     private _projectMatBeDirty = true;
     private _projectionType: ProjectionEnum = ProjectionEnum.PERSPECTIVE;

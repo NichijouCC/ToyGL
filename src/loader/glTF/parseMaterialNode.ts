@@ -1,13 +1,13 @@
 import { IGltfJson } from "../loadGltf";
 import { ParseTextureNode } from "./parseTextureNode";
-import { Color } from "../../../mathD/color";
-import { Material } from "../../../render/material";
-import { VertexAttEnum } from "../../../webgl/vertexAttEnum";
-import { DefaultMaterial } from "../../defAssets/defaultMaterial";
-import { SkinInstance, SkinWay } from "../../../scene/primitive/animation/skinInstance";
+import { Color } from "../../mathD/color";
+import { Material } from "../../render/material";
+import { VertexAttEnum } from "../../webgl/vertexAttEnum";
+import { DefaultMaterial } from "../../resources/defAssets/defaultMaterial";
+import { SkinInstance, SkinWay } from "../../scene/primitive/animation/skinInstance";
 import { MaterialAlphaMode } from "./gltfJsonStruct";
-import { ShaderBucket } from "../../../render/shaderBucket";
-import { RenderTypeEnum } from "../../../render/renderLayer";
+import { ShaderBucket } from "../../render/shaderBucket";
+import { RenderTypeEnum } from "../../render/renderLayer";
 
 namespace Private {
     /**

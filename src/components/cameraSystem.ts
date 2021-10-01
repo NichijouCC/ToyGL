@@ -10,6 +10,9 @@ export class CameraSystem extends System {
         super();
         this.scene = scene;
         this.screen = screen;
+        this.on("addEntity", (e) => {
+            scene._cameras.push(e.entity.getComponent(CameraComponent));
+        })
     }
 
     update(deltaTime: number): void {

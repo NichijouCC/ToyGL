@@ -1,17 +1,17 @@
-import { getAssetDirectory } from "../util";
-import { loadJson, loadArrayBuffer } from "../../io/loadTool";
-import { BinReader } from "../../io/stream";
+import { getAssetDirectory } from "../resources/util";
+import { loadJson, loadArrayBuffer } from "../io/loadTool";
+import { BinReader } from "../io/stream";
 import { IGltf, IProperty } from "./glTF/gltfJsonStruct";
 import { ParseSceneNode } from "./glTF/parseSceneNode";
-import { Material } from "../../render/material";
-import { GraphicsDevice } from "../../webgl/graphicsDevice";
-import { IAssetLoader } from "../resource";
-import { Prefab } from "../../scene/asset/prefab";
-import { Texture2D } from "../../render/texture2d";
+import { Material } from "../render/material";
+import { GraphicsDevice } from "../webgl/graphicsDevice";
+import { IAssetLoader } from "../resources/resource";
+import { Prefab } from "../scene/asset/prefab";
+import { Texture2D } from "../render/texture2d";
 import { ParseAnimationNode } from "./glTF/parseAnimationNode";
-import { Animation } from "../../components/animation";
-import { GraphicBuffer, GraphicIndexBuffer } from "../../render/buffer";
-import { Geometry } from "../../render/geometry";
+import { Animation } from "../components/animation";
+import { GraphicBuffer, GraphicIndexBuffer } from "../render/buffer";
+import { Geometry } from "../render/geometry";
 
 export interface IglTFExtension {
     load(extensionNode: any, loader: LoadGlTF): Promise<any>;

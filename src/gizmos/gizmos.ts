@@ -1,10 +1,10 @@
-import { mat4, vec3 } from "../../mathD";
-import { DefaultMaterial } from "../../resources";
-import { ToyGL } from "../../toygl";
-import { VertexAttEnum, ComponentDatatypeEnum, PrimitiveTypeEnum } from "../../webgl";
-import { Geometry } from "../asset";
-import { BoundingBox } from "../bounds";
-import { IRenderable } from "../../render/irenderable";
+import { mat4, vec3 } from "../mathD";
+import { DefaultMaterial } from "../resources";
+import { ToyGL } from "../toygl";
+import { VertexAttEnum, ComponentDatatypeEnum, PrimitiveTypeEnum } from "../webgl";
+import { Geometry } from "../scene/asset";
+import { BoundingBox } from "../scene/bounds";
+import { IRenderable } from "../render/irenderable";
 
 export class Gizmos {
     private _toy: ToyGL;
@@ -58,10 +58,10 @@ export class Gizmos {
         if (this._dic.has(aabb)) {
             const renderIns = this._dic.get(aabb);
             renderIns.worldMat = selfWorldMat;
-            scene._addFrameRenderIns(renderIns);
+            scene.addFrameRenderIns(renderIns);
         } else {
             const x = halfSize[0]; const y = halfSize[1]; const z = halfSize[2];
-            scene._addFrameRenderIns({
+            scene.addFrameRenderIns({
                 geometry: new Geometry({
                     attributes: [{
                         data: [

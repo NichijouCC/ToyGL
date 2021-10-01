@@ -1,14 +1,12 @@
 import { EventTarget } from "@mtgoo/ctool";
 import { Entity } from "./entity";
-import { ECS } from "../core/ecs/ecs";
-import { IRenderable } from "../render/irenderable";
 import { FrameState } from "./frameState";
 import { ToyGL } from "../toygl";
 import { mat4, vec2, vec3, vec4 } from "../mathD";
 import { CameraComponent, PhysicsWorld } from "../components";
 import { Input } from "../input";
-import { ICamera } from "../render/camera";
-import { RenderTypeEnum } from "../render/renderLayer";
+import { ECS, COMPS, UPDATE } from "../core/ecs";
+import { IRenderable, ICamera, RenderTypeEnum } from "../render";
 
 export class InterScene {
     private _toy: ToyGL;
@@ -43,9 +41,22 @@ export class InterScene {
     frameState: FrameState = new FrameState();
     _tick = (deltaTime: number) => {
         this.preUpdate.raiseEvent(deltaTime);
-        ECS.update(deltaTime);
+        this._ecsUpdate(deltaTime);
         this.tickRender(this.frameState);
         this.frameState = new FrameState();
+    }
+
+    /**
+     * 单位秒
+     * @param deltaTime 
+     */
+    private _ecsUpdate(deltaTime: number) {
+        ECS.entities.forEach(item => {
+            for (const key in item[COMPS]) {
+                item[COMPS][key][UPDATE](deltaTime);
+            }
+        });
+        ECS.systems.forEach(item => item.system.update(deltaTime));
     }
 
     private _renders: IRenderable[] = [];
@@ -54,7 +65,7 @@ export class InterScene {
         return render;
     }
 
-    _addFrameRenderIns(render: IRenderable) {
+    addFrameRenderIns(render: IRenderable) {
         this.frameState.renders.push(render);
         return render;
     }

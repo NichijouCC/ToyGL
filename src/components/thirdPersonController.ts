@@ -3,7 +3,7 @@ import { ECS } from "../core/ecs/ecs";
 import { vec3 } from "../mathD";
 import { Component, Entity } from "../scene";
 
-@ECS.registerComp
+@ECS.registComp
 export class ThirdPersonController extends Component {
     canMove = true;
     moveSpeed: number = 10 * 3.0;
