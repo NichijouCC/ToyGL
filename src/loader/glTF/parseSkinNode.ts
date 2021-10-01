@@ -1,4 +1,4 @@
-import { Skin } from "../../scene/asset/skin";
+import { Skin } from "../../resources/skin";
 import { IGltfJson } from "../loadGltf";
 import { ParseAccessorNode, Accessor } from "./parseAccessorNode";
 import { GlTF } from "./util";

@@ -1,6 +1,6 @@
 import { ShaderProgram, IShaderProgramOption } from "../webgl/shaderProgram";
 import { RenderTypeEnum } from "./renderLayer";
-import { Asset, IGraphicAsset } from "../scene/asset/asset";
+import { Asset } from "../resources/asset";
 import { VertexAttEnum } from "../webgl/vertexAttEnum";
 import { ShaderBucket } from "./shaderBucket";
 import { GraphicsDevice } from "../webgl";

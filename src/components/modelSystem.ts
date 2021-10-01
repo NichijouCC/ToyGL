@@ -24,7 +24,7 @@ export class ModelSystem extends System {
                 }
                 this._toy.gizmos.drawAABB(mesh.boundingBox, comp.entity.worldMatrix);
                 if (skinIns != null) {
-                    skinIns.frameUpdate(this._toy.graphicsDevice);
+                    skinIns.frameUpdate(this._toy.render);
                     let skin = {
                         worldMat: skinIns.uniformMatrixModel,
                         boneMatrices: skinIns.uniformBoneData

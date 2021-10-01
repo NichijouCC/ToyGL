@@ -2,9 +2,9 @@ import { mat4, vec3 } from "../mathD";
 import { DefaultMaterial } from "../resources";
 import { ToyGL } from "../toygl";
 import { VertexAttEnum, ComponentDatatypeEnum, PrimitiveTypeEnum } from "../webgl";
-import { Geometry } from "../scene/asset";
 import { BoundingBox } from "../scene/bounds";
 import { IRenderable } from "../render/irenderable";
+import { Geometry } from "../render";
 
 export class Gizmos {
     private _toy: ToyGL;
@@ -75,7 +75,7 @@ export class Gizmos {
                     }],
                     primitiveType: PrimitiveTypeEnum.LINES
                 }),
-                material: DefaultMaterial.color_3d.clone(),
+                material: DefaultMaterial.color_3d,
                 worldMat: selfWorldMat
             });
         }

@@ -1,4 +1,4 @@
-import { StaticGeometry } from "../../scene/asset/geometry/staticGeometry";
+import { StaticGeometry } from "../geometry/staticGeometry";
 import { DefaultGeometry } from "./defaultGeometry";
 
 export class DefaultMesh {

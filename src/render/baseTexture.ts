@@ -1,4 +1,4 @@
-import { Asset } from "../scene/asset/asset";
+import { Asset } from "../resources/asset";
 import { Texture } from "../webgl/texture";
 import { GraphicsDevice } from "../webgl/graphicsDevice";
 

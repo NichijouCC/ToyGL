@@ -1,9 +1,9 @@
 import { Hud } from "./hud";
 import { InterScene } from "../scene/scene";
-import { DefaultGeometry, DefaultMaterial } from "../resources/index";
+import { DefaultGeometry, DefaultMaterial, TextureAsset } from "../resources/index";
 import { mat4, quat, vec3 } from "../mathD";
-import { Entity, System, TextureAsset } from "../scene/index";
-import { TextureFilterEnum, TextureWrapEnum } from "../webgl/index";
+import { Entity, System } from "../scene/index";
+import { TextureWrapEnum } from "../render";
 
 export class HudSystem extends System {
     caries = { comps: [Hud] };

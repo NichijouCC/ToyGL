@@ -1,5 +1,5 @@
 import { Material } from "./material";
-import { GraphicsDevice } from "../webgl/graphicsDevice";
+import { GraphicsDevice, IEngineOption } from "../webgl/graphicsDevice";
 import { RenderState } from "./renderState";
 import { Frustum } from "./frustum";
 import { BoundingSphere } from "../scene/bounds";
@@ -12,10 +12,10 @@ import { mat4, vec3 } from "../mathD";
 import { BaseTexture } from "./baseTexture";
 import { ICamera } from "./camera";
 export class ForwardRender {
-    private device: GraphicsDevice;
+    readonly device: GraphicsDevice;
     uniformState = new UniformState();
-    constructor(device: GraphicsDevice) {
-        this.device = device;
+    constructor(canvas: HTMLCanvasElement, option?: IEngineOption) {
+        this.device = new GraphicsDevice(canvas, option);
     }
 
     renderList(camera: ICamera[] | ICamera, renderItems: IRenderable[], options?: { onAfterFrustumCull?: (renderInsArr: IRenderable[], viewer: ICamera) => IRenderable[] }) {

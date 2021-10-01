@@ -2,7 +2,7 @@ import { ECS } from "../core/ecs";
 import { IComponent } from "../core/ecs/iecs";
 import { vec3 } from "../mathD";
 import { Component, Entity } from "../scene";
-import { StaticGeometry } from "../scene/asset";
+import { StaticGeometry } from "../resources/index";
 
 @ECS.registComp
 export class BoxCollider extends Component {

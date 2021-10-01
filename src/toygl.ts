@@ -1,10 +1,9 @@
 import { Timer } from "./core/timer";
 import { InterScene } from "./scene/scene";
-import { GraphicsDevice } from "./webgl/graphicsDevice";
-import { Resource } from "./resources/resource";
+import { Resource } from "./resources";
 import { LoadGlTF } from "./loader/loadGltf";
 import { ECS } from "./core/ecs/ecs";
-import { ForwardRender } from "./render/forwardRender";
+import { ForwardRender } from "./render/index";
 import { EventTarget } from "@mtgoo/ctool";
 import { AnimationSystem, ModelSystem, CameraSystem } from "./components/index";
 import { Screen } from "./core/toyScreen";
@@ -18,18 +17,16 @@ export class ToyGL {
         const canvas = screen.canvas;
 
         const timer = new Timer();
-        const device = new GraphicsDevice(canvas);
-        const render = new ForwardRender(device);
+        const render = new ForwardRender(canvas);
         const resource = new Resource();
         const scene = new InterScene(toy);
-        resource.registAssetLoader(".gltf", new LoadGlTF(device));
-        resource.registAssetLoader(".glb", new LoadGlTF(device));
+        resource.registAssetLoader(".gltf", new LoadGlTF());
+        resource.registAssetLoader(".glb", new LoadGlTF());
         ECS.addSystem(new CameraSystem(scene, screen));
         ECS.addSystem(new AnimationSystem());
         ECS.addSystem(new ModelSystem(toy), Number.POSITIVE_INFINITY);
 
         timer.onTick.addEventListener(scene._tick);
-        toy._graphicsDevice = device;
         toy._render = render;
         toy._timer = timer;
         toy._screen = screen;
@@ -45,9 +42,6 @@ export class ToyGL {
 
     private _timer: Timer;
     get timer() { return this._timer; }
-
-    private _graphicsDevice: GraphicsDevice;
-    get graphicsDevice() { return this._graphicsDevice; }
 
     private _render: ForwardRender;
     get render() { return this._render; }

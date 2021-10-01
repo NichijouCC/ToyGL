@@ -1,4 +1,4 @@
-import { AnimationChannel } from "../../asset/animationClip";
+import { AnimationChannel } from "../../../resources/animationClip";
 import { Entity } from "../../entity";
 import { AnimationChannelTargetPath } from "./clipInstance";
 

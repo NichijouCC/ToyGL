@@ -1,7 +1,7 @@
 import { AbsComponent } from "../core/ecs/component";
 import { ECS } from "../core/ecs/ecs";
 import { Entity } from "../scene";
-import { AnimationClip } from "../scene/asset/animationClip";
+import { AnimationClip } from "../resources/animationClip";
 import { ClipInstance, ClipOptions } from "../scene/primitive/animation/clipInstance";
 
 @ECS.registComp

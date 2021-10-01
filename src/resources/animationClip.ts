@@ -1,5 +1,5 @@
 import { Asset } from "./asset";
-import { AnimationChannelTargetPath } from "../primitive/animation/clipInstance";
+import { AnimationChannelTargetPath } from "../scene/primitive/animation/clipInstance";
 
 export class AnimationClip extends Asset {
     channels: AnimationChannel[] = [];

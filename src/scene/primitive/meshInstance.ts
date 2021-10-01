@@ -2,7 +2,7 @@ import { CullingMask } from "../camera";
 import { AssetReference } from "../assetReference";
 import { Material } from "../../render/material";
 import { EventTarget } from "@mtgoo/ctool";
-import { Skin } from "../asset/skin";
+import { Skin } from "../../resources/skin";
 import { SkinInstance } from "./animation/skinInstance";
 import { Entity } from "../entity";
 import { IRenderable } from "../../render/irenderable";

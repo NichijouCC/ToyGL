@@ -1,5 +1,5 @@
 import { IGltfJson } from "../loadGltf";
-import { AnimationClip, AnimationChannel } from "../../scene/asset/animationClip";
+import { AnimationClip, AnimationChannel } from "../../resources/animationClip";
 import { IGltfAnimationSampler, IGltfAnimationChannelTarget, AnimationChannelTargetPath } from "./gltfJsonStruct";
 import { ParseNode } from "./parseNode";
 import { ParseAccessorNode, Accessor } from "./parseAccessorNode";

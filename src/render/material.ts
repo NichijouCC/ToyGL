@@ -1,7 +1,7 @@
 import { Shader, IShaderOption } from "./shader";
 import { RenderTypeEnum } from "./renderLayer";
 import { RenderState } from "./renderState";
-import { Asset } from "../scene/asset/asset";
+import { Asset } from "../resources/asset";
 
 export class Material extends Asset {
     static totalCount: number = 0;

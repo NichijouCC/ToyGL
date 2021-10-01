@@ -1,4 +1,3 @@
-import { Asset, IGraphicAsset } from "../scene/asset/asset";
 import { Texture, ISamplerOptions, Sampler } from "../webgl/texture";
 import { GraphicsDevice } from "../webgl/graphicsDevice";
 import { PixelFormatEnum } from "../webgl/pixelFormatEnum";

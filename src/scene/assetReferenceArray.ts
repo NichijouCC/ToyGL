@@ -1,4 +1,4 @@
-import { Asset } from "./asset/asset";
+import { Asset } from "../resources/asset";
 import { AssetReference } from "./assetReference";
 import { EventTarget } from "@mtgoo/ctool";
 

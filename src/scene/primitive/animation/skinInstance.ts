@@ -1,11 +1,9 @@
 import { Entity } from "../../entity";
 import { mat4, quat, vec3 } from "../../../mathD";
 import { MemoryTexture } from "../../../render/memoryTexture";
-import { GraphicsDevice } from "../../../webgl/graphicsDevice";
 import { CeilingPOT, ceilPowerOfTwo } from "../../../mathD/common";
-import { PixelFormatEnum } from "../../../webgl/pixelFormatEnum";
-import { PixelDatatypeEnum } from "../../../webgl/pixelDatatype";
-import { Skin } from "../../asset/skin";
+import { Skin } from "../../../resources/skin";
+import { PixelFormatEnum, PixelDatatypeEnum, ForwardRender } from "../../../render";
 
 export enum SkinWay {
     /**
@@ -54,7 +52,7 @@ export class SkinInstance {
     }
 
     private beInit: boolean = false;
-    private init(device: GraphicsDevice) {
+    private init(render: ForwardRender) {
         const { skin, attachEntity } = this;
         this._boneInverses = [];
         let searchRoot: Entity;
@@ -101,7 +99,7 @@ export class SkinInstance {
                 size = Math.max(size, 4);
                 this._boneTextureData = new Float32Array(size * size * 4); // 4 floats per RGBA pixel
 
-                if (device.caps.textureFloat) {
+                if (render.device.caps.textureFloat) {
                     this._boneTexture = new MemoryTexture({
                         width: size,
                         height: size,
@@ -127,9 +125,9 @@ export class SkinInstance {
         }
     }
 
-    frameUpdate(device: GraphicsDevice) {
+    frameUpdate(render: ForwardRender) {
         if (this.attachEntity.beActive == false) return;
-        if (!this.beInit) { this.init(device); }
+        if (!this.beInit) { this.init(render); }
         const { bones, rootBone } = this;
         if (SkinInstance.skinWay == SkinWay.UNIFORM_MATS) {
             boneUpdate_a(rootBone, bones, this._boneInverses, this._boneMatrixes);

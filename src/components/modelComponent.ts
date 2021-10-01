@@ -1,10 +1,10 @@
 import { ECS } from "../core/ecs/ecs";
 import { AssetReferenceArray } from "../scene/assetReferenceArray";
 import { AssetReference } from "../scene/assetReference";
-import { StaticGeometry } from "../scene/asset/geometry/staticGeometry";
+import { StaticGeometry } from "../resources/geometry/staticGeometry";
 import { Material } from "../render/material";
 import { SkinInstance } from "../scene/primitive/animation/skinInstance";
-import { Skin } from "../scene/asset/skin";
+import { Skin } from "../resources/skin";
 import { Component, Entity } from "../scene";
 
 @ECS.registComp

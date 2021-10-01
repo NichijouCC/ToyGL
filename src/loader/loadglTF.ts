@@ -4,9 +4,8 @@ import { BinReader } from "../io/stream";
 import { IGltf, IProperty } from "./glTF/gltfJsonStruct";
 import { ParseSceneNode } from "./glTF/parseSceneNode";
 import { Material } from "../render/material";
-import { GraphicsDevice } from "../webgl/graphicsDevice";
 import { IAssetLoader } from "../resources/resource";
-import { Prefab } from "../scene/asset/prefab";
+import { Prefab } from "../resources/prefab";
 import { Texture2D } from "../render/texture2d";
 import { ParseAnimationNode } from "./glTF/parseAnimationNode";
 import { Animation } from "../components/animation";
@@ -41,16 +40,12 @@ export interface IGltfJson extends IGltf {
     cache: GltfNodeCache;
 }
 export class LoadGlTF implements IAssetLoader {
-    private context: GraphicsDevice;
-    constructor(device: GraphicsDevice) {
-        this.context = device;
-    }
 
     load(url: string): Promise<Prefab> {
         return this.loadAsync(url)
             .then(async (gltfJson) => {
                 const scene = gltfJson.scene != null ? gltfJson.scene : 0;
-                const sceneRoot = await ParseSceneNode.parse(scene, gltfJson, this.context);
+                const sceneRoot = await ParseSceneNode.parse(scene, gltfJson);
 
                 if (gltfJson.animations != null) {
                     const animations = await Promise.all(gltfJson.animations.map((item, index) => {

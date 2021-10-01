@@ -1,8 +1,8 @@
 import { Asset } from "../asset";
-import { Geometry } from "../../../render/geometry";
-import { BoundingBox, Bounds, computeMinMax } from "../../bounds";
-import { VertexAttEnum } from "../../../webgl";
-import { vec3 } from "../../../mathD";
+import { Geometry } from "../../render/geometry";
+import { BoundingBox, Bounds, computeMinMax } from "../../scene/bounds";
+import { VertexAttEnum } from "../../webgl";
+import { vec3 } from "../../mathD";
 export class StaticGeometry extends Asset {
     readonly subMeshes: Geometry[] = [];
     readonly boundingBox: BoundingBox;

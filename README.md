@@ -1,8 +1,8 @@
 # ToyGL
-
-## architecture
-- Layer 1: Core,Ecs,io,input
-- Layer 2: Graphics
+    web3d引擎造轮子
+## Architecture
+- Layer 1: Core,Ecs,io,input,webgl
+- Layer 2: Render
 - Layer 3: Scene
 - Layer 4: Components,Systems
 

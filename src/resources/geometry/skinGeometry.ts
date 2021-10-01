@@ -1,4 +1,4 @@
-import { Entity } from "../../entity";
+import { Entity } from "../../scene/entity";
 import { StaticGeometry } from "./staticGeometry";
 
 export interface ISkin {

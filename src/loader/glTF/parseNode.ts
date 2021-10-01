@@ -6,12 +6,12 @@ import { IGltfJson } from "../loadGltf";
 import { GraphicsDevice } from "../../webgl/graphicsDevice";
 import { Entity } from "../../scene/entity";
 import { ModelComponent } from "../../components/modelComponent";
-import { StaticGeometry } from "../../scene/asset/geometry/staticGeometry";
+import { StaticGeometry } from "../../resources/geometry/staticGeometry";
 import { ParseSkinNode } from "./parseSkinNode";
 import { GlTF } from "./util";
 
 export class ParseNode {
-    static parse(index: number, gltf: IGltfJson, root: Entity, context: GraphicsDevice): Promise<Entity> {
+    static parse(index: number, gltf: IGltfJson, root: Entity): Promise<Entity> {
         const node = gltf.nodes[index];
         const name = GlTF.getNodeName(index, gltf);
         const sceneNode = new Entity({ name });
@@ -54,7 +54,7 @@ export class ParseNode {
         if (node.children) {
             for (let i = 0; i < node.children.length; i++) {
                 const nodeIndex = node.children[i];
-                const childTask = this.parse(nodeIndex, gltf, root, context)
+                const childTask = this.parse(nodeIndex, gltf, root)
                     .then(child => {
                         sceneNode.addChild(child);
                     });

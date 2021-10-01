@@ -1,6 +1,4 @@
 import { vec3, mat4 } from "../mathD/index";
-import { VertexAttEnum } from "../webgl/vertexAttEnum";
-import { VertexArray } from "../webgl/vertexArray";
 import { TypedArray } from "../core/typedArray";
 import { Vec3 } from "cannon-es";
 
@@ -157,11 +155,6 @@ export class BoundingSphere {
                 this.radius = dis;
             }
         }
-    }
-
-    static fromVertexArray(vertexArr: VertexArray, center: vec3 = null) {
-        const { vertexAttributes } = vertexArr;
-        return BoundingSphere.fromTypedArray(vertexAttributes[VertexAttEnum.POSITION]?.buffer.data as any);
     }
 
     static fromTypedArray(positions: TypedArray, center: vec3 = null) {
