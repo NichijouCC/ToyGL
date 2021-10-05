@@ -50,7 +50,6 @@ export class ForwardRender {
                 } else {
                     renderList.push(item);
                 }
-                renderList.push(item);
             }
             //做renderItems排序
             if (options?.onAfterFrustumCull != null) {
