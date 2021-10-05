@@ -146,11 +146,9 @@ export class SkinInstance {
 const boneUpdate_a = (() => {
     const offsetMatrix = mat4.create();
     return (rootBone: Entity, bones: Entity[], boneInverses: mat4[], data: Float32Array) => {
-        const mat = rootBone.worldToLocalMatrix;
         for (let i = 0; i < bones.length; i++) {
             const matrix = bones[i] ? bones[i].worldMatrix : mat4.IDENTITY;
             mat4.multiply(offsetMatrix, matrix, boneInverses[i]);
-            mat4.multiply(offsetMatrix, mat, offsetMatrix);
             mat4.toArray(data, offsetMatrix, i * 16);
         }
     };
@@ -162,11 +160,9 @@ const boneUpdate_a = (() => {
 const boneUpdate_c = (() => {
     const offsetMatrix = mat4.create();
     return (rootBone: Entity, bones: Entity[], boneInverses: mat4[], data: Float32Array) => {
-        const mat = rootBone.worldToLocalMatrix;
         for (let i = 0; i < bones.length; i++) {
             const matrix = bones[i] ? bones[i].worldMatrix : mat4.IDENTITY;
             mat4.multiply(offsetMatrix, matrix, boneInverses[i]);
-            mat4.multiply(offsetMatrix, mat, offsetMatrix);
             saveBoneMatToArray(data, offsetMatrix, i);
         }
     };

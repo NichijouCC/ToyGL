@@ -22,7 +22,7 @@ export class ModelSystem extends System {
                     worldMat: worldMatrix,
                     boundingBox: mesh.boundingBox,
                 }
-                this._toy.gizmos.drawAABB(mesh.boundingBox, comp.entity.worldMatrix);
+                // this._toy.gizmos.drawAABB(mesh.boundingBox, comp.entity.worldMatrix);
                 if (skinIns != null) {
                     skinIns.frameUpdate(this._toy.render);
                     let skin = {

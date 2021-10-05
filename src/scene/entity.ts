@@ -37,7 +37,6 @@ export class Entity extends Transform implements IEntity {
         return arr;
     }
 
-    static onDirty = new EventTarget<Entity>();
     private static cloneFrom(from: Entity) {
         const newIns = new Entity();
         newIns.name = from.name;

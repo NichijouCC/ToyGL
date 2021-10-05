@@ -58,7 +58,7 @@ export class HudSystem extends System {
                 });
 
                 if (_mat == null) {
-                    hud._mat = _mat = DefaultMaterial.tex_3d.clone();
+                    hud._mat = _mat = DefaultMaterial.unlit_3d.clone();
                     _mat.renderState.blend.enabled = true;
                 }
                 _mat.setUniformParameter("MainTex", _text2d);

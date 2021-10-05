@@ -1,7 +1,8 @@
-import { CameraComponent } from ".";
-import { Input, KeyCodeEnum, MouseKeyEnum, quat, vec3 } from "..";
+import { CameraComponent } from './cameraComponent';
 import { ECS } from "../core/ecs";
 import { Component } from "../scene";
+import { quat, vec3 } from '../mathD';
+import { Input, KeyCodeEnum, MouseKeyEnum } from '../input';
 
 @ECS.registComp
 export class ManualCamera extends Component {

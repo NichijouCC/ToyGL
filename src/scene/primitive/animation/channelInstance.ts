@@ -1,6 +1,6 @@
+import { numberLerp, quat, vec3 } from "../../../mathD";
 import { AnimationChannel } from "../../../resources/animationClip";
 import { Entity } from "../../entity";
-import { AnimationChannelTargetPath } from "./clipInstance";
 
 export class ChannelInstance {
     channel: AnimationChannel;
@@ -62,4 +62,66 @@ export class ChannelInstance {
             this.setFunc(value, this.target);
         }
     }
+}
+
+
+export enum AnimationChannelTargetPath {
+    /**
+     * Translation
+     */
+    TRANSLATION = "translation",
+    /**
+     * Rotation
+     */
+    ROTATION = "rotation",
+    /**
+     * Scale
+     */
+    SCALE = "scale",
+    /**
+     * Weights
+     */
+    WEIGHTS = "weights",
+}
+export namespace AnimationChannelTargetPath {
+    const temptPos = vec3.create();
+    const temptScale = vec3.create();
+    const temptQuat = quat.create();
+    const funcMap: Map<AnimationChannelTargetPath, (from: any, to: any, lerp: number) => any> = new Map(); {
+        funcMap.set(AnimationChannelTargetPath.ROTATION, (from: quat, to: quat, lerp: number) => {
+            quat.slerp(temptQuat, from, to, lerp);
+            // quat.normalize(temptQuat, temptQuat);
+            return temptQuat;
+        });
+        funcMap.set(AnimationChannelTargetPath.SCALE, (from: vec3, to: vec3, lerp: number) => {
+            vec3.lerp(temptScale, from, to, lerp);
+            return temptScale;
+        });
+        funcMap.set(AnimationChannelTargetPath.TRANSLATION, (from: vec3, to: vec3, lerp: number) => {
+            vec3.lerp(temptPos, from, to, lerp);
+            return temptPos;
+        });
+        funcMap.set(AnimationChannelTargetPath.WEIGHTS, (from: number, to: number, lerp: number) => {
+            return numberLerp(from, to, lerp);
+        });
+    }
+    export const lerpFunc = (value: AnimationChannelTargetPath) => {
+        return funcMap.get(value);
+    };
+
+    const setMap: Map<AnimationChannelTargetPath, (value: any, obj: Entity) => void> = new Map(); {
+        setMap.set(AnimationChannelTargetPath.ROTATION, (value: any, obj: Entity) => {
+            obj.localRotation = value;
+        });
+        setMap.set(AnimationChannelTargetPath.SCALE, (value: any, obj: Entity) => {
+            obj.localScale = value;
+        });
+        setMap.set(AnimationChannelTargetPath.TRANSLATION, (value: any, obj: Entity) => {
+            obj.localPosition = value;
+        });
+    }
+
+    export const setFunc = (value: AnimationChannelTargetPath) => {
+        return setMap.get(value);
+    };
 }

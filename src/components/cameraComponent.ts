@@ -1,9 +1,8 @@
 import { Color, mat4, Rect, vec3 } from "../mathD";
 import { ECS } from "../core/ecs/ecs";
-import { applyMixins } from "../core/util";
-import { Component, Entity } from "../scene";
 import { Camera, LayerMask, ProjectionEnum } from "../render/camera";
 import { ISceneCamera } from "../scene/isceneCamera";
+import { Component, Entity } from "../scene/entity";
 
 @ECS.registComp
 export class CameraComponent extends Component implements ISceneCamera {

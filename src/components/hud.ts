@@ -1,7 +1,8 @@
 import { ECS } from "../core/ecs/ecs";
 import { Rect } from "../mathD/rect";
-import { Component, Entity, Material, Texture2D } from "../scene/index";
+import { Component } from "../scene/index";
 import { vec3 } from "../mathD/index";
+import { Material, Texture2D } from "../render";
 
 @ECS.registComp
 export class Hud extends Component {

@@ -1,5 +1,4 @@
 import { vec3, mat4, quat, mat4Pool, vec3Pool } from "../mathD/index";
-import { Entity } from "./entity";
 import { Entity as BaseEntity } from "../core/ecs";
 enum DirtyFlagEnum {
     WORLD_POS = 0b000100,
@@ -245,7 +244,6 @@ export class Transform extends BaseEntity {
         for (const child of node._children) {
             if (!(child.dirtyFlag & DirtyFlagEnum.WORLD_MAT)) {
                 child.dirtyFlag = child.dirtyFlag | DirtyFlagEnum.WORLD_MAT;
-                Entity.onDirty.raiseEvent(child as any);
                 this.NotifyChildSelfDirty(child);
             }
         }
@@ -257,7 +255,6 @@ export class Transform extends BaseEntity {
     private markDirty() {
         this.dirtyFlag = this.dirtyFlag | DirtyFlagEnum.LOCAL_MAT | DirtyFlagEnum.WORLD_MAT;
         Transform.NotifyChildSelfDirty(this);
-        Entity.onDirty.raiseEvent(this as any);
     }
 
     /// ------------------------------------------父子结构

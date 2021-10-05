@@ -1,7 +1,5 @@
 import { Shader } from "../../render/shader";
 import { VertexAttEnum } from "../../webgl/vertexAttEnum";
-import baseVs from "../../shaders/Unlit.vert.glsl";
-import baseFs from "../../shaders/Unlit.frag.glsl";
 
 namespace Private {
     export const color_2d = new Shader({
@@ -61,19 +59,90 @@ namespace Private {
             gl_FragData[0] = MainColor;
         }`
     });
-    export const tex_3d = new Shader({
+
+    const fsStr = `precision highp float;
+    uniform vec4 MainColor;
+    #ifdef DIFFUSEMAP
+    varying vec2 xlv_TEXCOORD0;
+    uniform sampler2D MainTex;
+    #endif
+    #ifdef AlPHACUT
+    uniform float czm_alphaCut;
+    #endif
+    void main()
+    {
+        #ifdef DIFFUSEMAP
+        vec4 outColor=MainColor*texture2D(MainTex, xlv_TEXCOORD0);
+        #else
+        vec4 outColor=MainColor;
+        #endif
+        #ifdef AlPHACUT
+        if(outColor.a<czm_alphaCut){
+            discard;
+        }
+        #endif
+        gl_FragData[0] = outColor;
+    }`
+
+    export const unlit_3d = new Shader({
+        attributes: {
+            POSITION: VertexAttEnum.POSITION,
+            TEXCOORD_0: VertexAttEnum.TEXCOORD_0
+        },
+        vsStr: `precision highp float;
+        attribute vec4 POSITION;
+        attribute vec2 TEXCOORD_0;
+        varying mediump vec2 xlv_TEXCOORD0;
+        #ifdef SKIN
+        attribute vec4 skinIndex;
+        attribute vec4 skinWeight;
+        uniform mat4 czm_boneMatrices[65];
+        uniform mat4 czm_viewP;
+        vec4 calcVertex(vec4 srcVertex,vec4 blendIndex,vec4 blendWeight)
+        {
+            int i = int(blendIndex.x);  
+            int i2 =int(blendIndex.y);
+            int i3 =int(blendIndex.z);
+            int i4 =int(blendIndex.w);
+            
+            mat4 mat = czm_boneMatrices[i]*blendWeight.x 
+                    + czm_boneMatrices[i2]*blendWeight.y 
+                    + czm_boneMatrices[i3]*blendWeight.z 
+                    + czm_boneMatrices[i4]*blendWeight.w;
+            return mat* srcVertex;
+        }
+        #else
+        uniform mat4 czm_modelViewP;
+        #endif
+        void main()
+        {
+            vec4 position=POSITION;
+            #ifdef SKIN
+            position =calcVertex(position,skinIndex,skinWeight);
+            gl_Position = czm_viewP * position;
+            #else
+            gl_Position = czm_modelViewP * position;
+            #endif
+            xlv_TEXCOORD0 = TEXCOORD_0.xy;
+        }`,
+        fsStr: fsStr
+    });
+    /**
+     * 优化骨骼运算，每个骨骼占用：1 location + 1 quat
+     */
+    export const unlit_3d_1 = new Shader({
         attributes: {
             POSITION: VertexAttEnum.POSITION,
             TEXCOORD_0: VertexAttEnum.TEXCOORD_0
         },
         vsStr: `precision highp float;
         attribute vec3 TEXCOORD_0;
-        uniform mat4 czm_modelViewP;
         varying mediump vec2 xlv_TEXCOORD0;
         #ifdef SKIN
+        uniform mat4 czm_viewP;
         attribute vec4 skinIndex;
         attribute vec4 skinWeight;
-        uniform float czm_boneMatrices[420];
+        uniform float czm_boneMatrices[450];
         
         vec3 rotate_vector( vec4 quat, vec3 vec )
         {
@@ -96,7 +165,7 @@ namespace Private {
             int i2 =int(blendIndex.y);
             int i3 =int(blendIndex.z);
             int i4 =int(blendIndex.w);
-
+        
             vec3 endPos=blendBone(srcVertex.xyz,i)*blendWeight.x
                     +blendBone(srcVertex.xyz,i2)*blendWeight.y
                     +blendBone(srcVertex.xyz,i3)*blendWeight.z
@@ -104,6 +173,8 @@ namespace Private {
         
             return vec4(endPos,1.0);
         }
+        #else
+        uniform mat4 czm_modelViewP;
         #endif
         attribute vec3 POSITION;
         void main()
@@ -111,44 +182,19 @@ namespace Private {
             vec4 position=vec4(POSITION.xyz,1.0);
             #ifdef SKIN
             position =calcVertex(position,skinIndex,skinWeight);
-            #endif
-
-            xlv_TEXCOORD0 = TEXCOORD_0.xy;
+            gl_Position = czm_viewP * position;
+            #else
             gl_Position = czm_modelViewP * position;
-        }`,
-        fsStr: `precision highp float;
-        uniform vec4 MainColor;
-        varying vec2 xlv_TEXCOORD0;
-        uniform sampler2D MainTex;
-        #ifdef AlPHACUT
-        uniform float czm_alphaCut;
-        #endif
-        void main()
-        {
-            vec4 outColor=texture2D(MainTex, xlv_TEXCOORD0)*MainColor;
-            outColor.a=1.0;
-            #ifdef AlPHACUT
-            if(outColor.a<czm_alphaCut){
-                discard;
-            }
             #endif
-            gl_FragData[0] = outColor;
-        }`
-    });
-
-    export const unlit_3d = new Shader({
-        attributes: {
-            POSITION: VertexAttEnum.POSITION,
-            TEXCOORD_0: VertexAttEnum.TEXCOORD_0
-        },
-        vsStr: baseVs,
-        fsStr: baseFs
+            xlv_TEXCOORD0 = TEXCOORD_0.xy;
+        }`,
+        fsStr: fsStr
     });
 }
 export class DefaultShader {
     static get color_2d() { return Private.color_2d; };
     static get color_3d() { return Private.color_3d; };
     static get tex_2d() { return Private.tex_2d; };
-    static get tex_3d() { return Private.tex_3d; };
     static get unlit_3d() { return Private.unlit_3d; };
+    static get unlit_3d_1() { return Private.unlit_3d_1; };
 }

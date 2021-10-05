@@ -1,7 +1,5 @@
-import { DefaultMaterial } from "../resources";
-import { PrimitiveTypeEnum, VertexAttEnum } from "..";
+import { Geometry, PrimitiveTypeEnum, VertexAttEnum } from "../render";
 import { loadArrayBuffer } from "../io";
-import { Asset, Geometry, StaticGeometry } from "../scene";
 import { IAssetLoader } from "../resources/resource";
 
 interface IHeader {
@@ -258,7 +256,6 @@ export class LoadPLY implements IAssetLoader {
 
         function binaryRead(dataview: DataView, at: number, type: string, little_endian: boolean): [number, number] {
             switch (type) {
-                // corespondences for non-specific length types here match rply:
                 case 'int8': case 'char': return [dataview.getInt8(at), 1];
                 case 'uint8': case 'uchar': return [dataview.getUint8(at), 1];
                 case 'int16': case 'short': return [dataview.getInt16(at, little_endian), 2];

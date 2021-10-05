@@ -1,7 +1,7 @@
 import { ECS } from "../core/ecs";
 import { IComponent } from "../core/ecs/iecs";
 import { vec3 } from "../mathD";
-import { Component, Entity } from "../scene";
+import { Component, Entity } from "../scene/entity";
 import { StaticGeometry } from "../resources/index";
 
 @ECS.registComp

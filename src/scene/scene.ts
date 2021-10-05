@@ -3,10 +3,11 @@ import { Entity } from "./entity";
 import { FrameState } from "./frameState";
 import { ToyGL } from "../toygl";
 import { mat4, vec2, vec3, vec4 } from "../mathD";
-import { CameraComponent, PhysicsWorld } from "../components";
 import { Input } from "../input";
 import { ECS, COMPS, UPDATE } from "../core/ecs";
 import { IRenderable, ICamera, RenderTypeEnum } from "../render";
+import { CameraComponent } from "../components/cameraComponent";
+import { PhysicsWorld } from "../components/colliderSystem";
 
 export class InterScene {
     private _toy: ToyGL;
