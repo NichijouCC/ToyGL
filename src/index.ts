@@ -2,7 +2,6 @@ export * from "./toygl";
 export * from "./input/index";
 export * from "./io/index";
 export * from "./mathD/index";
-export * from "./webgl/index";
 export * from "./render/index";
 export * from "./resources/index";
 export * from "./scene/index";

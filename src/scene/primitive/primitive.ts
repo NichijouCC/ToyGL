@@ -1,8 +1,8 @@
 import { GeometryInstance } from "./geometryInstance";
 import { Geometry } from "../../render/geometry";
 import { mat4 } from "../../mathD";
-import { VertexArray } from "../../webgl/vertexArray";
 import { IRenderable } from "../../render/irenderable";
+import { VertexArray } from "../../render";
 
 /**
  * @example

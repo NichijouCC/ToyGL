@@ -1,8 +1,8 @@
 import { GeometryInstance } from "./geometryInstance";
 import { mat4 } from "../../mathD";
-import { VertexAttEnum } from "../../webgl/vertexAttEnum";
 import { Geometry } from "../../render/geometry";
 import { TypedArray } from "../../core/typedArray";
+import { VertexAttEnum } from "../../render";
 
 export class GeometryPipeline {
     static transformToWorldCoordinates(instance: GeometryInstance, modelMatrix: mat4) {

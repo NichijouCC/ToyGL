@@ -15,11 +15,4 @@ export * from './frustum';
 export * from './irenderable';
 export * from './forwardRender';
 export * from './uniformState';
-
-export * from "../webgl/pixelFormatEnum";
-export * from "../webgl/primitiveTypeEnum";
-export * from '../webgl/textureFilterEnum';
-export * from '../webgl/textureWrapEnum';
-export * from '../webgl/vertexAttEnum';
-export { BufferUsageEnum, BufferTargetEnum } from '../webgl/buffer';
-export * from '../webgl/pixelDatatype';
+export * from '../webgl';

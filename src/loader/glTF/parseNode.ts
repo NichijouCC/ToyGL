@@ -3,7 +3,6 @@ import { mat4, vec3, quat } from "../../mathD/index";
 import { ParseCameraNode } from "./parseCameraNode";
 import { ParseMeshNode } from "./parseMeshNode";
 import { IGltfJson } from "../loadGltf";
-import { GraphicsDevice } from "../../webgl/graphicsDevice";
 import { Entity } from "../../scene/entity";
 import { ModelComponent } from "../../components/modelComponent";
 import { StaticGeometry } from "../../resources/geometry/staticGeometry";

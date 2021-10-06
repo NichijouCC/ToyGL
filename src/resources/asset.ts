@@ -1,5 +1,4 @@
 import { UniqueObject } from "../core/uniqueObject";
-import { GraphicsDevice } from "../webgl/graphicsDevice";
 import { EventTarget } from "@mtgoo/ctool";
 
 export abstract class Asset extends UniqueObject {

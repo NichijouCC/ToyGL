@@ -125,7 +125,7 @@ export class DeviceCapability {
         }
 
         // Checks if some of the format renders first to allow the use of webgl inspector.
-        this.colorBufferFloat = _webGLVersion > 1 && _gl.getExtension("EXT_color_buffer_float");
+        this.colorBufferFloat = _webGLVersion > 1 && _gl.getExtension("EXT_color_buffer_float") != null;
 
         this.textureFloat = !!(_webGLVersion > 1 || _gl.getExtension("OES_texture_float"));
         this.textureFloatLinearFiltering =
