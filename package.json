@@ -4,7 +4,7 @@
   "description": "",
   "keywords": [],
   "main": "dist/toygl.umd.js",
-  "module": "dist/toygl.es5.js",
+  "module": "dist/toygl.es.js",
   "typings": "dist/types/toygl.d.ts",
   "files": [
     "dist"

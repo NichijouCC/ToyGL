@@ -4,16 +4,15 @@ import sourceMaps from "rollup-plugin-sourcemaps";
 // import camelCase from 'lodash.camelcase'
 import typescript from "rollup-plugin-typescript2";
 import json from "rollup-plugin-json";
-import glslify from 'rollup-plugin-glslify';
+// import glslify from 'rollup-plugin-glslify';
 
 const pkg = require("./package.json");
 
-const libraryName = "toygl";
 
 export default {
-    input: `src/${libraryName}.ts`,
+    input: `src/index.ts`,
     output: [
-        { file: pkg.main, name: libraryName, format: "umd", sourcemap: true },
+        { file: pkg.main, name: "toygl", format: "umd", sourcemap: true },
         { file: pkg.module, format: "es", sourcemap: true }
     ],
     // Indicate here external modules you don't wanna include in your bundle (i.e.: 'lodash')
@@ -22,7 +21,7 @@ export default {
         include: "src/**"
     },
     plugins: [
-        glslify(),
+        // glslify(),
         // Allow json resolution
         json(),
         // Compile TypeScript files
