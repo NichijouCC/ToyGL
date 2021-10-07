@@ -6,3 +6,4 @@ export * from "./render/index";
 export * from "./resources/index";
 export * from "./scene/index";
 export * from "./components/index";
+export * from "./loader/index";

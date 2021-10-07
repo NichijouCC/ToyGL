@@ -1,4 +1,4 @@
-import { Color, mat4, Rect, vec3 } from "../mathD";
+import { Color, mat4, quat, Rect, vec3 } from "../mathD";
 import { ECS } from "../core/ecs/ecs";
 import { Camera, LayerMask, ProjectionEnum } from "../render/camera";
 import { ISceneCamera } from "../scene/isceneCamera";
@@ -127,7 +127,13 @@ export class CameraComponent extends Component implements ISceneCamera {
     lookAtPoint(point: vec3) {
         this.entity?.lookAtPoint(point);
     }
-
+    viewTargetPoint(point: vec3, distance: number, angle: vec3 = vec3.fromValues(-45, 0, 0)) {
+        let rot = quat.fromEuler(quat.create(), angle[0], angle[1], angle[2]);
+        let forward = vec3.transformQuat(vec3.create(), vec3.FORWARD, rot);
+        let camPos = vec3.scaleAndAdd(vec3.create(), point, forward, distance);
+        this.entity.worldPosition = camPos;
+        this.entity.worldRotation = rot;
+    }
     lookAt(node: Entity) {
         this.entity?.lookAt(node);
     }

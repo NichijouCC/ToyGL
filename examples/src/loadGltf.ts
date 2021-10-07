@@ -1,5 +1,4 @@
-import { quat, vec3 } from "TOYGL";
-import { Prefab } from "../../src/scene/asset/prefab";
+import { Prefab, quat, vec3 } from "TOYGL";
 import { initToy } from "./util";
 
 const toy = initToy();

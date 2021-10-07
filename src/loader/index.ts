@@ -1,2 +1,2 @@
-export * from './loadglTF';
+export * from './loadGltf';
 export * from './loadPly';

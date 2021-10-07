@@ -1,6 +1,5 @@
-import { Color, DefaultMaterial, Geometry, ManualCamera, mat4, Material, VertexAttEnum } from "TOYGL";
+import { Color, DefaultMaterial, Geometry, LoadPLY, ManualCamera, mat4, Material, vec3, VertexAttEnum } from "TOYGL";
 import { initToy } from "./util";
-import { LoadPLY } from "../../src/resources/loader/loadPly";
 
 const toy = initToy();
 
@@ -25,7 +24,7 @@ let mat = new Material({
         
             //计算颜色
             vec4 black = vec4(0.,0.,0.,1.);
-            float p_h=(POSITION.z - height_bottom)/(height_top - height_bottom);
+            float p_h=(POSITION.y - height_bottom)/(height_top - height_bottom);
             float h = 1./3.; // adjust position of middleColor
             float h2 = 2./3.; // adjust position of middleColor
         
@@ -56,7 +55,7 @@ let mat = new Material({
 });
 
 
-toy.resource.registerAssetLoader(".ply", new LoadPLY())
+toy.resource.registAssetLoader(".ply", new LoadPLY())
 toy.resource.load<Geometry>("./aisland.ply")
     .then(asset => {
         toy.scene.addRenderIns({
@@ -64,7 +63,13 @@ toy.resource.load<Geometry>("./aisland.ply")
             material: mat,
             worldMat: mat4.clone(mat4.IDENTITY)
         });
+        let { center, halfSize } = asset.boundingBox;
+        toy.scene.mainCamera.viewTargetPoint(center, 400, vec3.fromValues(-90, 0, 0));
+        let height_top = center[1] + halfSize[1];
+        let height_bottom = center[1] - halfSize[1];
 
-        toy.scene.mainCamera.lookAtPoint(asset.boundingBox.center);
+        mat.setUniformParameter("height_top", height_top);
+        mat.setUniformParameter("height_bottom", height_bottom);
+
         toy.scene.mainCamera.entity.addComponent(ManualCamera)
     });

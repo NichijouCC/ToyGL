@@ -232,7 +232,7 @@ export class LoadPLY implements IAssetLoader {
         function handleElement(buffer: IData, elementName: string, props: { [name: string]: any }) {
             if (elementName === 'vertex') {
                 if ('x' in props && 'y' in props && 'z' in props) {
-                    buffer.vertices.push(props.x, props.y, props.z);
+                    buffer.vertices.push(props.x, props.z, -1 * props.y);
                 }
                 if ('nx' in props && 'ny' in props && 'nz' in props) {
                     buffer.normals.push(props.nx, props.ny, props.nz);

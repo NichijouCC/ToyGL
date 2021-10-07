@@ -1,15 +1,14 @@
-import { ToyGL, Material, DefaultGeometry, DefaultTexture, Color, VertexAttEnum, Texture2D, IViewer, MeshInstance, quat, TextureAsset } from "TOYGL";
+import { ToyGL, Material, DefaultGeometry, DefaultTexture, Color, VertexAttEnum, Texture2D, quat, TextureAsset, mat4, vec3 } from "TOYGL";
 import { initToy } from "./util";
 
 const toy = initToy();
-const { scene } = toy;
 const geometry = DefaultGeometry.quad2d;
 const material = new Material({
     uniformParameters: {
         MainColor: Color.create(0, 1.0, 0.0, 1.0),
         _MainTex: DefaultTexture.grid
     },
-    shaderOption: {
+    shader: {
         vsStr: `attribute vec3 POSITION;
                 attribute vec3 TEXCOORD_0;
                 varying mediump vec2 xlv_TEXCOORD0;
@@ -37,21 +36,20 @@ TextureAsset.fromUrl({ image: "./resources/glTF/duck/DuckCM.png" })
         material.setUniformParameter("_MainTex", tex);
     });
 
-const ins = MeshInstance.create({
+let ins = toy.scene.addRenderIns({
     geometry,
     material,
-    node: scene.addNewChild()
+    worldMat: mat4.create()
 });
-toy.scene.addRenderIns(ins);
 
 const cam = toy.scene.addNewCamera();
-cam.node.localPosition[2] = 5;
+cam.entity.localPosition[2] = 5;
 
 let roty = 0;
 let totalTime = 0;
 toy.scene.preUpdate.addEventListener((delta) => {
     roty += delta * 15;
     totalTime += delta;
-    ins.node.localRotation = quat.fromEuler(ins.node.localRotation, 0, roty, 0);
+    ins.worldMat = mat4.fromRotation(ins.worldMat, roty * Math.PI / 180, vec3.UP);
     material.setUniformParameter("timer", totalTime);
 });
