@@ -30,7 +30,6 @@ export class ShaderProgram implements IShaderProgram {
     program: WebGLProgram;
     uniforms: { [name: string]: IUniformInfo; };
     attributes: { [type: string]: IAttributeInfo; };
-    private static _cachedProgram: WebGLProgram;
 
     constructor(context: GraphicsDevice, options: IShaderProgramOption) {
         const res = compileAndLinkShader(context.gl, options);
@@ -54,16 +53,16 @@ export class ShaderProgram implements IShaderProgram {
 
         const gl = context.gl;
         this.bind = () => {
-            const beChanged = this.program != ShaderProgram._cachedProgram;
+            const beChanged = this.program != context.bindingProgram;
             if (beChanged) {
                 gl.useProgram(this.program);
-                ShaderProgram._cachedProgram = this.program;
+                context.bindingProgram = this.program;
             }
             return beChanged;
         };
         this.unbind = () => {
             gl.useProgram(null);
-            ShaderProgram._cachedProgram = null;
+            context.bindingProgram = null;
         };
     }
 

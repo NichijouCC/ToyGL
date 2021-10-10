@@ -5,17 +5,15 @@ import { Entity, Screen, System } from "../scene/index";
 export class CameraSystem extends System {
     caries = { comps: [CameraComponent] };
     private scene: InterScene;
-    private screen: Screen;
-    constructor(scene: InterScene, screen: Screen) {
+    constructor(scene: InterScene) {
         super();
         this.scene = scene;
-        this.screen = screen;
         this.on("addEntity", (e) => {
             let cam = e.entity.getComponent(CameraComponent);
-            cam[CAMERA_ASPECT] = screen.width / screen.height;
+            cam[CAMERA_ASPECT] = scene.screen.width / scene.screen.height;
             scene._cameras.push(cam);
         });
-        screen.onresize.addEventListener((ev) => {
+        this.scene.screen.onresize.addEventListener((ev) => {
             this.scene._cameras.forEach(item => item[CAMERA_ASPECT] = ev.width / ev.height);
         });
     }

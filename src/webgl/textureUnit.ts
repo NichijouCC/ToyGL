@@ -27,4 +27,7 @@ export class TextureUnit {
             return false
         }
     }
+    clear() {
+        this.unitDic = {};
+    }
 }

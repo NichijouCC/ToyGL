@@ -1,23 +1,22 @@
 import { Input, KeyCodeEnum, MouseKeyEnum } from "../input";
 import { mat4, quat, vec3, vec4 } from "../mathD";
-import { System } from "../scene";
-import { ToyGL } from "../toygl";
+import { InterScene, System } from "../scene";
 import { ThirdPersonController } from "./thirdPersonController";
 
 export class ThirdPersonCtrSystem extends System {
     caries = { comps: [ThirdPersonController] };
-    private _toy: ToyGL;
-    constructor(toy: ToyGL) {
+    private _scene: InterScene;
+    constructor(scene: InterScene) {
         super();
-        this._toy = toy;
+        this._scene = scene;
     }
 
     private targeCtr: ThirdPersonController;
     private rotAngle = 0;
 
-    onCreate() {
+    async init() {
         Input.mouse.on("mousemove", (ev) => {
-            if (this._toy.scene == null || this.targeCtr == null) return;
+            if (this._scene == null || this.targeCtr == null) return;
             if (Input.getMouseDown(MouseKeyEnum.Left)) {
                 this.rotAngle += 0.1 * ev.movementX * this.targeCtr.camRotSpeed;
             }
@@ -30,8 +29,8 @@ export class ThirdPersonCtrSystem extends System {
         const temptRot = quat.create();
 
         Input.mouse.on("mousewheel", (ev) => {
-            if (this._toy.scene == null || this.targeCtr == null) return;
-            const camNode = this._toy.scene.mainCamera;
+            if (this._scene?.mainCamera == null || this.targeCtr == null) return;
+            const camNode = this._scene.mainCamera;
             const { moveSpeed, rotSpeed, entity } = this.targeCtr;
             vec3.copy(camNodeForward, camNode.forwardInWorld);
             vec3.projectToPlan(camNodeForward, camNodeForward, vec3.UP);
@@ -71,7 +70,7 @@ export class ThirdPersonCtrSystem extends System {
         let camWorldPos = vec3.create();
 
         return (delta: number) => {
-            if (this.queries.comps.length == 0) return;
+            if (this.queries.comps.length == 0 || this._scene?.mainCamera == null) return;
             const comp = this.queries.comps[0].getComponent(ThirdPersonController);
             this.targeCtr = comp;
             if (!comp.canMove) return;
@@ -90,7 +89,7 @@ export class ThirdPersonCtrSystem extends System {
             }
 
             const { moveSpeed, rotSpeed, dirToCamera, distanceToCam, entity } = comp;
-            const cam = this._toy.scene.mainCamera;
+            const cam = this._scene.mainCamera;
             if (vec3.len(dir) != 0) {
                 const worldPos = entity.worldPosition;
                 mat4.transformVector(moveForward, dir, cam.worldMatrix);
@@ -104,7 +103,7 @@ export class ThirdPersonCtrSystem extends System {
                     vec3.copy(temptStartPos, worldPos);
                     temptStartPos[1] += 1;
                     vec3.scaleAndAdd(temptEndPos, temptStartPos, moveForward, 1.3);
-                    const result = this._toy.scene.intersectCollider(temptStartPos, temptEndPos);
+                    const result = this._scene.intersectCollider(temptStartPos, temptEndPos);
                     // this._toy.gizmos.drawLine(temptStartPos, temptEndPos);
 
                     if (!result.hasHit) {

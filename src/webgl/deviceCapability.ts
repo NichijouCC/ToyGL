@@ -85,78 +85,6 @@ export class DeviceCapability {
     constructor(context: GraphicsDevice) {
         const _gl = context.gl;
         const _webGLVersion = context.webGLVersion;
-        // Extensions
-        this.standardDerivatives = _webGLVersion > 1 || _gl.getExtension("OES_standard_derivatives") !== null;
-        this.astc =
-            _gl.getExtension("WEBGL_compressed_texture_astc") ||
-            _gl.getExtension("WEBKIT_WEBGL_compressed_texture_astc");
-        this.s3tc =
-            _gl.getExtension("WEBGL_compressed_texture_s3tc") ||
-            _gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc");
-        this.pvrtc =
-            _gl.getExtension("WEBGL_compressed_texture_pvrtc") ||
-            _gl.getExtension("WEBKIT_WEBGL_compressed_texture_pvrtc");
-        this.etc1 =
-            _gl.getExtension("WEBGL_compressed_texture_etc1") ||
-            _gl.getExtension("WEBKIT_WEBGL_compressed_texture_etc1");
-        this.etc2 =
-            _gl.getExtension("WEBGL_compressed_texture_etc") ||
-            _gl.getExtension("WEBKIT_WEBGL_compressed_texture_etc") ||
-            _gl.getExtension("WEBGL_compressed_texture_es3_0"); // also a requirement of OpenGL ES 3
-
-        this.textureAnisotropicFilterExtension =
-            _gl.getExtension("EXT_texture_filter_anisotropic") ||
-            _gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic") ||
-            _gl.getExtension("MOZ_EXT_texture_filter_anisotropic");
-        this.maxAnisotropy = this.textureAnisotropicFilterExtension
-            ? _gl.getParameter(this.textureAnisotropicFilterExtension.MAX_TEXTURE_MAX_ANISOTROPY_EXT)
-            : 0;
-        this.uintIndices = _webGLVersion > 1 || _gl.getExtension("OES_element_index_uint") !== null;
-        this.fragmentDepthSupported = _webGLVersion > 1 || _gl.getExtension("EXT_frag_depth") !== null;
-        this.highPrecisionShaderSupported = false;
-        this.timerQuery =
-            _gl.getExtension("EXT_disjoint_timer_query_webgl2") || _gl.getExtension("EXT_disjoint_timer_query");
-        if (this.timerQuery) {
-            if (_webGLVersion === 1) {
-                _gl.getQuery = (this.timerQuery as any).getQueryEXT.bind(this.timerQuery);
-            }
-            this.canUseTimestampForTimerQuery =
-                _gl.getQuery(this.timerQuery.TIMESTAMP_EXT, this.timerQuery.QUERY_COUNTER_BITS_EXT) > 0;
-        }
-
-        // Checks if some of the format renders first to allow the use of webgl inspector.
-        this.colorBufferFloat = _webGLVersion > 1 && _gl.getExtension("EXT_color_buffer_float") != null;
-
-        this.textureFloat = !!(_webGLVersion > 1 || _gl.getExtension("OES_texture_float"));
-        this.textureFloatLinearFiltering =
-            !!(this.textureFloat && _gl.getExtension("OES_texture_float_linear"));
-        this.textureFloatRender =
-            !!(this.textureFloat && this._canRenderToFloatFramebuffer(_gl, _webGLVersion));
-
-        this.textureHalfFloat = !!(_webGLVersion > 1 || _gl.getExtension("OES_texture_half_float"));
-        this.textureHalfFloatLinearFiltering =
-            !!(_webGLVersion > 1 || (this.textureHalfFloat && _gl.getExtension("OES_texture_half_float_linear")));
-        this.textureHalfFloatRender =
-            this.textureHalfFloat && this._canRenderToHalfFloatFramebuffer(_gl, _webGLVersion);
-
-        this.textureLOD = !!(_webGLVersion > 1 || _gl.getExtension("EXT_shader_texture_lod"));
-
-        this.multiview = _gl.getExtension("OVR_multiview2");
-
-        // Shader compiler threads
-        this.parallelShaderCompile = _gl.getExtension("KHR_parallel_shader_compile");
-
-        // Depth Texture
-        if (_webGLVersion > 1) {
-            this.depthTexture = true;
-        } else {
-            var depthTextureExtension = _gl.getExtension("WEBGL_depth_texture");
-
-            if (depthTextureExtension != null) {
-                this.depthTexture = true;
-                // _gl.UNSIGNED_INT_24_8 = depthTextureExtension.UNSIGNED_INT_24_8_WEBGL;
-            }
-        }
 
         // Vertex array object
         if (_webGLVersion > 1) {
@@ -189,6 +117,81 @@ export class DeviceCapability {
                 this.instancedArrays = false;
             }
         }
+
+        // // Extensions
+        // this.standardDerivatives = _webGLVersion > 1 || _gl.getExtension("OES_standard_derivatives") !== null;
+        // this.astc =
+        //     _gl.getExtension("WEBGL_compressed_texture_astc") ||
+        //     _gl.getExtension("WEBKIT_WEBGL_compressed_texture_astc");
+        // this.s3tc =
+        //     _gl.getExtension("WEBGL_compressed_texture_s3tc") ||
+        //     _gl.getExtension("WEBKIT_WEBGL_compressed_texture_s3tc");
+        // this.pvrtc =
+        //     _gl.getExtension("WEBGL_compressed_texture_pvrtc") ||
+        //     _gl.getExtension("WEBKIT_WEBGL_compressed_texture_pvrtc");
+        // this.etc1 =
+        //     _gl.getExtension("WEBGL_compressed_texture_etc1") ||
+        //     _gl.getExtension("WEBKIT_WEBGL_compressed_texture_etc1");
+        // this.etc2 =
+        //     _gl.getExtension("WEBGL_compressed_texture_etc") ||
+        //     _gl.getExtension("WEBKIT_WEBGL_compressed_texture_etc") ||
+        //     _gl.getExtension("WEBGL_compressed_texture_es3_0"); // also a requirement of OpenGL ES 3
+
+        // this.textureAnisotropicFilterExtension =
+        //     _gl.getExtension("EXT_texture_filter_anisotropic") ||
+        //     _gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic") ||
+        //     _gl.getExtension("MOZ_EXT_texture_filter_anisotropic");
+        // this.maxAnisotropy = this.textureAnisotropicFilterExtension
+        //     ? _gl.getParameter(this.textureAnisotropicFilterExtension.MAX_TEXTURE_MAX_ANISOTROPY_EXT)
+        //     : 0;
+        // this.uintIndices = _webGLVersion > 1 || _gl.getExtension("OES_element_index_uint") !== null;
+        // this.fragmentDepthSupported = _webGLVersion > 1 || _gl.getExtension("EXT_frag_depth") !== null;
+        // this.highPrecisionShaderSupported = false;
+        // this.timerQuery =
+        //     _gl.getExtension("EXT_disjoint_timer_query_webgl2") || _gl.getExtension("EXT_disjoint_timer_query");
+        // if (this.timerQuery) {
+        //     if (_webGLVersion === 1) {
+        //         _gl.getQuery = (this.timerQuery as any).getQueryEXT.bind(this.timerQuery);
+        //     }
+        //     this.canUseTimestampForTimerQuery =
+        //         _gl.getQuery(this.timerQuery.TIMESTAMP_EXT, this.timerQuery.QUERY_COUNTER_BITS_EXT) > 0;
+        // }
+
+        // // Checks if some of the format renders first to allow the use of webgl inspector.
+        // this.colorBufferFloat = _webGLVersion > 1 && _gl.getExtension("EXT_color_buffer_float") != null;
+
+        // this.textureFloat = !!(_webGLVersion > 1 || _gl.getExtension("OES_texture_float"));
+        // this.textureFloatLinearFiltering =
+        //     !!(this.textureFloat && _gl.getExtension("OES_texture_float_linear"));
+        // this.textureFloatRender =
+        //     !!(this.textureFloat && this._canRenderToFloatFramebuffer(_gl, _webGLVersion));
+
+        // this.textureHalfFloat = !!(_webGLVersion > 1 || _gl.getExtension("OES_texture_half_float"));
+        // this.textureHalfFloatLinearFiltering =
+        //     !!(_webGLVersion > 1 || (this.textureHalfFloat && _gl.getExtension("OES_texture_half_float_linear")));
+        // this.textureHalfFloatRender =
+        //     this.textureHalfFloat && this._canRenderToHalfFloatFramebuffer(_gl, _webGLVersion);
+
+        // this.textureLOD = !!(_webGLVersion > 1 || _gl.getExtension("EXT_shader_texture_lod"));
+
+        // this.multiview = _gl.getExtension("OVR_multiview2");
+
+        // // Shader compiler threads
+        // this.parallelShaderCompile = _gl.getExtension("KHR_parallel_shader_compile");
+
+        // // Depth Texture
+        // if (_webGLVersion > 1) {
+        //     this.depthTexture = true;
+        // } else {
+        //     var depthTextureExtension = _gl.getExtension("WEBGL_depth_texture");
+
+        //     if (depthTextureExtension != null) {
+        //         this.depthTexture = true;
+        //         // _gl.UNSIGNED_INT_24_8 = depthTextureExtension.UNSIGNED_INT_24_8_WEBGL;
+        //     }
+        // }
+
+
     }
 
     private _canRenderToFloatFramebuffer(_gl: WebGLRenderingContext, _webGLVersion: number): boolean {
@@ -217,7 +220,7 @@ export function CheckCanRenderToFrameBuffer(
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     const interFormat = texType === GlConstants.FLOAT ? GlConstants.RGBA32F : GlConstants.RGBA16F;
-    gl.texImage2D(gl.TEXTURE_2D, 0, interFormat, 1, 1, 0, gl.RGBA, texType, null);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, texType, null);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 

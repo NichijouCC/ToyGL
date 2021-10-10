@@ -27,6 +27,23 @@ export function LoadScript(scriptUrl: string): Promise<void> {
     });
 }
 
+export function LoadCss(cssUrl: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        var head = document.getElementsByTagName("head")[0];
+        var link = document.createElement("link");
+        link.setAttribute("type", "text/css");
+        link.setAttribute("rel", "stylesheet");
+        link.setAttribute("href", cssUrl);
+        head.appendChild(link);
+        link.onload = () => {
+            resolve();
+        };
+        link.onerror = e => {
+            reject(e);
+        };
+    });
+}
+
 interface IDownloadInfo {
     loaded: number;
     total: number;

@@ -11,3 +11,4 @@ export * from "./thirdPersonCtrSystem";
 export * from "./collider";
 export * from "./colliderSystem";
 export * from './manualCamera';
+export * from './mapboxSystem';

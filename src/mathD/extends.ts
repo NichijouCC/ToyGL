@@ -1,7 +1,7 @@
 import { vec3 as glVec3, vec4 as glVec4, mat4 as glMat4, quat as glQuat } from "gl-matrix";
 import { TypedArray } from "../core/typedArray";
 
-export { vec2, mat2, mat2d, mat3 } from 'gl-matrix';
+export { vec2, mat2, mat2d, mat3, glMatrix } from 'gl-matrix';
 
 export type vec3 = glVec3;
 export const vec3 = Object.assign({

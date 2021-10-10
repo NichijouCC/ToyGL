@@ -11,11 +11,12 @@ import { IFrameBufferTexOpts, IImageSourceTexOpts, ITypedArrayTexOpts, Texture }
 import { FrameBuffer, IFrameBufferOptions } from "./framebuffer";
 import { TextureUnit } from "./textureUnit";
 import { IVertexAttributeOption, VertexAttribute } from "./vertexAttribute";
-import { Buffer, bufferOption } from "./buffer";
+import { Buffer, bufferOption, BufferTargetEnum } from "./buffer";
 import { VertexBuffer } from "./vertexBuffer";
 
 export interface IEngineOption {
     disableWebgl2?: boolean;
+    gl?: WebGLRenderingContext;
 }
 type DistributiveOmit<T, K extends keyof any> = T extends any ? Omit<T, K> : never;
 
@@ -28,27 +29,32 @@ export class GraphicsDevice {
     readonly units: TextureUnit;
     bindingVao: WebGLVertexArrayObject = null;
     bindingBuffer: WebGLBuffer = null;
+    bindingProgram: WebGLProgram = null;
     constructor(canvas: HTMLCanvasElement, option?: IEngineOption) {
         if (canvas == null) return;
         this.canvas = canvas;
         option = option || {};
-        let gl: WebGLRenderingContext;
-        if (!option.disableWebgl2) {
-            try {
-                gl = canvas.getContext("webgl2", option) as any;
-            } catch (e) { }
-        }
-        if (!gl) {
-            try {
-                gl = canvas.getContext("webgl", option) as any;
-            } catch (e) { }
-        }
-        if (!gl) {
-            throw new Error("webgl not supported");
+        let gl: WebGLRenderingContext = option.gl;
+        if (gl == null) {
+            if (!option.disableWebgl2) {
+                try {
+                    gl = canvas.getContext("webgl2", option) as any;
+                } catch (e) { }
+            }
+            if (!gl) {
+                try {
+                    gl = canvas.getContext("webgl", option) as any;
+                } catch (e) { }
+            }
+            if (!gl) {
+                throw new Error("webgl not supported");
+            }
         }
         canvas.addEventListener("webglcontextlost", this.handleContextLost, false);
         if (gl.renderbufferStorageMultisample) {
             this.webGLVersion = 2.0;
+        } else {
+            this.webGLVersion = 1.0;
         }
         this.gl = gl;
         this.caps = new DeviceCapability(this);
@@ -397,6 +403,20 @@ export class GraphicsDevice {
             this.gl.bindVertexArray(null);
             this.bindingVao = null;
         }
+    }
+
+    unbindVbo() {
+        this.gl.bindBuffer(BufferTargetEnum.ARRAY_BUFFER, null);
+        this.bindingBuffer = null;
+    }
+
+    unBindShaderProgram() {
+        this.gl.useProgram(null);
+        this.bindingProgram = null;
+    }
+
+    unbindTextureUnit() {
+        this.units.clear();
     }
 
     draw(vertexArray: VertexArray, instanceCount: number = 0) {

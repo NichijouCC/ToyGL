@@ -1,14 +1,13 @@
 import { ModelComponent } from "./modelComponent";
 import { IRenderable } from "../render/irenderable";
-import { Entity, System } from "../scene";
-import { ToyGL } from "../toygl";
+import { Entity, InterScene, System } from "../scene";
 
 export class ModelSystem extends System {
     caries = { comps: [ModelComponent] };
-    private _toy: ToyGL;
-    constructor(toy: ToyGL) {
+    private _scene: InterScene;
+    constructor(scene: InterScene) {
         super();
-        this._toy = toy;
+        this._scene = scene;
     }
 
     update(deltaTime: number): void {
@@ -24,7 +23,7 @@ export class ModelSystem extends System {
                 }
                 // this._toy.gizmos.drawAABB(mesh.boundingBox, comp.entity.worldMatrix);
                 if (skinIns != null) {
-                    skinIns.frameUpdate(this._toy.render);
+                    skinIns.frameUpdate(this._scene.render);
                     let skin = {
                         worldMat: skinIns.uniformMatrixModel,
                         boneMatrices: skinIns.uniformBoneData
@@ -42,7 +41,7 @@ export class ModelSystem extends System {
                         })
                     }
                 }
-                this._toy.scene.addFrameRenderIns(baseRender);
+                this._scene.addFrameRenderIns(baseRender);
             }
         });
     }

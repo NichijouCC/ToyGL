@@ -1,16 +1,20 @@
 import { EventTarget } from "@mtgoo/ctool";
 import { Entity } from "./entity";
 import { FrameState } from "./frameState";
-import { ToyGL } from "../toygl";
 import { mat4, vec2, vec3, vec4 } from "../mathD";
 import { Input } from "../input";
 import { ECS, COMPS, UPDATE } from "../core/ecs";
-import { IRenderable, ICamera, RenderTypeEnum } from "../render";
+import { IRenderable, ICamera, RenderTypeEnum, ForwardRender, IEngineOption } from "../render";
 import { CameraComponent } from "../components/cameraComponent";
 import { PhysicsWorld } from "../components/colliderSystem";
+import { Screen } from "./screen";
+import { Gizmos } from "./gizmos/gizmos";
 
+export type ISceneOptions = { autoAdaptScreenSize?: boolean } & IEngineOption;
 export class InterScene {
-    private _toy: ToyGL;
+    readonly screen: Screen;
+    readonly render: ForwardRender;
+    readonly gizmos: Gizmos;
     /**
      * private
      */
@@ -22,8 +26,10 @@ export class InterScene {
         return comp;
     }
     private root: Entity;
-    constructor(toy: ToyGL) {
-        this._toy = toy;
+    constructor(element: HTMLDivElement | HTMLCanvasElement, options?: ISceneOptions) {
+        this.screen = Screen.create(element, options);
+        this.render = new ForwardRender(this.screen.canvas, options);
+        this.gizmos = new Gizmos(this);
         this.root = new Entity({ beActive: true, _parentsBeActive: true } as any);
     }
 
@@ -40,7 +46,14 @@ export class InterScene {
 
     preUpdate = new EventTarget<number>();
     frameState: FrameState = new FrameState();
+    beActiveTick = true;
+    /**
+     * 帧执行
+     * @param deltaTime frame 间隔，单位秒
+     * @returns 
+     */
     _tick = (deltaTime: number) => {
+        if (this.beActiveTick == false) return;
         this.preUpdate.raiseEvent(deltaTime);
         this._ecsUpdate(deltaTime);
         this.tickRender(this.frameState);
@@ -48,8 +61,8 @@ export class InterScene {
     }
 
     /**
-     * 单位秒
-     * @param deltaTime 
+     * ECS 系统 update
+     * @param deltaTime  单位秒
      */
     private _ecsUpdate(deltaTime: number) {
         ECS.entities.forEach(item => {
@@ -57,7 +70,7 @@ export class InterScene {
                 item[COMPS][key][UPDATE](deltaTime);
             }
         });
-        ECS.systems.forEach(item => item.system.update(deltaTime));
+        ECS.systems.forEach(item => item.system[UPDATE](deltaTime));
     }
 
     private _renders: IRenderable[] = [];
@@ -77,38 +90,38 @@ export class InterScene {
     private tickRender = (state: FrameState) => {
         this.preRender.raiseEvent();
         let renders = state.renders.concat(this._renders);
-        this._toy.render.renderList(this._cameras, renders, {
+        this.render.renderList(this._cameras, renders, {
             onAfterFrustumCull: sortRenderItems
         });
     }
 
     pick(screenPos?: vec2) {
         screenPos = screenPos ?? Input.mouse.position;
-        const { screen } = this._toy;
+        const { screen, gizmos } = this;
         const ndc_x = (screenPos[0] / screen.width) * 2 - 1;
         const ndc_y = -1 * ((screenPos[1] / screen.height) * 2 - 1);
         const ndc_near = vec3.fromValues(ndc_x, ndc_y, -1);
         const ndc_far = vec3.fromValues(ndc_x, ndc_y, 1);
-        const world_near = ndcToWorld(ndc_near, this._toy.scene.mainCamera.projectMatrix, this._toy.scene.mainCamera.worldMatrix);
-        const world_far = ndcToWorld(ndc_far, this._toy.scene.mainCamera.projectMatrix, this._toy.scene.mainCamera.worldMatrix);
-        this._toy.gizmos.drawLine(world_near, world_far);
+        const world_near = ndcToWorld(ndc_near, this.mainCamera.projectMatrix, this.mainCamera.worldMatrix);
+        const world_far = ndcToWorld(ndc_far, this.mainCamera.projectMatrix, this.mainCamera.worldMatrix);
+        gizmos.drawLine(world_near, world_far);
     }
 
     pickTestCollider() {
-        const { screen } = this._toy;
+        const { screen } = this;
         const screenPos = Input.mouse.position;
         const ndc_x = (screenPos[0] / screen.width) * 2 - 1;
         const ndc_y = -1 * ((screenPos[1] / screen.height) * 2 - 1);
         const ndc_near = vec3.fromValues(ndc_x, ndc_y, -1);
         const ndc_far = vec3.fromValues(ndc_x, ndc_y, 1);
-        const world_near = ndcToWorld(ndc_near, this._toy.scene.mainCamera.projectMatrix, this._toy.scene.mainCamera.worldMatrix);
-        const world_far = ndcToWorld(ndc_far, this._toy.scene.mainCamera.projectMatrix, this._toy.scene.mainCamera.worldMatrix);
+        const world_near = ndcToWorld(ndc_near, this.mainCamera.projectMatrix, this.mainCamera.worldMatrix);
+        const world_far = ndcToWorld(ndc_far, this.mainCamera.projectMatrix, this.mainCamera.worldMatrix);
 
         const result = PhysicsWorld.rayTest(world_near, world_far);
         console.log("pickFromRay", result);
         if (result.hasHit) {
             const posInWorld = result.hitPointWorld;
-            this._toy.gizmos.drawPoint(vec3.fromValues(posInWorld.x, posInWorld.y, posInWorld.z));
+            this.gizmos.drawPoint(vec3.fromValues(posInWorld.x, posInWorld.y, posInWorld.z));
         }
     }
 

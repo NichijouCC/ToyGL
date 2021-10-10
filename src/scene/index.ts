@@ -6,6 +6,6 @@ export * from "./shaderCodeInjector";
 
 export * from "./plane";
 export * from "./scene";
-export * from "../core/toyScreen";
+export * from "./screen";
 export * from "./entity";
 export * from "./transform";

@@ -8,6 +8,7 @@ export const COMPS = Symbol("comps");
 export const UNIT_BIT_KEY_DIC = Symbol("unitedBitKeyDic");
 export const ENTITIES = Symbol("entities");
 
+
 export interface IComponent {
     readonly entity: IEntity;
     readonly compName: string;
@@ -31,5 +32,5 @@ export interface ISystem {
     addEntity(queryKey: string, entity: IEntity): void;
     removeEntity(entity: IEntity): void;
     removeQueriedEntity(queryKey: string, entity: IEntity): void;
-    update(deltaTime: number): void;
+    [UPDATE](deltaTime: number): void;
 }

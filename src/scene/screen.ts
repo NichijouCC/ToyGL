@@ -53,10 +53,9 @@ export class Screen {
         } else {
             canvas = element;
             const screen = new Screen(canvas);
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-
             if (autoAdaptScreenSize) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
                 window.onresize = () => {
                     canvas.width = window.innerWidth;
                     canvas.height = window.innerHeight;

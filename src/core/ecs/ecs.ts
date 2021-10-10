@@ -114,6 +114,6 @@ export class ECS {
                 item[COMPS][key][UPDATE](deltaTime);
             }
         });
-        this.systems.forEach(item => item.system.update(deltaTime));
+        this.systems.forEach(item => item.system[UPDATE](deltaTime));
     }
 }

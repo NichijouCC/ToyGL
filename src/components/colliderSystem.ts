@@ -4,14 +4,15 @@ import * as CANNON from "cannon-es";
 import { Rigidbody } from "./rigidbody";
 import { Entity, System } from "../scene/entity";
 import { ToyGL } from "../toygl";
+import { InterScene } from "../scene";
 
 export class ColliderSystem extends System {
     caries = { boxColliders: [BoxCollider], SphereColliders: [SphereCollider], rigidbodies: [Rigidbody] };
     drawOutLine = false;
-    private _toy: ToyGL;
-    constructor(toy: ToyGL) {
+    private _scene: InterScene;
+    constructor(scene: InterScene) {
         super();
-        this._toy = toy;
+        this._scene = scene;
         PhysicsWorld.init();
         this.on("removeEntity", ({ entity, queryKey }) => {
             if (queryKey == "colliders") {
@@ -43,7 +44,7 @@ export class ColliderSystem extends System {
         if (this.drawOutLine) {
             this.queries.boxColliders.forEach(item => {
                 const comp = item.getComponent(BoxCollider);
-                this._toy.gizmos.drawAABB(comp, comp.entity.worldMatrix);
+                this._scene.gizmos.drawAABB(comp, comp.entity.worldMatrix);
             });
         }
         // let pos, entity, tempt = vec3.create();

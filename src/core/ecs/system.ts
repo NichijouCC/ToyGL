@@ -1,14 +1,25 @@
 import { EventEmitter } from "@mtgoo/ctool";
 import { UnitedBitKey } from "./bitKey";
-import { ENTITIES, IComponent, IEntity, ISystem, UNIT_BIT_KEY_DIC } from "./iecs";
+import { ENTITIES, IComponent, IEntity, ISystem, UNIT_BIT_KEY_DIC, UPDATE } from "./iecs";
 
 export abstract class AbsSystem<T extends IEntity> extends EventEmitter<ISystemEvents<T>> implements ISystem {
+    private _beInit: boolean = false;
     constructor() {
         super();
-        this.onCreate();
-        this.emit("onCreate");
+        setTimeout(() => {
+            this.init()
+                .then(() => {
+                    this._beInit = true;
+                    this.emit("onInit");
+                });
+        })
     }
-
+    async init() { }
+    update(deltaTime: number): void { }
+    [UPDATE](deltaTime: number): void {
+        if (this._beInit == false) return;
+        this.update(deltaTime);
+    }
     /**
      * 在 addSystem 的时候进行初始化
      */
@@ -17,8 +28,6 @@ export abstract class AbsSystem<T extends IEntity> extends EventEmitter<ISystemE
 
     abstract caries: { [queryKey: string]: (new () => IComponent)[]; }
     get queries() { return this[ENTITIES]; }
-
-    onCreate(): void { }
 
     addEntity(queryKey: string, entity: T): void {
         const results = this[ENTITIES][queryKey];
@@ -49,11 +58,10 @@ export abstract class AbsSystem<T extends IEntity> extends EventEmitter<ISystemE
         }
     }
 
-    update(deltaTime: number): void { }
 }
 
 interface ISystemEvents<T extends IEntity> {
-    onCreate: void;
+    onInit: void;
     addEntity: { queryKey: string, entity: T }
     removeEntity: { queryKey: string, entity: T }
 }
