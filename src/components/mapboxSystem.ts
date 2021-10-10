@@ -4,25 +4,20 @@ import { InterScene, System } from "../scene";
 import { CameraComponent } from "./cameraComponent";
 import { EventTarget } from '@mtgoo/ctool'
 import { LoadCss, LoadScript } from "../io";
-
-declare var THREE
-
 export class MapBoxSystem extends System {
     caries: { [queryKey: string]: (new () => IComponent)[]; } = { comps: [CameraComponent] };
     readonly worldCenter: number[] = [];
-    readonly worldRot: number[] = [];
+    readonly worldRot: number[] = [-90, 0, 0];
     private _scene: InterScene;
     map: mapboxgl.Map;
     private _mapboxOption: mapboxgl.MapboxOptions & { mapboxScript: string, mapboxCss: string };
-    constructor(systemOptions: Pick<MapBoxSystem, "worldCenter" | "worldRot">, mapboxOption: mapboxgl.MapboxOptions & { mapboxScript: string, mapboxCss: string }) {
+    constructor(worldCenter: number[], mapboxOption: mapboxgl.MapboxOptions & { mapboxScript: string, mapboxCss: string }) {
         super();
-        this.worldCenter = systemOptions.worldCenter;
-        this.worldRot = systemOptions.worldRot;
+        this.worldCenter = worldCenter;
         this._mapboxOption = mapboxOption;
     }
 
     async init() {
-        // await LoadScript("https://unpkg.com/three@0.126.0/build/three.min.js");
         await Promise.all([LoadScript(this._mapboxOption.mapboxScript), LoadCss(this._mapboxOption.mapboxCss)])
         mapboxgl.accessToken = 'pk.eyJ1IjoibmljaGlqb3VjYyIsImEiOiJja3BnZzVwMDkwNW9rMnNudmZmMzdwaDV4In0.O5_AwAIIoI4ee5PxbY2r4A';
         const map = new mapboxgl.Map(this._mapboxOption);
@@ -41,8 +36,9 @@ export class MapBoxSystem extends System {
         )
         glMatrix.setMatrixArrayType(Float64Array as any);
 
-        let lastTime
-
+        let toGlMat = mat4.create()
+        let projectMat = mat4.create();
+        let lastTime;
         const customLayer: mapboxgl.AnyLayer = {
             id: '3d-model',
             type: 'custom',
@@ -56,14 +52,12 @@ export class MapBoxSystem extends System {
             render: (gl, matrix) => {
                 if (this._scene?.mainCamera == null) return;
                 this._scene.mainCamera["_projectMatBeDirty"] = false;
-                const mat = mat4.fromValues(
-                    matrix[0], matrix[1], matrix[2], matrix[3],
+                mat4.set(toGlMat, matrix[0], matrix[1], matrix[2], matrix[3],
                     matrix[4], matrix[5], matrix[6], matrix[7],
                     matrix[8], matrix[9], matrix[10], matrix[11],
-                    matrix[12], matrix[13], matrix[14], matrix[15]);
-                const result2 = mat4.multiply(mat4.create(), mat, toWorldCoordinate);
-                this._scene.mainCamera["_projectMatrix"] = result2;
-
+                    matrix[12], matrix[13], matrix[14], matrix[15])
+                const result = mat4.multiply(projectMat, toGlMat, toWorldCoordinate);
+                this._scene.mainCamera["_projectMatrix"] = result;
                 let deltaTime = lastTime ? Date.now() - lastTime : 0;
                 lastTime = Date.now();
                 let device = this._scene.render.device;

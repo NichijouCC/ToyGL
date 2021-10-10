@@ -1,8 +1,8 @@
-import { CameraSystem, InterScene, LoadGlTF, MapBoxSystem, ModelSystem, Prefab, quat, Resource, ToyGL, vec3 } from "TOYGL";
+import { CameraSystem, InterScene, LoadGlTF, MapBoxSystem, ModelSystem, Prefab, quat, Resource, vec3 } from "TOYGL";
 import { ECS } from "../../src/core/ecs";
 
 let mapboxSystem = new MapBoxSystem(
-    { worldCenter: [148.9819, -35.39847, 0], worldRot: [-90, 0, 0] },
+    [148.9819, -35.39847, 0],
     {
         mapboxScript: "https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.js",
         mapboxCss: "https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.css",
@@ -14,13 +14,14 @@ let mapboxSystem = new MapBoxSystem(
         antialias: true
     });
 mapboxSystem.onAdd.addEventListener(({ gl, canvas }) => {
-    const resource = new Resource();
     const scene = new InterScene(canvas, { gl, autoAdaptScreenSize: false });
-    resource.registAssetLoader(".gltf", new LoadGlTF());
-    resource.registAssetLoader(".glb", new LoadGlTF());
     ECS.addSystem(new CameraSystem(scene));
     ECS.addSystem(new ModelSystem(scene), Number.POSITIVE_INFINITY);
     mapboxSystem.initWorld(scene);
+
+    const resource = new Resource();
+    resource.registAssetLoader(".gltf", new LoadGlTF());
+    resource.registAssetLoader(".glb", new LoadGlTF());
     resource.load("./A2_066.glb")
         .then(asset => {
             const newAsset = Prefab.instance(asset as Prefab);
