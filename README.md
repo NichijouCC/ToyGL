@@ -13,10 +13,11 @@ render模块封装webgl模块构建geometry、material、texture等元素概念�
 
 ## 案例截图
 - 游戏
-![](https://github.com/NichijouCC/ToyGL/blob/master/examples/public/captures/game.jpg){:height="50%" width="50%"}
+![](https://github.com/NichijouCC/ToyGL/blob/master/examples/public/captures/game.jpg)
 - PLY点云
-![](https://github.com/NichijouCC/ToyGL/blob/master/examples/public/captures/ply_point_cloud.jpg){:height="50%" width="50%"}
-
+![](https://github.com/NichijouCC/ToyGL/blob/master/examples/public/captures/ply_point_cloud.jpg)
+- 适配mapbox
+![](https://github.com/NichijouCC/ToyGL/blob/master/examples/public/captures/mapbox.png)
 ## 参考:
 cesium.js
 playcanvas
