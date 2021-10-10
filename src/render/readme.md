@@ -11,19 +11,7 @@ render模块封装webgl模块构建geometry、material、texture、camera等基�
 
 ## EXAMPLE
 ```
-const device = new GraphicsDevice(document.getElementById("canvas") as HTMLCanvasElement);
-const render = new ForwardRender(device);
-
-import { Color, mat4, quat, vec3 } from "../../mathD";
-import { GraphicsDevice, PrimitiveTypeEnum, VertexAttEnum } from "../../webgl";
-import { Material } from "./material";
-import { ForwardRender } from "./forwardRender";
-import { Geometry } from "./geometry";
-import { Viewer } from "./viewer";
-import { IRenderable } from "./irenderable";
-
-const device = new GraphicsDevice(document.getElementById("canvas") as HTMLCanvasElement);
-const render = new ForwardRender(device);
+const render = new ForwardRender(document.getElementById("canvas") as HTMLCanvasElement);
 
 var geometry = new Geometry({
     attributes: [
@@ -73,7 +61,8 @@ let eyePos = vec3.create();
 vec3.set(eyePos, 0, 0, -1);
 let targetPos = vec3.create();
 let viewMatrix = mat4.targetTo(mat4.create(), eyePos, targetPos, vec3.UP)
-let viewer = new Viewer({ viewMatrix });
+let projectMatrix = mat4.perspective(mat4.create(), Math.PI * 0.25, 16 / 9, 0.5, 1000);
+let viewer = new Camera({ viewMatrix, projectMatrix });
 
 render.renderList(viewer, [object]);
 ```

@@ -29,7 +29,7 @@ export class Screen {
         this._canvas = canvas;
         canvas.onresize = () => {
             console.warn("canvas resize!");
-            this.onresize.raiseEvent({ width: this.width, height: this.height });
+
         };
     }
 
@@ -38,17 +38,21 @@ export class Screen {
         let canvas: HTMLCanvasElement;
         if (element instanceof HTMLDivElement) {
             canvas = document.createElement("canvas");
+            const screen = new Screen(canvas);
             canvas.width = element.clientWidth;
-            canvas.width = element.clientHeight;
+            canvas.height = element.clientHeight;
             element.appendChild(canvas);
             if (autoAdaptScreenSize) {
                 element.onresize = () => {
                     canvas.width = element.clientWidth;
-                    canvas.width = element.clientHeight;
+                    canvas.height = element.clientHeight;
+                    screen.onresize.raiseEvent({ width: canvas.width, height: canvas.height });
                 };
             }
+            return screen;
         } else {
             canvas = element;
+            const screen = new Screen(canvas);
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
 
@@ -56,11 +60,12 @@ export class Screen {
                 window.onresize = () => {
                     canvas.width = window.innerWidth;
                     canvas.height = window.innerHeight;
+
+                    screen.onresize.raiseEvent({ width: canvas.width, height: canvas.height });
                 };
             }
+            return screen;
         }
-        const screen = new Screen(canvas);
-        return screen;
     }
 }
 

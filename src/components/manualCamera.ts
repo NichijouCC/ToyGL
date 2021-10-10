@@ -8,9 +8,6 @@ import { Input, KeyCodeEnum, MouseKeyEnum } from '../input';
 export class ManualCamera extends Component {
     moveSpeed: number = 1;
     rotSpeed: number = 1;
-    private _aTotalTime: number = 0;
-    private _aTotalTime_to: number = 5;
-    private _aSpeed_to: number = 30;
     init() {
         let rotDir = vec3.create();
         let tempt_x = vec3.create();
@@ -25,12 +22,9 @@ export class ManualCamera extends Component {
                 vec3.normalize(tempt_x, tempt_x);
                 vec3.cross(rotDir, tempt_x, vec3.FORWARD);
                 vec3.normalize(rotDir, rotDir);
-                let speed = this._aSpeed_to * Math.pow(this._aTotalTime / this._aTotalTime_to, 2.0) + 1.0;
-                quat.setAxisAngle(tempt_q, rotDir, 0.01 * length * speed * Math.PI / 180);
+                quat.setAxisAngle(tempt_q, rotDir, 0.01 * length * this.rotSpeed * Math.PI / 180);
                 quat.multiply(tempt_q, comp.entity.localRotation, tempt_q);
                 comp.entity.localRotation = tempt_q;
-            } else {
-                this._aTotalTime = 0;
             }
         });
     }
@@ -80,11 +74,6 @@ export class ManualCamera extends Component {
                 }
             } else {
                 this._totalTime = 0;
-            }
-            if (Input.getMouseDown(MouseKeyEnum.Right)) {
-                this._aTotalTime += deltaTime;
-            } else {
-                this._aTotalTime = 0;
             }
         }
     }

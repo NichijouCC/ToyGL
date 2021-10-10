@@ -1,5 +1,5 @@
 import { InterScene } from "../scene/Scene";
-import { CameraComponent } from "./cameraComponent";
+import { CameraComponent, CAMERA_ASPECT } from "./cameraComponent";
 import { Entity, Screen, System } from "../scene/index";
 
 export class CameraSystem extends System {
@@ -11,8 +11,13 @@ export class CameraSystem extends System {
         this.scene = scene;
         this.screen = screen;
         this.on("addEntity", (e) => {
-            scene._cameras.push(e.entity.getComponent(CameraComponent));
-        })
+            let cam = e.entity.getComponent(CameraComponent);
+            cam[CAMERA_ASPECT] = screen.width / screen.height;
+            scene._cameras.push(cam);
+        });
+        screen.onresize.addEventListener((ev) => {
+            this.scene._cameras.forEach(item => item[CAMERA_ASPECT] = ev.width / ev.height);
+        });
     }
 
     update(deltaTime: number): void {

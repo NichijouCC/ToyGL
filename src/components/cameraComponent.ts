@@ -1,8 +1,10 @@
 import { Color, mat4, quat, Rect, vec3 } from "../mathD";
 import { ECS } from "../core/ecs/ecs";
-import { Camera, LayerMask, ProjectionEnum } from "../render/camera";
+import { Camera, LayerMask } from "../render/camera";
 import { ISceneCamera } from "../scene/isceneCamera";
 import { Component, Entity } from "../scene/entity";
+
+export const CAMERA_ASPECT = Symbol("aspect");
 
 @ECS.registComp
 export class CameraComponent extends Component implements ISceneCamera {
@@ -34,7 +36,7 @@ export class CameraComponent extends Component implements ISceneCamera {
         this._projectMatBeDirty = true;
     }
 
-    private _far: number = 500;
+    private _far: number = 1000;
     get far(): number { return this._far; }
     set far(val: number) {
         if (val <= this.near) val = this.near + 0.01;
@@ -56,7 +58,10 @@ export class CameraComponent extends Component implements ISceneCamera {
 
     private _aspect: number = 16 / 9;
     get aspect(): number { return this._aspect; }
-    set aspect(aspect: number) {
+    /**
+     * private
+     */
+    set [CAMERA_ASPECT](aspect: number) {
         if (aspect != this._aspect) {
             this._aspect = aspect;
             this._projectMatBeDirty = true;
@@ -141,4 +146,9 @@ export class CameraComponent extends Component implements ISceneCamera {
     clone(): CameraComponent {
         throw new Error("Method not implemented.");
     }
+}
+
+export enum ProjectionEnum {
+    PERSPECTIVE,
+    ORTHOGRAPH,
 }

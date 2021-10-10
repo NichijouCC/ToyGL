@@ -20,37 +20,33 @@ export interface IEngineOption {
 type DistributiveOmit<T, K extends keyof any> = T extends any ? Omit<T, K> : never;
 
 export class GraphicsDevice {
-    gl: WebGLRenderingContext;
+    readonly gl: WebGLRenderingContext;
+    readonly canvas: HTMLCanvasElement;
     readonly webGLVersion: number;
     readonly caps: DeviceCapability;
     readonly limit: DeviceLimit;
     readonly units: TextureUnit;
     bindingVao: WebGLVertexArrayObject = null;
     bindingBuffer: WebGLBuffer = null;
-    get width() { return this.gl.drawingBufferWidth; };
-    get height() { return this.gl.drawingBufferHeight; };
-    constructor(canvasOrContext: HTMLCanvasElement | WebGLRenderingContext, option?: IEngineOption) {
-        if (canvasOrContext == null) return;
+    constructor(canvas: HTMLCanvasElement, option?: IEngineOption) {
+        if (canvas == null) return;
+        this.canvas = canvas;
         option = option || {};
         let gl: WebGLRenderingContext;
-        if (canvasOrContext instanceof HTMLCanvasElement) {
-            if (!option.disableWebgl2) {
-                try {
-                    gl = canvasOrContext.getContext("webgl2", option) as any;
-                } catch (e) { }
-            }
-            if (!gl) {
-                try {
-                    gl = canvasOrContext.getContext("webgl", option) as any;
-                } catch (e) { }
-            }
-            if (!gl) {
-                throw new Error("webgl not supported");
-            }
-            canvasOrContext.addEventListener("webglcontextlost", this.handleContextLost, false);
-        } else {
-            gl = canvasOrContext;
+        if (!option.disableWebgl2) {
+            try {
+                gl = canvas.getContext("webgl2", option) as any;
+            } catch (e) { }
         }
+        if (!gl) {
+            try {
+                gl = canvas.getContext("webgl", option) as any;
+            } catch (e) { }
+        }
+        if (!gl) {
+            throw new Error("webgl not supported");
+        }
+        canvas.addEventListener("webglcontextlost", this.handleContextLost, false);
         if (gl.renderbufferStorageMultisample) {
             this.webGLVersion = 2.0;
         }
@@ -156,16 +152,16 @@ export class GraphicsDevice {
     setViewPort(x: number, y: number, width: number, height: number, force = false) {
         if (
             force ||
-            x != this._cachedViewPortX ||
-            y != this._cachedViewPortY ||
-            width != this._cachedViewPortWidth ||
-            height != this._cachedViewPortHeight
+            x * this.canvas.width != this._cachedViewPortX ||
+            y * this.canvas.height != this._cachedViewPortY ||
+            width * this.canvas.width != this._cachedViewPortWidth ||
+            height * this.canvas.height != this._cachedViewPortHeight
         ) {
-            this.gl.viewport(x * this.width, y * this.height, width * this.width, height * this.height);
-            this._cachedViewPortX = x;
-            this._cachedViewPortY = y;
-            this._cachedViewPortWidth = width;
-            this._cachedViewPortHeight = height;
+            this.gl.viewport(x * this.canvas.width, y * this.canvas.height, width * this.canvas.width, height * this.canvas.height);
+            this._cachedViewPortX = x * this.canvas.width;
+            this._cachedViewPortY = y * this.canvas.height;
+            this._cachedViewPortWidth = width * this.canvas.width;
+            this._cachedViewPortHeight = height * this.canvas.height;
         }
     }
 
