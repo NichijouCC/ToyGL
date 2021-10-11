@@ -17,7 +17,7 @@ render模块封装webgl模块构建geometry、material、texture等元素概念�
 - PLY点云
 ![](https://github.com/NichijouCC/ToyGL/blob/master/examples/public/captures/ply_point_cloud.jpg)
 - 适配mapbox
-![](https://github.com/NichijouCC/ToyGL/blob/master/examples/public/captures/mapbox.png)
+![](https://github.com/NichijouCC/ToyGL/blob/master/examples/public/captures/mapbox.jpg)
 ## 参考:
 cesium.js
 playcanvas

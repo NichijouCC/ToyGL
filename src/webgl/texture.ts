@@ -255,6 +255,9 @@ export class Texture {
         if (this._textureFilterAnisotropic) {
             gl.texParameteri(target, this._textureFilterAnisotropic.TEXTURE_MAX_ANISOTROPY_EXT, this.maximumAnisotropy);
         }
+        if (this.enableMipmap) {
+            gl.generateMipmap(target);
+        }
 
         const sizeInBytes = isCompressed
             ? PixelFormatEnum.compressedTextureSizeInBytes(pixelFormat, width, height)
@@ -394,7 +397,7 @@ export class Sampler {
         this.wrapS = options?.wrapS ?? TextureWrapEnum.REPEAT;
         this.wrapT = options?.wrapT ?? TextureWrapEnum.REPEAT;
         this.maximumAnisotropy = options?.maximumAnisotropy ?? 1.0;
-        this.enableMimap = options?.enableMimap ?? false;
+        this.enableMimap = options?.enableMimap ?? true;
         this.mipmapFilter = options?.mipmapFilter ?? TextureFilterEnum.LINEAR;
     }
 }

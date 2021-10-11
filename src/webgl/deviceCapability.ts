@@ -117,7 +117,8 @@ export class DeviceCapability {
                 this.instancedArrays = false;
             }
         }
-
+        //允许使用 UNSIGNED_INT 格式的INDEX_BUFFER 
+        this.uintIndices = _webGLVersion > 1 || _gl.getExtension("OES_element_index_uint") !== null;
         // // Extensions
         // this.standardDerivatives = _webGLVersion > 1 || _gl.getExtension("OES_standard_derivatives") !== null;
         // this.astc =
@@ -144,7 +145,7 @@ export class DeviceCapability {
         // this.maxAnisotropy = this.textureAnisotropicFilterExtension
         //     ? _gl.getParameter(this.textureAnisotropicFilterExtension.MAX_TEXTURE_MAX_ANISOTROPY_EXT)
         //     : 0;
-        // this.uintIndices = _webGLVersion > 1 || _gl.getExtension("OES_element_index_uint") !== null;
+
         // this.fragmentDepthSupported = _webGLVersion > 1 || _gl.getExtension("EXT_frag_depth") !== null;
         // this.highPrecisionShaderSupported = false;
         // this.timerQuery =

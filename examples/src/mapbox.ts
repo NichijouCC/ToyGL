@@ -2,14 +2,14 @@ import { CameraSystem, InterScene, LoadGlTF, MapBoxSystem, ModelSystem, Prefab, 
 import { ECS } from "../../src/core/ecs";
 
 let mapboxSystem = new MapBoxSystem(
-    [148.9819, -35.39847, 0],
+    [127.71948354887672, 26.21705479691047, 25],
     {
         mapboxScript: "https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.js",
         mapboxCss: "https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.css",
         container: 'map',
         style: 'mapbox://styles/mapbox/light-v10',
         zoom: 18,
-        center: [148.9819, -35.3981],
+        center: [127.71948354887672, 26.21705479691047],
         pitch: 60,
         antialias: true
     });
@@ -22,11 +22,11 @@ mapboxSystem.onAdd.addEventListener(({ gl, canvas }) => {
     const resource = new Resource();
     resource.registAssetLoader(".gltf", new LoadGlTF());
     resource.registAssetLoader(".glb", new LoadGlTF());
-    resource.load("./A2_066.glb")
+    resource.load("https://cloud-v3-oss.oss-cn-shanghai.aliyuncs.com/gltfs/castle/scene.gltf")
         .then(asset => {
             const newAsset = Prefab.instance(asset as Prefab);
-            newAsset.localRotation = quat.fromEuler(quat.create(), 0, 0, 0);
-            newAsset.localPosition = vec3.fromValues(0, 0, 0);
+            newAsset.localRotation = quat.fromEuler(quat.create(), 0, -90, 0);
+            newAsset.localScale = vec3.fromValues(2, 2, 2);
             scene.addChild(newAsset);
         });
 })
