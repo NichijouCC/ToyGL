@@ -34,6 +34,9 @@ export const vec3 = Object.assign({
         out[2] = 0;
         return out;
     },
+    fromArray: (arr: ArrayLike<number>) => {
+        return glVec3.fromValues(arr[0], arr[1], arr[2]);
+    }
 }, glVec3);
 
 export type vec4 = glVec4;
@@ -45,12 +48,15 @@ export const vec4 = Object.assign({
         out[3] = 0;
         return out;
     },
+    fromArray: (arr: ArrayLike<number>) => {
+        return glVec4.fromValues(arr[0], arr[1], arr[2], arr[3]);
+    }
 }, glVec4);
 
 export type mat4 = glMat4;
 export const mat4 = Object.assign({
     IDENTITY: glMat4.create(),
-    fromNumberArray: (array: ArrayLike<number>) => {
+    fromArray: (array: ArrayLike<number>) => {
         return glMat4.fromValues(array[0], array[1], array[2], array[3], array[4], array[5], array[6], array[7], array[8], array[9], array[10], array[11], array[12], array[13], array[14], array[15]);
     },
     toArray: (array: number[] | TypedArray, mat: glMat4, offset = 0) => {

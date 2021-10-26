@@ -1,12 +1,16 @@
 
 export type IBoundingVolume = IRegionVolume | IBoxVolume | ISphereVolume;
-export interface IRegionVolume {
+export interface IVolume {
+    extensions?: object,
+    extras?: any,
+}
+export interface IRegionVolume extends IVolume {
     region: number[],
 }
-export interface IBoxVolume {
+export interface IBoxVolume extends IVolume {
     box: number[],
 }
-export interface ISphereVolume {
+export interface ISphereVolume extends IVolume {
     sphere: number[],
 }
 
@@ -15,66 +19,44 @@ export type IRefine = "ADD" | "REPLACE"
 export interface ITile {
     geometricError: number,
     boundingVolume: IBoundingVolume,
-    content: {
+    content?: {
         boundingVolume: IBoundingVolume,
         uri: string,
     },
-    refine: IRefine,
-    children: ITile[]
+    viewerRequestVolume?: IBoundingVolume,
+    transform?: number[],//mat4
+    refine?: IRefine,
+    children?: ITile[],
+    extras?: any,
 }
 
 
-export interface IMinMax {
+export interface I3dtileProperty {
     minimum: number,
     maximum: number,
-}
-export interface I3dtileProperty {
-    Longitude: IMinMax,
-    Latitude: IMinMax,
-    Height: IMinMax
+    extensions?: object,
 }
 
-export interface I3dtiles {
-    asset: { version: string };
-    properties: I3dtileProperty,
+export interface I3dTilesJson {
+    asset: { version: string, tilesetVersion?: string, extensions?: object, extras?: any };
     geometricError: number,
     root: ITile,
+    properties?: { [att: string]: I3dtileProperty },
+    extensionsUsed?: string[],
+    extensionsRequired?: string[],
+    extensions?: { [att: string]: any },
+    extras?: any,
 }
-
 
 //tile Format
 export type ITileFormat = "b3dm" | "i3dm" | "pnts" | "cmpt";
 export type IComponentType = "DOUBLE" | "FLOAT" | "INT" | "UNSIGNED INT" | "SHORT" | "UNSIGNED BYTE" | "BYTE";
 export type IComponentDataType = "VEC4" | "VEC3" | "VEC2" | "SCALAR";
-
-export interface IFeatureTableJson {
-    INSTANCES_LENGTH: number,
-    POSITION: {
-        byteOffset: number,
-    },
-    NORMAL_UP?: {
-        byteOffset: number,
-    },
-    NORMAL_RIGHT?: {
-        byteOffset: number,
-    },
-    SCALE?: {
-        byteOffset: number,
-    }
-}
-
 export interface IBatchAtt {
     byteOffset: number,
-    componentType: IComponentType,
-    type: IComponentDataType
+    componentType?: IComponentType,
+    type?: IComponentDataType
 }
-export interface IBatchTableJson {
-    BATCH_LENGTH: number,
-    RTC_CENTER: number,
-    location: IBatchAtt,
-    id: IBatchAtt,
-}
-
 
 //b3dm
 //<----------------------  header bytes[0..12] ----------------------------->
@@ -88,7 +70,12 @@ export interface IBatchTableJson {
 
 export interface IB3dmFeatureTableJson {
     BATCH_LENGTH: number,
-    RTC_CENTER: number[],
+    RTC_CENTER?: number[],//float32[3]
+    extensions?: object,
+    extras?: any;
+}
+export interface IB3dmBatchTableJson {
+
 }
 
 // i3dm
@@ -102,8 +89,6 @@ export interface IB3dmFeatureTableJson {
 //....<----------------------- body ---------------------------------------->
 //....|-- Feature table --|-- batch table --|-- url(UTF-8) OR binary gltf --|
 
-
-
 export interface II3dmFeatureTableJson {
     INSTANCES_LENGTH: number,//uint32
 
@@ -112,32 +97,18 @@ export interface II3dmFeatureTableJson {
     QUANTIZED_VOLUME_SCALE?: number[],//float32[3]
     EAST_NORTH_UP?: boolean,
 
-    POSITION?: {//per - float32[3]
-        byteOffset: number,
-    },
-    POSITIONS_QUANTIZED: {//per - uint16[3]
-        byteOffset: number,
-    },
+    POSITION?: IBatchAtt,//per - float32[3]
+    POSITIONS_QUANTIZED: IBatchAtt, //per - uint16[3]
 
-    NORMAL_UP?: {//per - float32[3]
-        byteOffset: number,
-    };
-    NORMAL_UP_OCT32P?: any,//uint16[2]
+    NORMAL_UP?: IBatchAtt//per - float32[3]
+    NORMAL_UP_OCT32P?: IBatchAtt,//uint16[2]
 
-    NORMAL_RIGHT?: {//per - float32[3]
-        byteOffset: number,
-    },
-    NORMAL_RIGHT_OCT32P?: any,//uint16[2]
+    NORMAL_RIGHT?: IBatchAtt//per - float32[3]
+    NORMAL_RIGHT_OCT32P?: IBatchAtt,//uint16[2]
 
-    SCALE?: {//per - float32
-        byteOffset: number,
-    },
-    SCALE_NON_UNIFORM?: {//per - float32[3]
-        byteOffset: number,
-    }
-    BATCH_ID: {//per - uint8/16/32
-        byteOffset: number,
-    },
+    SCALE?: IBatchAtt,//per - float32
+    SCALE_NON_UNIFORM?: IBatchAtt//per - float32[3]
+    BATCH_ID: IBatchAtt//per - uint8/16/32
 }
 
 //pnts
@@ -149,3 +120,27 @@ export interface II3dmFeatureTableJson {
 //
 //....<---------------- body --------------->
 //....|-- Feature table --|-- batch table --|
+
+export interface IPntsFeatureTableJson {
+    POINTS_LENGTH: number,//uint32
+    QUANTIZED_VOLUME_OFFSET?: number[],//float32[3]
+    QUANTIZED_VOLUME_SCALE?: number[],//float32[3]
+    CONSTANT_RGBA?: number[],//uint8[4]
+    RTC_CENTER?: number[],//float32[3]
+
+    POSITION: IBatchAtt,//per - float32[3]
+    POSITIONS_QUANTIZED: IBatchAtt, //per - uint16[3]
+    NORMAL?: IBatchAtt,//per - float32[3]
+    NORMAL_OCT16P?: IBatchAtt//per - uint8[2]
+    RGB?: IBatchAtt,//per - uint8[3]
+    RGBA?: IBatchAtt,//per - uint8[4]
+    RGB565?: IBatchAtt,//per - uint16   RED-5BIT GREEN-6BIT BLUE-5BIT
+    BATCH_LENGTH?: number,
+    BATCH_ID?: IBatchAtt,
+}
+
+//cmpt
+//<----------------------  header bytes[0..12] -------------------------------------------------------->
+//|-- tile format(uchar[4]) --|-- version(uint32) --|-- byteLength(uint32) --|-- tilesLength(uint32) --|
+//<------------ body -------------->
+//|----- tiles[] ------------------|
