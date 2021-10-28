@@ -15,7 +15,7 @@ export class ParseNode {
         const name = GlTF.getNodeName(index, gltf);
         const sceneNode = new Entity({ name });
         if (node.matrix) {
-            sceneNode.localMatrix = mat4.fromNumberArray(node.matrix);
+            sceneNode.localMatrix = mat4.fromArray(node.matrix);
         }
         if (node.translation) {
             vec3.copy(sceneNode.localPosition, node.translation as any);

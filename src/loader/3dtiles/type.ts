@@ -19,12 +19,12 @@ export type IRefine = "ADD" | "REPLACE"
 export interface ITile {
     geometricError: number,
     boundingVolume: IBoundingVolume,
+    transform?: number[],//mat4
     content?: {
         boundingVolume: IBoundingVolume,
         uri: string,
     },
     viewerRequestVolume?: IBoundingVolume,
-    transform?: number[],//mat4
     refine?: IRefine,
     children?: ITile[],
     extras?: any,
@@ -49,7 +49,7 @@ export interface I3dTilesJson {
 }
 
 //tile Format
-export type ITileFormat = "b3dm" | "i3dm" | "pnts" | "cmpt";
+export type ITileFormat = "b3dm" | "i3dm" | "pnts" | "cmpt" | "json";
 export type IComponentType = "DOUBLE" | "FLOAT" | "INT" | "UNSIGNED INT" | "SHORT" | "UNSIGNED BYTE" | "BYTE";
 export type IComponentDataType = "VEC4" | "VEC3" | "VEC2" | "SCALAR";
 export interface IBatchAtt {

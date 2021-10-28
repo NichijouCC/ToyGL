@@ -43,7 +43,7 @@ export class B3dmParser {
         tile.rtc_center = vec3.fromArray(featureTableJson.RTC_CENTER);
 
         let loader = new LoadGlTF();
-        loader.loadByArrayBuffer(gltfView.buffer, gltfView.byteOffset)
+        return loader.loadByArrayBuffer(gltfView.buffer, gltfView.byteOffset)
             .then(asset => {
                 tile.root = asset["_root"];
                 return tile;
