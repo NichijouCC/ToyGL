@@ -40,7 +40,9 @@ export class B3dmParser {
         let gltfView = reader.readUint8Array(gltfByteLength);
         //tile
         let tile = new B3dmTile();
-        tile.rtc_center = vec3.fromArray(featureTableJson.RTC_CENTER);
+        if (featureTableJson.RTC_CENTER) {
+            tile.rtc_center = vec3.fromArray(featureTableJson.RTC_CENTER);
+        }
 
         let loader = new LoadGlTF();
         return loader.loadByArrayBuffer(gltfView.buffer, gltfView.byteOffset)

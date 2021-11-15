@@ -22,7 +22,7 @@ export interface ITile {
     transform?: number[],//mat4
     content?: {
         boundingVolume: IBoundingVolume,
-        uri: string,
+        url: string,
     },
     viewerRequestVolume?: IBoundingVolume,
     refine?: IRefine,

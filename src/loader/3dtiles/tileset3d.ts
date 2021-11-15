@@ -4,14 +4,14 @@ import { BoundingBox, BoundingSphere } from "../../scene";
 import { I3dTilesJson, IRefine, ITile, ITileFormat } from "./type";
 
 export class Tileset3dParser {
-    static parse(json: I3dTilesJson, rootUrl: string) {
+    static parse(json: I3dTilesJson, baseUrl: string) {
         let tiles = new Cesium3dTiles();
         tiles.geometricError = json.geometricError;
-        tiles.root = this.parseTileNode(json.root, rootUrl);
+        tiles.root = this.parseTileNode(json.root, baseUrl);
         return tiles;
     }
 
-    static parseTileNode(node: ITile, rootUrl: string) {
+    static parseTileNode(node: ITile, baseUrl: string) {
         let tile = new TilesNode();
         tile.geometricError = node.geometricError;
         tile.boundingVolume = parseBoundingVolume(node.boundingVolume);
@@ -25,25 +25,26 @@ export class Tileset3dParser {
             if (node.content.boundingVolume) {
                 tile.content.boundingVolume = parseBoundingVolume(node.content.boundingVolume);
             }
-            tile.content.uri = node.content.uri;
-            if (tile.content.uri.endsWith("b3dm")) {
+            tile.content.url = node.content.url;
+            if (tile.content.url.endsWith("b3dm")) {
                 tile.content.format = "b3dm";
-            } else if (tile.content.uri.endsWith("i3dm")) {
+            } else if (tile.content.url.endsWith("i3dm")) {
                 tile.content.format = "i3dm";
-            } else if (tile.content.uri.endsWith("pnts")) {
+            } else if (tile.content.url.endsWith("pnts")) {
                 tile.content.format = "pnts";
-            } else if (tile.content.uri.endsWith("cmpt")) {
+            } else if (tile.content.url.endsWith("cmpt")) {
                 tile.content.format = "cmpt";
-            } else if (tile.content.uri.endsWith("json")) {
+            } else if (tile.content.url.endsWith("json")) {
                 tile.content.format = "json";
             }
             else {
-                throw new Error(`unknown tile format ${tile.content.uri}`)
+                throw new Error(`unknown tile format ${tile.content.url}`)
             }
         }
         if (node.children) {
+            tile.children = [];
             for (let i = 0; i < node.children.length; i++) {
-                let childTile = this.parseTileNode(node.children[i], rootUrl);
+                let childTile = this.parseTileNode(node.children[i], baseUrl);
                 tile.children.push(childTile);
             }
         }
@@ -114,7 +115,7 @@ export class TilesNode {
     transform: mat4;//mat4
     content?: {
         boundingVolume?: IBoundingVolume,
-        uri: string,
+        url: string,
         format: ITileFormat;
         tile: ITileContent;
     };
