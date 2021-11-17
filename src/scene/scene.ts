@@ -52,7 +52,7 @@ export class InterScene {
      * @param deltaTime frame 间隔，单位秒
      * @returns 
      */
-    _tick = (deltaTime: number) => {
+    update = (deltaTime: number) => {
         if (this.beActiveTick == false) return;
         this.preUpdate.raiseEvent(deltaTime);
         this._ecsUpdate(deltaTime);

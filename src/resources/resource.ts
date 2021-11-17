@@ -6,39 +6,60 @@ export interface IAssetLoader {
 }
 
 export class Resource {
-    private resLoaderDic: { [extraName: string]: IAssetLoader } = {};
-    registAssetLoader(extra: string, factory: IAssetLoader) {
-        console.warn("loader type:", extra);
-        this.resLoaderDic[extra] = factory;
-    }
+    private extLoaderDic: { [extraName: string]: IAssetLoader } = {};
+    private typeLoaderDic: { [type: string]: IAssetLoader } = {};
 
-    getAssetLoader(url: string): IAssetLoader {
-        const extraType = getAssetExtraName(url);
-        const factory = this.resLoaderDic[extraType];
-        return factory;
+    registLoaderWithExt(ext: string, factory: IAssetLoader) {
+        console.info(`regist new loader to handle asset that it's fileExtension is ${ext}`);
+        this.extLoaderDic[ext] = factory;
+    }
+    registLoaderWithType(type: string, factory: IAssetLoader) {
+        console.info(`regist new loader to handle asset that it's type is ${type}`,);
+        this.typeLoaderDic[type] = factory;
     }
 
     /**
      * 调用load方法就会塞到这里面来
      */
-    private loadMap: { [url: string]: Promise<Asset> } = {};
+    private loadMap: { [url: string]: { request: Promise<Asset>, tag?: string } } = {};
 
     /**
      * 加载资源
      * @param url 地址
      * @param onFinish  load回调]
      */
-    load<T = Asset>(url: string): Promise<T> {
+    load<T = Asset>(url: string, options?: { type?: string, cache?: boolean, tag?: string }): Promise<T> {
         if (this.loadMap[url]) {
             return this.loadMap[url] as any;
         } else {
-            const loader = this.getAssetLoader(url);
+            const extName = getAssetExtraName(url);
+            let loader = this.extLoaderDic[extName];
+            if (loader == null && options?.type != null) {
+                loader = this.typeLoaderDic[options.type];
+            }
             if (loader == null) {
-                const errorMsg = "ERROR: load Asset error. INfo: not have Load Func to handle (" + getAssetExtraName(url) + ") type File.  load URL:" + url;
-                return Promise.reject(errorMsg);
+                return Promise.reject(`failed to find loader,url: ${url} type: ${options?.type}`);
             } else {
-                this.loadMap[url] = loader.load(url);
-                return this.loadMap[url] as any;
+                let request = loader.load(url);
+                if (options?.cache) {
+                    this.loadMap[url] = { request, tag: options.tag };
+                }
+                return request as any;
+            }
+        }
+    }
+    /**
+     * 清除缓存
+     * @param tag 资源标签
+     */
+    clearCache(tag?: string) {
+        if (tag == null) {
+            this.loadMap = {};
+        } else {
+            for (let key in this.loadMap) {
+                if (this.loadMap[key].tag == tag) {
+                    delete this.loadMap[key]
+                }
             }
         }
     }

@@ -65,7 +65,7 @@ export class MapBoxSystem extends System {
                 device.unBindShaderProgram();
                 device.unbindVbo();
                 device.unbindTextureUnit();
-                this._scene._tick(deltaTime);
+                this._scene.update(deltaTime);
                 device.unbindVao();
                 device.unBindShaderProgram();
                 device.unbindVbo();

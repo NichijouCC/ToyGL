@@ -13,14 +13,14 @@ export class ToyGL {
         const toy = new ToyGL();
         const timer = new Timer();
         const resource = new Resource();
+        resource.registLoaderWithExt(".gltf", new LoadGlTF());
+        resource.registLoaderWithExt(".glb", new LoadGlTF());
         const scene = new InterScene(element, options);
-        resource.registAssetLoader(".gltf", new LoadGlTF());
-        resource.registAssetLoader(".glb", new LoadGlTF());
         ECS.addSystem(new CameraSystem(scene));
         ECS.addSystem(new AnimationSystem());
         ECS.addSystem(new ModelSystem(scene), Number.POSITIVE_INFINITY);
 
-        timer.onTick.addEventListener(scene._tick);
+        timer.onTick.addEventListener(scene.update);
         toy._timer = timer;
         toy._scene = scene;
         toy._resource = resource;
