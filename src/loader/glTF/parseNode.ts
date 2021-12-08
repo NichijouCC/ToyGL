@@ -8,12 +8,13 @@ import { ModelComponent } from "../../components/modelComponent";
 import { StaticGeometry } from "../../resources/geometry/staticGeometry";
 import { ParseSkinNode } from "./parseSkinNode";
 import { GlTF } from "./util";
+import { InterScene } from "../../scene/index";
 
 export class ParseNode {
-    static parse(index: number, gltf: IGltfJson, root: Entity): Promise<Entity> {
+    static parse(scene: InterScene, index: number, gltf: IGltfJson, root: Entity): Promise<Entity> {
         const node = gltf.nodes[index];
         const name = GlTF.getNodeName(index, gltf);
-        const sceneNode = new Entity({ name });
+        const sceneNode = new Entity(scene, { name });
         if (node.matrix) {
             sceneNode.localMatrix = mat4.fromNumberArray(node.matrix);
         }
@@ -53,7 +54,7 @@ export class ParseNode {
         if (node.children) {
             for (let i = 0; i < node.children.length; i++) {
                 const nodeIndex = node.children[i];
-                const childTask = this.parse(nodeIndex, gltf, root)
+                const childTask = this.parse(scene, nodeIndex, gltf, root)
                     .then(child => {
                         sceneNode.addChild(child);
                     });

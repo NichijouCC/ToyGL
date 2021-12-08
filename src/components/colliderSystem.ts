@@ -2,8 +2,7 @@ import { mat4, vec3 } from "../mathD";
 import { BoxCollider, SphereCollider } from "./collider";
 import * as CANNON from "cannon-es";
 import { Rigidbody } from "./rigidbody";
-import { Entity, System } from "../scene/entity";
-import { ToyGL } from "../toygl";
+import { Entity, System } from "../scene/index";
 import { InterScene } from "../scene";
 
 export class ColliderSystem extends System {

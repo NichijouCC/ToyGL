@@ -1,12 +1,10 @@
 import { Color, mat4, quat, Rect, vec3 } from "../mathD";
-import { ECS } from "../core/ecs/ecs";
 import { Camera, LayerMask } from "../render/camera";
 import { ISceneCamera } from "../scene/isceneCamera";
 import { Component, Entity } from "../scene/entity";
 
 export const CAMERA_ASPECT = Symbol("aspect");
 
-@ECS.registComp
 export class CameraComponent extends Component implements ISceneCamera {
     private _projectMatBeDirty = true;
     private _projectionType: ProjectionEnum = ProjectionEnum.PERSPECTIVE;
@@ -110,7 +108,7 @@ export class CameraComponent extends Component implements ISceneCamera {
         return this.entity.getUpInWorld(this._up);
     }
     constructor(props?: Partial<Camera>) {
-        super(props as any);
+        super();
         Object.defineProperty(this._viewport, "x", {
             get: () => { return this._viewport[0]; },
             set: (value: number) => { this._viewport[0] = value; this._projectMatBeDirty = true; }

@@ -11,6 +11,7 @@ import { ParseAnimationNode } from "./glTF/parseAnimationNode";
 import { Animation } from "../components/animation";
 import { GraphicBuffer, GraphicIndexBuffer } from "../render/buffer";
 import { Geometry } from "../render/geometry";
+import { InterScene } from "../scene/index";
 
 export interface IglTFExtension {
     load(extensionNode: any, loader: LoadGlTF): Promise<any>;
@@ -40,12 +41,16 @@ export interface IGltfJson extends IGltf {
     cache: GltfNodeCache;
 }
 export class LoadGlTF implements IAssetLoader {
+    private _scene: InterScene;
+    constructor(scene: InterScene) {
+        this._scene = scene;
+    }
 
     load(url: string): Promise<Prefab> {
         return this.loadAsync(url)
             .then(async (gltfJson) => {
                 const scene = gltfJson.scene != null ? gltfJson.scene : 0;
-                const sceneRoot = await ParseSceneNode.parse(scene, gltfJson);
+                const sceneRoot = await ParseSceneNode.parse(this._scene, scene, gltfJson);
 
                 if (gltfJson.animations != null) {
                     const animations = await Promise.all(gltfJson.animations.map((item, index) => {

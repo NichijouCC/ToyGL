@@ -11,7 +11,7 @@ import { Screen } from "./screen";
 import { Gizmos } from "./gizmos/gizmos";
 
 export type ISceneOptions = { autoAdaptScreenSize?: boolean } & IEngineOption;
-export class InterScene {
+export class InterScene extends ECS {
     readonly screen: Screen;
     readonly render: ForwardRender;
     readonly gizmos: Gizmos;
@@ -27,14 +27,15 @@ export class InterScene {
     }
     private root: Entity;
     constructor(element: HTMLDivElement | HTMLCanvasElement, options?: ISceneOptions) {
+        super();
         this.screen = Screen.create(element, options);
         this.render = new ForwardRender(this.screen.canvas, options);
         this.gizmos = new Gizmos(this);
-        this.root = new Entity({ beActive: true, _parentsBeActive: true } as any);
+        this.root = new Entity(this, { beActive: true, _parentsBeActive: true, beInWorld: true } as any);
     }
 
     addNewChild(): Entity {
-        const trans = new Entity();
+        const trans = new Entity(this);
         this.root.addChild(trans);
         return trans;
     }
@@ -65,12 +66,13 @@ export class InterScene {
      * @param deltaTime  单位秒
      */
     private _ecsUpdate(deltaTime: number) {
-        ECS.entities.forEach(item => {
-            for (const key in item[COMPS]) {
-                item[COMPS][key][UPDATE](deltaTime);
+        for (let key in this.entities) {
+            let el = this.entities[key];
+            for (const key in el[COMPS]) {
+                el[COMPS][key][UPDATE](deltaTime);
             }
-        });
-        ECS.systems.forEach(item => item.system[UPDATE](deltaTime));
+        }
+        this.systems.forEach(item => item.system[UPDATE](deltaTime));
     }
 
     private _renders: IRenderable[] = [];

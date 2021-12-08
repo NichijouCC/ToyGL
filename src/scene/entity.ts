@@ -1,19 +1,17 @@
 import { COMPS, IComponent, IEntity } from "../core/ecs/iecs";
 import { ECS } from "../core/ecs/ecs";
 import { Transform } from "./transform";
-import { EventTarget } from "@mtgoo/ctool";
 import { AbsComponent, AbsSystem } from "../core/ecs";
 import { LayerMask } from "../render/camera";
 
 export class Entity extends Transform implements IEntity {
     name: string;
     layer: LayerMask = LayerMask.default;
-    constructor(properties?: Partial<Entity>) {
-        super();
+    constructor(ecs: ECS, properties?: Partial<Entity>) {
+        super(ecs);
         if (properties) {
             Object.keys(properties).forEach(item => (this as any)[item] = (properties as any)[item]);
         }
-        ECS.addEntity(this);
     }
 
     clone(): Entity {
@@ -23,7 +21,6 @@ export class Entity extends Transform implements IEntity {
 
     dispose() {
         this._parent.removeChild(this);
-        this.traverse((item) => { ECS.removeEntity(item); });
     }
 
     findComponents<T extends IComponent>(comp: new () => T): T[] {
@@ -38,7 +35,7 @@ export class Entity extends Transform implements IEntity {
     }
 
     private static cloneFrom(from: Entity) {
-        const newIns = new Entity();
+        const newIns = new Entity(from.ecs);
         newIns.name = from.name;
         newIns._selfBeActive = from._selfBeActive;
         newIns._parentsBeActive = from._parentsBeActive;

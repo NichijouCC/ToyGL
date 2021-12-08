@@ -4,6 +4,7 @@ import { InterScene, System } from "../scene";
 import { CameraComponent } from "./cameraComponent";
 import { EventTarget } from '@mtgoo/ctool'
 import { LoadCss, LoadScript } from "../io";
+
 export class MapBoxSystem extends System {
     caries: { [queryKey: string]: (new () => IComponent)[]; } = { comps: [CameraComponent] };
     readonly worldCenter: number[] = [];

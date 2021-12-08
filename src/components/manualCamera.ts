@@ -1,10 +1,8 @@
 import { CameraComponent } from './cameraComponent';
-import { ECS } from "../core/ecs";
-import { Component } from "../scene";
 import { quat, vec3 } from '../mathD';
 import { Input, KeyCodeEnum, MouseKeyEnum } from '../input';
+import { Component } from '../scene/index';
 
-@ECS.registComp
 export class ManualCamera extends Component {
     moveSpeed: number = 1;
     rotSpeed: number = 1;
@@ -78,7 +76,7 @@ export class ManualCamera extends Component {
         }
     }
 
-    clone(): Component {
+    clone(): ManualCamera {
         throw new Error("Method not implemented.");
     }
 }

@@ -1,11 +1,8 @@
-import { AbsComponent } from "../core/ecs/component";
-import { ECS } from "../core/ecs/ecs";
-import { Entity } from "../scene";
+import { Component, Entity } from "../scene";
 import { AnimationClip } from "../resources/animationClip";
 import { ClipInstance, ClipOptions } from "../scene/primitive/animation/clipInstance";
 
-@ECS.registComp
-export class Animation extends AbsComponent<Entity> {
+export class Animation extends Component {
     beAutoPlay: boolean = true;
     private _clips: AnimationClip[] = [];
     get clips() { return this._clips; }
@@ -61,7 +58,7 @@ export class Animation extends AbsComponent<Entity> {
     }
 
     clone(): Animation {
-        const newComp = Animation.create();
+        const newComp: Animation = this.entity.ecs.createComp(this.constructor as any);
         this._clips.forEach(item => {
             newComp.addAnimationClip(item);
         });

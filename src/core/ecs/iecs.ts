@@ -1,7 +1,10 @@
 // 每个组件占据一个二级制位BitKey, 每个system都有关联的component，组成一个UniteBitKey,每个entity的components同样会组成一个UniteBitKey;
 // 通过UnitedBitKey 二进制比对来快速检验 entity是否含有system所关心的组件;
 
+import { ECS } from "./ecs";
 import { UnitedBitKey } from "./bitKey";
+import { EventEmitter } from "@mtgoo/ctool";
+import { IEntityEvent } from "./entity";
 export const UPDATE = Symbol("update");
 export const UNIT_BIT_KEY = Symbol("uniteBitKey");
 export const COMPS = Symbol("comps");
@@ -16,8 +19,10 @@ export interface IComponent {
     clone(): IComponent;
 }
 
-export interface IEntity {
+export interface IEntity extends EventEmitter<IEntityEvent> {
     id: string;
+    readonly ecs: ECS;
+    // beInWorld: boolean;
     [COMPS]: { [compName: string]: IComponent };
     [UNIT_BIT_KEY]: UnitedBitKey;
     addComponent<T extends IComponent, P extends object = any>(comp: new () => T, properties?: P): T;

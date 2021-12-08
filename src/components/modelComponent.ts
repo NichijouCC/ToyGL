@@ -1,4 +1,3 @@
-import { ECS } from "../core/ecs/ecs";
 import { AssetReferenceArray } from "../scene/assetReferenceArray";
 import { AssetReference } from "../scene/assetReference";
 import { StaticGeometry } from "../resources/geometry/staticGeometry";
@@ -7,7 +6,6 @@ import { SkinInstance } from "../scene/primitive/animation/skinInstance";
 import { Skin } from "../resources/skin";
 import { Component, Entity } from "../scene";
 
-@ECS.registComp
 export class ModelComponent extends Component {
     protected _mesh = new AssetReference<StaticGeometry>();
     get mesh() { return this._mesh.current; };
@@ -38,7 +36,7 @@ export class ModelComponent extends Component {
     }
 
     clone(): ModelComponent {
-        const comp = ModelComponent.create();
+        const comp: ModelComponent = this.entity.ecs.createComp(this.constructor as any);
         comp.mesh = this.mesh;
         comp.materials = this.materials;
         comp.skin = this.skin;

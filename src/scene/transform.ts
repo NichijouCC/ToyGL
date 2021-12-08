@@ -1,5 +1,5 @@
 import { vec3, mat4, quat, mat4Pool, vec3Pool } from "../mathD/index";
-import { Entity as BaseEntity } from "../core/ecs";
+import { ECS, Entity as BaseEntity } from "../core/ecs";
 enum DirtyFlagEnum {
     WORLD_POS = 0b000100,
     WORLD_ROTATION = 0b001000,
@@ -42,8 +42,8 @@ export class Transform extends BaseEntity {
         }
     }
 
-    constructor() {
-        super();
+    constructor(ecs: ECS) {
+        super(ecs);
         // --------attach to dirty-------
         const _this = this;
         this._localPosition = vec3.create();
@@ -269,6 +269,13 @@ export class Transform extends BaseEntity {
         node._parent = this;
         node.markDirty();
         node._setParentsBeActive(this.beActive);
+
+        if (this.beInWorld && node.beInWorld == false) {
+            node.traverse((el) => {
+                this.ecs.addEntity(el);
+                el.beInWorld = true;
+            }, true)
+        }
         return node;
     }
 
@@ -278,10 +285,15 @@ export class Transform extends BaseEntity {
     removeAllChild() {
         // if(this.children==undefined||this.children.length==0) return;
         if (this._children.length == 0) return;
-        for (let i = 0, len = this._children.length; i < len; i++) {
-            this._children[i]._parentsBeActive = false;
-            this._children[i]._parent = null;
-        }
+
+        this.traverse((el) => {
+            el._parentsBeActive = false;
+            el._parent = null;
+            if (el.beInWorld) {
+                el.beInWorld = false;
+                this.ecs.removeEntity(el);
+            }
+        }, false)
         this._children.length = 0;
     }
 
@@ -289,6 +301,7 @@ export class Transform extends BaseEntity {
      * 移除指定子物体
      */
     removeChild(node: this) {
+        if (node == null) return;
         if (node._parent != this || this._children.length == 0) {
             throw new Error("not my child.");
         }
@@ -298,6 +311,18 @@ export class Transform extends BaseEntity {
             node._parent = null;
         }
         node._parentsBeActive = false;
+
+        if (this.beInWorld && node.beInWorld) {
+            node.traverse((el) => {
+                this.ecs.removeEntity(el);
+                el.beInWorld = false;
+            }, true)
+        }
+    }
+
+    setParent(node: this) {
+        if (node == null) return;
+        node.addChild(this);
     }
 
     // ----------------节点查找
