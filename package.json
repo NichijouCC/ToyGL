@@ -19,8 +19,8 @@
     "node": ">=6.0.0"
   },
   "scripts": {
-    "roll": "rollup -c rollup.config.js",
     "start": "rollup -c rollup.config.dev.js -w",
+    "build": "rollup -c rollup.config.js",
     "lint": "eslint **/*.ts --fix --ignore-pattern node_modules/"
   },
   "devDependencies": {
