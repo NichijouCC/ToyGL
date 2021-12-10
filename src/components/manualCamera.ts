@@ -37,6 +37,8 @@ export class ManualCamera extends Component {
             let tempt = vec3.create();
             let forward = comp.forwardInWorld;
             let right = comp.rightInWorld;
+            let up = comp.upInWorld;
+
 
             let _pressed = false;
             if (Input.getKeyDown(KeyCodeEnum.A)) {
@@ -55,13 +57,21 @@ export class ManualCamera extends Component {
                 _pressed = true;
                 vec3.add(move, move, vec3.scale(tempt, forward, 1 * this.moveSpeed * deltaTime))
             }
+            if (Input.getKeyDown(KeyCodeEnum.Z)) {
+                _pressed = true;
+                vec3.add(move, move, vec3.scale(tempt, up, -1 * this.moveSpeed * deltaTime))
+            }
+            if (Input.getKeyDown(KeyCodeEnum.C)) {
+                _pressed = true;
+                vec3.add(move, move, vec3.scale(tempt, up, this.moveSpeed * deltaTime))
+            }
             if (Input.getKeyDown(KeyCodeEnum.Q)) {
                 _pressed = true;
-                vec3.add(move, move, vec3.scale(tempt, vec3.UP, this.moveSpeed * deltaTime))
+                vec3.add(move, move, vec3.scale(tempt, vec3.UP, -1 * this.moveSpeed * deltaTime))
             }
             if (Input.getKeyDown(KeyCodeEnum.E)) {
                 _pressed = true;
-                vec3.add(move, move, vec3.scale(tempt, vec3.UP, -1 * this.moveSpeed * deltaTime))
+                vec3.add(move, move, vec3.scale(tempt, vec3.UP, this.moveSpeed * deltaTime))
             }
             if (_pressed) {
                 this._totalTime += deltaTime;

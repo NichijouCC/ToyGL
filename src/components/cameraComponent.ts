@@ -34,7 +34,7 @@ export class CameraComponent extends Component implements ISceneCamera {
         this._projectMatBeDirty = true;
     }
 
-    private _far: number = 1000;
+    private _far: number = 3000;
     get far(): number { return this._far; }
     set far(val: number) {
         if (val <= this.near) val = this.near + 0.01;

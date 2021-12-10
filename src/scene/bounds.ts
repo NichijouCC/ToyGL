@@ -213,12 +213,30 @@ export class BoundingSphere {
 }
 
 export class BoundingBox {
-    center: vec3;
-    halfSize: vec3;
+    center: vec3 = vec3.create();
+    halfSize: vec3 = vec3.create();
     private constructor(center?: vec3, halfSize?: vec3) {
-        this.center = center || vec3.create();
-        this.halfSize = halfSize || vec3.fromValues(1, 1, 1);
+        if (center) {
+            this.center = vec3.clone(center);
+        } else {
+            this.center = vec3.create();
+        }
+        if (halfSize) {
+            this.halfSize = vec3.clone(halfSize);
+        } else {
+            this.halfSize = vec3.create();
+        }
+        this._min = vec3.subtract(vec3.create(), this.center, this.halfSize);
+        this._max = vec3.add(vec3.create(), this.center, this.halfSize);
     }
+    SetData(center: vec3, halfSize: vec3) {
+        vec3.copy(this.center, center);
+        vec3.copy(this.halfSize, halfSize);
+        this._min = vec3.subtract(vec3.create(), this.center, this.halfSize);
+        this._max = vec3.add(vec3.create(), this.center, this.halfSize);
+    }
+
+    //positions=[x1,y1,z1,x2,y2,z2...]
     static fromTypedArray(positions: TypedArray, center: vec3 = null) {
         const min = vec3.fromValues(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
         const max = vec3.fromValues(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
@@ -245,16 +263,88 @@ export class BoundingBox {
         }
         return BoundingBox.fromMinMax(min, max);
     }
+    //positions=[[x1,y1,z1],[x2,y2,z2]...]
+    static fromTypedArrays(positions: TypedArray[], center: vec3 = null) {
+        const min = vec3.fromValues(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
+        const max = vec3.fromValues(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
+        let x, y, z;
+        for (let i = 0; i < positions.length; i += 3) {
+            x = positions[i][0];
+            y = positions[i][1];
+            z = positions[i][2];
+            if (x < min[0]) {
+                min[0] = x;
+            } else if (x > max[0]) {
+                max[0] = x;
+            }
+            if (y < min[1]) {
+                min[1] = y;
+            } else if (y > max[1]) {
+                max[1] = y;
+            }
+            if (z < min[2]) {
+                min[2] = z;
+            } else if (z > max[2]) {
+                max[2] = z;
+            }
+        }
+        return BoundingBox.fromMinMax(min, max);
+    }
+    private _min: vec3;
+    private _max: vec3;
+    get min() { return this._min }
+    get max() { return this._max }
 
     static fromMinMax = (() => {
         const _tempt = vec3.create();
         return (min: ArrayLike<number>, max: ArrayLike<number>, out?: BoundingBox) => {
             out = out ?? new BoundingBox();
-            vec3.copy(out.center, vec3.set(_tempt, (min[0] + max[0]) * 0.5, (min[1] + max[1]) * 0.5, (min[2] + max[2]) * 0.5));
-            vec3.copy(out.halfSize, vec3.set(_tempt, (max[0] - min[0]) * 0.5, (max[1] - min[1]) * 0.5, (max[2] - min[2]) * 0.5));
+            let center = vec3.copy(vec3.create(), vec3.set(_tempt, (min[0] + max[0]) * 0.5, (min[1] + max[1]) * 0.5, (min[2] + max[2]) * 0.5));
+            let halfSize = vec3.copy(vec3.create(), vec3.set(_tempt, (max[0] - min[0]) * 0.5, (max[1] - min[1]) * 0.5, (max[2] - min[2]) * 0.5));
+            out.SetData(center, halfSize);
             return out;
         };
     })()
+
+    static contact(out: BoundingBox, a: BoundingBox, ...b: BoundingBox[]) {
+        let min = vec3.clone(a.min);
+        let max = vec3.clone(a.max);
+        for (let i = 0; i < b.length; i++) {
+            if (b[i]._min[0] < min[0]) {
+                min[0] = b[i]._min[0];
+            }
+            if (b[i]._min[1] < min[1]) {
+                min[1] = b[i]._min[1];
+            }
+            if (b[i]._min[2] < min[2]) {
+                min[2] = b[i]._min[2];
+            }
+
+            if (b[i]._max[0] > max[0]) {
+                max[0] = b[i]._max[0];
+            }
+            if (b[i]._max[1] > max[1]) {
+                max[1] = b[i]._max[1];
+            }
+            if (b[i]._max[2] > max[2]) {
+                max[2] = b[i]._max[2];
+            }
+        }
+        let _tempt = vec3.create();
+        vec3.copy(out.center, vec3.set(_tempt, (min[0] + max[0]) * 0.5, (min[1] + max[1]) * 0.5, (min[2] + max[2]) * 0.5));
+        vec3.copy(out.halfSize, vec3.set(_tempt, (max[0] - min[0]) * 0.5, (max[1] - min[1]) * 0.5, (max[2] - min[2]) * 0.5));
+        vec3.copy(out._min, min);
+        vec3.copy(out._max, max);
+    }
+
+    clone() {
+        let box = new BoundingBox();
+        vec3.copy(this.center, box.center);
+        vec3.copy(this.halfSize, box.halfSize);
+        vec3.copy(this._min, box._min);
+        vec3.copy(this._max, box._max);
+        return box
+    }
 
     private static pool: BoundingBox[] = [];
     static create(center?: vec3, halfSize?: vec3) {
