@@ -4,7 +4,6 @@ import { ENTITIES, IComponent, IEntity, ISystem, UNIT_BIT_KEY_DIC, UPDATE } from
 
 export abstract class AbsSystem<T extends IEntity> extends EventEmitter<ISystemEvents<T>> implements ISystem {
     abstract caries: { [queryKey: string]: (new () => IComponent)[]; }
-
     [UNIT_BIT_KEY_DIC]: { [queryKey: string]: UnitedBitKey; } = {};
     [ENTITIES]: { [queryKey: string]: T[]; } = {};
     get queries() { return this[ENTITIES]; }

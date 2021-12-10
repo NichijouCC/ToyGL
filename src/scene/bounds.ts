@@ -212,6 +212,11 @@ export class BoundingSphere {
     }
 }
 
+export interface IBoundingBox {
+    center: vec3;
+    halfSize: vec3;
+}
+
 export class BoundingBox {
     center: vec3 = vec3.create();
     halfSize: vec3 = vec3.create();

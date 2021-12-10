@@ -1,6 +1,6 @@
 import { Color, mat4, quat, Rect, vec3 } from "../mathD";
 import { Camera, LayerMask } from "../render/camera";
-import { ISceneCamera } from "../scene/isceneCamera";
+import { ISceneCamera } from "../scene/interface";
 import { Component, Entity } from "../scene/entity";
 
 export const CAMERA_ASPECT = Symbol("aspect");

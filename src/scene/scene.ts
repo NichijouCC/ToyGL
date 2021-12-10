@@ -1,12 +1,11 @@
 import { EventTarget } from "@mtgoo/ctool";
 import { Entity } from "./entity";
 import { FrameState } from "./frameState";
-import { mat4, vec2, vec3, vec4 } from "../mathD";
+import { mat4, ndcToWorld, vec2, vec3, vec4 } from "../mathD";
 import { Input } from "../input";
 import { ECS, COMPS, UPDATE } from "../core/ecs";
 import { IRenderable, ICamera, RenderTypeEnum, ForwardRender, IEngineOption } from "../render";
 import { CameraComponent } from "../components/cameraComponent";
-import { PhysicsWorld } from "../components/colliderSystem";
 import { Screen } from "./screen";
 import { Gizmos } from "./gizmos/gizmos";
 
@@ -108,40 +107,6 @@ export class InterScene extends ECS {
         const world_far = ndcToWorld(ndc_far, this.mainCamera.projectMatrix, this.mainCamera.worldMatrix);
         gizmos.drawLine(world_near, world_far);
     }
-
-    pickTestCollider() {
-        const { screen } = this;
-        const screenPos = Input.mouse.position;
-        const ndc_x = (screenPos[0] / screen.width) * 2 - 1;
-        const ndc_y = -1 * ((screenPos[1] / screen.height) * 2 - 1);
-        const ndc_near = vec3.fromValues(ndc_x, ndc_y, -1);
-        const ndc_far = vec3.fromValues(ndc_x, ndc_y, 1);
-        const world_near = ndcToWorld(ndc_near, this.mainCamera.projectMatrix, this.mainCamera.worldMatrix);
-        const world_far = ndcToWorld(ndc_far, this.mainCamera.projectMatrix, this.mainCamera.worldMatrix);
-
-        const result = PhysicsWorld.rayTest(world_near, world_far);
-        console.log("pickFromRay", result);
-        if (result.hasHit) {
-            const posInWorld = result.hitPointWorld;
-            this.gizmos.drawPoint(vec3.fromValues(posInWorld.x, posInWorld.y, posInWorld.z));
-        }
-    }
-
-    intersectCollider(from: vec3, to: vec3) {
-        return PhysicsWorld.rayTest(from, to);
-    }
-}
-
-
-function ndcToView(ndcPos: vec3, projectMat: mat4) {
-    const inversePrjMat = mat4.invert(mat4.create(), projectMat);
-    const viewPosH = vec4.transformMat4(vec4.create(), vec4.fromValues(ndcPos[0], ndcPos[1], ndcPos[2], 1), inversePrjMat);
-    return vec3.fromValues(viewPosH[0] / viewPosH[3], viewPosH[1] / viewPosH[3], viewPosH[2] / viewPosH[3]);
-}
-
-function ndcToWorld(ndcPos: vec3, projectMat: mat4, camToWorld: mat4) {
-    const view_pos = ndcToView(ndcPos, projectMat);
-    return vec3.transformMat4(vec3.create(), view_pos, camToWorld);
 }
 
 function sortRenderItems(items: IRenderable[], cam: ICamera) {

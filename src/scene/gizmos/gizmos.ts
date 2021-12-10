@@ -1,6 +1,6 @@
 import { mat4, vec3 } from "../../mathD";
 import { DefaultMaterial } from "../../resources";
-import { BoundingBox } from "../bounds";
+import { BoundingBox, IBoundingBox } from "../bounds";
 import { IRenderable } from "../../render/irenderable";
 import { ComponentDatatypeEnum, Geometry, PrimitiveTypeEnum, VertexAttEnum } from "../../render";
 import { InterScene } from "../scene";
@@ -43,9 +43,9 @@ export class Gizmos {
         });
     }
 
-    private _dic = new Map<BoundingBox, IRenderable>();
+    private _dic = new Map<IBoundingBox, IRenderable>();
 
-    drawAABB(aabb: BoundingBox, worldMat?: mat4) {
+    drawAABB(aabb: IBoundingBox, worldMat?: mat4) {
         const { center, halfSize } = aabb;
         const parentMat = worldMat ?? mat4.IDENTITY;
         const selfToParent = mat4.fromTranslation(mat4.create(), center);

@@ -1,9 +1,9 @@
-import { mat4, vec3 } from "../mathD";
+import { mat4, ndcToWorld, vec3 } from "../mathD";
 import { BoxCollider, SphereCollider } from "./collider";
-import * as CANNON from "cannon-es";
 import { Rigidbody } from "./rigidbody";
-import { Entity, System } from "../scene/index";
-import { InterScene } from "../scene";
+import { Entity, System, InterScene } from "../scene/index";
+import * as CANNON from "cannon-es";
+import { Input } from "../input";
 
 export class ColliderSystem extends System {
     caries = { boxColliders: [BoxCollider], SphereColliders: [SphereCollider], rigidbodies: [Rigidbody] };
@@ -59,7 +59,30 @@ export class ColliderSystem extends System {
         //     this.dic[item.id].velocity.z = comp.velocity[2];
         // })
     }
+
+    pickTestCollider() {
+        const { screen, mainCamera, gizmos } = this._scene;
+        const screenPos = Input.mouse.position;
+        const ndc_x = (screenPos[0] / screen.width) * 2 - 1;
+        const ndc_y = -1 * ((screenPos[1] / screen.height) * 2 - 1);
+        const ndc_near = vec3.fromValues(ndc_x, ndc_y, -1);
+        const ndc_far = vec3.fromValues(ndc_x, ndc_y, 1);
+        const world_near = ndcToWorld(ndc_near, mainCamera.projectMatrix, mainCamera.worldMatrix);
+        const world_far = ndcToWorld(ndc_far, mainCamera.projectMatrix, mainCamera.worldMatrix);
+
+        const result = PhysicsWorld.rayTest(world_near, world_far);
+        console.log("pickFromRay", result);
+        if (result.hasHit) {
+            const posInWorld = result.hitPointWorld;
+            gizmos.drawPoint(vec3.fromValues(posInWorld.x, posInWorld.y, posInWorld.z));
+        }
+    }
+
+    intersectCollider(from: vec3, to: vec3) {
+        return PhysicsWorld.rayTest(from, to);
+    }
 }
+
 
 export class PhysicsWorld {
     private static dic: { [id: string]: CANNON.Body } = {};

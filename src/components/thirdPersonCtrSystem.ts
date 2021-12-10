@@ -1,3 +1,4 @@
+import { ColliderSystem } from ".";
 import { Input, KeyCodeEnum, MouseKeyEnum } from "../input";
 import { mat4, quat, vec3, vec4 } from "../mathD";
 import { InterScene, System } from "../scene";
@@ -6,9 +7,11 @@ import { ThirdPersonController } from "./thirdPersonController";
 export class ThirdPersonCtrSystem extends System {
     caries = { comps: [ThirdPersonController] };
     private _scene: InterScene;
-    constructor(scene: InterScene) {
+    private _physic: ColliderSystem;
+    constructor(scene: InterScene, physic: ColliderSystem) {
         super();
         this._scene = scene;
+        this._physic = physic;
     }
 
     private targeCtr: ThirdPersonController;
@@ -103,9 +106,8 @@ export class ThirdPersonCtrSystem extends System {
                     vec3.copy(temptStartPos, worldPos);
                     temptStartPos[1] += 1;
                     vec3.scaleAndAdd(temptEndPos, temptStartPos, moveForward, 1.3);
-                    const result = this._scene.intersectCollider(temptStartPos, temptEndPos);
+                    const result = this._physic.intersectCollider(temptStartPos, temptEndPos);
                     // this._toy.gizmos.drawLine(temptStartPos, temptEndPos);
-
                     if (!result.hasHit) {
                         entity.worldPosition = targetPos;
                     }

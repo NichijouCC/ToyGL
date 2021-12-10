@@ -1,7 +1,7 @@
 export * from "./assetReference";
 export * from "./assetReferenceArray";
 export * from "./bounds";
-export * from "./isceneCamera";
+export * from "./interface";
 export * from "./shaderCodeInjector";
 
 export * from "./plane";

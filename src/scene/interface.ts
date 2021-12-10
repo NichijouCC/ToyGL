@@ -7,3 +7,8 @@ export interface ISceneCamera extends ICamera {
     worldMatrix: mat4;
     forwardInWorld: vec3;
 }
+
+
+export interface IPhysicsWorld {
+    rayTest(from: vec3, to?: vec3): any
+}
