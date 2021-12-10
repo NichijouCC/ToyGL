@@ -5,7 +5,7 @@ import { VertexAttSetter } from "./vertexAttSetter";
 import { DeviceLimit } from "./deviceLimit";
 import { BlendEquationEnum, BlendParamEnum } from "./shaderState";
 import { IVaoOptions, VertexArray } from "./vertexArray";
-import { UniformSetter } from "./UniformSetter";
+import { UniformSetter } from "./uniformSetter";
 import { IndexBuffer, IndexBufferOption } from "./indexBuffer";
 import { IFrameBufferTexOpts, IImageSourceTexOpts, ITypedArrayTexOpts, Texture } from "./texture";
 import { FrameBuffer, IFrameBufferOptions } from "./framebuffer";

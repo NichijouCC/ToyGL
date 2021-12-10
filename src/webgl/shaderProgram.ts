@@ -2,7 +2,7 @@ import { GraphicsDevice } from "./graphicsDevice";
 import { UniformTypeEnum } from "./uniformType";
 import { VertexAttEnum } from "./vertexAttEnum";
 import { Texture } from "./texture";
-import { UniformSetter } from "./UniformSetter";
+import { UniformSetter } from "./uniformSetter";
 
 /***
  * @example usage
