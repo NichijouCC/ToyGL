@@ -96,8 +96,6 @@ export class VertexArray implements IglElement {
     private _vao: any;
     private _context: GraphicsDevice;
     private _primitiveType: PrimitiveTypeEnum;
-
-    get vertexAttributes() { return this._vertexAttributes; }
     get vertexCount() {
         return this._vertexAttributes[VertexAttEnum.POSITION].count;
     }
@@ -110,20 +108,12 @@ export class VertexArray implements IglElement {
     get count() { return this._count ?? this._indexBuffer?.count ?? this.vertexCount; }
     get bytesOffset() { return this._bytesOffset; }
     set bytesOffset(offset: number) { this._bytesOffset = offset; }
-    get indexBuffer() { return this._indexBuffer; }
     constructor(context: GraphicsDevice, options: IVaoOptions) {
         this._context = context;
         // this.vertexAttributes = options.vertexAttributes.map(item => new VertexAttribute(options.context, item));
-        if (options.vertexAttributes[0] instanceof VertexAttribute) {
-            options.vertexAttributes.forEach(item => {
-                let att = item as VertexAttribute;
-                this._vertexAttributes[att.type] = att;
-            })
-        } else {
-            options.vertexAttributes.forEach(item => {
-                this._vertexAttributes[item.type] = new VertexAttribute(context, item);
-            });
-        }
+        options.vertexAttributes.forEach(item => {
+            this.addAttribute(item);
+        })
         if (options.indices != null) {
             if (options.indices instanceof IndexBuffer) {
                 this._indexBuffer = options.indices;
@@ -138,10 +128,15 @@ export class VertexArray implements IglElement {
         const gl = context.gl;
 
         if (context.caps.vertexArrayObject) {
+            this._dirtyAtts = new Set<string>();
             this.bind = () => {
-                if (this._vao != this._context.bindingVao) {
+                if (this._vao != this._context.bindingVao || this._dirtyAtts.size != 0 || this._indexDirty) {
                     this._context.bindingVao = this._vao;
                     gl.bindVertexArray(this._vao);
+                    this._dirtyAtts.forEach(item => {
+                        this._vertexAttributes[item].bind()
+                    })
+                    this._dirtyAtts.clear();
                 }
             };
             this.unbind = () => {
@@ -168,11 +163,37 @@ export class VertexArray implements IglElement {
             this.unbind = () => {
                 unbindAttributes(this._vertexAttributes, this._indexBuffer);
             };
+
         }
     }
 
+    get vertexAttributes() { return this._vertexAttributes; }
     hasAttribute(att: VertexAttEnum | string) { return this._vertexAttributes[att] != null; }
-
+    getAttribute(att: VertexAttEnum | string) { return this._vertexAttributes[att] }
+    addAttribute(att: VertexAttribute | IVertexAttributeOption) {
+        let vAtt: VertexAttribute = att as any;
+        if (!(att instanceof VertexAttribute)) {
+            vAtt = new VertexAttribute(this._context, att);
+        }
+        if (this._vertexAttributes[vAtt.type] != null) {
+            this._vertexAttributes[vAtt.type].off("AttUpdate", this.listenToVertexAttributeUpdate)
+        }
+        this._vertexAttributes[vAtt.type] = vAtt;
+        vAtt.on("AttUpdate", this.listenToVertexAttributeUpdate)
+        this._dirtyAtts?.add(att.type);
+    }
+    private listenToVertexAttributeUpdate = (type: string) => {
+        this._dirtyAtts?.add(type);
+    }
+    get indexBuffer() { return this._indexBuffer; }
+    set indexBuffer(buffer: IndexBuffer) {
+        if (this._indexBuffer != buffer) {
+            this._indexBuffer = buffer;
+            this._indexDirty = true;
+        }
+    }
+    private _indexDirty: boolean;
+    private _dirtyAtts: Set<string>;
     bind() { }
     unbind() { }
 

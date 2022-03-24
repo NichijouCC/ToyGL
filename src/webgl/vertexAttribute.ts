@@ -3,11 +3,12 @@ import { ComponentDatatypeEnum } from "./componentDatatypeEnum";
 import { VertexAttEnum } from "./vertexAttEnum";
 import { GlType, TypedArray } from "../core/typedArray";
 import { Buffer, BufferTargetEnum, BufferUsageEnum } from "./buffer";
+import { VertexArray } from "./vertexArray";
+import { EventEmitter } from "@mtgoo/ctool";
 
 export interface IVertexAttribute {
-    type: string | VertexAttEnum
-    enabled: boolean;
-    buffer: Buffer;
+    readonly type: string | VertexAttEnum
+    readonly buffer: Buffer;
     componentSize: number;
     componentDatatype: number;
     normalize: boolean;
@@ -27,22 +28,58 @@ export interface IVertexAttributeOption {
     instanceDivisor?: number;
 }
 
-export class VertexAttribute implements IVertexAttribute {
-    type: string | VertexAttEnum;
-    index: number;
-    enabled: boolean;
-    buffer: Buffer;
-    componentSize: number;
-    componentDatatype: number;
-    normalize: boolean;
-    bytesOffset: number;
-    bytesStride: number;
-    instanceDivisor: number;
-    count: number;
+interface VertexAttributeEvents {
+    "AttUpdate": string,
+}
+
+export class VertexAttribute extends EventEmitter<VertexAttributeEvents> implements IVertexAttribute {
+    readonly type: string | VertexAttEnum;
+    readonly index: number;
+    private _buffer: Buffer;
+    get buffer() { return this._buffer }
+    private _componentSize: number;
+    get componentSize() { return this._componentSize }
+    set componentSize(value: number) {
+        this._componentSize = value;
+        this.emit("AttUpdate", this.type)
+    }
+    private _componentDatatype: number;
+    get componentDatatype() { return this._componentDatatype }
+    set componentDatatype(value: number) {
+        this._componentDatatype = value;
+        this.emit("AttUpdate", this.type)
+    }
+    private _normalize: boolean;
+    get normalize() { return this._normalize }
+    set normalize(value: boolean) {
+        this._normalize = value;
+        this.emit("AttUpdate", this.type)
+    }
+    private _bytesOffset: number;
+    get bytesOffset() { return this._bytesOffset }
+    set bytesOffset(value: number) {
+        this._bytesOffset = value;
+        this.emit("AttUpdate", this.type)
+    }
+    private _bytesStride: number;
+    get bytesStride() { return this._bytesStride }
+    set bytesStride(value: number) {
+        this._bytesStride = value;
+        this.emit("AttUpdate", this.type)
+    }
+    private _instanceDivisor: number;
+    get instanceDivisor() { return this._instanceDivisor }
+    set instanceDivisor(value: number) {
+        this._instanceDivisor = value;
+        this.emit("AttUpdate", this.type)
+    }
+    private _count: number;
+    get count() { return this._count }
 
     private _gl: WebGLRenderingContext;
     private _context: GraphicsDevice;
     constructor(context: GraphicsDevice, options: IVertexAttributeOption) {
+        super();
         if (options.data == null) {
             throw new Error("vertex Attribute option's data must not be null")
         }
@@ -51,81 +88,74 @@ export class VertexAttribute implements IVertexAttribute {
         this._gl = context.gl;
         this.type = options.type;
         this.index = VertexAttEnum.toShaderLocation(this.type);
-        this.enabled = true;
-        this.componentSize = options.componentSize ?? VertexAttEnum.toComponentSize(options.type);
-        this.componentDatatype = options.componentDatatype ?? ComponentDatatypeEnum.FLOAT;
-        this.normalize = options.normalize ?? false;
-        this.bytesOffset = options.bytesOffset ?? 0;
-        this.bytesStride = options.bytesStride ?? 0;
-        this.instanceDivisor = options.instanceDivisor;
+        // this._enabled = true;
+        this._componentSize = options.componentSize ?? VertexAttEnum.toComponentSize(options.type);
+        this._componentDatatype = options.componentDatatype ?? ComponentDatatypeEnum.FLOAT;
+        this._normalize = options.normalize ?? false;
+        this._bytesOffset = options.bytesOffset ?? 0;
+        this._bytesStride = options.bytesStride ?? 0;
+        this._instanceDivisor = options.instanceDivisor;
         if (options.data instanceof Buffer) {
-            this.buffer = options.data;
+            this._buffer = options.data;
         } else {
-            this.buffer = new Buffer(context, { data: options.data, usage: options.usage, target: BufferTargetEnum.ARRAY_BUFFER })
+            this._buffer = new Buffer(context, { data: options.data, usage: options.usage, target: BufferTargetEnum.ARRAY_BUFFER })
         }
 
-        const bytes = this.buffer.sizeInBytes - this.bytesOffset;
-        if (this.bytesStride == 0) {
-            this.count = bytes / (this.componentSize * GlType.bytesPerElement(this.componentDatatype));
+        const bytes = this._buffer.sizeInBytes - this._bytesOffset;
+        if (this._bytesStride == 0) {
+            this._count = bytes / (this._componentSize * GlType.bytesPerElement(this._componentDatatype));
         } else {
-            this.count = bytes / this.bytesStride;
+            this._count = bytes / this._bytesStride;
         }
         this.bind = () => {
-            this.buffer.bind();
+            this._buffer.bind();
             this._gl.enableVertexAttribArray(this.index);
             this._gl.vertexAttribPointer(
                 this.index,
-                this.componentSize,
-                this.componentDatatype,
-                this.normalize,
-                this.bytesStride,
-                this.bytesOffset
+                this._componentSize,
+                this._componentDatatype,
+                this._normalize,
+                this._bytesStride,
+                this._bytesOffset
             );
-            if (this.instanceDivisor != null) {
-                this._gl.vertexAttribDivisor(this.index, this.instanceDivisor);
+            if (this._instanceDivisor != null) {
+                this._gl.vertexAttribDivisor(this.index, this._instanceDivisor);
             }
         };
         this.unbind = () => {
             this._gl.disableVertexAttribArray(this.index);
-            if (this.instanceDivisor != null) {
+            if (this._instanceDivisor != null) {
                 this._gl.vertexAttribDivisor(this.index, 0);
             }
         };
     }
-    update(options: Partial<Omit<IVertexAttributeOption, "type" | "usage">>) {
-        if (options.componentDatatype) this.componentDatatype = options.componentDatatype;
-        if (options.componentSize) this.componentSize = options.componentSize;
-        if (options.instanceDivisor) this.instanceDivisor = options.instanceDivisor;
-        if (options.normalize) this.normalize = options.normalize;
-        if (options.bytesOffset) this.bytesOffset = options.bytesOffset;
-        if (options.bytesStride) this.bytesStride = options.bytesStride;
-        if (options.data) {
-            if (options.data instanceof Buffer) {
-                this.buffer = options.data;
-            } else {
-                this.buffer = new Buffer(this._context, { data: options.data, usage: this.buffer.usage, target: BufferTargetEnum.ARRAY_BUFFER })
-            }
-
-            const bytes = this.buffer.sizeInBytes - this.bytesOffset;
-            if (this.bytesStride == 0) {
-                this.count = bytes / (this.componentSize * GlType.bytesPerElement(this.componentDatatype));
-            } else {
-                this.count = bytes / this.bytesStride;
-            }
+    update(options: { data: TypedArray } & Partial<Omit<IVertexAttributeOption, "data" | "type" | "usage">>) {
+        this._buffer.update(options.data);
+        if (options.componentDatatype != null) this.componentDatatype = options.componentDatatype;
+        if (options.componentSize != null) this.componentSize = options.componentSize;
+        if (options.normalize != null) this.normalize = options.normalize;
+        if (options.bytesOffset != null) this.bytesOffset = options.bytesOffset;
+        if (options.bytesStride != null) this.bytesStride = options.bytesStride;
+        if (options.instanceDivisor != null) this.instanceDivisor = options.instanceDivisor;
+        const bytes = this._buffer.sizeInBytes - this._bytesOffset;
+        if (this._bytesStride == 0) {
+            this._count = bytes / (this._componentSize * GlType.bytesPerElement(this._componentDatatype));
+        } else {
+            this._count = bytes / this._bytesStride;
         }
-        this.buffer.bind();
-        this._gl.enableVertexAttribArray(this.index);
-        this._gl.vertexAttribPointer(
-            this.index,
-            this.componentSize,
-            this.componentDatatype,
-            this.normalize,
-            this.bytesStride,
-            this.bytesOffset
-        );
-        if (this.instanceDivisor != null) {
-            this._gl.vertexAttribDivisor(this.index, this.instanceDivisor);
-        }
+        // this.buffer.bind();
+        // this._gl.enableVertexAttribArray(this.index);
+        // this._gl.vertexAttribPointer(
+        //     this.index,
+        //     this.componentSize,
+        //     this.componentDatatype,
+        //     this.normalize,
+        //     this.bytesStride,
+        //     this.bytesOffset
+        // );
+        // if (this.instanceDivisor != null) {
+        //     this._gl.vertexAttribDivisor(this.index, this.instanceDivisor);
+        // }
     }
 
     bind() { }

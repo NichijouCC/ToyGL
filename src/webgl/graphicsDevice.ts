@@ -28,7 +28,7 @@ export class GraphicsDevice {
     readonly limit: DeviceLimit;
     readonly units: TextureUnit;
     bindingVao: WebGLVertexArrayObject = null;
-    bindingBuffer: WebGLBuffer = null;
+    bindingArrayBuffer: WebGLBuffer = null;
     bindingProgram: WebGLProgram = null;
     constructor(canvas: HTMLCanvasElement, option?: IEngineOption) {
         if (canvas == null) return;
@@ -407,7 +407,7 @@ export class GraphicsDevice {
 
     unbindVbo() {
         this.gl.bindBuffer(BufferTargetEnum.ARRAY_BUFFER, null);
-        this.bindingBuffer = null;
+        this.bindingArrayBuffer = null;
     }
 
     unBindShaderProgram() {

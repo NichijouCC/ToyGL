@@ -4,7 +4,7 @@ import { BoundingBox } from "../scene/bounds";
 import { TypedArray } from "../core/typedArray";
 import { GraphicIndexBuffer } from "./buffer";
 import { Asset } from "../resources/asset";
-import { ComponentDatatypeEnum, GlConstants, GraphicsDevice, IndicesArray, PrimitiveTypeEnum, VertexArray, VertexAttEnum } from "../webgl";
+import { ComponentDatatypeEnum, GlConstants, GraphicsDevice, IndicesArray, PrimitiveTypeEnum, VertexArray, VertexAttEnum, VertexAttribute } from "../webgl";
 /**
  * 
  * @example useage
@@ -28,9 +28,47 @@ import { ComponentDatatypeEnum, GlConstants, GraphicsDevice, IndicesArray, Primi
  */
 export class Geometry extends Asset {
     attributes: { [keyName: string]: GeometryAttribute } = {};
-    indices?: GraphicIndexBuffer;
-    primitiveType: PrimitiveTypeEnum;
-    bytesOffset: number;
+
+    private _indices?: GraphicIndexBuffer;
+    get indices() { return this._indices }
+    set indices(data: IndicesArray | Array<number> | GraphicIndexBuffer) {
+        if (data instanceof GraphicIndexBuffer) {
+            if (this._indices != null) {
+                this._indices.off("BeDirty", this.listenToBeDirty)
+            }
+            this._indices = data;
+        } else {
+            if (this._indices != null) {
+                if (data instanceof Array) {
+                    this._indices.set({ data: new Uint16Array(data) })
+                } else if (ArrayBuffer.isView(data)) {
+                    this._indices.set({ data })
+                }
+            } else {
+                if (data instanceof Array) {
+                    this._indices = new GraphicIndexBuffer({ data: new Uint16Array(data) });
+                } else if (ArrayBuffer.isView(data)) {
+                    this._indices = new GraphicIndexBuffer({ data });
+                }
+            }
+        }
+        this._beDirty = true;
+    }
+
+    private _primitiveType: PrimitiveTypeEnum;
+    get primitiveType() { return this._primitiveType }
+    set primitiveType(value: PrimitiveTypeEnum) {
+        this._primitiveType = value;
+        this._beDirty = true;
+    }
+
+    private _bytesOffset: number;
+    get bytesOffset() { return this._bytesOffset }
+    set bytesOffset(value: number) {
+        this._bytesOffset = value;
+        this._beDirty = true;
+    }
+
     private _count?: number;
     get count() { return this._count }
     private _vertexCount: number;
@@ -46,15 +84,15 @@ export class Geometry extends Asset {
     set boundingBox(box: BoundingBox) {
         this._bounding = box;
     }
+
+    private _beDirty: boolean = true;
     constructor(option?: IGeometryOptions) {
         super();
         option = option ?? {};
         option.attributes?.forEach(item => {
-            this.addAttribute(item.type, item);
+            this.addAttribute(item);
         });
-        if (option.indices instanceof Array) {
-            this.indices = new GraphicIndexBuffer({ data: new Uint16Array(option.indices) });
-        } else if (option.indices instanceof GraphicIndexBuffer) {
+        if (option.indices) {
             this.indices = option.indices;
         }
         this.primitiveType = option.primitiveType ?? GlConstants.TRIANGLES;
@@ -63,86 +101,82 @@ export class Geometry extends Asset {
         this._bounding = option.boundingBox;
     }
 
-    addAttribute(attributeType: VertexAttEnum, options: Omit<IGeometryAttributeOptions, "type">) {
-        const geAtt = new GeometryAttribute({ ...options, type: attributeType });
-        this.attributes[attributeType] = geAtt;
-        if (attributeType === VertexAttEnum.POSITION) {
-            this._vertexCount = geAtt.data?.length / geAtt.componentSize;
+    addAttribute(data: IGeometryAttributeOptions | GeometryAttribute) {
+        let vAtt: GeometryAttribute = data as any;
+        if (!(data instanceof GeometryAttribute)) {
+            vAtt = new GeometryAttribute({ ...data });
         }
+        if (this.attributes[vAtt.type]) {
+            this.attributes[vAtt.type].off("BeDirty", this.listenToAttBeDirty)
+        }
+        this.attributes[vAtt.type] = vAtt;
+        vAtt.on("BeDirty", this.listenToAttBeDirty);
+        this._beDirty = true;
     }
 
-    updateAttributeData(attributeType: VertexAttEnum, data: TypedArray, dataType?: ComponentDatatypeEnum) {
-        if (this.attributes[attributeType]) {
-            this.attributes[attributeType].changeData({ data: data, componentDatatype: dataType });
-        } else {
-            console.warn("updateAttributeData failed");
-        }
+    private _dirtyAtts = new Set<string>();
+    private listenToAttBeDirty = (type: string) => {
+        this._dirtyAtts.add(type);
     }
-
-    setIndices(data: IndicesArray | Array<number> | GraphicIndexBuffer) {
-        if (this.glTarget != null) {
-            throw new Error("出问题了,VAO已创建")
-        } else {
-            if (this.indices != null) {
-                if (data instanceof Array) {
-                    this.indices.changeData({ data: new Uint16Array(data) })
-                } else if (ArrayBuffer.isView(data)) {
-                    this.indices.changeData({ data })
-                } else {
-                    //TODO
-                    throw new Error("出问题了")
-                }
-            } else {
-                if (data instanceof Array) {
-                    this.indices = new GraphicIndexBuffer({ data: new Uint16Array(data) });
-                } else if (data instanceof GraphicIndexBuffer) {
-                    this.indices = data;
-                } else if (ArrayBuffer.isView(data)) {
-                    this.indices = new GraphicIndexBuffer({ data });
-                }
+    private listenToBeDirty = () => {
+        this._beDirty = true;
+    }
+    private _glTarget: VertexArray;
+    getGlTarget(device: GraphicsDevice) {
+        if (this._glTarget == null) {
+            device.unbindVao();
+            let vertexAtts: VertexAttribute[] = [];
+            for (let key in this.attributes) {
+                let target = this.attributes[key].getGlTarget(device);
+                vertexAtts.push(target);
             }
+            let indexBuffer = this._indices?.getGlTarget(device);
+            this._glTarget = device.createVertexArray({
+                vertexAttributes: vertexAtts,
+                indices: indexBuffer,
+                primitiveType: this.primitiveType,
+                bytesOffset: this.bytesOffset,
+                count: this.count,
+            });
         }
+        return this._glTarget;
     }
-
-    private glTarget: VertexArray;
     /**
      * Private
      */
     bind(device: GraphicsDevice) {
-        if (this.glTarget == null) {
-            this.glTarget = this.create(device);
+        let target = this.getGlTarget(device);
+        if (this._beDirty) {
+            if (this.indices) {
+                let indicesTarget = this._indices.bind(device);
+                target.indexBuffer = indicesTarget;
+            }
+            target.primitiveType = this._primitiveType;
+            target.bytesOffset = this._bytesOffset;
+            target.count = this._count;
         }
-        this.glTarget.bind();
-        for (let key in this.attributes) {
-            this.attributes[key].bind(device);
+        if (this._dirtyAtts.size > 0) {
+            this._dirtyAtts.forEach(attType => {
+                let geAtt = this.attributes[attType] as GeometryAttribute;
+                let attTarget = geAtt.bind(device);
+                if (target.hasAttribute(attType) == false) {
+                    target.addAttribute(attTarget);
+                }
+            })
+            this._dirtyAtts.clear();
         }
-        return this.glTarget;
-    }
-
-    protected create(device: GraphicsDevice): VertexArray {
-        const geAtts = this.attributes;
-        device.unbindVao();
-        const vertexAtts = Object.keys(geAtts).map(attName => {
-            const geAtt = geAtts[attName] as GeometryAttribute;
-            return geAtt.getGlTarget(device);
-        });
-
-        let indexBuffer = this.indices?.getGlTarget(device);
-        return device.createVertexArray({
-            vertexAttributes: vertexAtts,
-            indices: indexBuffer,
-            primitiveType: this.primitiveType,
-            bytesOffset: this.bytesOffset,
-            count: this.count,
-        });
+        target.bind();
+        return target;
     }
     destroy(): void {
-        this.glTarget?.destroy();
+        this._glTarget?.destroy();
     }
 }
 
+
+
 export interface IGeometryOptions {
-    attributes?: IGeometryAttributeOptions[];
+    attributes?: (GeometryAttribute | IGeometryAttributeOptions)[];
     indices?: IndicesArray | Array<number> | GraphicIndexBuffer;
     primitiveType?: number;
     boundingBox?: BoundingBox;

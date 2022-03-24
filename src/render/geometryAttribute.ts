@@ -1,3 +1,4 @@
+import { EventEmitter } from "@mtgoo/ctool";
 import { GlType, TypedArray } from "../core/typedArray";
 import { BufferTargetEnum, GraphicsDevice, VertexAttribute, VertexAttEnum, ComponentDatatypeEnum } from "../webgl";
 import { GraphicBuffer } from "./buffer";
@@ -16,26 +17,68 @@ import { GraphicBuffer } from "./buffer";
  *     })
  * 
  */
-export class GeometryAttribute {
+export class GeometryAttribute extends EventEmitter<IObjectEvent> {
     private _glTarget: VertexAttribute;
-    buffer: GraphicBuffer;
-    type: VertexAttEnum | string
-    componentSize: number;
-    componentDatatype: ComponentDatatypeEnum;
-    normalize: boolean;
-    beDynamic: boolean;
-    bytesOffset: number;
-    bytesStride: number;
+    readonly buffer: GraphicBuffer;
+    readonly type: VertexAttEnum | string
+
+    private _componentSize: number;
+    set componentSize(value: number) {
+        this._componentSize = value;
+        this.beDirty = true;
+        this.computeCount();
+    }
+    get componentSize() { return this._componentSize }
+    private _componentDatatype: ComponentDatatypeEnum;
+    set componentDatatype(value: ComponentDatatypeEnum) {
+        this._componentDatatype = value;
+        this.beDirty = true;
+        this.computeCount();
+    }
+    get componentDatatype() { return this._componentDatatype }
+    private _normalize: boolean;
+    get normalize() {
+        return this._normalize;
+    }
+    set normalize(value: boolean) {
+        this._normalize = value;
+        this.beDirty = true;
+    }
+    // beDynamic: boolean;
+    private _bytesOffset: number;
+    get bytesOffset() {
+        return this._bytesOffset;
+    }
+    set bytesOffset(value: number) {
+        this._bytesOffset = value;
+        this.beDirty = true;
+        this.computeCount();
+    }
+    private _bytesStride: number;
+    get bytesStride() {
+        return this._bytesStride;
+    }
+    set bytesStride(value: number) {
+        this._bytesStride = value;
+        this.beDirty = true;
+        this.computeCount();
+    }
     private _count: number;
     private _computeCount: number;
     get count() {
         return this._count ?? this._computeCount;
     }
-    /**
-     * 原始数据
-     */
     get data(): TypedArray {
         return this.buffer.data;
+    }
+    set data(value: TypedArray | Array<number>) {
+        if (value instanceof Array) {
+            this.buffer.data = new Float32Array(value);
+        } else {
+            this.buffer.data = value;
+        }
+        this.beDirty = true;
+        this.computeCount();
     }
     private _elements: TypedArray[];
     /**
@@ -60,18 +103,27 @@ export class GeometryAttribute {
         }
         return this._elements;
     }
-    private _beDirty = true;
+
+    private _beDirty: boolean = true;
+    set beDirty(value: boolean) {
+        this._beDirty = value;
+        this.emit("BeDirty", this.type);
+    }
+    get beDirty() { return this.beDirty }
+
     constructor(option: IGeometryAttributeOptions) {
+        super();
         this.type = option.type;
-        this.componentSize = option.componentSize ?? VertexAttEnum.toComponentSize(option.type);
-        this.normalize = option.normalize ?? false;
-        this.beDynamic = option.beDynamic ?? false;
-        this.bytesOffset = option.bytesOffset ?? 0;
-        this.bytesStride = option.bytesStride ?? 0;
+        this._componentSize = option.componentSize ?? VertexAttEnum.toComponentSize(option.type);
+        this._normalize = option.normalize ?? false;
+        // this.beDynamic = option.beDynamic ?? false;
+        this._bytesOffset = option.bytesOffset ?? 0;
+        this._bytesStride = option.bytesStride ?? 0;
 
         this._count = option.count;
         if (option.data instanceof GraphicBuffer) {
             this.buffer = option.data;
+            this.buffer.on("BeDirty", () => this.beDirty = true)
         } else {
             if (option.data instanceof Array) {
                 option.data = new Float32Array(option.data);
@@ -80,12 +132,23 @@ export class GeometryAttribute {
         }
 
         if (option.componentDatatype) {
-            this.componentDatatype = option.componentDatatype;
+            this._componentDatatype = option.componentDatatype;
         } else {
-            this.componentDatatype = GlType.fromTypedArray(this.buffer.data);
+            this._componentDatatype = GlType.fromTypedArray(this.buffer.data);
         }
 
-        this._computeCount = this.buffer.data.byteLength / (this.componentSize * GlType.bytesPerElement(this.componentDatatype));
+        this.computeCount();
+    }
+
+
+    private computeCount() {
+        let elementOffset = 0;
+        if (this.bytesStride > 0) {
+            elementOffset = this.bytesStride;
+        } else {
+            elementOffset = this.componentSize * GlType.bytesPerElement(this.componentDatatype);
+        }
+        this._computeCount = (this.buffer.data.byteLength - this.bytesOffset - this.buffer.data.byteOffset) / elementOffset;
     }
 
     getGlTarget(device: GraphicsDevice) {
@@ -105,36 +168,44 @@ export class GeometryAttribute {
     }
 
     bind(device: GraphicsDevice) {
+        let glTarget = this.getGlTarget(device);
         if (this._beDirty) {
-            let buffer = this.buffer.getGlTarget(device);
-            this._glTarget.update({
-                data: buffer,
-                componentSize: this.componentSize,
-                componentDatatype: this.componentDatatype,
-                normalize: this.normalize,
-                bytesOffset: this.bytesOffset,
-                bytesStride: this.bytesStride,
-            });
+            this.buffer.bind(device);
+            this._glTarget.componentSize = this.componentSize;
+            this._glTarget.componentDatatype = this.componentDatatype;
+            this._glTarget.normalize = this.normalize;
+            this._glTarget.bytesOffset = this.bytesOffset;
+            this._glTarget.bytesStride = this.bytesStride;
             this._beDirty = false;
         }
-        return this._glTarget;
+
+        return glTarget;
     }
     /**
      * Private
      */
-    changeData(option: Partial<Omit<IGeometryAttributeOptions, "data" | "type"> & { data: TypedArray | Array<number> }>) {
-        if (option.componentSize != null) this.componentSize = option.componentSize;
-        if (option.normalize != null) this.normalize = option.normalize;
-        if (option.beDynamic != null) this.beDynamic = option.beDynamic;
-        if (option.data instanceof Array) {
-            option.data = new Float32Array(option.data);
+    set(option: Partial<Omit<IGeometryAttributeOptions, "data" | "type"> & { data: TypedArray | Array<number> }>) {
+        if (option.componentSize != null) this._componentSize = option.componentSize;
+        if (option.componentDatatype != null) this._componentDatatype = option.componentDatatype;
+        if (option.normalize != null) this._normalize = option.normalize;
+        if (option.bytesOffset != null) this._bytesOffset = option.bytesOffset;
+        if (option.bytesStride != null) this._bytesStride = option.bytesStride;
+        // if (option.beDynamic != null) this.beDynamic = option.beDynamic;
+        if (option.data != null) {
+            if (option.data instanceof Array) {
+                this.buffer.data = new Float32Array(option.data);
+            } else {
+                this.buffer.data = option.data;
+            }
         }
-        this.buffer.changeData(option.data);
-        this._computeCount = this.buffer.data.byteLength / (this.componentSize * GlType.bytesPerElement(this.componentDatatype));
-        this._beDirty = true;
+        this.beDirty = true;
+        this.computeCount();
     }
 }
 
+interface IObjectEvent {
+    BeDirty: string
+}
 export interface IGeometryAttributeOptions {
     componentSize: number;
     componentDatatype?: number;

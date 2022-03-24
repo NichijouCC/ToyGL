@@ -1,8 +1,8 @@
 
-render模块封装webgl模块构建geometry、material、texture、camera等基本元素概念。
+render模块封装webgl模块构建geometry、material、texture、camera等基本元素概念,避免属性的修改直接修改gl对象。
 
 ## 设计
-1. 封装后的元素基本都包含 初始化传入参数数据，getglTarget(完成gl对象的初始化) changeData(修改元素参数 bind(完成gl对象的更新和绑定) destroy(销毁)
+1. 封装后的元素基本都包含 初始化传入参数数据，getGlTarget(完成gl对象的初始化) set(修改元素参数) bind(同步数据更新到gl对象) destroy(销毁)
 2. camera添加culingMask概念,配合renderable的layerMask可以选择性绘制对应层.
 3. shader添加RenderType概念,将场景的物体分类为 背景层、几何体层、ALPHATEST层、透明层、UI层.
 4. 绘制过程添加视锥剔除

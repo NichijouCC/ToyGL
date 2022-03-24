@@ -46,7 +46,7 @@ export class Entity extends Transform implements IEntity {
 
         Object.values(from[COMPS]).forEach((item) => {
             const newComp = item.clone();
-            newIns.addComponentIns(newComp);
+            newIns.addComponentDirect(newComp);
         });
 
         if (from._children.length > 0) {

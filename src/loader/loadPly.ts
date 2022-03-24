@@ -214,17 +214,17 @@ export class LoadPLY implements IAssetLoader {
             });
             // mandatory buffer data
             if (buffer.indices.length > 0) {
-                geometry.setIndices(buffer.indices)
+                geometry.indices = buffer.indices
             }
             // optional buffer data
             if (buffer.normals.length > 0) {
-                geometry.addAttribute(VertexAttEnum.NORMAL, { data: buffer.normals, componentSize: 3 })
+                geometry.addAttribute({ type: VertexAttEnum.NORMAL, data: buffer.normals, componentSize: 3 })
             }
             if (buffer.uvs.length > 0) {
-                geometry.addAttribute(VertexAttEnum.TEXCOORD_0, { data: buffer.uvs, componentSize: 2 })
+                geometry.addAttribute({ type: VertexAttEnum.TEXCOORD_0, data: buffer.uvs, componentSize: 2 })
             }
             if (buffer.colors.length > 0) {
-                geometry.addAttribute(VertexAttEnum.COLOR_0, { data: buffer.colors, componentSize: 3 })
+                geometry.addAttribute({ type: VertexAttEnum.COLOR_0, data: buffer.colors, componentSize: 3 })
             }
             return geometry;
         }

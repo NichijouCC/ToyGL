@@ -26,7 +26,7 @@ export class Entity extends EventEmitter<IEntityEvent> implements IEntity {
         return newComp;
     }
 
-    addComponentIns<T extends IComponent>(comp: T) {
+    addComponentDirect<T extends IComponent>(comp: T) {
         if (comp) this.ecs.addCompToEntity(this, comp);
         return comp;
     }

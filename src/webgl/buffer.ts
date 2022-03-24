@@ -30,9 +30,9 @@ export class Buffer implements IglElement {
 
         this.bind = () => {
             if (this.target == BufferTargetEnum.ARRAY_BUFFER) {
-                if (context.bindingBuffer != buffer) {
+                if (context.bindingArrayBuffer != buffer) {
                     gl.bindBuffer(this.target, buffer);
-                    context.bindingBuffer = buffer;
+                    context.bindingArrayBuffer = buffer;
                 }
             } else {
                 gl.bindBuffer(this.target, buffer);
@@ -41,11 +41,12 @@ export class Buffer implements IglElement {
         this.unbind = () => {
             gl.bindBuffer(this.target, null);
             if (this.target == BufferTargetEnum.ARRAY_BUFFER) {
-                context.bindingBuffer = null;
+                context.bindingArrayBuffer = null;
             }
         };
 
         this.update = (data: TypedArray | number) => {
+            this._data = data;
             this.bind();
             gl.bufferSubData(this.target, 0, data as any);
         };

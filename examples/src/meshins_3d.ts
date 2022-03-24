@@ -6,7 +6,7 @@ const { scene } = toy;
 const geometry = DefaultGeometry.cube;
 const material = DefaultMaterial.unlit_3d;
 
-TextureAsset.fromUrl({ image: "./images/blood.png" })
+TextureAsset.fromUrl({ image: "./images/001.jpg" })
     .then(tex => {
         material.setUniformParameter("MainTex", tex);
     });
@@ -19,10 +19,10 @@ let ins = toy.scene.addRenderIns({
 
 
 const cam = toy.scene.addNewCamera();
-cam.entity.localPosition[2] = 5;
-cam.entity.localPosition[1] = 5;
+cam.entity.localPosition[2] = 0;
+cam.entity.localPosition[1] = 0;
 
-cam.viewTargetPoint(vec3.ZERO, 50, vec3.fromValues(-45, 0, 0))
+cam.viewTargetPoint(vec3.ZERO, 5, vec3.fromValues(-45, 0, 0))
 
 let roty = 0;
 let totalTime = 0;

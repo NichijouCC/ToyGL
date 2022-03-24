@@ -1,25 +1,64 @@
+import { EventEmitter } from "@mtgoo/ctool";
 import { GlType, TypedArray } from "../core/typedArray";
 import { GraphicsDevice, IndexBuffer, IndexDatatypeEnum, IndicesArray, Buffer, BufferTargetEnum } from "../webgl";
 
-export class GraphicIndexBuffer {
-    dataType: IndexDatatypeEnum;
-    byteOffset: number;
-    private _count?: number;
-    private _computeCount: number;
-    get count() {
-        return this._count ?? this._computeCount;
+interface IObjectEvent {
+    BeDirty: void
+}
+
+export class GraphicIndexBuffer extends EventEmitter<IObjectEvent> {
+    get data(): TypedArray {
+        return this._buffer.data;
     }
-    _beDirty: boolean = true;
+    set data(value: TypedArray | Array<number>) {
+        if (value instanceof Array) {
+            this._buffer.data = new Uint16Array(value);
+        } else {
+            this._buffer.data = value;
+        }
+        this.beDirty = true;
+        this.computeCount();
+    }
+
+    private _dataType: IndexDatatypeEnum;
+    get dataType() { return this._dataType }
+    set dataType(value: IndexDatatypeEnum) {
+        this._dataType = value;
+        this.beDirty = true;
+        this.computeCount();
+    }
+
+    private _byteOffset: number;
+    get byteOffset() { return this._byteOffset }
+    set byteOffset(value: number) {
+        this._byteOffset = value;
+        this.beDirty = true;
+    }
+
+    private _computeCount: number;
+    private _count: number;
+    get count() { return this._count ?? this._computeCount }
+    set count(value: number) {
+        this._count = value;
+        this.beDirty = true;
+    }
+
+    private _beDirty: boolean = true;
+    set beDirty(value: boolean) {
+        this._beDirty = value;
+        this.emit("BeDirty");
+    }
+    get beDirty() { return this._beDirty }
+
     private _buffer: GraphicBuffer;
-    constructor(options: { data: IndicesArray | GraphicBuffer, datatype?: IndexDatatypeEnum, byteOffset?: number, count?: number }) {
+    constructor(options: IGraphicIndexBufferOptions) {
+        super();
         if (options.data instanceof GraphicBuffer) {
             this._buffer = options.data;
         } else {
             this._buffer = new GraphicBuffer({ data: options.data, target: BufferTargetEnum.ELEMENT_ARRAY_BUFFER });
         }
-        this._count = options.count;
         this.byteOffset = options.byteOffset ?? 0;
-
         if (options.datatype) {
             this.dataType = options.datatype;
         } else if (ArrayBuffer.isView(options.data)) {
@@ -27,13 +66,21 @@ export class GraphicIndexBuffer {
         } else {
             throw new Error("datatype must be set in params.");
         }
+        if (options.count != null) this._count = options.count;
         this._computeCount = this._buffer.data.byteLength / GlType.bytesPerElement(this.dataType);
     }
 
-    changeData(options: { data: IndicesArray, datatype?: IndexDatatypeEnum, byteOffset?: number }) {
-        this._beDirty = true;
-        this._buffer.changeData(options.data);
-        this._computeCount = this._buffer.data.byteLength / GlType.bytesPerElement(this.dataType);
+    set(options: Partial<Omit<IGraphicIndexBufferOptions, "data"> & { data: IndicesArray }>) {
+        if (options.data) this._buffer.data = options.data;
+        if (options.datatype != null) this._dataType = options.datatype;
+        if (options.byteOffset) this.byteOffset = options.byteOffset;
+        if (options.count != null) this._count
+        this.beDirty = true;
+        this.computeCount();
+    }
+
+    private computeCount() {
+        this._count = this._buffer.data.byteLength / GlType.bytesPerElement(this.dataType);
     }
 
     private _glTarget: IndexBuffer
@@ -46,28 +93,45 @@ export class GraphicIndexBuffer {
     }
 
     bind(device: GraphicsDevice) {
+        let target = this.getGlTarget(device);
         if (this._beDirty) {
-            let buffer = this._buffer.bind(device);
-            this._glTarget.update({ data: buffer, datatype: this.dataType, byteOffset: this.byteOffset });
+            this._buffer.bind(device);
+            target.datatype = this.dataType;
+            target.bytesOffset = this.byteOffset;
+            target.count = this.count;
             this._beDirty = false;
         }
-        return this._glTarget;
+        return target;
     }
 }
 
-export class GraphicBuffer {
+export interface IGraphicIndexBufferOptions {
+    data: IndicesArray | GraphicBuffer,
+    datatype?: IndexDatatypeEnum,
+    byteOffset?: number,
+    count?: number
+}
+
+
+export class GraphicBuffer extends EventEmitter<IObjectEvent> {
     private _typedArray: TypedArray;
-    target: BufferTargetEnum;
-    _beDirty: boolean = true;
+    readonly target: BufferTargetEnum;
     get data() { return this._typedArray; }
-    constructor(opts: { target: BufferTargetEnum, data: TypedArray }) {
-        this.target = opts.target;
-        this._typedArray = opts.data;
+    set data(value: TypedArray) {
+        this._typedArray = value;
+        this.beDirty = true;
     }
 
-    changeData(data: TypedArray) {
-        this._beDirty = true;
-        this._typedArray = data;
+    private _beDirty: boolean = true;
+    set beDirty(value: boolean) {
+        this._beDirty = value;
+        this.emit("BeDirty");
+    }
+    get beDirty() { return this._beDirty }
+    constructor(opts: { target: BufferTargetEnum, data: TypedArray }) {
+        super()
+        this.target = opts.target;
+        this._typedArray = opts.data;
     }
 
     private _glTarget: Buffer
@@ -79,10 +143,11 @@ export class GraphicBuffer {
     }
 
     bind(device: GraphicsDevice) {
+        let target = this.getGlTarget(device);
         if (this._beDirty) {
-            this._glTarget.update(this.data);
+            target.update(this.data);
             this._beDirty = false;
         }
-        return this._glTarget;
+        return target;
     }
 }

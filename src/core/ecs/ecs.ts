@@ -1,3 +1,4 @@
+import { Entity } from ".";
 import { BitKey, UnitedBitKey } from "./bitKey";
 import { ISystem, IComponent, COMPS, UNIT_BIT_KEY, UPDATE, UNIT_BIT_KEY_DIC, ENTITIES, IEntity } from "./iecs";
 
@@ -11,30 +12,23 @@ export class ECS {
             return;
         }
         this.entities[entity.id] = entity;
-
-        entity.on("AddComp", this.systemAddEntityByComp);
-        entity.on("removeComp", this.systemRemoveEntityByComp);
         for (let key in entity[COMPS]) {
             let comp = entity[COMPS][key];
             this.systemAddEntityByComp(comp);
         }
     }
 
+    createEntity() {
+        let entity = new Entity(this);
+        this.entities[entity.id] = entity;
+        return entity;
+    }
+
     removeEntity(entity: IEntity) {
-        if (this.entities[entity.id] == null) {
-            return;
-        }
-        for (let key in entity[COMPS]) {
-            let comp = entity[COMPS][key];
-            const compInfo = this.registeredComps[comp.compName];
-            if (compInfo == null) return;
-            const relatedSystem = compInfo.relatedSystem;
-            relatedSystem.forEach(({ system, query }) => {
-                if (entity[UNIT_BIT_KEY].contain(system[UNIT_BIT_KEY_DIC][query])) {
-                    system.addEntity(query, entity);
-                }
-            });
-        }
+        if (entity == null) return;
+        delete this.entities[entity.id];
+        entity.removeAllListeners();
+        this.systems.forEach(item => item.system.removeEntity(entity))
     }
 
     registComp = (comp: Function) => {
@@ -42,7 +36,7 @@ export class ECS {
         if (this.registeredComps[compName] == null) {
             this.registeredComps[compName] = { Ctr: comp as any, bitKey: BitKey.create(), relatedSystem: [] };
         } else {
-            throw new Error("重复注册组件: " + compName);
+            console.warn(`组件${compName}已注册`);
         }
     };
 
@@ -64,7 +58,8 @@ export class ECS {
         });
         entity[COMPS][comp.compName] = comp;
         entity[UNIT_BIT_KEY].addBitKey(compInfo.bitKey);
-        entity.emit("AddComp", comp)
+        entity.emit("AddComp", comp);
+        this.systemAddEntityByComp(comp);
     }
 
     removeCompFromEntity<T extends IComponent>(entity: IEntity, comp: new () => T) {
@@ -73,7 +68,8 @@ export class ECS {
             const compInfo = this.registeredComps[comp.name];
             entity[UNIT_BIT_KEY].removeBitKey(compInfo.bitKey);
             delete entity[COMPS][comp.name];
-            entity.emit("removeComp", component)
+            entity.emit("removeComp", component);
+            this.systemRemoveEntityByComp(component);
         }
     }
 
@@ -104,10 +100,11 @@ export class ECS {
     removeSystem(system: ISystem) {
         const targetIndex = this.systems.findIndex((item) => item.system = system);
         if (targetIndex != -1) {
-            this.systems.splice(targetIndex - 1, 1);
-        }
-        for (const key in this.registeredComps) {
-            this.registeredComps[key].relatedSystem = this.registeredComps[key].relatedSystem.filter(item => item.system != system);
+            this.systems.splice(targetIndex, 1);
+
+            for (const key in this.registeredComps) {
+                this.registeredComps[key].relatedSystem = this.registeredComps[key].relatedSystem.filter(item => item.system != system);
+            }
         }
     }
 
@@ -121,6 +118,7 @@ export class ECS {
             }
         });
     }
+
     systemRemoveEntityByComp = (comp: IComponent) => {
         const compInfo = this.registeredComps[comp.compName];
         if (compInfo == null) return;
