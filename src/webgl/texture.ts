@@ -8,6 +8,7 @@ import { TextureFilterEnum } from "./textureFilterEnum";
 import { TextureWrapEnum } from "./textureWrapEnum";
 import { isPowerOf2 } from "../mathD/common";
 // tip:TEXTURE_MAG_FILTER 固定为LINEAR https://community.khronos.org/t/bilinear-and-trilinear-cant-see-a-difference/39405
+// pixelStorei is a global state 
 
 export class Texture {
     texture: WebGLTexture;
@@ -17,7 +18,6 @@ export class Texture {
     pixelDatatype: PixelDatatypeEnum;
     width: number;
     height: number;
-    hasMipmap: boolean;
     sizeInBytes: number;
     preMultiplyAlpha: boolean;
     flipY: boolean;
@@ -35,23 +35,47 @@ export class Texture {
     sourceType: TextureDataFromEnum;
     private _context: GraphicsDevice;
     private _gl: WebGLRenderingContext;
-    private constructor(context: GraphicsDevice, options: ITextureOptions) {
-        let { width, height, source, pixelFormat = PixelFormatEnum.RGBA, pixelDatatype = PixelDatatypeEnum.UNSIGNED_BYTE } = options;
+    source: any;
+    constructor(context: GraphicsDevice, options: ITextureOptions) {
         this._context = context;
         this._textureFilterAnisotropic = context.caps.textureAnisotropicFilterExtension;
         const gl = context.gl;
         this._gl = gl;
-        if (source != null) {
-            if (width == null) {
-                width = source.videoWidth ?? source.width;
-            }
-            if (height == null) {
-                height = source.videoHeight ?? source.height;
-            }
+
+        this.source = options.source;
+        this.pixelFormat = options.pixelFormat ?? PixelFormatEnum.RGBA;
+        this.pixelDatatype = options.pixelDatatype ?? PixelDatatypeEnum.UNSIGNED_BYTE;
+        this.flipY = options.flipY ?? false;
+        this.preMultiplyAlpha = options.preMultiplyAlpha || options.pixelFormat === PixelFormatEnum.RGB || options.pixelFormat === PixelFormatEnum.LUMINANCE;
+
+        if (options.width == null && options.source != null) {
+            this.width = options.source.width ?? options.source.videoWidth;
         }
+        if (options.height == null && options.source != null) {
+            this.height = options.source.height ?? options.source.videoHeight;
+        }
+        const isCompressed = PixelFormatEnum.isCompressedFormat(this.pixelFormat);
+        const sizeInBytes = isCompressed
+            ? PixelFormatEnum.compressedTextureSizeInBytes(this.pixelFormat, this.width, this.height)
+            : PixelFormatEnum.textureSizeInBytes(this.pixelFormat, this.pixelDatatype, this.width, this.height);
+        this.sizeInBytes = sizeInBytes;
+
+        this.filterMax = options?.filterMax ?? TextureFilterEnum.LINEAR;
+        this.filterMin = options?.filterMin ?? TextureFilterEnum.LINEAR;
+        this.wrapS = options?.wrapS ?? TextureWrapEnum.REPEAT;
+        this.wrapT = options?.wrapT ?? TextureWrapEnum.REPEAT;
+        this.maximumAnisotropy = options?.maximumAnisotropy ?? 1.0;
+        this.enableMipmap = options?.enableMipmap ?? false;
+        this.mipmapFilter = options?.mipmapFilter ?? TextureFilterEnum.LINEAR;
+        this.create();
+    }
+
+    private create() {
+        let { _context: context, _gl: gl, pixelFormat, pixelDatatype, source, flipY, preMultiplyAlpha, width, height } = this;
+        if (this.texture != null) gl.deleteTexture(this.texture);
 
         let internalFormat = pixelFormat as number;
-        const isCompressed = PixelFormatEnum.isCompressedFormat(internalFormat);
+        const isCompressed = PixelFormatEnum.isCompressedFormat(pixelFormat);
 
         if (context.webGLVersion == 2) {
             if (pixelFormat == PixelFormatEnum.DEPTH_STENCIL) {
@@ -141,9 +165,6 @@ export class Texture {
             }
         }
 
-        const flipY = options.flipY ?? false;
-        const preMultiplyAlpha = options.preMultiplyAlpha || pixelFormat === PixelFormatEnum.RGB || pixelFormat === PixelFormatEnum.LUMINANCE;
-
         const target = gl.TEXTURE_2D;
         const texture = gl.createTexture();
         this._context.units.assignID(this);
@@ -211,13 +232,7 @@ export class Texture {
         }
 
         // let sampler = new Sampler(options.sampler);
-        this.filterMax = options.sampler?.filterMax || TextureFilterEnum.LINEAR;
-        this.filterMin = options.sampler?.filterMin || TextureFilterEnum.LINEAR;
-        this.wrapS = options.sampler?.wrapS || TextureWrapEnum.REPEAT;
-        this.wrapT = options.sampler?.wrapT || TextureWrapEnum.REPEAT;
-        this.maximumAnisotropy = options.sampler?.maximumAnisotropy || 1.0;
-        this.enableMipmap = options.sampler?.enableMimap ?? true;
-        this.mipmapFilter = options.sampler?.mipmapFilter ?? TextureFilterEnum.LINEAR;
+
 
         if (context.webGLVersion != 1) {
             if (PixelFormatEnum.isDepthFormat(this.pixelFormat) ||
@@ -258,21 +273,7 @@ export class Texture {
         if (this.enableMipmap) {
             gl.generateMipmap(target);
         }
-
-        const sizeInBytes = isCompressed
-            ? PixelFormatEnum.compressedTextureSizeInBytes(pixelFormat, width, height)
-            : PixelFormatEnum.textureSizeInBytes(pixelFormat, pixelDatatype, width, height);
-
         this.texture = texture;
-        this.pixelFormat = pixelFormat;
-        this.pixelDatatype = pixelDatatype;
-        this.width = width;
-        this.height = height;
-        this.hasMipmap = false;
-        this.sizeInBytes = sizeInBytes;
-        this.preMultiplyAlpha = preMultiplyAlpha;
-        this.flipY = flipY;
-        this.initialized = initialized;
     }
 
     bind() {
@@ -290,30 +291,17 @@ export class Texture {
         this.beBind = false;
     }
 
-    update() { }
+    update(options: Partial<IBaseTextureOptions & ISamplerOptions>) {
+        for (let key in options) {
+            if (options[key] != null) {
+                this[key] = options[key]
+            }
+        }
+        this.create();
+    }
 
     destroy() {
         this._context.gl.deleteTexture(this.texture);
-    }
-
-    /**
-     * // Source: typed array
-     * @param options 
-     */
-    static fromTypedArray(context: GraphicsDevice, options: ITypedArrayTexOpts) {
-        return new Texture(context, { ...options, source: { arrayBufferView: options.arrayBufferView } });
-    }
-
-    /**
-     * // Source: ImageData, HTMLImageElement, HTMLCanvasElement, or HTMLVideoElement
-     * @param options 
-     */
-    static fromImageSource(context: GraphicsDevice, options: IImageSourceTexOpts) {
-        return new Texture(context, { ...options, source: options.image });
-    }
-
-    static fromFrameBuffer(context: GraphicsDevice, options: IFrameBufferTexOpts) {
-        return new Texture(context, { ...options, source: { framebuffer: options.framebuffer, xOffset: options.xOffset, yOffset: options.yOffset } });
     }
 }
 
@@ -323,7 +311,7 @@ export enum TextureDataFromEnum {
     IMAGE_SOURCE
 }
 
-export interface ITextureOptions {
+export interface ITextureOptions extends ISamplerOptions, IBaseTextureOptions {
     width?: number;
     height?: number;
     source: {
@@ -332,44 +320,33 @@ export interface ITextureOptions {
         yOffset?: number;
         arrayBufferView?: TypedArray;
     } | any;
-    pixelFormat?: PixelFormatEnum;
-    pixelDatatype?: PixelDatatypeEnum;
-    preMultiplyAlpha?: boolean;
-    flipY?: boolean;
-
-    sampler?: ISamplerOptions;
+    // sampler?: ISamplerOptions;
 }
 
-export interface ITypedArrayTexOpts {
+export interface IBaseTextureOptions {
+    pixelFormat?: PixelFormatEnum;
+    pixelDatatype?: PixelDatatypeEnum;
+    flipY?: boolean;
+    preMultiplyAlpha?: boolean;
+}
+
+
+export interface ITypedArrayTexOpts extends ISamplerOptions, IBaseTextureOptions {
     width: number;
     height: number;
     arrayBufferView: TypedArray;
-    pixelFormat?: PixelFormatEnum;
-    pixelDatatype?: PixelDatatypeEnum;
-    sampler?: ISamplerOptions;
-    flipY?: boolean;
-    preMultiplyAlpha?: boolean;
 }
 
-export interface IImageSourceTexOpts {
+export interface IImageSourceTexOpts extends ISamplerOptions, IBaseTextureOptions {
     image: TexImageSource;
-    pixelFormat?: PixelFormatEnum;
-    pixelDatatype?: PixelDatatypeEnum;
-    sampler?: ISamplerOptions;
-    flipY?: boolean;
-    preMultiplyAlpha?: boolean;
 }
 
-export interface IFrameBufferTexOpts {
+export interface IFrameBufferTexOpts extends ISamplerOptions, IBaseTextureOptions {
     width: number;
     height: number;
     framebuffer: FrameBuffer;
     xOffset?: number;
     yOffset?: number;
-    pixelFormat?: PixelFormatEnum;
-    pixelDatatype?: PixelDatatypeEnum;
-    sampler?: ISamplerOptions;
-    flipY?: boolean;
 }
 
 export interface ISamplerOptions {
@@ -379,7 +356,7 @@ export interface ISamplerOptions {
     wrapS?: TextureWrapEnum;
     wrapT?: TextureWrapEnum;
     maximumAnisotropy?: number;
-    enableMimap?: boolean;
+    enableMipmap?: boolean;
     mipmapFilter?: TextureFilterEnum;
 }
 
@@ -389,7 +366,7 @@ export class Sampler {
     wrapS: TextureWrapEnum;
     wrapT: TextureWrapEnum;
     maximumAnisotropy: number;
-    enableMimap: boolean;
+    enableMipmap: boolean;
     mipmapFilter: TextureFilterEnum;
     constructor(options?: ISamplerOptions) {
         this.filterMax = options?.filterMax ?? TextureFilterEnum.LINEAR;
@@ -397,7 +374,7 @@ export class Sampler {
         this.wrapS = options?.wrapS ?? TextureWrapEnum.REPEAT;
         this.wrapT = options?.wrapT ?? TextureWrapEnum.REPEAT;
         this.maximumAnisotropy = options?.maximumAnisotropy ?? 1.0;
-        this.enableMimap = options?.enableMimap ?? true;
+        this.enableMipmap = options?.enableMipmap ?? true;
         this.mipmapFilter = options?.mipmapFilter ?? TextureFilterEnum.LINEAR;
     }
 }

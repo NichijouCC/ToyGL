@@ -95,15 +95,15 @@ export class GraphicsDevice {
     }
 
     createTextureFromTypedArray(options: ITypedArrayTexOpts) {
-        return Texture.fromTypedArray(this, options);
+        return new Texture(this, { ...options, source: { arrayBufferView: options.arrayBufferView } });
     }
 
     createTextureFromFrameBuffer(options: IFrameBufferTexOpts) {
-        return Texture.fromFrameBuffer(this, options);
+        return new Texture(this, { ...options, source: { framebuffer: options.framebuffer, xOffset: options.xOffset, yOffset: options.yOffset } });
     }
 
     createTextureFromImageSource(options: IImageSourceTexOpts) {
-        return Texture.fromImageSource(this, options);
+        return new Texture(this, { ...options, source: options.image });
     }
 
     createFrameBuffer(options: IFrameBufferOptions) {

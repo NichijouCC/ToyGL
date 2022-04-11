@@ -139,13 +139,18 @@ export class ForwardRender {
             if (AutoUniforms.containAuto(key)) {
                 values[key] = AutoUniforms.getAutoUniformValue(key, this.uniformState);
             }
+
+        }
+        for (let key in values) {
             if (values[key] instanceof BaseTexture) {
                 let tex = (values[key] as BaseTexture)
-                tex.bind(this.device);
-                values[key] = tex.glTarget
+                let glTex = tex.bind(this.device);
+                shaderIns.bindUniform(key, glTex);
+            } else {
+                shaderIns.bindUniform(key, values[key]);
             }
         }
-        shaderIns.bindUniforms(values);
+        // shaderIns.bindUniforms(values);
     }
 
     private frustumCull = (() => {

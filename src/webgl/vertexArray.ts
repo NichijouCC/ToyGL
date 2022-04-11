@@ -137,6 +137,10 @@ export class VertexArray implements IglElement {
                         this._vertexAttributes[item].bind()
                     })
                     this._dirtyAtts.clear();
+                    if (this._indexDirty) {
+                        this._indexDirty = false;
+                        this._indexBuffer?.bind();
+                    }
                 }
             };
             this.unbind = () => {

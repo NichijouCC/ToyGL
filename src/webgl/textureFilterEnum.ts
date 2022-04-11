@@ -20,7 +20,7 @@ export namespace TextureFilterEnum {
                 if (filter == TextureFilterEnum.LINEAR) {
                     return GlConstants.LINEAR_MIPMAP_NEAREST;
                 } else {
-                    return GlConstants.LINEAR_MIPMAP_NEAREST;
+                    return GlConstants.NEAREST_MIPMAP_NEAREST;
                 }
             }
         } else {

@@ -67,15 +67,15 @@ export class ShaderProgram implements IShaderProgram {
     }
 
     bindUniform(key: string, value: any) {
-        this.uniforms[key].setter(this.uniforms[key], value);
+        let uniformInfo = this.uniforms[key];
+        if (uniformInfo) {
+            uniformInfo.setter(uniformInfo, value);
+        }
     }
 
     bindUniforms(values: { [name: string]: any }) {
-        let uniformInfo: IUniformInfo;
         for (const key in values) {
-            uniformInfo = this.uniforms[key];
-            if (uniformInfo == null) continue;
-            uniformInfo?.setter(uniformInfo, values[key]);
+            this.bindUniform(key, values[key]);
         }
     }
 
