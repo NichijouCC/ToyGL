@@ -3,13 +3,13 @@ import { BoxCollider, SphereCollider } from "./collider";
 import * as CANNON from "cannon-es";
 import { Rigidbody } from "./rigidbody";
 import { Entity, System } from "../scene/index";
-import { InterScene } from "../scene";
+import { World } from "../scene";
 
 export class ColliderSystem extends System {
     caries = { boxColliders: [BoxCollider], SphereColliders: [SphereCollider], rigidbodies: [Rigidbody] };
     drawOutLine = false;
-    private _scene: InterScene;
-    constructor(scene: InterScene) {
+    private _scene: World;
+    constructor(scene: World) {
         super();
         this._scene = scene;
         PhysicsWorld.init();

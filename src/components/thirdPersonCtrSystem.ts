@@ -1,12 +1,12 @@
 import { Input, KeyCodeEnum, MouseKeyEnum } from "../input";
 import { mat4, quat, vec3, vec4 } from "../mathD";
-import { InterScene, System } from "../scene";
+import { World, System } from "../scene";
 import { ThirdPersonController } from "./thirdPersonController";
 
 export class ThirdPersonCtrSystem extends System {
     caries = { comps: [ThirdPersonController] };
-    private _scene: InterScene;
-    constructor(scene: InterScene) {
+    private _scene: World;
+    constructor(scene: World) {
         super();
         this._scene = scene;
     }

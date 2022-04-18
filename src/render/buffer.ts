@@ -67,20 +67,20 @@ export class GraphicIndexBuffer extends EventEmitter<IObjectEvent> {
             throw new Error("datatype must be set in params.");
         }
         if (options.count != null) this._count = options.count;
-        this._computeCount = this._buffer.data.byteLength / GlType.bytesPerElement(this.dataType);
+        this.computeCount();
     }
 
     set(options: Partial<Omit<IGraphicIndexBufferOptions, "data"> & { data: IndicesArray }>) {
         if (options.data) this._buffer.data = options.data;
         if (options.datatype != null) this._dataType = options.datatype;
-        if (options.byteOffset) this.byteOffset = options.byteOffset;
-        if (options.count != null) this._count
+        if (options.byteOffset != null) this.byteOffset = options.byteOffset;
+        if (options.count != null) this._count = options.count;
         this.beDirty = true;
         this.computeCount();
     }
 
     private computeCount() {
-        this._count = this._buffer.data.byteLength / GlType.bytesPerElement(this.dataType);
+        this._computeCount = this._buffer.data.byteLength / GlType.bytesPerElement(this.dataType);
     }
 
     private _glTarget: IndexBuffer
@@ -96,9 +96,7 @@ export class GraphicIndexBuffer extends EventEmitter<IObjectEvent> {
         let target = this.getGlTarget(device);
         if (this._beDirty) {
             this._buffer.bind(device);
-            target.datatype = this.dataType;
-            target.bytesOffset = this.byteOffset;
-            target.count = this.count;
+            target.set({ datatype: this.dataType, bytesOffset: this.byteOffset, count: this.count })
             this._beDirty = false;
         }
         return target;
@@ -145,7 +143,7 @@ export class GraphicBuffer extends EventEmitter<IObjectEvent> {
     bind(device: GraphicsDevice) {
         let target = this.getGlTarget(device);
         if (this._beDirty) {
-            target.update(this.data);
+            target.set(this.data);
             this._beDirty = false;
         }
         return target;

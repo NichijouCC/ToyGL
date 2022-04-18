@@ -1,11 +1,11 @@
 import { ModelComponent } from "./modelComponent";
 import { IRenderable } from "../render/irenderable";
-import { Entity, InterScene, System } from "../scene";
+import { Entity, World, System } from "../scene";
 
 export class ModelSystem extends System {
     caries = { comps: [ModelComponent] };
-    private _scene: InterScene;
-    constructor(scene: InterScene) {
+    private _scene: World;
+    constructor(scene: World) {
         super();
         this._scene = scene;
     }

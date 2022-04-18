@@ -20,7 +20,7 @@ import { GraphicBuffer } from "./buffer";
 export class GeometryAttribute extends EventEmitter<IObjectEvent> {
     private _glTarget: VertexAttribute;
     readonly buffer: GraphicBuffer;
-    readonly type: VertexAttEnum | string
+    readonly type: VertexAttEnum | number;
 
     private _componentSize: number;
     set componentSize(value: number) {
@@ -204,14 +204,14 @@ export class GeometryAttribute extends EventEmitter<IObjectEvent> {
 }
 
 interface IObjectEvent {
-    BeDirty: string
+    BeDirty: number
 }
 export interface IGeometryAttributeOptions {
     componentSize: number;
     componentDatatype?: number;
     normalize?: boolean;
     data: TypedArray | Array<number> | GraphicBuffer;
-    type: VertexAttEnum;
+    type: VertexAttEnum | number;
     beDynamic?: boolean;
     bytesOffset?: number;
     bytesStride?: number;

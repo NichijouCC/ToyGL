@@ -1,5 +1,4 @@
-import { CameraSystem, InterScene, LoadGlTF, MapBoxSystem, ModelSystem, Prefab, quat, Resource, vec3 } from "TOYGL";
-import { ECS } from "../../src/core/ecs";
+import { CameraSystem, World, LoadGlTF, MapBoxSystem, ModelSystem, Prefab, quat, Resource, vec3 } from "TOYGL";
 
 let mapboxSystem = new MapBoxSystem(
     [127.71948354887672, 26.21705479691047, 25],
@@ -14,14 +13,14 @@ let mapboxSystem = new MapBoxSystem(
         antialias: true
     });
 mapboxSystem.onAdd.addEventListener(({ gl, canvas }) => {
-    const scene = new InterScene(canvas, { gl, autoAdaptScreenSize: false });
-    ECS.addSystem(new CameraSystem(scene));
-    ECS.addSystem(new ModelSystem(scene), Number.POSITIVE_INFINITY);
+    const scene = new World(canvas, { gl, autoAdaptScreenSize: false });
+    scene.addSystem(new CameraSystem(scene));
+    scene.addSystem(new ModelSystem(scene), Number.POSITIVE_INFINITY);
     mapboxSystem.initWorld(scene);
 
     const resource = new Resource();
-    resource.registAssetLoader(".gltf", new LoadGlTF());
-    resource.registAssetLoader(".glb", new LoadGlTF());
+    resource.registLoaderWithExt(".gltf", new LoadGlTF(scene));
+    resource.registLoaderWithExt(".glb", new LoadGlTF(scene));
     resource.load("https://cloud-v3-oss.oss-cn-shanghai.aliyuncs.com/gltfs/castle/scene.gltf")
         .then(asset => {
             const newAsset = Prefab.instance(asset as Prefab);

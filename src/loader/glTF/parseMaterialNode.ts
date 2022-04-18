@@ -174,7 +174,7 @@ export class ParseMaterialNode {
 
             const mat = new Material();
             if (node.pbrMetallicRoughness?.baseColorTexture != null) {
-                mat.setUniformParameter("MainColor", Color.create(1.0, 1.0, 1.0, 1));
+                mat.setUniform("MainColor", Color.create(1.0, 1.0, 1.0, 1));
                 if (SkinInstance.skinWay == SkinWay.UNIFORM_MATS) {
                     mat.shader = DefaultMaterial.unlit_3d.shader;
                 } else if (SkinInstance.skinWay == SkinWay.UNIFORM_ARRAY) {
@@ -183,13 +183,13 @@ export class ParseMaterialNode {
 
                 await ParseTextureNode.parse(node.pbrMetallicRoughness?.baseColorTexture.index, gltf)
                     .then(tex => {
-                        mat.setUniformParameter("MainTex", tex);
+                        mat.setUniform("MainTex", tex);
                     });
             } else {
                 mat.shader = DefaultMaterial.color_3d.shader;
                 const baseColor = node.pbrMetallicRoughness?.baseColorFactor;
                 if (baseColor) {
-                    mat.setUniformParameter("MainColor", Color.create(baseColor[0], baseColor[1], baseColor[2], baseColor[3]));
+                    mat.setUniform("MainColor", Color.create(baseColor[0], baseColor[1], baseColor[2], baseColor[3]));
                 }
             }
             if (node.doubleSided) {

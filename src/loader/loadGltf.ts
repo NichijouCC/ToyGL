@@ -11,7 +11,7 @@ import { ParseAnimationNode } from "./glTF/parseAnimationNode";
 import { Animation } from "../components/animation";
 import { GraphicBuffer, GraphicIndexBuffer } from "../render/buffer";
 import { Geometry } from "../render/geometry";
-import { InterScene } from "../scene/index";
+import { World } from "../scene/index";
 
 export interface IglTFExtension {
     load(extensionNode: any, loader: LoadGlTF): Promise<any>;
@@ -41,8 +41,8 @@ export interface IGltfJson extends IGltf {
     cache: GltfNodeCache;
 }
 export class LoadGlTF implements IAssetLoader {
-    private _scene: InterScene;
-    constructor(scene: InterScene) {
+    private _scene: World;
+    constructor(scene: World) {
         this._scene = scene;
     }
 

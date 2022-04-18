@@ -128,7 +128,7 @@ export class VertexArray implements IglElement {
         const gl = context.gl;
 
         if (context.caps.vertexArrayObject) {
-            this._dirtyAtts = new Set<string>();
+            this._dirtyAtts = new Set<number>();
             this.bind = () => {
                 if (this._vao != this._context.bindingVao || this._dirtyAtts.size != 0 || this._indexDirty) {
                     this._context.bindingVao = this._vao;
@@ -186,7 +186,7 @@ export class VertexArray implements IglElement {
         vAtt.on("AttUpdate", this.listenToVertexAttributeUpdate)
         this._dirtyAtts?.add(att.type);
     }
-    private listenToVertexAttributeUpdate = (type: string) => {
+    private listenToVertexAttributeUpdate = (type: number) => {
         this._dirtyAtts?.add(type);
     }
     get indexBuffer() { return this._indexBuffer; }
@@ -197,7 +197,7 @@ export class VertexArray implements IglElement {
         }
     }
     private _indexDirty: boolean;
-    private _dirtyAtts: Set<string>;
+    private _dirtyAtts: Set<number>;
     bind() { }
     unbind() { }
 

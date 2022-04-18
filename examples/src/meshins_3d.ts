@@ -8,7 +8,7 @@ const material = DefaultMaterial.unlit_3d;
 
 TextureAsset.fromUrl({ image: "./images/001.jpg" })
     .then(tex => {
-        material.setUniformParameter("MainTex", tex);
+        material.setUniform("MainTex", tex);
     });
 
 let ins = toy.scene.addRenderIns({

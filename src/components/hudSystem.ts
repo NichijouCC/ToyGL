@@ -1,5 +1,5 @@
 import { Hud } from "./hud";
-import { InterScene } from "../scene/scene";
+import { World } from "../scene/world";
 import { DefaultGeometry, DefaultMaterial, TextureAsset } from "../resources/index";
 import { mat4, quat, vec3 } from "../mathD";
 import { Entity, System } from "../scene/index";
@@ -8,8 +8,8 @@ import { TextureWrapEnum } from "../render";
 export class HudSystem extends System {
     caries = { comps: [Hud] };
     private context2d: CanvasRenderingContext2D;
-    private _scene: InterScene;
-    constructor(scene: InterScene, canvas: HTMLCanvasElement, options?: HudOptions) {
+    private _scene: World;
+    constructor(scene: World, canvas: HTMLCanvasElement, options?: HudOptions) {
         super();
         this._scene = scene;
         if (this.context2d == null) {
@@ -52,16 +52,14 @@ export class HudSystem extends System {
                 hud._text2d = _text2d = TextureAsset.fromImageSource({
                     image: imagedata,
                     flipY: true,
-                    sampler: {
-                        wrapT: TextureWrapEnum.CLAMP_TO_EDGE
-                    }
+                    wrapT: TextureWrapEnum.CLAMP_TO_EDGE
                 });
 
                 if (_mat == null) {
                     hud._mat = _mat = DefaultMaterial.unlit_3d.clone();
                     _mat.renderState.blend.enabled = true;
                 }
-                _mat.setUniformParameter("MainTex", _text2d);
+                _mat.setUniform("MainTex", _text2d);
                 hud.entity.localScale = vec3.clone(hud.size);
             }
             if (_mat && _text2d) {

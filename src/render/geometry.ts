@@ -114,8 +114,8 @@ export class Geometry extends Asset {
         this._beDirty = true;
     }
 
-    private _dirtyAtts = new Set<string>();
-    private listenToAttBeDirty = (type: string) => {
+    private _dirtyAtts = new Set<number>();
+    private listenToAttBeDirty = (type: number) => {
         this._dirtyAtts.add(type);
     }
     private listenToBeDirty = () => {

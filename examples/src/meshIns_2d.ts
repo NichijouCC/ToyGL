@@ -33,7 +33,7 @@ const material = new Material({
 
 TextureAsset.fromUrl({ image: "./resources/glTF/duck/DuckCM.png" })
     .then(tex => {
-        material.setUniformParameter("_MainTex", tex);
+        material.setUniform("_MainTex", tex);
     });
 
 let ins = toy.scene.addRenderIns({
@@ -51,5 +51,5 @@ toy.scene.preUpdate.addEventListener((delta) => {
     roty += delta * 15;
     totalTime += delta;
     ins.worldMat = mat4.fromRotation(ins.worldMat, roty * Math.PI / 180, vec3.UP);
-    material.setUniformParameter("timer", totalTime);
+    material.setUniform("timer", totalTime);
 });

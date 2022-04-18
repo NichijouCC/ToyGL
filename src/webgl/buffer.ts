@@ -45,7 +45,7 @@ export class Buffer implements IglElement {
             }
         };
 
-        this.update = (data: TypedArray | number) => {
+        this.set = (data: TypedArray | number) => {
             this._data = data;
             this.bind();
             gl.bufferSubData(this.target, 0, data as any);
@@ -61,7 +61,7 @@ export class Buffer implements IglElement {
 
     bind() { }
     unbind() { }
-    update(data?: TypedArray | number) { }
+    set(data?: TypedArray | number) { }
     destroy() { }
 }
 

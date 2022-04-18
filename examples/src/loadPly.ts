@@ -55,7 +55,7 @@ let mat = new Material({
 });
 
 
-toy.resource.registAssetLoader(".ply", new LoadPLY())
+toy.resource.registLoaderWithExt(".ply", new LoadPLY())
 toy.resource.load<Geometry>("./aisland.ply")
     .then(asset => {
         toy.scene.addRenderIns({
@@ -68,8 +68,8 @@ toy.resource.load<Geometry>("./aisland.ply")
         let height_top = center[1] + halfSize[1];
         let height_bottom = center[1] - halfSize[1];
 
-        mat.setUniformParameter("height_top", height_top);
-        mat.setUniformParameter("height_bottom", height_bottom);
+        mat.setUniform("height_top", height_top);
+        mat.setUniform("height_bottom", height_bottom);
 
         toy.scene.mainCamera.entity.addComponent(ManualCamera)
     });

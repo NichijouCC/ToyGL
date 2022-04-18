@@ -173,9 +173,9 @@ function preSetAttributeLocation(gl: WebGLRenderingContext, program: WebGLProgra
         const attribInfo = gl.getActiveAttrib(program, i);
         if (!attribInfo) break;
         const attName = attribInfo.name;
-        const type = attInfo[attName] ?? VertexAttEnum.fromShaderAttName(attName);
+        const type = attInfo[attName];
         if (type == null) {
-            console.error(`cannot get Vertex Attribute type from shader definition or deduced from shader attName! Info: attName In shader [${attName}]`);
+            console.error(`cannot get Vertex Attribute type from shader definition! Info: attName In shader [${attName}]`);
         } else {
             const location = VertexAttEnum.toShaderLocation(type);
             gl.bindAttribLocation(program, location, attName);

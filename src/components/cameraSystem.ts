@@ -1,11 +1,11 @@
-import { InterScene } from "../scene/Scene";
+import { World } from "../scene/world";
 import { CameraComponent, CAMERA_ASPECT } from "./cameraComponent";
 import { Entity, Screen, System } from "../scene/index";
 
 export class CameraSystem extends System {
     caries = { comps: [CameraComponent] };
-    private scene: InterScene;
-    constructor(scene: InterScene) {
+    private scene: World;
+    constructor(scene: World) {
         super();
         this.scene = scene;
         this.on("addEntity", (e) => {

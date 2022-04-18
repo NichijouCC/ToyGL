@@ -3,11 +3,11 @@ import { DefaultMaterial } from "../../resources";
 import { BoundingBox } from "../bounds";
 import { IRenderable } from "../../render/irenderable";
 import { ComponentDatatypeEnum, Geometry, PrimitiveTypeEnum, VertexAttEnum } from "../../render";
-import { InterScene } from "../scene";
+import { World } from "../world";
 
 export class Gizmos {
-    private _scene: InterScene;
-    constructor(scene: InterScene) {
+    private _scene: World;
+    constructor(scene: World) {
         this._scene = scene;
     }
 

@@ -23,7 +23,7 @@ module.exports = {
                     {
                         test: /\.(j|t)sx?$/,
                         include: [pathsMap.appPath, path.resolve(__dirname, "../../src")],
-                        exclude: pathsMap.node_modules_path,
+                        // exclude: pathsMap.node_modules_path,
                         use: "babel-loader",
                     },
                     {
@@ -69,6 +69,10 @@ module.exports = {
             new TsconfigPathsPlugin({
                 extensions: [".ts", ".tsx", ".js"]
             }),
+        ],
+        modules: [
+            path.join(__dirname, '../node_modules'),
+            path.join(__dirname, '../../node_modules')
         ]
     },
     plugins: [

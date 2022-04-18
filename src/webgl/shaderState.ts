@@ -26,9 +26,16 @@ export enum BlendEquationEnum {
 }
 
 export enum BlendParamEnum {
+    ZERO = GlConstants.ZERO,
     ONE = GlConstants.ONE,
+    SRC_COLOR = GlConstants.SRC_COLOR,
+    ONE_MINUS_SRC_COLOR = GlConstants.ONE_MINUS_SRC_COLOR,
     SRC_ALPHA = GlConstants.SRC_ALPHA,
     ONE_MINUS_SRC_ALPHA = GlConstants.ONE_MINUS_SRC_ALPHA,
+    DST_ALPHA = GlConstants.DST_ALPHA,
+    ONE_MINUS_DST_ALPHA = GlConstants.ONE_MINUS_DST_ALPHA,
+    DST_COLOR = GlConstants.DST_COLOR,
+    ONE_MINUS_DST_COLOR = GlConstants.ONE_MINUS_DST_COLOR,
 }
 
 export enum StencilFuncEnum {

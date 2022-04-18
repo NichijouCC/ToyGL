@@ -1,6 +1,6 @@
 import { IComponent } from "../core/ecs";
 import { glMatrix, mat4, quat, vec3 } from "../mathD";
-import { InterScene, System } from "../scene";
+import { World, System } from "../scene";
 import { CameraComponent } from "./cameraComponent";
 import { EventTarget } from '@mtgoo/ctool'
 import { LoadCss, LoadScript } from "../io";
@@ -9,7 +9,7 @@ export class MapBoxSystem extends System {
     caries: { [queryKey: string]: (new () => IComponent)[]; } = { comps: [CameraComponent] };
     readonly worldCenter: number[] = [];
     readonly worldRot: number[] = [-90, 0, 0];
-    private _scene: InterScene;
+    private _scene: World;
     map: mapboxgl.Map;
     private _mapboxOption: mapboxgl.MapboxOptions & { mapboxScript: string, mapboxCss: string };
     constructor(worldCenter: number[], mapboxOption: mapboxgl.MapboxOptions & { mapboxScript: string, mapboxCss: string }) {
@@ -81,7 +81,7 @@ export class MapBoxSystem extends System {
         });
     }
     onAdd = new EventTarget<{ canvas: HTMLCanvasElement, gl: WebGLRenderingContext }>();
-    initWorld(scene: InterScene) {
+    initWorld(scene: World) {
         this._scene = scene;
         let cam = scene.addNewCamera();
         cam.enableClearColor = false;

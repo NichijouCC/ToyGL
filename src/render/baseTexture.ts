@@ -114,7 +114,7 @@ export abstract class BaseTexture extends Asset {
         let glTarget = this.getGlTarget(device);
         if (this.beDirty) {
             this.beDirty = false;
-            glTarget.update({
+            glTarget.set({
                 pixelFormat: this._pixelFormat,
                 pixelDatatype: this._pixelDatatype,
                 preMultiplyAlpha: this._preMultiplyAlpha,

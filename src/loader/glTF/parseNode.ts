@@ -8,10 +8,10 @@ import { ModelComponent } from "../../components/modelComponent";
 import { StaticGeometry } from "../../resources/geometry/staticGeometry";
 import { ParseSkinNode } from "./parseSkinNode";
 import { GlTF } from "./util";
-import { InterScene } from "../../scene/index";
+import { World } from "../../scene/index";
 
 export class ParseNode {
-    static parse(scene: InterScene, index: number, gltf: IGltfJson, root: Entity): Promise<Entity> {
+    static parse(scene: World, index: number, gltf: IGltfJson, root: Entity): Promise<Entity> {
         const node = gltf.nodes[index];
         const name = GlTF.getNodeName(index, gltf);
         const sceneNode = new Entity(scene, { name });

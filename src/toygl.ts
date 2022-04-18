@@ -1,5 +1,5 @@
 import { Timer } from "./core/timer";
-import { InterScene, ISceneOptions } from "./scene/scene";
+import { World, ISceneOptions } from "./scene/world";
 import { Resource } from "./resources";
 import { LoadGlTF } from "./loader/loadGltf";
 import { ForwardRender } from "./render/index";
@@ -13,7 +13,7 @@ export class ToyGL {
         const toy = new ToyGL();
         const timer = new Timer();
         const resource = new Resource();
-        const scene = new InterScene(element, options);
+        const scene = new World(element, options);
         resource.registLoaderWithExt(".gltf", new LoadGlTF(scene));
         resource.registLoaderWithExt(".glb", new LoadGlTF(scene));
         scene.addSystem(new CameraSystem(scene));
@@ -32,7 +32,7 @@ export class ToyGL {
     private _render: ForwardRender;
     get render() { return this._render; }
 
-    private _scene: InterScene;
+    private _scene: World;
     get scene() { return this._scene; }
 
     private _resource: Resource;

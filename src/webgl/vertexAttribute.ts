@@ -17,7 +17,7 @@ export interface IVertexAttribute {
     instanceDivisor: number;
 }
 export interface IVertexAttributeOption {
-    type: string | VertexAttEnum
+    type: number | VertexAttEnum
     data?: Buffer | number | TypedArray;
     usage?: BufferUsageEnum;
     componentSize?: number;
@@ -29,11 +29,11 @@ export interface IVertexAttributeOption {
 }
 
 interface VertexAttributeEvents {
-    "AttUpdate": string,
+    "AttUpdate": number,
 }
 
 export class VertexAttribute extends EventEmitter<VertexAttributeEvents> implements IVertexAttribute {
-    readonly type: string | VertexAttEnum;
+    readonly type: number | VertexAttEnum;
     readonly index: number;
     private _buffer: Buffer;
     get buffer() { return this._buffer }
@@ -129,8 +129,8 @@ export class VertexAttribute extends EventEmitter<VertexAttributeEvents> impleme
             }
         };
     }
-    update(options: { data: TypedArray } & Partial<Omit<IVertexAttributeOption, "data" | "type" | "usage">>) {
-        this._buffer.update(options.data);
+    set(options: Partial<{ data: TypedArray } & Omit<IVertexAttributeOption, "data" | "type" | "usage">>) {
+        if (options.data != null) this._buffer.set(options.data);
         if (options.componentDatatype != null) this.componentDatatype = options.componentDatatype;
         if (options.componentSize != null) this.componentSize = options.componentSize;
         if (options.normalize != null) this.normalize = options.normalize;
@@ -143,19 +143,7 @@ export class VertexAttribute extends EventEmitter<VertexAttributeEvents> impleme
         } else {
             this._count = bytes / this._bytesStride;
         }
-        // this.buffer.bind();
-        // this._gl.enableVertexAttribArray(this.index);
-        // this._gl.vertexAttribPointer(
-        //     this.index,
-        //     this.componentSize,
-        //     this.componentDatatype,
-        //     this.normalize,
-        //     this.bytesStride,
-        //     this.bytesOffset
-        // );
-        // if (this.instanceDivisor != null) {
-        //     this._gl.vertexAttribDivisor(this.index, this.instanceDivisor);
-        // }
+        this.emit("AttUpdate", this.type);
     }
 
     bind() { }

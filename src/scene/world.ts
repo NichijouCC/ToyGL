@@ -11,7 +11,7 @@ import { Screen } from "./screen";
 import { Gizmos } from "./gizmos/gizmos";
 
 export type ISceneOptions = { autoAdaptScreenSize?: boolean } & IEngineOption;
-export class InterScene extends ECS {
+export class World extends ECS {
     readonly screen: Screen;
     readonly render: ForwardRender;
     readonly gizmos: Gizmos;

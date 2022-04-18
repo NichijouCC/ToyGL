@@ -41,7 +41,7 @@ export class Material extends Asset {
         }
     }
 
-    setUniformParameter(uniformKey: string, value: any) {
+    setUniform(uniformKey: string, value: any) {
         this.uniformParameters[uniformKey] = value;
     }
 

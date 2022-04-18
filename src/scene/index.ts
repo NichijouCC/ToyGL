@@ -5,7 +5,7 @@ export * from "./isceneCamera";
 export * from "./shaderCodeInjector";
 
 export * from "./plane";
-export * from "./scene";
+export * from "./world";
 export * from "./screen";
 export * from "./entity";
 export * from "./transform";
