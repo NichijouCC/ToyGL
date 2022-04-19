@@ -1,6 +1,6 @@
 import { BlendMode } from "@esotericsoftware/spine-core";
 import { vec4 } from "../../mathD";
-import { BlendParamEnum, BufferTargetEnum, ComponentDatatypeEnum, Geometry, GraphicBuffer, GraphicIndexBuffer, IGeometryAttributeOptions, IRenderable, Material, Shader, VertexAttEnum, VertexFormat } from "../../render";
+import { BlendParamEnum, BufferTargetEnum, BufferUsageEnum, ComponentDatatypeEnum, Geometry, GraphicBuffer, GraphicIndexBuffer, IGeometryAttributeOptions, IRenderable, Material, Shader, VertexAttEnum, VertexFormat } from "../../render";
 import { SpineTexture } from "./spineTexture";
 
 interface ISpinDrawParams {
@@ -16,13 +16,6 @@ export class SpineBatcher {
     drawParams: ISpinDrawParams[] = [];
     batchers: MeshBatcher[] = [];
     private currentBatcherIndex = 0;
-    private _shader: Shader;
-    private _premultipliedAlpha: boolean;
-    constructor(shader: Shader, premultipliedAlpha: boolean) {
-        this._shader = shader;
-        this._premultipliedAlpha = premultipliedAlpha;
-    }
-
     begin() {
         this.drawParams = [];
         this.currentBatcherIndex = 0;
@@ -75,10 +68,6 @@ export class SpineBatcher {
     end() {
         this.batchers[this.currentBatcherIndex]?.end();
     }
-
-    getRenderIns() {
-
-    }
 }
 
 //Uint16Array 0-65535
@@ -101,8 +90,8 @@ export class MeshBatcher {
 
         this.indices = new Uint16Array(65535);
         this.vertices = new Float32Array(65535 * this.vertexSize);
-        let vbo = new GraphicBuffer({ target: BufferTargetEnum.ARRAY_BUFFER, data: this.vertices });
-        let ibo = new GraphicIndexBuffer({ data: this.indices, count: this.indicesLength });
+        let vbo = new GraphicBuffer({ target: BufferTargetEnum.ARRAY_BUFFER, data: this.vertices, usage: BufferUsageEnum.DYNAMIC_DRAW });
+        let ibo = new GraphicIndexBuffer({ data: this.indices, count: this.indicesLength, usage: BufferUsageEnum.DYNAMIC_DRAW });
 
         let offset = 0;
         vertexFormat.forEach(att => {
@@ -164,7 +153,7 @@ export class MeshBatcher {
     }
 
     end() {
-        this.vertexBuffer.beDirty = true;
+        this.vertexBuffer.setSubData(this.vertices.subarray(0, this.verticesLength), 0);
         this.indicesBuffer.count = this.indicesLength;
     }
 }

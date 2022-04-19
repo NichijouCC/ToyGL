@@ -71,7 +71,7 @@ export class SpineSystem extends System {
                 gl_FragColor.rgb =uMainColor.rgb*(((texColor.a - 1.0) * v_dark.a + 1.0 - texColor.rgb) * v_dark.rgb + texColor.rgb * v_light.rgb);
             }`
         });
-        this._batcher = new SpineBatcher(this._shader, this.premultipliedAlpha);
+        this._batcher = new SpineBatcher();
     }
 
     update(deltaTime: number): void {

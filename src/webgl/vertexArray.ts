@@ -103,10 +103,10 @@ export class VertexArray implements IglElement {
     set primitiveType(type: PrimitiveTypeEnum) { this._primitiveType = type; };
 
     private _count: number;
-    private _bytesOffset: number = 0;
+    private _bytesOffset: number;
     set count(count: number) { this._count = count; }
     get count() { return this._count ?? this._indexBuffer?.count ?? this.vertexCount; }
-    get bytesOffset() { return this._bytesOffset; }
+    get bytesOffset() { return this._bytesOffset ?? this._indexBuffer?.bytesOffset ?? 0; }
     set bytesOffset(offset: number) { this._bytesOffset = offset; }
     constructor(context: GraphicsDevice, options: IVaoOptions) {
         this._context = context;
@@ -122,7 +122,7 @@ export class VertexArray implements IglElement {
             }
         }
         this._primitiveType = options.primitiveType ?? PrimitiveTypeEnum.TRIANGLES;
-        this._bytesOffset = options.bytesOffset ?? 0;
+        this._bytesOffset = options.bytesOffset;
         this._count = options.count;
 
         const gl = context.gl;
@@ -208,7 +208,9 @@ export interface IVaoOptions {
     vertexAttributes: IVertexAttributeOption[] | VertexAttribute[];
     indices?: IndexBufferOption | IndexBuffer;
     primitiveType?: PrimitiveTypeEnum;
+    //修改indexBuffer的使用範圍
     bytesOffset?: number;
+    //修改indexBuffer的使用範圍
     count?: number;
 }
 

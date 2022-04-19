@@ -1,6 +1,6 @@
 import { EventEmitter } from "@mtgoo/ctool";
 import { GlType, TypedArray } from "../core/typedArray";
-import { GraphicsDevice, IndexBuffer, IndexDatatypeEnum, IndicesArray, Buffer, BufferTargetEnum } from "../webgl";
+import { GraphicsDevice, IndexBuffer, IndexDatatypeEnum, IndicesArray, Buffer, BufferTargetEnum, BufferUsageEnum } from "../webgl";
 
 interface IObjectEvent {
     BeDirty: void
@@ -56,7 +56,7 @@ export class GraphicIndexBuffer extends EventEmitter<IObjectEvent> {
         if (options.data instanceof GraphicBuffer) {
             this._buffer = options.data;
         } else {
-            this._buffer = new GraphicBuffer({ data: options.data, target: BufferTargetEnum.ELEMENT_ARRAY_BUFFER });
+            this._buffer = new GraphicBuffer({ data: options.data, target: BufferTargetEnum.ELEMENT_ARRAY_BUFFER, usage: options.usage });
         }
         this.byteOffset = options.byteOffset ?? 0;
         if (options.datatype) {
@@ -105,18 +105,27 @@ export class GraphicIndexBuffer extends EventEmitter<IObjectEvent> {
 
 export interface IGraphicIndexBufferOptions {
     data: IndicesArray | GraphicBuffer,
+    usage?: BufferUsageEnum,
     datatype?: IndexDatatypeEnum,
     byteOffset?: number,
-    count?: number
+    count?: number,
 }
 
 
 export class GraphicBuffer extends EventEmitter<IObjectEvent> {
     private _typedArray: TypedArray;
     readonly target: BufferTargetEnum;
+    readonly usage: BufferUsageEnum;
     get data() { return this._typedArray; }
     set data(value: TypedArray) {
         this._typedArray = value;
+        this.beDirty = true;
+    }
+
+    private subData: { subData: TypedArray, byteOffset: number }
+    //更新部分数据
+    setSubData(subData: TypedArray, byteOffset: number) {
+        this.subData = { subData, byteOffset };
         this.beDirty = true;
     }
 
@@ -126,16 +135,17 @@ export class GraphicBuffer extends EventEmitter<IObjectEvent> {
         this.emit("BeDirty");
     }
     get beDirty() { return this._beDirty }
-    constructor(opts: { target: BufferTargetEnum, data: TypedArray }) {
+    constructor(opts: { target: BufferTargetEnum, data: TypedArray, usage?: BufferUsageEnum }) {
         super()
         this.target = opts.target;
         this._typedArray = opts.data;
+        this.usage = opts.usage ?? BufferUsageEnum.STATIC_DRAW;
     }
 
     private _glTarget: Buffer
     getGlTarget(device: GraphicsDevice) {
         if (this._glTarget == null) {
-            this._glTarget = device.createBuffer({ data: this.data, target: this.target });
+            this._glTarget = device.createBuffer({ data: this.data, target: this.target, usage: this.usage });
         }
         return this._glTarget;
     }
@@ -143,7 +153,11 @@ export class GraphicBuffer extends EventEmitter<IObjectEvent> {
     bind(device: GraphicsDevice) {
         let target = this.getGlTarget(device);
         if (this._beDirty) {
-            target.set(this.data);
+            if (this.subData) {
+                target.set({ partial: this.subData })
+            } else {
+                target.set({ data: this._typedArray })
+            }
             this._beDirty = false;
         }
         return target;

@@ -5,21 +5,16 @@ import { GlConstants } from "./glConstant";
 
 export interface bufferOption {
     target: BufferTargetEnum;
-    data: number | TypedArray;
+    data: TypedArray;
     usage?: BufferUsageEnum;
 }
 export class Buffer implements IglElement {
     protected target: BufferTargetEnum;
     readonly usage: BufferUsageEnum;
-    protected _data: TypedArray | number;
-    get data() { return this._data; };
-    get sizeInBytes() {
-        if (typeof this._data == "number") {
-            return this._data;
-        } else {
-            return this._data.byteLength;
-        }
-    };
+    private _data: TypedArray;
+    set data(value: TypedArray) { this._data = value; }
+    get data() { return this._data }
+    get byteLength() { return this.data.byteLength; };
     protected _buffer: WebGLBuffer;
     constructor(context: GraphicsDevice, options: bufferOption) {
         this.target = options.target;
@@ -45,10 +40,17 @@ export class Buffer implements IglElement {
             }
         };
 
-        this.set = (data: TypedArray | number) => {
-            this._data = data;
-            this.bind();
-            gl.bufferSubData(this.target, 0, data as any);
+        this.set = (options: IBufferSetOptions) => {
+            if (options.data != null) {
+                this.bind();
+                this._data = options.data;
+                gl.bufferSubData(this.target, 0, this.data);
+            }
+            if (options.partial != null) {
+                this.bind();
+                this._data.set(options.partial.subData, options.partial.byteOffset / this._data.BYTES_PER_ELEMENT);
+                gl.bufferSubData(this.target, options.partial.byteOffset, options.partial.subData);
+            }
         };
 
         this.destroy = () => {
@@ -61,8 +63,13 @@ export class Buffer implements IglElement {
 
     bind() { }
     unbind() { }
-    set(data?: TypedArray | number) { }
+    set(options: IBufferSetOptions) { }
     destroy() { }
+}
+
+export interface IBufferSetOptions {
+    data?: TypedArray,
+    partial?: { subData: TypedArray, byteOffset: number }
 }
 
 export enum BufferTargetEnum {

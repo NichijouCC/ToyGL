@@ -1,10 +1,10 @@
 import { GraphicsDevice } from "./graphicsDevice";
-import { BufferUsageEnum, Buffer, BufferTargetEnum } from "./buffer";
+import { BufferUsageEnum, Buffer, BufferTargetEnum, IBufferSetOptions } from "./buffer";
 import { GlConstants } from "./glConstant";
 import { TypedArray, GlType } from "../core/typedArray";
 export type IndicesArray = Uint8Array | Uint16Array | Uint32Array;
 export type IndexBufferOption = {
-    data: number | IndicesArray | Buffer;
+    data: IndicesArray | Buffer;
     usage?: BufferUsageEnum;
     datatype?: IndexDatatypeEnum;
     bytesOffset?: number;
@@ -12,12 +12,9 @@ export type IndexBufferOption = {
 }
 export class IndexBuffer {
     private _context: GraphicsDevice;
-    private _count: number;
-    get count() { return this._count };
-    private _datatype: number;
-    get datatype() { return this._datatype };
-    private _bytesOffset: number;
-    get bytesOffset() { return this._bytesOffset };
+    count: number;
+    datatype: number;
+    bytesOffset: number;
     private _buffer: Buffer;
     constructor(context: GraphicsDevice, options: IndexBufferOption) {
         this._context = context;
@@ -26,22 +23,9 @@ export class IndexBuffer {
         } else {
             this._buffer = new Buffer(context, { ...options, target: BufferTargetEnum.ELEMENT_ARRAY_BUFFER } as any);
         }
-        this._bytesOffset = 0;
-        if (options.bytesOffset != null) {
-            this._bytesOffset = options.bytesOffset;
-        }
-        if (options.datatype != null) {
-            this._datatype = options.datatype;
-        } else if (typeof this._buffer.data != "number") {
-            this._datatype = TypedArray.getGLType(this._buffer.data);
-        } else {
-            throw new Error("index buffer datatype need be set in Params");
-        }
-        if (options.count != null) {
-            this._count = options.count;
-        } else {
-            this._count = this._buffer.sizeInBytes / GlType.bytesPerElement(this._datatype);
-        }
+        this.bytesOffset = options.bytesOffset ?? 0;
+        this.datatype = options.datatype ?? TypedArray.getGLType(this._buffer.data);
+        this.count = options.count ?? this._buffer.byteLength / GlType.bytesPerElement(this.datatype);
 
         this.bind = () => {
             this._buffer.bind();
@@ -53,11 +37,11 @@ export class IndexBuffer {
             this._buffer.destroy();
         };
     }
-    set(options: Partial<{ data: TypedArray } & Omit<IndexBufferOption, "data" | "usage">>) {
-        if (options.data != null) this._buffer.set(options.data);
-        if (options.datatype != null) this._datatype = options.datatype;
-        if (options.count != null) this._count = options.count;
-        if (options.bytesOffset != null) this._bytesOffset = options.bytesOffset;
+    set(options: Partial<IBufferSetOptions & Omit<IndexBufferOption, "data" | "usage">>) {
+        this._buffer.set(options);
+        if (options.datatype != null) this.datatype = options.datatype;
+        if (options.count != null) this.count = options.count;
+        if (options.bytesOffset != null) this.bytesOffset = options.bytesOffset;
     }
 
     bind() { }

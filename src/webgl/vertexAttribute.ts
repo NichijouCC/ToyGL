@@ -2,7 +2,7 @@ import { GraphicsDevice } from "./graphicsDevice";
 import { ComponentDatatypeEnum } from "./componentDatatypeEnum";
 import { VertexAttEnum } from "./vertexAttEnum";
 import { GlType, TypedArray } from "../core/typedArray";
-import { Buffer, BufferTargetEnum, BufferUsageEnum } from "./buffer";
+import { Buffer, BufferTargetEnum, BufferUsageEnum, IBufferSetOptions } from "./buffer";
 import { VertexArray } from "./vertexArray";
 import { EventEmitter } from "@mtgoo/ctool";
 
@@ -18,7 +18,7 @@ export interface IVertexAttribute {
 }
 export interface IVertexAttributeOption {
     type: number | VertexAttEnum
-    data?: Buffer | number | TypedArray;
+    data?: Buffer | TypedArray;
     usage?: BufferUsageEnum;
     componentSize?: number;
     componentDatatype?: number;
@@ -101,7 +101,7 @@ export class VertexAttribute extends EventEmitter<VertexAttributeEvents> impleme
             this._buffer = new Buffer(context, { data: options.data, usage: options.usage, target: BufferTargetEnum.ARRAY_BUFFER })
         }
 
-        const bytes = this._buffer.sizeInBytes - this._bytesOffset;
+        const bytes = this._buffer.byteLength - this._bytesOffset;
         if (this._bytesStride == 0) {
             this._count = bytes / (this._componentSize * GlType.bytesPerElement(this._componentDatatype));
         } else {
@@ -129,15 +129,15 @@ export class VertexAttribute extends EventEmitter<VertexAttributeEvents> impleme
             }
         };
     }
-    set(options: Partial<{ data: TypedArray } & Omit<IVertexAttributeOption, "data" | "type" | "usage">>) {
-        if (options.data != null) this._buffer.set(options.data);
+    set(options: Partial<IBufferSetOptions & Omit<IVertexAttributeOption, "data" | "type" | "usage">>) {
+        this._buffer.set(options);
         if (options.componentDatatype != null) this.componentDatatype = options.componentDatatype;
         if (options.componentSize != null) this.componentSize = options.componentSize;
         if (options.normalize != null) this.normalize = options.normalize;
         if (options.bytesOffset != null) this.bytesOffset = options.bytesOffset;
         if (options.bytesStride != null) this.bytesStride = options.bytesStride;
         if (options.instanceDivisor != null) this.instanceDivisor = options.instanceDivisor;
-        const bytes = this._buffer.sizeInBytes - this._bytesOffset;
+        const bytes = this._buffer.byteLength - this._bytesOffset;
         if (this._bytesStride == 0) {
             this._count = bytes / (this._componentSize * GlType.bytesPerElement(this._componentDatatype));
         } else {

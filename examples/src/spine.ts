@@ -1,4 +1,4 @@
-import { AtlasAttachmentLoader, CameraSystem, SkeletonJson, SpineComp, SpineSystem, World } from "../../src";
+import { AtlasAttachmentLoader, CameraSystem, Color, SkeletonJson, SpineComp, SpineSystem, World } from "../../src";
 import { Timer } from "../../src/core/timer";
 
 const world = new World(document.getElementById("canvas") as HTMLCanvasElement);
@@ -10,6 +10,7 @@ world.addSystem(new CameraSystem(world));
 
 timer.onTick.addEventListener(world.update);
 const cam = world.addNewCamera();
+cam.backgroundColor = new Color(0.9, 0.9, 0.9, 1.0);
 
 let skeletonFile = "raptor-pro.json";
 let atlasFile = "raptor.atlas"
