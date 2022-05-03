@@ -19,18 +19,15 @@ export class FrameBuffer implements IframeBufferInfo, IglElement {
                 case "color": {
                     const attachmentPoint = gl.COLOR_ATTACHMENT0 + colorAttachmentCount++;
                     if (attachmentOp.beTexture) {
-                        const tex = Texture.fromTypedArray(
-                            context,
+                        const tex = context.createTextureFromTypedArray(
                             {
                                 width: width,
                                 height: height,
                                 arrayBufferView: null,
                                 pixelFormat: (attachmentOp.textureOptions?.pixelFormat) || gl.RGBA,
                                 pixelDatatype: (attachmentOp.textureOptions?.pixelDatatype) || gl.UNSIGNED_BYTE,
-                                sampler: {
-                                    wrapS: (attachmentOp.textureOptions?.wrapS) || gl.CLAMP_TO_EDGE,
-                                    wrapT: (attachmentOp.textureOptions?.wrapT) || gl.CLAMP_TO_EDGE
-                                }
+                                wrapS: (attachmentOp.textureOptions?.wrapS) || gl.CLAMP_TO_EDGE,
+                                wrapT: (attachmentOp.textureOptions?.wrapT) || gl.CLAMP_TO_EDGE
                             }
                         );
                         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex.texture, 0);
@@ -45,8 +42,7 @@ export class FrameBuffer implements IframeBufferInfo, IglElement {
                 }
                 case "depth":
                     if (attachmentOp.beTexture) {
-                        const tex = Texture.fromTypedArray(
-                            context,
+                        const tex = context.createTextureFromTypedArray(
                             {
                                 width: width,
                                 height: height,

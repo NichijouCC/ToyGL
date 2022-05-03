@@ -58,11 +58,11 @@ export class ForwardRender {
             //准备视口和清理画布
             this.uniformState.viewer = camera;
             this.device.setViewPort(camera.viewport.x, camera.viewport.y, camera.viewport.width, camera.viewport.height);
-            this.device.setClear(
-                camera.enableClearDepth ? camera.dePthValue : null,
-                camera.enableClearColor ? camera.backgroundColor : null,
-                camera.enableClearStencil ? camera.stencilValue : null
-            );
+            this.device.setClearStateAndClear({
+                clearDepth: camera.enableClearDepth ? camera.dePthValue : null,
+                clearColor: camera.enableClearColor ? camera.backgroundColor : null,
+                clearStencil: camera.enableClearStencil ? camera.stencilValue : null
+            });
             //遍历渲染
             for (let i = 0; i < renderList.length; i++) {
                 this._renderItem(renderList[i]);
@@ -97,35 +97,12 @@ export class ForwardRender {
             renderState = material.renderState;
             if (preRenderState != renderState) {
                 preRenderState = renderState;
-                this.device.setCullFaceState(renderState.cull.enabled, renderState.cull.cullBack);
-                this.device.setDepthState(renderState.depthWrite, renderState.depthTest.enabled, renderState.depthTest.depthFunc);
-                this.device.setColorMask(renderState.colorWrite.red, renderState.colorWrite.green, renderState.colorWrite.blue, renderState.colorWrite.alpha);
-                this.device.setBlendState(
-                    renderState.blend.enabled,
-                    renderState.blend.blendEquation,
-                    renderState.blend.blendSrc,
-                    renderState.blend.blendDst,
-                    renderState.blend.enableSeparateBlend,
-                    renderState.blend.blendAlphaEquation,
-                    renderState.blend.blendSrcAlpha,
-                    renderState.blend.blendDstAlpha
-                );
-                this.device.setStencilState(
-                    renderState.stencilTest.enabled,
-                    renderState.stencilTest.stencilFunction,
-                    renderState.stencilTest.stencilRefValue,
-                    renderState.stencilTest.stencilMask,
-                    renderState.stencilTest.stencilFail,
-                    renderState.stencilTest.stencilFailZpass,
-                    renderState.stencilTest.stencilPassZfail,
-                    renderState.stencilTest.enableSeparateStencil,
-                    renderState.stencilTest.stencilFunctionBack,
-                    renderState.stencilTest.stencilRefValueBack,
-                    renderState.stencilTest.stencilMaskBack,
-                    renderState.stencilTest.stencilFailBack,
-                    renderState.stencilTest.stencilFailZpassBack,
-                    renderState.stencilTest.stencilPassZfailBack
-                );
+                this.device.setCullState(renderState.cull);
+                this.device.setDepthState(renderState.depth);
+                this.device.setColorMaskState(renderState.colorMask);
+                this.device.setBlendState(renderState.blend);
+                this.device.setStencilState(renderState.stencilTest);
+                this.device.setScissorState(renderState.scissorTest);
             }
             this.device.draw(vao, renderItem.instanceCount);
             renderItem.children?.forEach(item => this._renderItem(item))

@@ -77,3 +77,9 @@ export enum StencilOperationEnum {
     KEEP = GlConstants.KEEP,
     REPLACE = GlConstants.REPLACE,
 }
+
+export enum CullFaceModeEnum {
+    FRONT = GlConstants.FRONT,
+    BACK = GlConstants.BACK,
+    ALL = GlConstants.FRONT_AND_BACK,
+}

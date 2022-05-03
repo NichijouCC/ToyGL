@@ -193,16 +193,16 @@ export class ParseMaterialNode {
                 }
             }
             if (node.doubleSided) {
-                mat.renderState.cull.enabled = false;
+                mat.renderState.cull.enable = false;
             }
             if (node.alphaMode != null) {
                 switch (node.alphaMode) {
                     case MaterialAlphaMode.OPAQUE:
                         break;
                     case MaterialAlphaMode.BLEND:
-                        mat.renderState.blend.enabled = true;
+                        mat.renderState.blend.enable = true;
                         mat.customRenderType = RenderTypeEnum.TRANSPARENT;
-                        mat.renderState.depthWrite = false;
+                        mat.renderState.depth.depthWrite = false;
                         break;
                     case MaterialAlphaMode.MASK:
                         mat.shader.bucketFeats = ShaderBucket.AlPHA_CUT;

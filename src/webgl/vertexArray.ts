@@ -174,6 +174,7 @@ export class VertexArray implements IglElement {
     get vertexAttributes() { return this._vertexAttributes; }
     hasAttribute(att: VertexAttEnum | string) { return this._vertexAttributes[att] != null; }
     getAttribute(att: VertexAttEnum | string) { return this._vertexAttributes[att] }
+    //不需要removeAttribute，即disableVertexAttribute
     addAttribute(att: VertexAttribute | IVertexAttributeOption) {
         let vAtt: VertexAttribute = att as any;
         if (!(att instanceof VertexAttribute)) {

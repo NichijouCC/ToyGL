@@ -3,7 +3,7 @@ import { DeviceCapability } from "./deviceCapability";
 import { IShaderProgramOption, ShaderProgram } from "./shaderProgram";
 import { VertexAttSetter } from "./vertexAttSetter";
 import { DeviceLimit } from "./deviceLimit";
-import { BlendEquationEnum, BlendParamEnum } from "./shaderState";
+import { BlendEquationEnum, BlendParamEnum, CullFaceModeEnum, DepthFuncEnum } from "./shaderState";
 import { IVaoOptions, VertexArray } from "./vertexArray";
 import { UniformSetter } from "./UniformSetter";
 import { IndexBuffer, IndexBufferOption } from "./indexBuffer";
@@ -17,6 +17,8 @@ import { VertexBuffer } from "./vertexBuffer";
 export interface IEngineOption {
     disableWebgl2?: boolean;
     gl?: WebGLRenderingContext;
+    //webgl1 默认TRY启用OES_vertex_array_object、ANGLE_instanced_arrays、OES_element_index_uint
+    extensions?: string[];
 }
 type DistributiveOmit<T, K extends keyof any> = T extends any ? Omit<T, K> : never;
 
@@ -30,10 +32,12 @@ export class GraphicsDevice {
     bindingVao: WebGLVertexArrayObject = null;
     bindingArrayBuffer: WebGLBuffer = null;
     bindingProgram: WebGLProgram = null;
+    readonly options: IEngineOption;
     constructor(canvas: HTMLCanvasElement, option?: IEngineOption) {
         if (canvas == null) return;
         this.canvas = canvas;
         option = option || {};
+        this.options = option;
         let gl: WebGLRenderingContext = option.gl;
         if (gl == null) {
             if (!option.disableWebgl2) {
@@ -119,7 +123,8 @@ export class GraphicsDevice {
      * @param clearColor 默认值：1,1,1,1
      * @param clearStencil 默认值：0
      */
-    setClear(clearDepth: number | null, clearColor: Float32Array | null, clearStencil: number | null) {
+    setClearStateAndClear(params: IClearState) {
+        let { clearDepth, clearColor, clearStencil } = params;
         let clearTag = 0;
         if (clearDepth != null) {
             if (clearDepth != this._cachedClearDepth) {
@@ -175,64 +180,62 @@ export class GraphicsDevice {
     private _cacheColorMaskG: boolean;
     private _cacheColorMaskB: boolean;
     private _cacheColorMaskA: boolean;
-    setColorMask(maskR: boolean, maskG: boolean, maskB: boolean, maskA: boolean, force = false) {
+    setColorMaskState(params: IColorMaskState) {
+        let { force, writeR, writeG, writeB, writeA } = params;
         if (
             force ||
-            this._cacheColorMaskR != maskR ||
-            this._cacheColorMaskG != maskG ||
-            this._cacheColorMaskB != maskB ||
-            this._cacheColorMaskA != maskA
+            this._cacheColorMaskR != writeR ||
+            this._cacheColorMaskG != writeG ||
+            this._cacheColorMaskB != writeB ||
+            this._cacheColorMaskA != writeA
         ) {
-            this.gl.colorMask(maskR, maskG, maskB, maskA);
-            this._cacheColorMaskR = maskR;
-            this._cacheColorMaskG = maskG;
-            this._cacheColorMaskB = maskB;
-            this._cacheColorMaskA = maskA;
+            this.gl.colorMask(writeR, writeG, writeB, writeA);
+            this._cacheColorMaskR = writeR;
+            this._cacheColorMaskG = writeG;
+            this._cacheColorMaskB = writeB;
+            this._cacheColorMaskA = writeA;
         }
     }
 
     _cachedEnableCullFace: boolean;
-    _cachedCullFace: boolean;
-    setCullFaceState(enableCullFace: boolean = true, cullBack: boolean = true, force = false) {
-        if (force || this._cachedEnableCullFace != enableCullFace) {
-            this._cachedEnableCullFace = enableCullFace;
-            if (enableCullFace) {
+    _cachedCullMode: CullFaceModeEnum;
+    setCullState(params: ICullState) {
+        let { force, enable, cullMode } = params;
+        if (force || this._cachedEnableCullFace != enable) {
+            this._cachedEnableCullFace = enable;
+            if (enable) {
                 this.gl.enable(this.gl.CULL_FACE);
-                if (force || this._cachedCullFace != cullBack) {
-                    this._cachedCullFace = cullBack;
-                    this.gl.cullFace(cullBack ? this.gl.BACK : this.gl.FRONT);
-                }
             } else {
                 this.gl.disable(this.gl.CULL_FACE);
             }
-        } else {
-            if (force || this._cachedCullFace != cullBack) {
-                this._cachedCullFace = cullBack;
-
-                this.gl.cullFace(cullBack ? this.gl.BACK : this.gl.FRONT);
-            }
+        }
+        if (force || (enable && this._cachedCullMode != cullMode)) {
+            this._cachedCullMode = cullMode;
+            this.gl.cullFace(cullMode);
         }
     }
 
     private _cachedDepthWrite: boolean;
     private _cachedDepthTest: boolean;
     private _cachedDepthFunction: number;
-    setDepthState(depthWrite: boolean = true, depthTest: boolean = true, depthFunc: number, force = false) {
+    setDepthState(params: IDepthState) {
+        let { force, depthWrite, depthTest, depthTestFunc } = params;
         if (force || this._cachedDepthWrite != depthWrite) {
             this._cachedDepthWrite = depthWrite;
             this.gl.depthMask(depthWrite);
         }
+
         if (force || this._cachedDepthTest != depthTest) {
             this._cachedDepthTest = depthTest;
             if (depthTest) {
                 this.gl.enable(this.gl.DEPTH_TEST);
-                if (depthFunc != null && this._cachedDepthFunction != depthFunc) {
-                    this._cachedDepthFunction = depthFunc;
-                    this.gl.depthFunc(depthFunc);
-                }
             } else {
                 this.gl.disable(this.gl.DEPTH_TEST);
             }
+        }
+        if (force || (depthTest && (depthTestFunc != null && this._cachedDepthFunction != depthTestFunc))) {
+            this._cachedDepthFunction = depthTestFunc;
+            this.gl.depthFunc(depthTestFunc);
         }
     }
 
@@ -240,57 +243,37 @@ export class GraphicsDevice {
     private _cachedBlendEquation: number;
     private _cachedBlendFuncSrc: number;
     private _cachedBlendFuncDst: number;
-
-    private enableSeparateBlend: boolean = false;
     private _cachedBlendEquationAlpha: number;
     private _cachedBlendFuncSrc_a: number;
     private _cachedBlendFuncDst_a: number;
 
-    setBlendState(
-        enabled: boolean,
-        blendEquation: BlendEquationEnum,
-        blendSrc: BlendParamEnum,
-        blendDst: BlendParamEnum,
-
-        enableSeparateBlend: boolean,
-        blendAlphaEquation: BlendEquationEnum,
-        blendSrcAlpha: BlendParamEnum,
-        blendDstAlpha: BlendParamEnum,
-        force = false
-    ) {
-        if (force || this._cachedEnableBlend != enabled) {
-            this._cachedEnableBlend = enabled;
-            if (enabled) {
+    setBlendState(params: IBlendState) {
+        let { force, enable } = params;
+        if (force || this._cachedEnableBlend != enable) {
+            this._cachedEnableBlend = enable;
+            if (enable) {
                 this.gl.enable(this.gl.BLEND);
-
-                if (enableSeparateBlend) {
-                    this.enableSeparateBlend = true;
-                    if (force || this._cachedBlendEquation != blendEquation || this._cachedBlendEquationAlpha != blendAlphaEquation) {
-                        this._cachedBlendEquation = blendEquation;
-                        this._cachedBlendEquationAlpha = blendAlphaEquation;
-                        this.gl.blendEquationSeparate(blendEquation, blendAlphaEquation);
-                    }
-                    if (force || this._cachedBlendFuncSrc != blendSrc || this._cachedBlendFuncDst != blendDst || this._cachedBlendFuncSrc_a != blendSrcAlpha || this._cachedBlendFuncDst_a != blendDstAlpha) {
-                        this._cachedBlendFuncSrc = blendSrc;
-                        this._cachedBlendFuncDst = blendDst;
-                        this._cachedBlendFuncSrc_a = blendSrcAlpha;
-                        this._cachedBlendFuncDst_a = blendDstAlpha;
-                        this.gl.blendFuncSeparate(blendSrc, blendDst, blendSrcAlpha, blendDstAlpha);
-                    }
-                } else {
-                    if (force || this.enableSeparateBlend || this._cachedBlendEquation != blendEquation) {
-                        this._cachedBlendEquation = blendEquation;
-                        this.gl.blendEquation(blendEquation);
-                    }
-                    if (force || this.enableSeparateBlend || this._cachedBlendFuncSrc != blendSrc || this._cachedBlendFuncDst != blendDst) {
-                        this._cachedBlendFuncSrc = blendSrc;
-                        this._cachedBlendFuncDst = blendDst;
-                        this.gl.blendFunc(blendSrc, blendDst);
-                    }
-                    this.enableSeparateBlend = false;
-                }
             } else {
                 this.gl.disable(this.gl.BLEND);
+            }
+        }
+        if (force || enable) {
+            let { blendEquation, blendSrc, blendDst, blendAlphaEquation, blendSrcAlpha, blendDstAlpha } = params;
+            blendAlphaEquation = blendAlphaEquation ?? blendEquation;
+            blendSrcAlpha = blendSrcAlpha ?? blendSrc;
+            blendDstAlpha = blendDstAlpha ?? blendDst;
+
+            if (this._cachedBlendEquation != blendEquation || this._cachedBlendEquationAlpha != blendAlphaEquation) {
+                this._cachedBlendEquation = blendEquation;
+                this._cachedBlendEquationAlpha = blendAlphaEquation;
+                this.gl.blendEquationSeparate(blendEquation, blendAlphaEquation);
+            }
+            if (this._cachedBlendFuncSrc != blendSrc || this._cachedBlendFuncDst != blendDst || this._cachedBlendFuncSrc_a != blendSrcAlpha || this._cachedBlendFuncDst_a != blendDstAlpha) {
+                this._cachedBlendFuncSrc = blendSrc;
+                this._cachedBlendFuncDst = blendDst;
+                this._cachedBlendFuncSrc_a = blendSrcAlpha;
+                this._cachedBlendFuncDst_a = blendDstAlpha;
+                this.gl.blendFuncSeparate(blendSrc, blendDst, blendSrcAlpha, blendDstAlpha);
             }
         }
     }
@@ -303,7 +286,6 @@ export class GraphicsDevice {
     private _cachedStencilPassZfail: number;
     private _cachedStencilFailZpass: number;
 
-    private enableSeparateStencil: boolean = false;
     private _cachedStencilFuncBack: number;
     private _cachedStencilRefValueBack: number;
     private _cachedStencilMaskBack: number;
@@ -311,90 +293,76 @@ export class GraphicsDevice {
     private _cachedStencilPassZfailBack: number;
     private _cachedStencilFailZpassBack: number;
 
-    setStencilState(
-        enableStencilTest: boolean = false,
-        stencilFunction: number = this.gl.ALWAYS,
-        stencilRefValue: number = 1,
-        stencilMask: number = 0xff,
-        stencilFail: number = this.gl.KEEP,
-        stencilFailZpass: number = this.gl.KEEP,
-        stencilPassZfail: number = this.gl.REPLACE,
-
-        enableSeparateStencil: boolean = false,
-        stencilFunctionBack: number = this.gl.ALWAYS,
-        stencilRefValueBack: number = 1,
-        stencilMaskBack: number = 0xff,
-        stencilFailBack: number = this.gl.KEEP,
-        stencilFailZpassBack: number = this.gl.KEEP,
-        stencilPassZfailBack: number = this.gl.REPLACE
-    ) {
-        if (this._cachedEnableStencilTest != enableStencilTest) {
-            this._cachedEnableStencilTest = enableStencilTest;
-            if (enableStencilTest) {
+    setStencilState(params: IStencilState) {
+        let { force, enable, } = params;
+        if (force || this._cachedEnableStencilTest != enable) {
+            this._cachedEnableStencilTest = enable;
+            if (enable) {
                 this.gl.enable(this.gl.STENCIL_TEST);
-                if (enableSeparateStencil) {
-                    this.enableSeparateStencil = true;
-
-                    if (this._cachedStencilFunc != stencilFunction ||
-                        this._cachedStencilRefValue != stencilRefValue ||
-                        this._cachedStencilMask != stencilMask
-                    ) {
-                        this._cachedStencilFunc = stencilFunction;
-                        this._cachedStencilRefValue = stencilRefValue;
-                        this._cachedStencilMask = stencilMask;
-                        this.gl.stencilFuncSeparate(this.gl.FRONT, stencilFunction, stencilRefValue, stencilMask);
-                    }
-
-                    if (this._cachedStencilFuncBack != stencilFunctionBack ||
-                        this._cachedStencilRefValueBack != stencilRefValueBack ||
-                        this._cachedStencilMaskBack != stencilMaskBack) {
-                        this._cachedStencilFuncBack = stencilFunctionBack;
-                        this._cachedStencilRefValueBack = stencilRefValueBack;
-                        this._cachedStencilMaskBack = stencilMaskBack;
-                        this.gl.stencilFuncSeparate(this.gl.BACK, stencilFunctionBack, stencilRefValueBack, stencilMaskBack);
-                    }
-
-                    if (this._cachedStencilFail != stencilFail ||
-                        this._cachedStencilPassZfail != stencilPassZfail ||
-                        this._cachedStencilFailZpass != stencilFailZpass) {
-                        this._cachedStencilFail = stencilFail;
-                        this._cachedStencilPassZfail = stencilPassZfail;
-                        this._cachedStencilFailZpass = stencilFailZpass;
-                        this.gl.stencilOpSeparate(this.gl.FRONT, stencilFail, stencilPassZfail, stencilFailZpass);
-                    }
-
-                    if (this._cachedStencilFailBack != stencilFailBack ||
-                        this._cachedStencilPassZfailBack != stencilPassZfailBack ||
-                        this._cachedStencilFailZpassBack != stencilFailZpassBack) {
-                        this._cachedStencilFailBack = stencilFailBack;
-                        this._cachedStencilPassZfailBack = stencilPassZfailBack;
-                        this._cachedStencilFailZpassBack = stencilFailZpassBack;
-                        this.gl.stencilOpSeparate(this.gl.BACK, stencilFailBack, stencilPassZfailBack, stencilFailZpassBack);
-                    }
-                } else {
-                    if (this.enableSeparateStencil || this._cachedStencilFunc != stencilFunction ||
-                        this._cachedStencilRefValue != stencilRefValue ||
-                        this._cachedStencilMask != stencilMask
-                    ) {
-                        this._cachedStencilFunc = stencilFunction;
-                        this._cachedStencilRefValue = stencilRefValue;
-                        this._cachedStencilMask = stencilMask;
-                        this.gl.stencilFunc(stencilFunction, stencilRefValue, stencilMask);
-                    }
-
-                    if (this.enableSeparateStencil || this._cachedStencilFail != stencilFail ||
-                        this._cachedStencilPassZfail != stencilPassZfail ||
-                        this._cachedStencilFailZpass != stencilFailZpass) {
-                        this._cachedStencilFail = stencilFail;
-                        this._cachedStencilPassZfail = stencilPassZfail;
-                        this._cachedStencilFailZpass = stencilFailZpass;
-                        this.gl.stencilOp(stencilFail, stencilPassZfail, stencilFailZpass);
-                    }
-                    this.enableSeparateStencil = false;
-                }
             } else {
                 this.gl.disable(this.gl.STENCIL_TEST);
             }
+        }
+
+        if (force || enable) {
+            let { stencilFunction, stencilRefValue, stencilMask, stencilFail, stencilPassZfail, stencilFailZpass, stencilFunctionBack, stencilRefValueBack, stencilMaskBack, stencilFailBack, stencilPassZfailBack, stencilFailZpassBack } = params;
+            stencilFunctionBack = stencilFunctionBack ?? stencilFunction;
+            stencilRefValueBack = stencilRefValueBack ?? stencilRefValue;
+            stencilMaskBack = stencilMaskBack ?? stencilMask;
+            stencilFailBack = stencilFailBack ?? stencilFail;
+            stencilPassZfailBack = stencilPassZfailBack ?? stencilPassZfail;
+            stencilFailZpassBack = stencilFailZpassBack ?? stencilFailZpass;
+
+            if (this._cachedStencilFunc != stencilFunction ||
+                this._cachedStencilRefValue != stencilRefValue ||
+                this._cachedStencilMask != stencilMask
+            ) {
+                this._cachedStencilFunc = stencilFunction;
+                this._cachedStencilRefValue = stencilRefValue;
+                this._cachedStencilMask = stencilMask;
+                this.gl.stencilFuncSeparate(this.gl.FRONT, stencilFunction, stencilRefValue, stencilMask);
+            }
+
+            if (this._cachedStencilFuncBack != stencilFunctionBack ||
+                this._cachedStencilRefValueBack != stencilRefValueBack ||
+                this._cachedStencilMaskBack != stencilMaskBack) {
+                this._cachedStencilFuncBack = stencilFunctionBack;
+                this._cachedStencilRefValueBack = stencilRefValueBack;
+                this._cachedStencilMaskBack = stencilMaskBack;
+                this.gl.stencilFuncSeparate(this.gl.BACK, stencilFunctionBack, stencilRefValueBack, stencilMaskBack);
+            }
+            if (this._cachedStencilFail != stencilFail ||
+                this._cachedStencilPassZfail != stencilPassZfail ||
+                this._cachedStencilFailZpass != stencilFailZpass) {
+                this._cachedStencilFail = stencilFail;
+                this._cachedStencilPassZfail = stencilPassZfail;
+                this._cachedStencilFailZpass = stencilFailZpass;
+                this.gl.stencilOpSeparate(this.gl.FRONT, stencilFail, stencilPassZfail, stencilFailZpass);
+            }
+
+            if (this._cachedStencilFailBack != stencilFailBack ||
+                this._cachedStencilPassZfailBack != stencilPassZfailBack ||
+                this._cachedStencilFailZpassBack != stencilFailZpassBack) {
+                this._cachedStencilFailBack = stencilFailBack;
+                this._cachedStencilPassZfailBack = stencilPassZfailBack;
+                this._cachedStencilFailZpassBack = stencilFailZpassBack;
+                this.gl.stencilOpSeparate(this.gl.BACK, stencilFailBack, stencilPassZfailBack, stencilFailZpassBack);
+            }
+        }
+    }
+    _cacheScissorTest: boolean
+    setScissorState(params: IScissorState) {
+        let { force, enable: scissorTest, scissorRect } = params;
+        if (force || scissorTest != this._cacheScissorTest) {
+            this._cacheScissorTest = scissorTest;
+            if (scissorTest) {
+                this.gl.enable(this.gl.SCISSOR_TEST);
+            } else {
+                this.gl.disable(this.gl.SCISSOR_TEST);
+            }
+        }
+        if (force || (scissorTest && scissorRect != null)) {
+            this.gl.scissor(scissorRect[0], scissorRect[1], scissorRect[2], scissorRect[3]);
         }
     }
 
@@ -477,4 +445,66 @@ declare global {
 
         getQuery(target: number, pname: number): any;
     }
+}
+
+export interface IBlendState {
+    enable: boolean,
+    blendEquation: BlendEquationEnum,
+    blendSrc: BlendParamEnum,
+    blendDst: BlendParamEnum,
+    blendAlphaEquation?: BlendEquationEnum,
+    blendSrcAlpha?: BlendParamEnum,
+    blendDstAlpha?: BlendParamEnum,
+    force?: boolean,
+}
+
+export interface IStencilState {
+    enable: boolean,
+    stencilFunction: number,
+    stencilRefValue: number,
+    stencilMask: number,
+    stencilFail: number,
+    stencilPassZfail: number,
+    stencilFailZpass: number,
+    stencilFunctionBack?: number,
+    stencilRefValueBack?: number,
+    stencilMaskBack?: number,
+    stencilFailBack?: number,
+    stencilPassZfailBack?: number,
+    stencilFailZpassBack?: number,
+    force?: boolean,
+}
+
+export interface IDepthState {
+    depthTest: boolean;
+    depthTestFunc?: DepthFuncEnum;
+    depthWrite: boolean;
+    force?: boolean,
+}
+
+export interface IColorMaskState {
+    writeR: boolean,
+    writeG: boolean,
+    writeB: boolean,
+    writeA: boolean,
+    force?: boolean,
+}
+
+export interface ICullState {
+    enable: boolean,
+    cullMode?: CullFaceModeEnum,
+    force?: boolean,
+}
+
+export interface IClearState {
+    clearColor?: ArrayLike<number>,
+    clearDepth?: number,
+    clearStencil?: number,
+    force?: boolean,
+}
+
+export interface IScissorState {
+    enable: boolean,
+    scissorRect: ArrayLike<number>,
+    force?: boolean,
 }

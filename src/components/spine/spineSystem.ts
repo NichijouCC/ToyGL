@@ -89,9 +89,9 @@ export class SpineSystem extends System {
         drawParams.forEach(el => {
             let mat = new Material();
             mat.shader = this._shader;
-            mat.renderState.cull.enabled = false;
-            mat.renderState.depthTest.enabled = false;
-            mat.renderState.blend.enabled = true;
+            mat.renderState.cull.enable = false;
+            mat.renderState.depth.depthTest = false;
+            mat.renderState.blend.enable = true;
             mat.setUniform("uMainColor", el.mainColor);
             mat.setUniform("uMainTex", el.slotTexture.texture);
             let srcRgb, srcAlpha, dstRgb, dstAlpha;

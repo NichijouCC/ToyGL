@@ -36,16 +36,17 @@ export class DeviceCapability {
     public astc: any; // WEBGL_compressed_texture_astc;
     /** Defines if float textures are supported */
     public textureFloat: boolean;
-    /** Defines if vertex array objects are supported */
+    //是否可以使用VAO
     public vertexArrayObject: boolean;
+    //是否可以是instance draw
+    public instancedArrays: boolean;
+    //允许使用 UNSIGNED_INT 格式的INDEX_BUFFER
+    public uintIndices: boolean;
+
     /** Gets the webgl extension for anisotropic filtering (null if not supported) */
     public textureAnisotropicFilterExtension: EXT_texture_filter_anisotropic;
     /** Gets the maximum level of anisotropy supported */
     public maxAnisotropy: number;
-    /** Defines if instancing is supported */
-    public instancedArrays: boolean;
-    /** Defines if 32 bits indices are supported */
-    public uintIndices: boolean;
     /** Defines if high precision shaders are supported */
     public highPrecisionShaderSupported: boolean;
     /** Defines if depth reading in the fragment shader is supported */
@@ -85,40 +86,46 @@ export class DeviceCapability {
     constructor(context: GraphicsDevice) {
         const _gl = context.gl;
         const _webGLVersion = context.webGLVersion;
-
-        // Vertex array object
         if (_webGLVersion > 1) {
             this.vertexArrayObject = true;
+            this.instancedArrays = true;
+            this.uintIndices = true;
         } else {
-            var vertexArrayObjectExtension = _gl.getExtension("OES_vertex_array_object");
-
+            let vertexArrayObjectExtension = _gl.getExtension("OES_vertex_array_object");
             if (vertexArrayObjectExtension != null) {
                 this.vertexArrayObject = true;
                 _gl.createVertexArray = vertexArrayObjectExtension.createVertexArrayOES.bind(vertexArrayObjectExtension);
                 _gl.bindVertexArray = vertexArrayObjectExtension.bindVertexArrayOES.bind(vertexArrayObjectExtension);
                 _gl.deleteVertexArray = vertexArrayObjectExtension.deleteVertexArrayOES.bind(vertexArrayObjectExtension);
-            } else {
-                this.vertexArrayObject = false;
             }
-        }
 
-        // Instances count
-        if (_webGLVersion > 1) {
-            this.instancedArrays = true;
-        } else {
-            var instanceExtension = _gl.getExtension("ANGLE_instanced_arrays");
-
+            let instanceExtension = _gl.getExtension("ANGLE_instanced_arrays");
             if (instanceExtension != null) {
                 this.instancedArrays = true;
                 _gl.drawArraysInstanced = instanceExtension.drawArraysInstancedANGLE.bind(instanceExtension);
                 _gl.drawElementsInstanced = instanceExtension.drawElementsInstancedANGLE.bind(instanceExtension);
                 _gl.vertexAttribDivisor = instanceExtension.vertexAttribDivisorANGLE.bind(instanceExtension);
-            } else {
-                this.instancedArrays = false;
             }
+
+            this.uintIndices = _gl.getExtension("OES_element_index_uint") !== null;
+
+            context.options.extensions?.forEach(item => {
+                switch (item) {
+                    case "EXT_texture_filter_anisotropic":
+                        var ext = (
+                            _gl.getExtension('EXT_texture_filter_anisotropic') ||
+                            _gl.getExtension('MOZ_EXT_texture_filter_anisotropic') ||
+                            _gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic')
+                        );
+                        if (ext) {
+
+                        }
+                }
+            })
         }
-        //允许使用 UNSIGNED_INT 格式的INDEX_BUFFER 
-        this.uintIndices = _webGLVersion > 1 || _gl.getExtension("OES_element_index_uint") !== null;
+
+
+
         // // Extensions
         // this.standardDerivatives = _webGLVersion > 1 || _gl.getExtension("OES_standard_derivatives") !== null;
         // this.astc =

@@ -57,7 +57,7 @@ export class HudSystem extends System {
 
                 if (_mat == null) {
                     hud._mat = _mat = DefaultMaterial.unlit_3d.clone();
-                    _mat.renderState.blend.enabled = true;
+                    _mat.renderState.blend.enable = true;
                 }
                 _mat.setUniform("MainTex", _text2d);
                 hud.entity.localScale = vec3.clone(hud.size);
