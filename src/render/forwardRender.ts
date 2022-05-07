@@ -1,5 +1,4 @@
 import { Material } from "./material";
-import { GraphicsDevice, IEngineOption } from "../webgl/graphicsDevice";
 import { RenderState } from "./renderState";
 import { Frustum } from "./frustum";
 import { BoundingSphere } from "../scene/bounds";
@@ -7,7 +6,7 @@ import { UniformState } from "./uniformState";
 import { AutoUniforms } from "./autoUniform";
 import { ShaderBucket } from "./shaderBucket";
 import { IRenderable } from "./irenderable";
-import { ShaderProgram } from "../webgl";
+import { GraphicsDevice, IEngineOption, ShaderProgram } from "../webgl";
 import { mat4, vec3 } from "../mathD";
 import { BaseTexture } from "./baseTexture";
 import { ICamera } from "./camera";
@@ -51,7 +50,7 @@ export class ForwardRender {
                     renderList.push(item);
                 }
             }
-            //做renderItems排序
+            //可做renderItems排序
             if (options?.onAfterFrustumCull != null) {
                 renderList = options?.onAfterFrustumCull(renderList, camera);
             }
@@ -65,13 +64,13 @@ export class ForwardRender {
             });
             //遍历渲染
             for (let i = 0; i < renderList.length; i++) {
-                this._renderItem(renderList[i]);
+                this.drawGeometry(renderList[i]);
             }
         }
     })()
 
-    private _renderItem = (() => {
-        let material: Material, uniforms, preRenderState: RenderState, renderState: RenderState;
+    drawGeometry = (() => {
+        let preMaterial: Material, material: Material, uniforms, preRenderState: RenderState, renderState: RenderState;
         return (renderItem: IRenderable) => {
             let bucketId = 0;
             if (renderItem.skin) {
@@ -87,15 +86,16 @@ export class ForwardRender {
             if (uniforms.MainTex) {
                 bucketId = bucketId | ShaderBucket.DIFFUSE_MAP;
             }
+            if (renderItem.instanceData) {
+                bucketId = bucketId | ShaderBucket.INS_POS;
+            }
             //shader bind
             let shaderIns = material.shader.bind(bucketId, this.device);
             //shader uniform bind
             this.bindShaderUniforms(shaderIns, uniforms);
-            //vao bind
-            let vao = renderItem.geometry.bind(this.device);
             //render state bind
             renderState = material.renderState;
-            if (preRenderState != renderState) {
+            if (preMaterial != material && preRenderState != renderState) {
                 preRenderState = renderState;
                 this.device.setCullState(renderState.cull);
                 this.device.setDepthState(renderState.depth);
@@ -104,8 +104,18 @@ export class ForwardRender {
                 this.device.setStencilState(renderState.stencilTest);
                 this.device.setScissorState(renderState.scissorTest);
             }
-            this.device.draw(vao, renderItem.instanceCount);
-            renderItem.children?.forEach(item => this._renderItem(item))
+            if (renderItem.instanceData) {//instance draw
+                renderItem.geometry.addAttribute(renderItem.instanceData.attribute);
+                //vao bind
+                let vao = renderItem.geometry.bind(this.device);
+                this.device.draw(vao, renderItem.instanceData.count);
+            } else {
+                //vao bind
+                let vao = renderItem.geometry.bind(this.device);
+                this.device.draw(vao);
+            }
+            preMaterial = material;
+            renderItem.children?.forEach(item => this.drawGeometry(item))
         }
     })()
 
@@ -116,7 +126,6 @@ export class ForwardRender {
             if (AutoUniforms.containAuto(key)) {
                 values[key] = AutoUniforms.getAutoUniformValue(key, this.uniformState);
             }
-
         }
         for (let key in values) {
             if (values[key] instanceof BaseTexture) {

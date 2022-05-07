@@ -5,7 +5,7 @@ import { CeilingPOT, ceilPowerOfTwo } from "../../../mathD/common";
 import { Skin } from "../../../resources/skin";
 import { PixelFormatEnum, PixelDatatypeEnum, ForwardRender } from "../../../render";
 
-export enum SkinWay {
+export enum SkinMode {
     /**
      * 方式1：将骨骼的matToRoot[]到shader中
      */
@@ -36,6 +36,7 @@ export class SkinInstance {
      * 方式2：
      */
     private _boneTextureData!: Float32Array;
+    private _boneTexSize: number;
     private _boneTexture: MemoryTexture;
 
     /**
@@ -43,7 +44,7 @@ export class SkinInstance {
      */
     private _boneData!: Float32Array;
 
-    static skinWay = SkinWay.UNIFORM_ARRAY;
+    static skinMode = SkinMode.UNIFORM_MATS;
 
     constructor(skin: Skin, getEntity: () => Entity) {
         this.skin = skin;
@@ -80,14 +81,14 @@ export class SkinInstance {
         this._boneInverses = skin.inverseBindMatrices;
         this.bones = bones;
 
-        switch (SkinInstance.skinWay) {
-            case SkinWay.UNIFORM_MATS:
+        switch (SkinInstance.skinMode) {
+            case SkinMode.UNIFORM_MATS:
                 this._boneMatrixes = new Float32Array(bones.length * 16);
                 break;
-            case SkinWay.UNIFORM_ARRAY:
+            case SkinMode.UNIFORM_ARRAY:
                 this._boneData = new Float32Array(bones.length * 7);
                 break;
-            case SkinWay.UNIFORM_TEXTURE:
+            case SkinMode.UNIFORM_TEXTURE:
                 // layout (1 matrix = 4 pixels)
                 //      RGBA RGBA RGBA RGBA (=> column1, column2, column3, column4)
                 //  with  8x8  pixel texture max   16 bones * 4 pixels =  (8 * 8)
@@ -97,6 +98,7 @@ export class SkinInstance {
                 let size = Math.sqrt(bones.length * 4); // 4 pixels needed for 1 matrix
                 size = ceilPowerOfTwo(size);
                 size = Math.max(size, 4);
+                this._boneTexSize = size;
                 this._boneTextureData = new Float32Array(size * size * 4); // 4 floats per RGBA pixel
 
                 if (render.device.caps.textureFloat) {
@@ -116,11 +118,11 @@ export class SkinInstance {
 
     get uniformMatrixModel() { return this.rootBone.worldMatrix; }
     get uniformBoneData() {
-        if (SkinInstance.skinWay == SkinWay.UNIFORM_MATS) {
+        if (SkinInstance.skinMode == SkinMode.UNIFORM_MATS) {
             return this._boneMatrixes;
-        } else if (SkinInstance.skinWay == SkinWay.UNIFORM_ARRAY) {
+        } else if (SkinInstance.skinMode == SkinMode.UNIFORM_ARRAY) {
             return this._boneData;
-        } else if (SkinInstance.skinWay == SkinWay.UNIFORM_TEXTURE) {
+        } else if (SkinInstance.skinMode == SkinMode.UNIFORM_TEXTURE) {
             return this._boneTexture;
         }
     }
@@ -129,13 +131,13 @@ export class SkinInstance {
         if (this.attachEntity.beActive == false) return;
         if (!this.beInit) { this.init(render); }
         const { bones, rootBone } = this;
-        if (SkinInstance.skinWay == SkinWay.UNIFORM_MATS) {
+        if (SkinInstance.skinMode == SkinMode.UNIFORM_MATS) {
             boneUpdate_a(rootBone, bones, this._boneInverses, this._boneMatrixes);
-        } else if (SkinInstance.skinWay == SkinWay.UNIFORM_ARRAY) {
+        } else if (SkinInstance.skinMode == SkinMode.UNIFORM_ARRAY) {
             boneUpdate_c(rootBone, bones, this._boneInverses, this._boneData);
-        } else if (SkinInstance.skinWay == SkinWay.UNIFORM_TEXTURE) {
+        } else if (SkinInstance.skinMode == SkinMode.UNIFORM_TEXTURE) {
             boneUpdate_a(rootBone, bones, this._boneInverses, this._boneTextureData);
-            this._boneTexture.markDirty();
+            this._boneTexture.set({ arrayBufferView: this._boneTextureData, width: this._boneTexSize, height: this._boneTexSize });
         }
     }
     destroy() { }

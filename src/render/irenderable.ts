@@ -3,6 +3,7 @@ import { BoundingBox } from "../scene/bounds";
 import { mat4 } from "../mathD";
 import { Geometry } from "./geometry";
 import { MemoryTexture } from "./memoryTexture";
+import { InstancedGeometryAttribute } from "./instancedGeometryAttribute";
 export interface IRenderable {
     beVisible?: boolean;
     /**
@@ -14,7 +15,7 @@ export interface IRenderable {
      */
     sortOrder?: number;
     /**
-     * 是否裁剪
+     * 是否裁剪,默认false
      */
     enableCull?: boolean;
     instanceCount?: number;
@@ -25,6 +26,10 @@ export interface IRenderable {
     skin?: {
         worldMat: mat4,
         boneMatrices: Float32Array | MemoryTexture,
+    };
+    instanceData?: {
+        count: number,
+        attribute: InstancedGeometryAttribute,
     }
-    children?: Omit<IRenderable, "beVisible" | "enableCull" | "sortOrder" | "boundingBox" | "layerMask">[]
+    children?: Omit<IRenderable, "beVisible" | "enableCull" | "sortOrder" | "boundingBox" | "layerMask">[];
 }

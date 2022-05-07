@@ -26,10 +26,9 @@ export class Resource {
     /**
      * 加载资源
      * @param url 地址
-     * @param onFinish  load回调]
      */
-    load<T = Asset>(url: string, options?: { type?: string, cache?: boolean, tag?: string }): Promise<T> {
-        if (this.loadMap[url]) {
+    load<T = Asset>(url: string, options?: { type?: string, force?: boolean, cache?: boolean, tag?: string }): Promise<T> {
+        if (options?.force != true && this.loadMap[url]) {
             return this.loadMap[url] as any;
         } else {
             const extName = getAssetExtraName(url);

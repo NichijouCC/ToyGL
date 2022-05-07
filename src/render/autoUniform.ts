@@ -1,4 +1,4 @@
-import { UniformTypeEnum } from "../webgl/uniformType";
+import { UniformTypeEnum } from "../webgl";
 import { UniformState } from "./uniformState";
 
 namespace Private {

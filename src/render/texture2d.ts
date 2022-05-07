@@ -1,6 +1,5 @@
-import { Texture, ISamplerOptions, Sampler } from "../webgl/texture";
-import { GraphicsDevice } from "../webgl/graphicsDevice";
-import { BaseTexture, IBaseTextureOptions } from "./baseTexture";
+import { GraphicsDevice, IBaseTextureOptions, Texture } from "../webgl";
+import { BaseTexture } from "./baseTexture";
 
 export class Texture2D extends BaseTexture {
     private _source: TexImageSource;
@@ -28,9 +27,6 @@ export class Texture2D extends BaseTexture {
             enableMipmap: this._enableMipmap,
             mipmapFilter: this._mipmapFilter,
         });
-    }
-    destroy(): void {
-        throw new Error("Method not implemented.");
     }
 }
 

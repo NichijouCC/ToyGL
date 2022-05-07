@@ -1,7 +1,5 @@
 import { Asset } from "../resources/asset";
-import { ISamplerOptions, Texture } from "../webgl/texture";
-import { GraphicsDevice } from "../webgl/graphicsDevice";
-import { PixelDatatypeEnum, PixelFormatEnum, TextureFilterEnum, TextureWrapEnum } from "../webgl";
+import { GraphicsDevice, IBaseTextureOptions, PixelDatatypeEnum, PixelFormatEnum, Texture, TextureFilterEnum, TextureWrapEnum } from "../webgl";
 
 export abstract class BaseTexture extends Asset {
     protected _pixelFormat: PixelFormatEnum;
@@ -69,7 +67,7 @@ export abstract class BaseTexture extends Asset {
         this._mipmapFilter = value;
         this.beDirty = true;
     }
-    private _glTarget: Texture;
+    protected _glTarget: Texture;
     get glTarget() { return this._glTarget };
 
     constructor(options: IBaseTextureOptions) {
@@ -102,16 +100,17 @@ export abstract class BaseTexture extends Asset {
         if (options.mipmapFilter != null) this._mipmapFilter = options.mipmapFilter;
         this.beDirty = true;
     }
-    getGlTarget(device: GraphicsDevice) {
+    getOrCreateGlTarget(device: GraphicsDevice) {
         if (this._glTarget == null) {
             this._glTarget = this.create(device);
+            this.beDirty = false;
         }
         return this._glTarget;
     }
 
-    beDirty: boolean;
+    protected beDirty: boolean = false;
     bind(device: GraphicsDevice) {
-        let glTarget = this.getGlTarget(device);
+        let glTarget = this.getOrCreateGlTarget(device);
         if (this.beDirty) {
             this.beDirty = false;
             glTarget.set({
@@ -136,12 +135,4 @@ export abstract class BaseTexture extends Asset {
     destroy() {
         this.glTarget?.destroy();
     }
-}
-
-
-export interface IBaseTextureOptions extends ISamplerOptions {
-    pixelFormat?: PixelFormatEnum;
-    pixelDatatype?: PixelDatatypeEnum;
-    preMultiplyAlpha?: boolean;
-    flipY?: boolean;
 }

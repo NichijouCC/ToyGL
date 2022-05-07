@@ -7,7 +7,7 @@ webgl模块主要对webgl图形api进行封装简化，同时尽可能在这一�
 2. 封装后的gl对象基本都包含 bind(绑定gl对象)，unbind(解绑gl对象), destroy(销毁gl对象), update(更新gl对象)
 
 ### TODO
-- [x] 全局状态缓存，具体包括：clearDepth,clearColor,clearStencil等；  
+- [x] 全局状态缓存，具体包括：clearDepth,clearColor,clearStencil,viewport,ColorMask,CullFace,depth(test/write),blend,stencil,scissor等；  
 具体参见：https://www.khronos.org/registry/webgl/specs/latest/1.0/#5.14.3
 - [x] shaderProgram 缓存
 - [x] shaderUniformValue 缓存

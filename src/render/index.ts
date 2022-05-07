@@ -16,3 +16,4 @@ export * from './irenderable';
 export * from './forwardRender';
 export * from './uniformState';
 export * from '../webgl';
+export * from './instancedGeometryAttribute';

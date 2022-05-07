@@ -122,15 +122,15 @@ export class Geometry extends Asset {
         this._beDirty = true;
     }
     private _glTarget: VertexArray;
-    getGlTarget(device: GraphicsDevice) {
+    getOrCreateGlTarget(device: GraphicsDevice) {
         if (this._glTarget == null) {
             device.unbindVao();
             let vertexAtts: VertexAttribute[] = [];
             for (let key in this.attributes) {
-                let target = this.attributes[key].getGlTarget(device);
+                let target = this.attributes[key].getOrCreateGlTarget(device);
                 vertexAtts.push(target);
             }
-            let indexBuffer = this._indices?.getGlTarget(device);
+            let indexBuffer = this._indices?.getOrCreateGlTarget(device);
             this._glTarget = device.createVertexArray({
                 vertexAttributes: vertexAtts,
                 indices: indexBuffer,
@@ -145,7 +145,7 @@ export class Geometry extends Asset {
      * Private
      */
     bind(device: GraphicsDevice) {
-        let target = this.getGlTarget(device);
+        let target = this.getOrCreateGlTarget(device);
         if (this._beDirty) {
             if (this.indices) {
                 let indicesTarget = this._indices.bind(device);

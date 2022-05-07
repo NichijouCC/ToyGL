@@ -1,14 +1,15 @@
 export enum VertexAttEnum {
-    POSITION = 0b1,
-    TEXCOORD_0 = 0b10,
-    COLOR_0 = 0b100,
-    NORMAL = 0b1000,
-    TANGENT = 0b10000,
-    TEXCOORD_1 = 0b100000,
-    TEXCOORD_2 = 0b1000000,
-    WEIGHTS_0 = 0b10000000,
-    JOINTS_0 = 0b100000000,
-    COLOR_1 = 0b1000000000,
+    POSITION = 1,
+    TEXCOORD_0 = 1 << 1,
+    COLOR_0 = 1 << 2,
+    NORMAL = 1 << 3,
+    TANGENT = 1 << 4,
+    TEXCOORD_1 = 1 << 5,
+    TEXCOORD_2 = 1 << 6,
+    WEIGHTS_0 = 1 << 7,
+    JOINTS_0 = 1 << 8,
+    COLOR_1 = 1 << 9,
+    INS_POS = 1 << 10,
 }
 
 export interface IVertexAttInfo {
@@ -31,6 +32,7 @@ export namespace VertexAttEnum {
         [VertexAttEnum.WEIGHTS_0]: { name: "skinWeight", componentSize: 4, location: 7, type: 1 << 7 },
         [VertexAttEnum.JOINTS_0]: { name: "skinIndex", componentSize: 4, location: 8, type: 1 << 8 },
         [VertexAttEnum.COLOR_1]: { name: "color1", componentSize: 4, location: 9, type: 1 << 9 },
+        [VertexAttEnum.INS_POS]: { name: "ins_pos", componentSize: 3, location: 10, type: 1 << 10 },
     }
     export function toName(type: VertexAttEnum | number) {
         return attDic[type]?.name ?? "未知"
@@ -55,9 +57,10 @@ export namespace VertexAttEnum {
     let nextLocationId = 10;
     export function allocate(name: string, componentSize: number) {
         let locationId = nextLocationId++;
-        let info = { name: `${name}_${locationId}`, componentSize, location: locationId, type: 1 << locationId };
+        let type = 1 << locationId;
+        let info = { name: `${name}_${locationId}`, componentSize, location: locationId, type };
         attDic[1 << locationId] = info;
-        return info;
+        return type;
     }
 }
 

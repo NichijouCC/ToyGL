@@ -3,6 +3,7 @@ export enum ShaderBucket {
     FOG = 1 << 1,
     DIFFUSE_MAP = 1 << 2,
     AlPHA_CUT = 1 << 3,
+    INS_POS = 1 << 4,
 }
 export namespace ShaderBucket {
     export const packShaderStr = (bucket: number) => {
@@ -18,6 +19,9 @@ export namespace ShaderBucket {
         }
         if (bucket & ShaderBucket.AlPHA_CUT) {
             str += "#define AlPHACUT \n";
+        }
+        if (bucket & ShaderBucket.INS_POS) {
+            str += "#define INS_POS \n";
         }
         return str;
     };

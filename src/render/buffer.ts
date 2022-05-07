@@ -84,16 +84,16 @@ export class GraphicIndexBuffer extends EventEmitter<IObjectEvent> {
     }
 
     private _glTarget: IndexBuffer
-    getGlTarget(device: GraphicsDevice) {
+    getOrCreateGlTarget(device: GraphicsDevice) {
         if (this._glTarget == null) {
-            let buffer = this._buffer.getGlTarget(device)
+            let buffer = this._buffer.getOrCreateGlTarget(device)
             this._glTarget = device.createIndexBuffer({ data: buffer, datatype: this.dataType, bytesOffset: this.byteOffset, count: this._count });
         }
         return this._glTarget;
     }
 
     bind(device: GraphicsDevice) {
-        let target = this.getGlTarget(device);
+        let target = this.getOrCreateGlTarget(device);
         if (this._beDirty) {
             this._buffer.bind(device);
             target.set({ datatype: this.dataType, bytesOffset: this.byteOffset, count: this.count })
@@ -143,7 +143,7 @@ export class GraphicBuffer extends EventEmitter<IObjectEvent> {
     }
 
     private _glTarget: Buffer
-    getGlTarget(device: GraphicsDevice) {
+    getOrCreateGlTarget(device: GraphicsDevice) {
         if (this._glTarget == null) {
             this._glTarget = device.createBuffer({ data: this.data, target: this.target, usage: this.usage });
         }
@@ -151,7 +151,7 @@ export class GraphicBuffer extends EventEmitter<IObjectEvent> {
     }
 
     bind(device: GraphicsDevice) {
-        let target = this.getGlTarget(device);
+        let target = this.getOrCreateGlTarget(device);
         if (this._beDirty) {
             if (this.subData) {
                 target.set({ partial: this.subData })

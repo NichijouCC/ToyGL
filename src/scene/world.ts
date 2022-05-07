@@ -86,11 +86,11 @@ export class World extends ECS {
         return render;
     }
 
-    preRender = new EventTarget();
+    preRender = new EventTarget<FrameState>();
     afterRender = new EventTarget();
 
     private tickRender = (state: FrameState) => {
-        this.preRender.raiseEvent();
+        this.preRender.raiseEvent(state);
         let renders = state.renders.concat(this._renders);
         this.render.renderList(this._cameras, renders, {
             onAfterFrustumCull: sortRenderItems

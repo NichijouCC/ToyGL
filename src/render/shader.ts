@@ -1,9 +1,7 @@
-import { ShaderProgram, IShaderProgramOption } from "../webgl/shaderProgram";
 import { RenderTypeEnum } from "./renderLayer";
 import { Asset } from "../resources/asset";
-import { VertexAttEnum } from "../webgl/vertexAttEnum";
 import { ShaderBucket } from "./shaderBucket";
-import { GraphicsDevice } from "../webgl";
+import { GraphicsDevice, IShaderProgramOption, ShaderProgram, VertexAttEnum } from "../webgl";
 
 export class Shader extends Asset {
     static totalCount: number = 0;

@@ -2,9 +2,8 @@ import { IGltfJson } from "../loadGltf";
 import { ParseTextureNode } from "./parseTextureNode";
 import { Color } from "../../mathD/color";
 import { Material } from "../../render/material";
-import { VertexAttEnum } from "../../webgl/vertexAttEnum";
 import { DefaultMaterial } from "../../resources/defAssets/defaultMaterial";
-import { SkinInstance, SkinWay } from "../../scene/primitive/animation/skinInstance";
+import { SkinInstance, SkinMode } from "../../scene/primitive/animation/skinInstance";
 import { MaterialAlphaMode } from "./gltfJsonStruct";
 import { ShaderBucket } from "../../render/shaderBucket";
 import { RenderTypeEnum } from "../../render/renderLayer";
@@ -175,9 +174,9 @@ export class ParseMaterialNode {
             const mat = new Material();
             if (node.pbrMetallicRoughness?.baseColorTexture != null) {
                 mat.setUniform("MainColor", Color.create(1.0, 1.0, 1.0, 1));
-                if (SkinInstance.skinWay == SkinWay.UNIFORM_MATS) {
+                if (SkinInstance.skinMode == SkinMode.UNIFORM_MATS) {
                     mat.shader = DefaultMaterial.unlit_3d.shader;
-                } else if (SkinInstance.skinWay == SkinWay.UNIFORM_ARRAY) {
+                } else if (SkinInstance.skinMode == SkinMode.UNIFORM_ARRAY) {
                     mat.shader = DefaultMaterial.unlit_3d_1.shader;
                 }
 

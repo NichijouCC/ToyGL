@@ -1,12 +1,10 @@
-import { GraphicsDevice } from "../webgl/graphicsDevice";
 import { TypedArray } from "../core/typedArray";
-import { PixelFormatEnum } from "../webgl/pixelFormatEnum";
-import { PixelDatatypeEnum } from "../webgl/pixelDatatype";
-import { ISamplerOptions, Sampler, Texture } from "../webgl/texture";
-import { BaseTexture, IBaseTextureOptions } from "./baseTexture";
+import { GraphicsDevice, IBaseTextureOptions, Texture } from "../webgl";
+import { BaseTexture } from "./baseTexture";
 
 export class MemoryTexture extends BaseTexture {
     private _width: number;
+    private _sourceDirty: boolean = false;
     get width() { return this._width };
     private _height: number;
     get height() { return this._height };
@@ -35,6 +33,50 @@ export class MemoryTexture extends BaseTexture {
             enableMipmap: this._enableMipmap,
             mipmapFilter: this._mipmapFilter,
         })
+    }
+
+    set(options: Partial<IMemoryTextureOption>): void {
+        super.set(options);
+        if (options.arrayBufferView) {
+            this._arrayBufferView = options.arrayBufferView;
+            this._width = options.width;
+            this._height = options.height;
+            this._sourceDirty = true;
+        }
+    }
+
+    getOrCreateGlTarget(device: GraphicsDevice) {
+        if (this._glTarget == null) {
+            this._glTarget = this.create(device);
+            this.beDirty = false;
+            this._sourceDirty = false;
+        }
+        return this._glTarget;
+    }
+
+    bind(device: GraphicsDevice) {
+        let glTarget = this.getOrCreateGlTarget(device);
+        if (this._sourceDirty) {
+            glTarget.destroy();
+            this._glTarget = null;
+            glTarget = this.getOrCreateGlTarget(device);
+        } else if (this.beDirty) {
+            this.beDirty = false;
+            glTarget.set({
+                pixelFormat: this._pixelFormat,
+                pixelDatatype: this._pixelDatatype,
+                preMultiplyAlpha: this._preMultiplyAlpha,
+                flipY: this._flipY,
+                filterMax: this._filterMax,
+                filterMin: this._filterMin,
+                wrapS: this._wrapS,
+                wrapT: this._wrapT,
+                maximumAnisotropy: this._maximumAnisotropy,
+                enableMipmap: this._enableMipmap,
+                mipmapFilter: this._mipmapFilter,
+            });
+        }
+        return glTarget;
     }
 }
 

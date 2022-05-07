@@ -1,5 +1,5 @@
 import { Shader } from "../../render/shader";
-import { VertexAttEnum } from "../../webgl/vertexAttEnum";
+import { VertexAttEnum } from "../../webgl";
 
 namespace Private {
     export const color_2d = new Shader({
@@ -87,7 +87,10 @@ namespace Private {
     export const unlit_3d = new Shader({
         attributes: {
             POSITION: VertexAttEnum.POSITION,
-            TEXCOORD_0: VertexAttEnum.TEXCOORD_0
+            TEXCOORD_0: VertexAttEnum.TEXCOORD_0,
+            skinIndex: VertexAttEnum.JOINTS_0,
+            skinWeight: VertexAttEnum.WEIGHTS_0,
+            ins_pos: VertexAttEnum.INS_POS,
         },
         vsStr: `precision highp float;
         attribute vec4 POSITION;
@@ -111,17 +114,42 @@ namespace Private {
                     + czm_boneMatrices[i4]*blendWeight.w;
             return mat* srcVertex;
         }
+
+        #ifdef INS_POS
+        attribute vec3 ins_pos;
+        #endif
+
+        #else
+
+        #ifdef INS_POS
+        uniform mat4 czm_viewP;
+        uniform mat4 czm_model;
+        attribute vec3 ins_pos;
         #else
         uniform mat4 czm_modelViewP;
         #endif
+
+        #endif
         void main()
         {
-            vec4 position=POSITION;
+            vec4 position = vec4(POSITION.xyz,1.0);
             #ifdef SKIN
             position =calcVertex(position,skinIndex,skinWeight);
+
+            #ifdef INS_POS
+            gl_Position = czm_viewP * (position+vec4(ins_pos,0.0));
+            #else
             gl_Position = czm_viewP * position;
+            #endif
+
+            #else
+
+            #ifdef INS_POS
+            gl_Position = czm_viewP * (czm_model*position+vec4(ins_pos,0.0));
             #else
             gl_Position = czm_modelViewP * position;
+            #endif
+
             #endif
             xlv_TEXCOORD0 = TEXCOORD_0.xy;
         }`,
@@ -133,7 +161,9 @@ namespace Private {
     export const unlit_3d_1 = new Shader({
         attributes: {
             POSITION: VertexAttEnum.POSITION,
-            TEXCOORD_0: VertexAttEnum.TEXCOORD_0
+            TEXCOORD_0: VertexAttEnum.TEXCOORD_0,
+            skinIndex: VertexAttEnum.JOINTS_0,
+            skinWeight: VertexAttEnum.WEIGHTS_0,
         },
         vsStr: `precision highp float;
         attribute vec3 TEXCOORD_0;

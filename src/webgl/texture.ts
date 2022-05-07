@@ -311,7 +311,7 @@ export enum TextureDataFromEnum {
     IMAGE_SOURCE
 }
 
-export interface ITextureOptions extends ISamplerOptions, IBaseTextureOptions {
+export interface ITextureOptions extends IBaseTextureOptions {
     width?: number;
     height?: number;
     source: {
@@ -323,25 +323,25 @@ export interface ITextureOptions extends ISamplerOptions, IBaseTextureOptions {
     // sampler?: ISamplerOptions;
 }
 
-export interface IBaseTextureOptions {
+export interface IBaseTextureOptions extends ISamplerOptions {
     pixelFormat?: PixelFormatEnum;
     pixelDatatype?: PixelDatatypeEnum;
-    flipY?: boolean;
     preMultiplyAlpha?: boolean;
+    flipY?: boolean;
 }
 
 
-export interface ITypedArrayTexOpts extends ISamplerOptions, IBaseTextureOptions {
+export interface ITypedArrayTexOpts extends IBaseTextureOptions {
     width: number;
     height: number;
     arrayBufferView: TypedArray;
 }
 
-export interface IImageSourceTexOpts extends ISamplerOptions, IBaseTextureOptions {
+export interface IImageSourceTexOpts extends IBaseTextureOptions {
     image: TexImageSource;
 }
 
-export interface IFrameBufferTexOpts extends ISamplerOptions, IBaseTextureOptions {
+export interface IFrameBufferTexOpts extends IBaseTextureOptions {
     width: number;
     height: number;
     framebuffer: FrameBuffer;
@@ -359,26 +359,6 @@ export interface ISamplerOptions {
     enableMipmap?: boolean;
     mipmapFilter?: TextureFilterEnum;
 }
-
-export class Sampler {
-    filterMax: TextureFilterEnum;
-    filterMin: TextureFilterEnum;
-    wrapS: TextureWrapEnum;
-    wrapT: TextureWrapEnum;
-    maximumAnisotropy: number;
-    enableMipmap: boolean;
-    mipmapFilter: TextureFilterEnum;
-    constructor(options?: ISamplerOptions) {
-        this.filterMax = options?.filterMax ?? TextureFilterEnum.LINEAR;
-        this.filterMin = options?.filterMin ?? TextureFilterEnum.LINEAR;
-        this.wrapS = options?.wrapS ?? TextureWrapEnum.REPEAT;
-        this.wrapT = options?.wrapT ?? TextureWrapEnum.REPEAT;
-        this.maximumAnisotropy = options?.maximumAnisotropy ?? 1.0;
-        this.enableMipmap = options?.enableMipmap ?? true;
-        this.mipmapFilter = options?.mipmapFilter ?? TextureFilterEnum.LINEAR;
-    }
-}
-
 export enum MipmapHintEnum {
     DONT_CARE = GlConstants.DONT_CARE,
     FASTEST = GlConstants.FASTEST,

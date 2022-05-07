@@ -96,7 +96,7 @@ export function loadImg(url: string, onProgress: (info: IDownloadInfo) => void =
     return new Promise<HTMLImageElement>((resolve, reject) => {
         loadArrayBuffer(url, onProgress)
             .then(res => {
-                const blob = new Blob([res], { type: "image/jpeg" });
+                const blob = new Blob([res], { type: url.endsWith("png") ? "image/png" : "image/jpeg" });
                 const imageUrl = window.URL.createObjectURL(blob);
                 const img = new Image();
                 img.src = imageUrl;
@@ -110,6 +110,7 @@ export function loadImg(url: string, onProgress: (info: IDownloadInfo) => void =
             });
     });
 }
+
 export function arraybufferToImage(data: ArrayBuffer): Promise<HTMLImageElement> {
     return new Promise<HTMLImageElement>((resolve, reject) => {
         var arrayBufferView = new Uint8Array(data);
