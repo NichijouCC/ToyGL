@@ -7,20 +7,24 @@ window.onload = () => {
     const geometry = DefaultGeometry.cube;
     const material = DefaultMaterial.unlit_3d;
 
-    TextureAsset.fromUrl({ image: "./images/001.jpg" })
+    TextureAsset.fromUrl({ image: "./images/0011.jpg" })
         .then(tex => {
             material.setUniform("MainTex", tex);
         });
-    let instanceCount = 10;
+    let width = 20;
+    let count = width * width * width;
 
-    let instanceData = new Float32Array(3 * instanceCount * instanceCount);
+    let instanceData = new Float32Array(3 * count);
     let posArr: Float32Array[] = [];
-    for (let i = 0; i < instanceCount; i++) {
-        for (let j = 0; j < instanceCount; j++) {
-            let ins_pos = instanceData.subarray((i + j * instanceCount) * 3, (i + j * instanceCount) * 3 + 3);
-            ins_pos[0] = (i - instanceCount / 2) * 4;
-            ins_pos[1] = (j - instanceCount / 2) * 4;
-            posArr.push(ins_pos);
+    for (let i = 0; i < width; i++) {
+        for (let j = 0; j < width; j++) {
+            for (let K = 0; K < width; K++) {
+                let ins_pos = instanceData.subarray((i + j * width + K * width * width) * 3, (i + j * width + K * width * width) * 3 + 3);
+                ins_pos[0] = (i - width / 2) * 5;
+                ins_pos[1] = (j - width / 2) * 5;
+                ins_pos[2] = (K - width / 2) * 5;
+                posArr.push(ins_pos);
+            }
         }
     }
 
@@ -36,7 +40,7 @@ window.onload = () => {
         worldMat: mat4.create(),
         instanceData: {
             attribute: instanceAtt,
-            count: instanceCount * instanceCount
+            count: count
         }
     });
 
@@ -44,7 +48,7 @@ window.onload = () => {
     cam.entity.localPosition[2] = 0;
     cam.entity.localPosition[1] = 0;
 
-    cam.viewTargetPoint(vec3.ZERO, 25, vec3.fromValues(-45, 0, 0))
+    cam.viewTargetPoint(vec3.ZERO, 100, vec3.fromValues(-30, 0, 0))
 
     let roty = 0;
     toy.scene.preUpdate.addEventListener((delta) => {
