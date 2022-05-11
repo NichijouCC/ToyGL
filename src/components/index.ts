@@ -12,4 +12,4 @@ export * from "./collider";
 export * from "./colliderSystem";
 export * from './manualCamera';
 export * from './mapboxSystem';
-export * from "./spine/index";
+export * as Spine from "./spine/index";
