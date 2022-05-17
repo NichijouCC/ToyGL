@@ -100,20 +100,14 @@ export abstract class BaseTexture extends Asset {
         if (options.mipmapFilter != null) this._mipmapFilter = options.mipmapFilter;
         this.beDirty = true;
     }
-    getOrCreateGlTarget(device: GraphicsDevice) {
+    protected beDirty: boolean = false;
+    syncData(device: GraphicsDevice) {
         if (this._glTarget == null) {
             this._glTarget = this.create(device);
             this.beDirty = false;
-        }
-        return this._glTarget;
-    }
-
-    protected beDirty: boolean = false;
-    bind(device: GraphicsDevice) {
-        let glTarget = this.getOrCreateGlTarget(device);
-        if (this.beDirty) {
+        } else if (this.beDirty) {
             this.beDirty = false;
-            glTarget.set({
+            this._glTarget.set({
                 pixelFormat: this._pixelFormat,
                 pixelDatatype: this._pixelDatatype,
                 preMultiplyAlpha: this._preMultiplyAlpha,
@@ -127,7 +121,7 @@ export abstract class BaseTexture extends Asset {
                 mipmapFilter: this._mipmapFilter,
             });
         }
-        return glTarget;
+        return this._glTarget;
     }
 
     protected abstract create(device: GraphicsDevice): Texture

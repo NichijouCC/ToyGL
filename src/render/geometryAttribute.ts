@@ -158,7 +158,6 @@ export class GeometryAttribute extends EventEmitter<IObjectEvent> {
         this.computeCount();
     }
 
-
     private computeCount() {
         let elementOffset = 0;
         if (this.bytesStride > 0) {
@@ -169,9 +168,26 @@ export class GeometryAttribute extends EventEmitter<IObjectEvent> {
         this._computeCount = (this.buffer.data.byteLength - this.bytesOffset - this.buffer.data.byteOffset) / elementOffset;
     }
 
-    getOrCreateGlTarget(device: GraphicsDevice) {
+    // getOrCreateGlTarget(device: GraphicsDevice) {
+    //     if (this._glTarget == null) {
+    //         let buffer = this.buffer.syncData(device);
+    //         this._glTarget = device.createVertexAtt({
+    //             type: this.type,
+    //             data: buffer,
+    //             componentSize: this.componentSize,
+    //             componentDatatype: this.componentDatatype,
+    //             normalize: this.normalize,
+    //             bytesOffset: this.bytesOffset,
+    //             bytesStride: this.bytesStride,
+    //             instanceDivisor: this.instanceDivisor
+    //         });
+    //     }
+    //     return this._glTarget;
+    // }
+
+    syncData(device: GraphicsDevice) {
         if (this._glTarget == null) {
-            let buffer = this.buffer.getOrCreateGlTarget(device);
+            let buffer = this.buffer.syncData(device);
             this._glTarget = device.createVertexAtt({
                 type: this.type,
                 data: buffer,
@@ -182,15 +198,10 @@ export class GeometryAttribute extends EventEmitter<IObjectEvent> {
                 bytesStride: this.bytesStride,
                 instanceDivisor: this.instanceDivisor
             });
-        }
-        return this._glTarget;
-    }
-
-    bind(device: GraphicsDevice) {
-        let glTarget = this.getOrCreateGlTarget(device);
-        if (this._beDirty) {
+            this._beDirty = false;
+        } else if (this._beDirty) {
             if (this._beDataDirty) {
-                this.buffer.bind(device);
+                this.buffer.syncData(device);
                 this._beDataDirty = false;
             }
             if (this._beMetaDirty) {
@@ -205,7 +216,7 @@ export class GeometryAttribute extends EventEmitter<IObjectEvent> {
             }
             this._beDirty = false;
         }
-        return glTarget;
+        return this._glTarget;
     }
 
     set(option: Partial<Omit<IGeometryAttributeOptions, "data" | "type"> & { data: TypedArray | Array<number> }>) {
@@ -233,7 +244,6 @@ interface IObjectEvent {
 export interface IGeometryAttributeOptions {
     type: VertexAttEnum | number;
     data: TypedArray | Array<number> | GraphicBuffer;
-    //Vertex attribute size must be 1, 2, 3, or 4.
     componentSize: number;
     componentDatatype?: number;
     normalize?: boolean;

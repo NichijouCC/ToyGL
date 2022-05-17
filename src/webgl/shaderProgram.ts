@@ -159,7 +159,7 @@ function compileShaderSource(gl: WebGLRenderingContext, source: string, beVertex
     if (check == false) {
         let debug = beVertex ? "ERROR: compile  VS Shader Error! VS:" : "ERROR: compile FS Shader Error! FS:";
         debug = debug + name + ".\n";
-        console.error(debug + gl.getShaderInfoLog(item));
+        console.error(debug, source + "\n", gl.getShaderInfoLog(item));
         gl.deleteShader(item);
     } else {
         return item;

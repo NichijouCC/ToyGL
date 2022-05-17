@@ -105,12 +105,15 @@ export class Geometry extends Asset {
         let vAtt: GeometryAttribute = data as any;
         if (!(data instanceof GeometryAttribute)) {
             vAtt = new GeometryAttribute({ ...data });
+            this.attributes[vAtt.type]?.off("BeDirty", this.listenToAttBeDirty);
+            this.attributes[vAtt.type] = vAtt;
+            vAtt.on("BeDirty", this.listenToAttBeDirty);
+        } else {
+            if (this.attributes[vAtt.type] == vAtt) return;
+            this.attributes[vAtt.type]?.off("BeDirty", this.listenToAttBeDirty);
+            this.attributes[vAtt.type] = vAtt;
+            vAtt.on("BeDirty", this.listenToAttBeDirty);
         }
-        if (this.attributes[vAtt.type]) {
-            this.attributes[vAtt.type].off("BeDirty", this.listenToAttBeDirty)
-        }
-        this.attributes[vAtt.type] = vAtt;
-        vAtt.on("BeDirty", this.listenToAttBeDirty);
         this._beDirty = true;
     }
 
@@ -122,15 +125,18 @@ export class Geometry extends Asset {
         this._beDirty = true;
     }
     private _glTarget: VertexArray;
-    getOrCreateGlTarget(device: GraphicsDevice) {
+    /**
+     * Private
+     */
+    syncDataAndBind(device: GraphicsDevice) {
         if (this._glTarget == null) {
             device.unbindVao();
             let vertexAtts: VertexAttribute[] = [];
             for (let key in this.attributes) {
-                let target = this.attributes[key].getOrCreateGlTarget(device);
+                let target = this.attributes[key].syncData(device);
                 vertexAtts.push(target);
             }
-            let indexBuffer = this._indices?.getOrCreateGlTarget(device);
+            let indexBuffer = this._indices?.syncData(device);
             this._glTarget = device.createVertexArray({
                 vertexAttributes: vertexAtts,
                 indices: indexBuffer,
@@ -138,41 +144,32 @@ export class Geometry extends Asset {
                 bytesOffset: this.bytesOffset,
                 count: this.count,
             });
+            this._beDirty = false
+        } else {
+            device.unbindVao();
+            if (this._beDirty) {
+                if (this.indices) {
+                    this._glTarget.indexBuffer = this._indices.syncData(device);
+                }
+                this._glTarget.primitiveType = this._primitiveType;
+                this._glTarget.bytesOffset = this._bytesOffset;
+                this._glTarget.count = this._count;
+            }
+            if (this._dirtyAtts.size > 0) {
+                this._dirtyAtts.forEach(attType => {
+                    let attTarget = this.attributes[attType].syncData(device);
+                    this._glTarget.addAttribute(attTarget);
+                })
+                this._dirtyAtts.clear();
+            }
+            this._glTarget.bind();
         }
         return this._glTarget;
-    }
-    /**
-     * Private
-     */
-    bind(device: GraphicsDevice) {
-        let target = this.getOrCreateGlTarget(device);
-        if (this._beDirty) {
-            if (this.indices) {
-                let indicesTarget = this._indices.bind(device);
-                target.indexBuffer = indicesTarget;
-            }
-            target.primitiveType = this._primitiveType;
-            target.bytesOffset = this._bytesOffset;
-            target.count = this._count;
-        }
-        if (this._dirtyAtts.size > 0) {
-            this._dirtyAtts.forEach(attType => {
-                let geAtt = this.attributes[attType] as GeometryAttribute;
-                let attTarget = geAtt.bind(device);
-                if (target.hasAttribute(attType) == false) {
-                    target.addAttribute(attTarget);
-                }
-            })
-            this._dirtyAtts.clear();
-        }
-        target.bind();
-        return target;
     }
     destroy(): void {
         this._glTarget?.destroy();
     }
 }
-
 
 
 export interface IGeometryOptions {

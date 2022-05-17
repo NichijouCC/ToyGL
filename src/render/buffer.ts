@@ -84,22 +84,17 @@ export class GraphicIndexBuffer extends EventEmitter<IObjectEvent> {
     }
 
     private _glTarget: IndexBuffer
-    getOrCreateGlTarget(device: GraphicsDevice) {
+    syncData(device: GraphicsDevice) {
         if (this._glTarget == null) {
-            let buffer = this._buffer.getOrCreateGlTarget(device)
+            let buffer = this._buffer.syncData(device)
             this._glTarget = device.createIndexBuffer({ data: buffer, datatype: this.dataType, bytesOffset: this.byteOffset, count: this._count });
-        }
-        return this._glTarget;
-    }
-
-    bind(device: GraphicsDevice) {
-        let target = this.getOrCreateGlTarget(device);
-        if (this._beDirty) {
-            this._buffer.bind(device);
-            target.set({ datatype: this.dataType, bytesOffset: this.byteOffset, count: this.count })
+            this._beDirty = false;
+        } else if (this._beDirty) {
+            this._buffer.syncData(device);
+            this._glTarget.set({ datatype: this.dataType, bytesOffset: this.byteOffset, count: this.count })
             this._beDirty = false;
         }
-        return target;
+        return this._glTarget;
     }
 }
 
@@ -143,23 +138,18 @@ export class GraphicBuffer extends EventEmitter<IObjectEvent> {
     }
 
     private _glTarget: Buffer
-    getOrCreateGlTarget(device: GraphicsDevice) {
+    syncData(device: GraphicsDevice) {
         if (this._glTarget == null) {
             this._glTarget = device.createBuffer({ data: this.data, target: this.target, usage: this.usage });
-        }
-        return this._glTarget;
-    }
-
-    bind(device: GraphicsDevice) {
-        let target = this.getOrCreateGlTarget(device);
-        if (this._beDirty) {
+            this._beDirty = false;
+        } else if (this._beDirty) {
             if (this.subData) {
-                target.set({ partial: this.subData })
+                this._glTarget.set({ partial: this.subData })
             } else {
-                target.set({ data: this._typedArray })
+                this._glTarget.set({ data: this._typedArray })
             }
             this._beDirty = false;
         }
-        return target;
+        return this._glTarget;
     }
 }

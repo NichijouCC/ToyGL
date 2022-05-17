@@ -6,7 +6,7 @@ import { UniformState } from "./uniformState";
 import { AutoUniforms } from "./autoUniform";
 import { ShaderBucket } from "./shaderBucket";
 import { IRenderable } from "./irenderable";
-import { GraphicsDevice, IEngineOption, ShaderProgram } from "../webgl";
+import { GraphicsDevice, IEngineOption, ShaderProgram, VertexAttEnum } from "../webgl";
 import { mat4, vec3 } from "../mathD";
 import { BaseTexture } from "./baseTexture";
 import { ICamera } from "./camera";
@@ -86,9 +86,9 @@ export class ForwardRender {
             if (uniforms.MainTex) {
                 bucketId = bucketId | ShaderBucket.DIFFUSE_MAP;
             }
-            if (renderItem.instanceData) {
-                bucketId = bucketId | ShaderBucket.INS_POS;
-            }
+            renderItem.instanceData?.attributes.forEach(item => {
+                bucketId = bucketId | item.shaderBucketId;
+            });
             //shader bind
             let shaderIns = material.shader.bind(bucketId, this.device);
             //shader uniform bind
@@ -105,13 +105,13 @@ export class ForwardRender {
                 this.device.setScissorState(renderState.scissorTest);
             }
             if (renderItem.instanceData) {//instance draw
-                renderItem.geometry.addAttribute(renderItem.instanceData.attribute);
+                renderItem.instanceData.attributes.forEach(item => renderItem.geometry.addAttribute(item));
                 //vao bind
-                let vao = renderItem.geometry.bind(this.device);
+                let vao = renderItem.geometry.syncDataAndBind(this.device);
                 this.device.draw(vao, renderItem.instanceData.count);
             } else {
                 //vao bind
-                let vao = renderItem.geometry.bind(this.device);
+                let vao = renderItem.geometry.syncDataAndBind(this.device);
                 this.device.draw(vao);
             }
             preMaterial = material;
@@ -130,7 +130,7 @@ export class ForwardRender {
         for (let key in values) {
             if (values[key] instanceof BaseTexture) {
                 let tex = (values[key] as BaseTexture)
-                let glTex = tex.bind(this.device);
+                let glTex = tex.syncData(this.device);
                 shaderIns.bindUniform(key, glTex);
             } else {
                 shaderIns.bindUniform(key, values[key]);

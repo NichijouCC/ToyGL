@@ -2,6 +2,19 @@ import { GraphicsDevice } from "./graphicsDevice";
 import { GlConstants } from "./glConstant";
 
 export class DeviceCapability {
+    //允许使用VAO
+    public vertexArrayObject: boolean;
+    //允许使用instance draw
+    public instancedArrays: boolean;
+    //允许使用UNSIGNED_INT格式的INDEX_BUFFER
+    public uintIndices: boolean;
+    //允许使用depth texture
+    public depthTexture: boolean;
+    //允许使用抗锯齿
+    public textureAnisotropicFilterExtension: EXT_texture_filter_anisotropic;
+    //抗锯齿最大级别
+    public maxAnisotropy: number;
+
     /** Maximum textures units per fragment shader */
     public maxTexturesImageUnits: number;
     /** Maximum texture units per vertex shader */
@@ -36,17 +49,6 @@ export class DeviceCapability {
     public astc: any; // WEBGL_compressed_texture_astc;
     /** Defines if float textures are supported */
     public textureFloat: boolean;
-    //是否可以使用VAO
-    public vertexArrayObject: boolean;
-    //是否可以是instance draw
-    public instancedArrays: boolean;
-    //允许使用 UNSIGNED_INT 格式的INDEX_BUFFER
-    public uintIndices: boolean;
-
-    /** Gets the webgl extension for anisotropic filtering (null if not supported) */
-    public textureAnisotropicFilterExtension: EXT_texture_filter_anisotropic;
-    /** Gets the maximum level of anisotropy supported */
-    public maxAnisotropy: number;
     /** Defines if high precision shaders are supported */
     public highPrecisionShaderSupported: boolean;
     /** Defines if depth reading in the fragment shader is supported */
@@ -65,8 +67,6 @@ export class DeviceCapability {
     public textureLOD: boolean;
     /** Defines if draw buffers extension is supported */
     public drawBuffersExtension: boolean;
-    /** Defines if depth textures are supported */
-    public depthTexture: boolean;
     /** Defines if float color buffer are supported */
     public colorBufferFloat: boolean;
     /** Gets disjoint timer query extension (null if not supported) */
@@ -90,7 +90,10 @@ export class DeviceCapability {
             this.vertexArrayObject = true;
             this.instancedArrays = true;
             this.uintIndices = true;
+            this.depthTexture = true;
         } else {
+            //允许使用VAO
+            //https://developer.mozilla.org/en-US/docs/Web/API/OES_vertex_array_object
             let vertexArrayObjectExtension = _gl.getExtension("OES_vertex_array_object");
             if (vertexArrayObjectExtension != null) {
                 this.vertexArrayObject = true;
@@ -98,7 +101,8 @@ export class DeviceCapability {
                 _gl.bindVertexArray = vertexArrayObjectExtension.bindVertexArrayOES.bind(vertexArrayObjectExtension);
                 _gl.deleteVertexArray = vertexArrayObjectExtension.deleteVertexArrayOES.bind(vertexArrayObjectExtension);
             }
-
+            //允许使用instance draw
+            //https://developer.mozilla.org/en-US/docs/Web/API/ANGLE_instanced_arrays
             let instanceExtension = _gl.getExtension("ANGLE_instanced_arrays");
             if (instanceExtension != null) {
                 this.instancedArrays = true;
@@ -106,25 +110,28 @@ export class DeviceCapability {
                 _gl.drawElementsInstanced = instanceExtension.drawElementsInstancedANGLE.bind(instanceExtension);
                 _gl.vertexAttribDivisor = instanceExtension.vertexAttribDivisorANGLE.bind(instanceExtension);
             }
-
+            //允许使用 UNSIGNED_INT 格式的INDEX_BUFFER
+            //https://developer.mozilla.org/en-US/docs/Web/API/OES_element_index_uint
             this.uintIndices = _gl.getExtension("OES_element_index_uint") !== null;
 
-            context.options.extensions?.forEach(item => {
-                switch (item) {
-                    case "EXT_texture_filter_anisotropic":
-                        var ext = (
-                            _gl.getExtension('EXT_texture_filter_anisotropic') ||
-                            _gl.getExtension('MOZ_EXT_texture_filter_anisotropic') ||
-                            _gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic')
-                        );
-                        if (ext) {
-
-                        }
-                }
-            })
+            //允许使用depth_texture（framebuffer depth attachment）
+            //https://developer.mozilla.org/en-US/docs/Web/API/WEBGL_depth_texture
+            let depthTextureExtension = _gl.getExtension("WEBGL_depth_texture");
+            if (depthTextureExtension != null) {
+                this.depthTexture = true;
+            }
         }
 
-
+        //允许使用抗锯齿
+        //https://developer.mozilla.org/en-US/docs/Web/API/EXT_texture_filter_anisotropic
+        var ext = (
+            _gl.getExtension('EXT_texture_filter_anisotropic') ||
+            _gl.getExtension('MOZ_EXT_texture_filter_anisotropic') ||
+            _gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic')
+        );
+        if (ext) {
+            this.maxAnisotropy = this.textureAnisotropicFilterExtension ? _gl.getParameter(this.textureAnisotropicFilterExtension.MAX_TEXTURE_MAX_ANISOTROPY_EXT) : 0;
+        }
 
         // // Extensions
         // this.standardDerivatives = _webGLVersion > 1 || _gl.getExtension("OES_standard_derivatives") !== null;
@@ -144,14 +151,6 @@ export class DeviceCapability {
         //     _gl.getExtension("WEBGL_compressed_texture_etc") ||
         //     _gl.getExtension("WEBKIT_WEBGL_compressed_texture_etc") ||
         //     _gl.getExtension("WEBGL_compressed_texture_es3_0"); // also a requirement of OpenGL ES 3
-
-        // this.textureAnisotropicFilterExtension =
-        //     _gl.getExtension("EXT_texture_filter_anisotropic") ||
-        //     _gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic") ||
-        //     _gl.getExtension("MOZ_EXT_texture_filter_anisotropic");
-        // this.maxAnisotropy = this.textureAnisotropicFilterExtension
-        //     ? _gl.getParameter(this.textureAnisotropicFilterExtension.MAX_TEXTURE_MAX_ANISOTROPY_EXT)
-        //     : 0;
 
         // this.fragmentDepthSupported = _webGLVersion > 1 || _gl.getExtension("EXT_frag_depth") !== null;
         // this.highPrecisionShaderSupported = false;
@@ -186,20 +185,6 @@ export class DeviceCapability {
 
         // // Shader compiler threads
         // this.parallelShaderCompile = _gl.getExtension("KHR_parallel_shader_compile");
-
-        // // Depth Texture
-        // if (_webGLVersion > 1) {
-        //     this.depthTexture = true;
-        // } else {
-        //     var depthTextureExtension = _gl.getExtension("WEBGL_depth_texture");
-
-        //     if (depthTextureExtension != null) {
-        //         this.depthTexture = true;
-        //         // _gl.UNSIGNED_INT_24_8 = depthTextureExtension.UNSIGNED_INT_24_8_WEBGL;
-        //     }
-        // }
-
-
     }
 
     private _canRenderToFloatFramebuffer(_gl: WebGLRenderingContext, _webGLVersion: number): boolean {

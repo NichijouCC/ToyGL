@@ -1,4 +1,4 @@
-import { ToyGL, Material, DefaultGeometry, DefaultTexture, Color, VertexAttEnum, Texture2D, quat, TextureAsset, DefaultMaterial, mat4, vec3, InstancedGeometryAttribute, ComponentDatatypeEnum } from "TOYGL";
+import { ToyGL, Material, DefaultGeometry, DefaultTexture, Color, VertexAttEnum, Texture2D, quat, TextureAsset, DefaultMaterial, mat4, vec3, InstancedGeometryAttribute, ComponentDatatypeEnum, InstanceWorldMat, InstanceColor } from "TOYGL";
 
 window.onload = () => {
     const toy = ToyGL.create(document.getElementById("canvas") as HTMLCanvasElement);
@@ -14,32 +14,34 @@ window.onload = () => {
     let width = 20;
     let count = width * width * width;
 
-    let instanceData = new Float32Array(3 * count);
-    let posArr: Float32Array[] = [];
+    let instanceMatData = new Float32Array(16 * count);
+    let instanceColorData = new Uint8Array(4 * count);
+    let mats: Float32Array[] = []
     for (let i = 0; i < width; i++) {
         for (let j = 0; j < width; j++) {
             for (let K = 0; K < width; K++) {
-                let ins_pos = instanceData.subarray((i + j * width + K * width * width) * 3, (i + j * width + K * width * width) * 3 + 3);
-                ins_pos[0] = (i - width / 2) * 5;
-                ins_pos[1] = (j - width / 2) * 5;
-                ins_pos[2] = (K - width / 2) * 5;
-                posArr.push(ins_pos);
+                let ins_mat = instanceMatData.subarray((i + j * width + K * width * width) * 16, (i + j * width + K * width * width) * 16 + 16);
+                let worldPos = vec3.fromValues((Math.random() + i - (width + 1) / 2) * 4, (Math.random() + j - (width + 1) / 2) * 4, (Math.random() + K - (width + 1) / 2) * 4);
+                let worldRot = quat.fromEuler(quat.create(), Math.random() * 360, Math.random() * 360, Math.random() * 360);
+                mat4.fromRotationTranslationScale(ins_mat, worldRot, worldPos, vec3.ONE);
+                mats.push(ins_mat);
+
+                let ins_color = instanceColorData.subarray((i + j * width + K * width * width) * 4, (i + j * width + K * width * width) * 4 + 4);
+                ins_color[0] = Math.floor(Math.random() * 255);
+                ins_color[1] = Math.floor(Math.random() * 255);
+                ins_color[2] = Math.floor(Math.random() * 255);
+                ins_color[3] = 255;
             }
         }
     }
-
-    let instanceAtt = new InstancedGeometryAttribute({
-        type: VertexAttEnum.INS_POS,
-        componentSize: 3,
-        componentDatatype: ComponentDatatypeEnum.FLOAT,
-        data: instanceData,
-    });
-    let ins = toy.scene.addRenderIns({
+    let instanceMat = new InstanceWorldMat({ data: instanceMatData });
+    let instanceColor = new InstanceColor({ data: instanceColorData });
+    toy.scene.addRenderIns({
         geometry,
         material,
         worldMat: mat4.create(),
         instanceData: {
-            attribute: instanceAtt,
+            attributes: [instanceMat, instanceColor],
             count: count
         }
     });
@@ -50,19 +52,19 @@ window.onload = () => {
 
     cam.viewTargetPoint(vec3.ZERO, 100, vec3.fromValues(-30, 0, 0))
 
-    let roty = 0;
-    toy.scene.preUpdate.addEventListener((delta) => {
-        roty += delta * 15;
-        ins.worldMat = mat4.fromRotation(ins.worldMat, roty * Math.PI / 180, vec3.UP);
-    });
-
-    // toy.scene.preRender.addEventListener((ev) => {
-    //     roty += ev.deltaTime * 15;
-    //     for (let i = 0; i < instanceCount; i++) {
-    //         let rot = roty + i * 10;
-    //         mat4.fromRotation(mats[i], roty * Math.PI / 180, vec3.UP);
-    //     }
-    //     instanceAtt.data = instanceData;
-    // })
+    toy.scene.preRender.addEventListener((ev) => {
+        for (let i = 0; i < width; i++) {
+            for (let j = 0; j < width; j++) {
+                for (let K = 0; K < width; K++) {
+                    let base_mat = instanceMatData.subarray((i + j * width + K * width * width) * 16, (i + j * width + K * width * width) * 16 + 16);
+                    let dir = vec3.fromValues(Math.random(), Math.random(), Math.random());
+                    vec3.normalize(dir, dir);
+                    let rotMat = mat4.fromRotation(mat4.create(), Math.PI / 180, dir);
+                    mat4.multiply(base_mat, base_mat, rotMat);
+                }
+            }
+        }
+        instanceMat.data = instanceMatData;
+    })
 }
 

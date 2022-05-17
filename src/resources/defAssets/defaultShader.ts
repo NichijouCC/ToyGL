@@ -69,13 +69,22 @@ namespace Private {
     #ifdef AlPHACUT
     uniform float czm_alphaCut;
     #endif
+
+    #ifdef INS_COLOR
+    varying vec4 v_a_color;
+    #endif
+
     void main()
     {
-        #ifdef DIFFUSEMAP
-        vec4 outColor=MainColor*texture2D(MainTex, xlv_TEXCOORD0);
-        #else
         vec4 outColor=MainColor;
+        #ifdef DIFFUSEMAP
+        outColor=outColor*texture2D(MainTex, xlv_TEXCOORD0);
         #endif
+
+        #ifdef INS_COLOR
+        outColor=outColor*v_a_color;
+        #endif
+
         #ifdef AlPHACUT
         if(outColor.a<czm_alphaCut){
             discard;
@@ -90,12 +99,14 @@ namespace Private {
             TEXCOORD_0: VertexAttEnum.TEXCOORD_0,
             skinIndex: VertexAttEnum.JOINTS_0,
             skinWeight: VertexAttEnum.WEIGHTS_0,
-            ins_pos: VertexAttEnum.INS_POS,
+            ins_mat4: VertexAttEnum.INS_MAT4,
+            ins_color: VertexAttEnum.INS_COLOR,
         },
         vsStr: `precision highp float;
         attribute vec4 POSITION;
         attribute vec2 TEXCOORD_0;
-        varying mediump vec2 xlv_TEXCOORD0;
+        varying vec2 xlv_TEXCOORD0;
+
         #ifdef SKIN
         attribute vec4 skinIndex;
         attribute vec4 skinWeight;
@@ -115,42 +126,52 @@ namespace Private {
             return mat* srcVertex;
         }
 
-        #ifdef INS_POS
-        attribute vec3 ins_pos;
+        #ifdef INS_MAT
+        attribute mat4 INS_MAT;
         #endif
 
         #else
 
-        #ifdef INS_POS
+        #ifdef INS_MAT
         uniform mat4 czm_viewP;
-        uniform mat4 czm_model;
-        attribute vec3 ins_pos;
+        attribute mat4 ins_mat4;
         #else
         uniform mat4 czm_modelViewP;
         #endif
 
         #endif
+
+        #ifdef INS_COLOR
+        attribute vec4 ins_color;
+        varying vec4 v_a_color;
+        #endif
+
         void main()
         {
             vec4 position = vec4(POSITION.xyz,1.0);
             #ifdef SKIN
             position =calcVertex(position,skinIndex,skinWeight);
 
-            #ifdef INS_POS
-            gl_Position = czm_viewP * (position+vec4(ins_pos,0.0));
+            #ifdef INS_MAT
+            gl_Position = czm_viewP *ins_mat4* position;
             #else
             gl_Position = czm_viewP * position;
             #endif
 
             #else
 
-            #ifdef INS_POS
-            gl_Position = czm_viewP * (czm_model*position+vec4(ins_pos,0.0));
+            #ifdef INS_MAT
+            gl_Position = czm_viewP *ins_mat4 * position;
             #else
             gl_Position = czm_modelViewP * position;
             #endif
 
             #endif
+
+            #ifdef INS_COLOR
+            v_a_color=ins_color;
+            #endif
+
             xlv_TEXCOORD0 = TEXCOORD_0.xy;
         }`,
         fsStr: fsStr

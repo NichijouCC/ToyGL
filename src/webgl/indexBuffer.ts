@@ -2,6 +2,7 @@ import { GraphicsDevice } from "./graphicsDevice";
 import { BufferUsageEnum, Buffer, BufferTargetEnum, IBufferSetOptions } from "./buffer";
 import { GlConstants } from "./glConstant";
 import { TypedArray, GlType } from "../core/typedArray";
+import { VertexArray } from "./vertexArray";
 export type IndicesArray = Uint8Array | Uint16Array | Uint32Array;
 export type IndexBufferOption = {
     data: IndicesArray | Buffer;
@@ -26,16 +27,6 @@ export class IndexBuffer {
         this.bytesOffset = options.bytesOffset ?? 0;
         this.datatype = options.datatype ?? TypedArray.getGLType(this._buffer.data);
         this.count = options.count ?? this._buffer.byteLength / GlType.bytesPerElement(this.datatype);
-
-        this.bind = () => {
-            this._buffer.bind();
-        };
-        this.unbind = () => {
-            this._buffer.unbind();
-        };
-        this.destroy = () => {
-            this._buffer.destroy();
-        };
     }
     set(options: Partial<IBufferSetOptions & Omit<IndexBufferOption, "data" | "usage">>) {
         this._buffer.set(options);
@@ -43,10 +34,23 @@ export class IndexBuffer {
         if (options.count != null) this.count = options.count;
         if (options.bytesOffset != null) this.bytesOffset = options.bytesOffset;
     }
-
-    bind() { }
-    unbind() { }
-    destroy() { }
+    private bindToVao = new Set<VertexArray>();
+    bind(vao?: VertexArray) {
+        if (vao != null) {
+            if (this.bindToVao.has(vao)) return;
+            this.bindToVao.add(vao);
+        }
+        this._buffer.bind();
+    }
+    unbind(vao?: VertexArray) {
+        if (vao != null) {
+            this.bindToVao.delete(vao);
+        }
+        this._buffer.unbind();
+    }
+    destroy() {
+        this._buffer.destroy();
+    }
 }
 
 export enum IndexDatatypeEnum {

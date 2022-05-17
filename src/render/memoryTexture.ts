@@ -44,39 +44,35 @@ export class MemoryTexture extends BaseTexture {
             this._sourceDirty = true;
         }
     }
-
-    getOrCreateGlTarget(device: GraphicsDevice) {
+    syncData(device: GraphicsDevice) {
         if (this._glTarget == null) {
             this._glTarget = this.create(device);
             this.beDirty = false;
             this._sourceDirty = false;
+        } else {
+            if (this._sourceDirty) {
+                this._sourceDirty = false;
+                this.beDirty = false;
+                this._glTarget.destroy();
+                this._glTarget = this.create(device);
+            } else if (this.beDirty) {
+                this.beDirty = false;
+                this._glTarget.set({
+                    pixelFormat: this._pixelFormat,
+                    pixelDatatype: this._pixelDatatype,
+                    preMultiplyAlpha: this._preMultiplyAlpha,
+                    flipY: this._flipY,
+                    filterMax: this._filterMax,
+                    filterMin: this._filterMin,
+                    wrapS: this._wrapS,
+                    wrapT: this._wrapT,
+                    maximumAnisotropy: this._maximumAnisotropy,
+                    enableMipmap: this._enableMipmap,
+                    mipmapFilter: this._mipmapFilter,
+                });
+            }
         }
         return this._glTarget;
-    }
-
-    bind(device: GraphicsDevice) {
-        let glTarget = this.getOrCreateGlTarget(device);
-        if (this._sourceDirty) {
-            glTarget.destroy();
-            this._glTarget = null;
-            glTarget = this.getOrCreateGlTarget(device);
-        } else if (this.beDirty) {
-            this.beDirty = false;
-            glTarget.set({
-                pixelFormat: this._pixelFormat,
-                pixelDatatype: this._pixelDatatype,
-                preMultiplyAlpha: this._preMultiplyAlpha,
-                flipY: this._flipY,
-                filterMax: this._filterMax,
-                filterMin: this._filterMin,
-                wrapS: this._wrapS,
-                wrapT: this._wrapT,
-                maximumAnisotropy: this._maximumAnisotropy,
-                enableMipmap: this._enableMipmap,
-                mipmapFilter: this._mipmapFilter,
-            });
-        }
-        return glTarget;
     }
 }
 

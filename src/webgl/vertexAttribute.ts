@@ -3,8 +3,8 @@ import { ComponentDatatypeEnum } from "./componentDatatypeEnum";
 import { VertexAttEnum } from "./vertexAttEnum";
 import { GlType, TypedArray } from "../core/typedArray";
 import { Buffer, BufferTargetEnum, BufferUsageEnum, IBufferSetOptions } from "./buffer";
-import { VertexArray } from "./vertexArray";
 import { EventEmitter } from "@mtgoo/ctool";
+import { VertexArray } from "./vertexArray";
 
 export interface IVertexAttribute {
     readonly type: string | VertexAttEnum
@@ -28,11 +28,8 @@ export interface IVertexAttributeOption {
     instanceDivisor?: number;
 }
 
-interface VertexAttributeEvents {
-    "AttUpdate": number,
-}
 
-export class VertexAttribute extends EventEmitter<VertexAttributeEvents> implements IVertexAttribute {
+export class VertexAttribute implements IVertexAttribute {
     readonly type: number | VertexAttEnum;
     readonly index: number;
     private _buffer: Buffer;
@@ -41,45 +38,45 @@ export class VertexAttribute extends EventEmitter<VertexAttributeEvents> impleme
     get componentSize() { return this._componentSize }
     set componentSize(value: number) {
         this._componentSize = value;
-        this.emit("AttUpdate", this.type)
+        this.bindToVao.clear();
     }
     private _componentDatatype: number;
     get componentDatatype() { return this._componentDatatype }
     set componentDatatype(value: number) {
         this._componentDatatype = value;
-        this.emit("AttUpdate", this.type)
+        this.bindToVao.clear();
     }
     private _normalize: boolean;
     get normalize() { return this._normalize }
     set normalize(value: boolean) {
         this._normalize = value;
-        this.emit("AttUpdate", this.type)
+        this.bindToVao.clear();
     }
     private _bytesOffset: number;
     get bytesOffset() { return this._bytesOffset }
     set bytesOffset(value: number) {
         this._bytesOffset = value;
-        this.emit("AttUpdate", this.type)
+        this.bindToVao.clear();
     }
     private _bytesStride: number;
     get bytesStride() { return this._bytesStride }
     set bytesStride(value: number) {
         this._bytesStride = value;
-        this.emit("AttUpdate", this.type)
+        this.bindToVao.clear();
     }
     private _instanceDivisor: number;
     get instanceDivisor() { return this._instanceDivisor }
     set instanceDivisor(value: number) {
         this._instanceDivisor = value;
-        this.emit("AttUpdate", this.type)
+        this.bindToVao.clear();
     }
     private _count: number;
     get count() { return this._count }
 
     private _gl: WebGLRenderingContext;
     private _context: GraphicsDevice;
+    private bindToVao = new Set<VertexArray>();
     constructor(context: GraphicsDevice, options: IVertexAttributeOption) {
-        super();
         if (options.data == null) {
             throw new Error("vertex Attribute option's data must not be null")
         }
@@ -107,28 +104,8 @@ export class VertexAttribute extends EventEmitter<VertexAttributeEvents> impleme
         } else {
             this._count = bytes / this._bytesStride;
         }
-        this.bind = () => {
-            this._buffer.bind();
-            this._gl.enableVertexAttribArray(this.index);
-            this._gl.vertexAttribPointer(
-                this.index,
-                this._componentSize,
-                this._componentDatatype,
-                this._normalize,
-                this._bytesStride,
-                this._bytesOffset
-            );
-            if (this._instanceDivisor != null) {
-                this._gl.vertexAttribDivisor(this.index, this._instanceDivisor);
-            }
-        };
-        this.unbind = () => {
-            this._gl.disableVertexAttribArray(this.index);
-            if (this._instanceDivisor != null) {
-                this._gl.vertexAttribDivisor(this.index, 0);
-            }
-        };
     }
+
     set(options: Partial<IBufferSetOptions & Omit<IVertexAttributeOption, "data" | "type" | "usage">>) {
         this._buffer.set(options);
         if (options.componentDatatype != null) this.componentDatatype = options.componentDatatype;
@@ -143,10 +120,52 @@ export class VertexAttribute extends EventEmitter<VertexAttributeEvents> impleme
         } else {
             this._count = bytes / this._bytesStride;
         }
-        this.emit("AttUpdate", this.type);
+        this.bindToVao.clear();
     }
 
-    bind() { }
+    bind(vao?: VertexArray) {
+        if (vao != null) {
+            if (this.bindToVao.has(vao)) return;
+            this.bindToVao.add(vao);
+        }
+        this._buffer.bind();
+        if (this.type == VertexAttEnum.INS_MAT4) {
+            let stride = this._componentSize * GlType.bytesPerElement(this._componentDatatype);
+            for (let i = 0; i < 4; i++) {
+                this._gl.enableVertexAttribArray(this.index + i);
+                this._gl.vertexAttribPointer(
+                    this.index + i,
+                    4,
+                    this._componentDatatype,
+                    this._normalize,
+                    stride,
+                    i * 4 * GlType.bytesPerElement(this._componentDatatype)
+                );
+                if (this._instanceDivisor != null) {
+                    this._gl.vertexAttribDivisor(this.index + i, this._instanceDivisor);
+                }
+            }
+        } else {
+            this._gl.enableVertexAttribArray(this.index);
+            this._gl.vertexAttribPointer(
+                this.index,
+                this._componentSize,
+                this._componentDatatype,
+                this._normalize,
+                this._bytesStride,
+                this._bytesOffset,
+            );
+            if (this._instanceDivisor != null) {
+                this._gl.vertexAttribDivisor(this.index, this._instanceDivisor);
+            }
+        }
+    }
 
-    unbind() { }
+    unbind(vao?: VertexArray) {
+        if (vao != null) this.bindToVao.delete(vao);
+        this._gl.disableVertexAttribArray(this.index);
+        if (this._instanceDivisor != null) {
+            this._gl.vertexAttribDivisor(this.index, 0);
+        }
+    }
 }

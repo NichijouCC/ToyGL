@@ -29,7 +29,7 @@ export interface IRenderable {
     };
     instanceData?: {
         count: number,
-        attribute: InstancedGeometryAttribute,
+        attributes: InstancedGeometryAttribute[],
     }
     children?: Omit<IRenderable, "beVisible" | "enableCull" | "sortOrder" | "boundingBox" | "layerMask">[];
 }

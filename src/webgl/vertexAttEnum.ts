@@ -9,7 +9,8 @@ export enum VertexAttEnum {
     WEIGHTS_0 = 1 << 7,
     JOINTS_0 = 1 << 8,
     COLOR_1 = 1 << 9,
-    INS_POS = 1 << 10,
+    INS_MAT4 = 1 << 10,
+    INS_COLOR = 1 << 14,
 }
 
 export interface IVertexAttInfo {
@@ -32,7 +33,8 @@ export namespace VertexAttEnum {
         [VertexAttEnum.WEIGHTS_0]: { name: "skinWeight", componentSize: 4, location: 7, type: 1 << 7 },
         [VertexAttEnum.JOINTS_0]: { name: "skinIndex", componentSize: 4, location: 8, type: 1 << 8 },
         [VertexAttEnum.COLOR_1]: { name: "color1", componentSize: 4, location: 9, type: 1 << 9 },
-        [VertexAttEnum.INS_POS]: { name: "ins_pos", componentSize: 3, location: 10, type: 1 << 10 },
+        [VertexAttEnum.INS_MAT4]: { name: "ins_mat4", componentSize: 16, location: 10, type: 1 << 10 },//10,11,12,13
+        [VertexAttEnum.INS_COLOR]: { name: "ins_color", componentSize: 4, location: 14, type: 1 << 14 },
     }
     export function toName(type: VertexAttEnum | number) {
         return attDic[type]?.name ?? "未知"
