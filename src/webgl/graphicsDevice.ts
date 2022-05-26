@@ -372,30 +372,36 @@ export class GraphicsDevice {
         }
     }
 
-    unbindVao() {
-        if (this.caps.vertexArrayObject) {
+    unbindVao(force = false) {
+        if (force || this.bindingVao != null) {
             this.gl.bindVertexArray(null);
             this.bindingVao = null;
         }
     }
 
-    unbindVbo() {
-        this.gl.bindBuffer(BufferTargetEnum.ARRAY_BUFFER, null);
-        this.bindingArrayBuffer = null;
+    unbindVbo(force = false) {
+        if (force || this.bindingArrayBuffer != null) {
+            this.gl.bindBuffer(BufferTargetEnum.ARRAY_BUFFER, null);
+            this.bindingArrayBuffer = null;
+        }
     }
 
-    unbindShaderProgram() {
-        this.gl.useProgram(null);
-        this.bindingProgram = null;
+    unbindShaderProgram(force = false) {
+        if (force || this.bindingProgram != null) {
+            this.gl.useProgram(null);
+            this.bindingProgram = null;
+        }
     }
 
     unbindTextureUnit() {
         this.units.clear();
     }
 
-    unbindFrameBuffer() {
-        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
-        this.bindingFrameBuffer = null;
+    unbindFrameBuffer(force = false) {
+        if (force || this.bindingFrameBuffer != null) {
+            this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+            this.bindingFrameBuffer = null;
+        }
     }
 
     draw(vertexArray: VertexArray, instanceCount: number = 0) {

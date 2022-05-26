@@ -10,7 +10,6 @@ import { GraphicsDevice, IEngineOption, ShaderProgram, VertexAttEnum } from "../
 import { mat4, Rect, vec3, vec4 } from "../mathD";
 import { BaseTexture } from "./baseTexture";
 import { ICamera } from "./camera";
-import { RenderTarget } from "./renderTarget";
 export class ForwardRender {
     readonly device: GraphicsDevice;
     uniformState = new UniformState();
@@ -58,7 +57,6 @@ export class ForwardRender {
 
             //准备视口和清理画布
             this.uniformState.viewer = camera;
-            this.device.setViewPort(camera.viewport.x, camera.viewport.y, camera.viewport.width, camera.viewport.height);
             let pixelWidth = this.device.canvas.width;
             let pixelHeight = this.device.canvas.height;
             if (renderTarget != null) {

@@ -146,22 +146,23 @@ export class Geometry extends Asset {
             });
             this._beDirty = false
         } else {
-            device.unbindVao();
             if (this._beDirty) {
+                device.unbindVao();
                 if (this.indices) {
                     this._glTarget.indexBuffer = this._indices.syncData(device);
                 }
                 this._glTarget.primitiveType = this._primitiveType;
                 this._glTarget.bytesOffset = this._bytesOffset;
                 this._glTarget.count = this._count;
+                if (this._dirtyAtts.size > 0) {
+                    this._dirtyAtts.forEach(attType => {
+                        let attTarget = this.attributes[attType].syncData(device);
+                        this._glTarget.addAttribute(attTarget);
+                    })
+                    this._dirtyAtts.clear();
+                }
             }
-            if (this._dirtyAtts.size > 0) {
-                this._dirtyAtts.forEach(attType => {
-                    let attTarget = this.attributes[attType].syncData(device);
-                    this._glTarget.addAttribute(attTarget);
-                })
-                this._dirtyAtts.clear();
-            }
+
             this._glTarget.bind();
         }
         return this._glTarget;
