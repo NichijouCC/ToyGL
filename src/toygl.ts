@@ -21,7 +21,7 @@ export class ToyGL {
         scene.addSystem(new ModelSystem(scene), Number.POSITIVE_INFINITY);
         timer.onTick.addEventListener(scene.update);
         toy._timer = timer;
-        toy._scene = scene;
+        toy._world = scene;
         toy._resource = resource;
         return toy;
     }
@@ -30,14 +30,14 @@ export class ToyGL {
     get timer() { return this._timer; }
 
     private _render: ForwardRender;
-    get render() { return this._render; }
+    get render() { return this._world.render; }
 
-    private _scene: World;
-    get scene() { return this._scene; }
+    private _world: World;
+    get world() { return this._world; }
 
     private _resource: Resource;
     get resource() { return this._resource; }
     addSystem(system: ISystem, priority?: number) {
-        this._scene?.addSystem(system, priority);
+        this._world?.addSystem(system, priority);
     }
 }

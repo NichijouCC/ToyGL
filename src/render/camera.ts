@@ -1,4 +1,5 @@
 import { Color, mat4, Rect } from "../mathD";
+import { RenderTarget } from "./renderTarget";
 
 export interface ICamera {
     viewport: Rect;
@@ -11,6 +12,7 @@ export interface ICamera {
     enableClearStencil: boolean;
     stencilValue: number;
     cullingMask: LayerMask;
+    renderTarget?: RenderTarget;
 }
 
 export class Camera implements ICamera {
@@ -27,7 +29,7 @@ export class Camera implements ICamera {
     cullingMask: number = LayerMask.everything;
     viewMatrix: mat4 = mat4.create();
     projectMatrix: mat4 = mat4.create();
-
+    renderTarget: RenderTarget;
     constructor(options?: Partial<Camera>) {
         if (options) {
             for (let key in options) {

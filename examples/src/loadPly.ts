@@ -58,18 +58,18 @@ let mat = new Material({
 toy.resource.registLoaderWithExt(".ply", new LoadPLY())
 toy.resource.load<Geometry>("./aisland.ply")
     .then(asset => {
-        toy.scene.addRenderIns({
+        toy.world.addRenderIns({
             geometry: asset,
             material: mat,
             worldMat: mat4.clone(mat4.IDENTITY)
         });
         let { center, halfSize } = asset.boundingBox;
-        toy.scene.mainCamera.viewTargetPoint(center, 400, vec3.fromValues(-90, 0, 0));
+        toy.world.mainCamera.viewTargetPoint(center, 400, vec3.fromValues(-90, 0, 0));
         let height_top = center[1] + halfSize[1];
         let height_bottom = center[1] - halfSize[1];
 
         mat.setUniform("height_top", height_top);
         mat.setUniform("height_bottom", height_bottom);
 
-        toy.scene.mainCamera.entity.addComponent(ManualCamera)
+        toy.world.mainCamera.entity.addComponent(ManualCamera)
     });

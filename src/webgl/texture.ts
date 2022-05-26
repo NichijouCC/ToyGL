@@ -32,28 +32,44 @@ export class Texture {
     enableMipmap: boolean;
     mipmapFilter: TextureFilterEnum;
     unpackAlignment: number;
-    sourceType: TextureDataFromEnum;
+    readonly sourceType: TextureSourceEnum;
     private _context: GraphicsDevice;
     private _gl: WebGLRenderingContext;
-    source: any;
-    constructor(context: GraphicsDevice, options: ITextureOptions) {
+    source: TexImageSource | FrameBuffer | TypedArray;
+    xOffset: number;
+    yOffset: number;
+    constructor(context: GraphicsDevice, options: IImageSourceTexOpts | ITypedArrayTexOpts | IFrameBufferTexOpts) {
         this._context = context;
         this._textureFilterAnisotropic = context.caps.textureAnisotropicFilterExtension;
         const gl = context.gl;
         this._gl = gl;
 
-        this.source = options.source;
+        if ((options as IImageSourceTexOpts).image != null) {
+            let option = options as IImageSourceTexOpts;
+            this.source = option.image;
+            this.width = option.image.width;
+            this.height = option.image.height;
+            this.sourceType = TextureSourceEnum.IMAGE_SOURCE;
+        } else if ((options as IFrameBufferTexOpts).framebuffer != null) {
+            let option = options as IFrameBufferTexOpts;
+            this.source = option.framebuffer;
+            this.width = option.width;
+            this.height = option.height;
+            this.xOffset = option.xOffset ?? 0;
+            this.yOffset = option.yOffset ?? 0;
+            this.sourceType = TextureSourceEnum.FRAME_BUFFER;
+        } else {
+            let option = options as ITypedArrayTexOpts;
+            this.source = option.arrayBufferView;
+            this.width = option.width;
+            this.height = option.height;
+            this.sourceType = TextureSourceEnum.TYPED_ARRAY;
+        }
+
         this.pixelFormat = options.pixelFormat ?? PixelFormatEnum.RGBA;
         this.pixelDatatype = options.pixelDatatype ?? PixelDatatypeEnum.UNSIGNED_BYTE;
         this.flipY = options.flipY ?? false;
         this.preMultiplyAlpha = options.preMultiplyAlpha || options.pixelFormat === PixelFormatEnum.RGB || options.pixelFormat === PixelFormatEnum.LUMINANCE;
-
-        if (options.width == null && options.source != null) {
-            this.width = options.source.width ?? options.source.videoWidth;
-        }
-        if (options.height == null && options.source != null) {
-            this.height = options.source.height ?? options.source.videoHeight;
-        }
         const isCompressed = PixelFormatEnum.isCompressedFormat(this.pixelFormat);
         const sizeInBytes = isCompressed
             ? PixelFormatEnum.compressedTextureSizeInBytes(this.pixelFormat, this.width, this.height)
@@ -147,8 +163,9 @@ export class Texture {
             }
         }
 
-        if (isCompressed) {
-            if (source == null || source.arrayBufferView == null) {
+        if (isCompressed && this.sourceType == TextureSourceEnum.TYPED_ARRAY) {
+            let source = this.source as TypedArray;
+            if (source == null) {
                 throw new Error("When options.pixelFormat is compressed, options.source.arrayBufferView must be defined.");
             }
 
@@ -160,7 +177,7 @@ export class Texture {
                 throw new Error("When options.pixelFormat is ETC1 compressed, this WebGL implementation must support the WEBGL_texture_compression_etc1 extension. Check context.etc1.");
             }
 
-            if (PixelFormatEnum.compressedTextureSizeInBytes(internalFormat, width, height) !== source.arrayBufferView.byteLength) {
+            if (PixelFormatEnum.compressedTextureSizeInBytes(internalFormat, width, height) !== source.byteLength) {
                 throw new Error("The byte length of the array buffer is invalid for the compressed texture with the given width and height.");
             }
         }
@@ -172,20 +189,17 @@ export class Texture {
         gl.bindTexture(target, texture);
 
         let unpackAlignment = 4;
-        if (source && source.arrayBufferView && !isCompressed) {
+        if (this.sourceType == TextureSourceEnum.TYPED_ARRAY && !isCompressed) {
             unpackAlignment = PixelFormatEnum.alignmentInBytes(pixelFormat, pixelDatatype, width);
         }
         gl.pixelStorei(gl.UNPACK_ALIGNMENT, unpackAlignment);
         this.unpackAlignment = unpackAlignment;
-        let initialized = true;
-
-        if (source) {
-            if (source.arrayBufferView) { // Source: typed array
-                this.sourceType = TextureDataFromEnum.TYPED_ARRAY;
+        switch (this.sourceType) {
+            case TextureSourceEnum.TYPED_ARRAY:
                 gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
                 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
 
-                var arrayBufferView = source.arrayBufferView;
+                var arrayBufferView = source as TypedArray;
                 if (isCompressed) {
                     gl.compressedTexImage2D(target, 0, internalFormat, width, height, 0, arrayBufferView);
                 } else {
@@ -194,41 +208,20 @@ export class Texture {
                     }
                     gl.texImage2D(target, 0, internalFormat, width, height, 0, pixelFormat, pixelDatatype, arrayBufferView);
                 }
-
-                this.set = () => {
-                    gl.pixelStorei(gl.UNPACK_ALIGNMENT, unpackAlignment);
-                    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
-                    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-
-                    var arrayBufferView = source.arrayBufferView;
-                    if (isCompressed) {
-                        gl.compressedTexImage2D(target, 0, internalFormat, width, height, 0, arrayBufferView);
-                    } else {
-                        if (flipY) {
-                            arrayBufferView = PixelFormatEnum.flipY(arrayBufferView, pixelFormat, pixelDatatype, width, height);
-                        }
-                        gl.texImage2D(target, 0, internalFormat, width, height, 0, pixelFormat, pixelDatatype, arrayBufferView);
-                    }
-                };
-            } else if (source.framebuffer != null) { // Source: framebuffer
-                this.sourceType = TextureDataFromEnum.FRAME_BUFFER;
-                gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
-                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
-
-                source.framebuffer.bind();
-                gl.copyTexImage2D(target, 0, internalFormat, source.xOffset, source.yOffset, width, height, 0);
-                source.framebuffer.unbind();
-            } else { // Source: ImageData, HTMLImageElement, HTMLCanvasElement, or HTMLVideoElement
-                this.sourceType = TextureDataFromEnum.IMAGE_SOURCE;
-                // Only valid for DOM-Element uploads
+                break;
+            case TextureSourceEnum.IMAGE_SOURCE:
                 gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, preMultiplyAlpha);
                 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flipY);
-                gl.texImage2D(target, 0, internalFormat, pixelFormat, pixelDatatype, source);
-            }
-            initialized = true;
-        } else {
-            gl.texImage2D(target, 0, internalFormat, width, height, 0, pixelFormat, pixelDatatype, null);
-            initialized = false;
+                gl.texImage2D(target, 0, internalFormat, pixelFormat, pixelDatatype, this.source as TexImageSource);
+                break;
+            case TextureSourceEnum.FRAME_BUFFER:
+                gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+                var fb = source as FrameBuffer;
+                fb.bind();
+                gl.copyTexImage2D(target, 0, internalFormat, this.xOffset, this.yOffset, width, height, 0);
+                fb.unbind();
+                break;
         }
 
         // let sampler = new Sampler(options.sampler);
@@ -305,23 +298,24 @@ export class Texture {
     }
 }
 
-export enum TextureDataFromEnum {
+export enum TextureSourceEnum {
     TYPED_ARRAY,
     FRAME_BUFFER,
     IMAGE_SOURCE
 }
 
-export interface ITextureOptions extends IBaseTextureOptions {
-    width?: number;
-    height?: number;
-    source: {
-        framebuffer?: FrameBuffer;
-        xOffset?: number;
-        yOffset?: number;
-        arrayBufferView?: TypedArray;
-    } | any;
-    // sampler?: ISamplerOptions;
-}
+// export interface ITextureOptions extends IBaseTextureOptions {
+//     width?: number;
+//     height?: number;
+//     source: {
+//         framebuffer?: FrameBuffer;
+//         xOffset?: number;
+//         yOffset?: number;
+//         arrayBufferView?: TypedArray;
+//     } | any;
+//     // sampler?: ISamplerOptions;
+// }
+
 
 export interface IBaseTextureOptions extends ISamplerOptions {
     pixelFormat?: PixelFormatEnum;
@@ -334,7 +328,7 @@ export interface IBaseTextureOptions extends ISamplerOptions {
 export interface ITypedArrayTexOpts extends IBaseTextureOptions {
     width: number;
     height: number;
-    arrayBufferView: TypedArray;
+    arrayBufferView: TypedArray | null;
 }
 
 export interface IImageSourceTexOpts extends IBaseTextureOptions {

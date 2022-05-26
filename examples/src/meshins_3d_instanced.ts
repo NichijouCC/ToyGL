@@ -3,7 +3,7 @@ import { ToyGL, Material, DefaultGeometry, DefaultTexture, Color, VertexAttEnum,
 window.onload = () => {
     const toy = ToyGL.create(document.getElementById("canvas") as HTMLCanvasElement);
 
-    const { scene } = toy;
+    const { world: scene } = toy;
     const geometry = DefaultGeometry.cube;
     const material = DefaultMaterial.unlit_3d;
 
@@ -36,7 +36,7 @@ window.onload = () => {
     }
     let instanceMat = new InstanceWorldMat({ data: instanceMatData });
     let instanceColor = new InstanceColor({ data: instanceColorData });
-    toy.scene.addRenderIns({
+    toy.world.addRenderIns({
         geometry,
         material,
         worldMat: mat4.create(),
@@ -46,13 +46,13 @@ window.onload = () => {
         }
     });
 
-    const cam = toy.scene.addNewCamera();
+    const cam = toy.world.addNewCamera();
     cam.entity.localPosition[2] = 0;
     cam.entity.localPosition[1] = 0;
 
     cam.viewTargetPoint(vec3.ZERO, 100, vec3.fromValues(-30, 0, 0))
 
-    toy.scene.preRender.addEventListener((ev) => {
+    toy.world.preRender.addEventListener((ev) => {
         for (let i = 0; i < width; i++) {
             for (let j = 0; j < width; j++) {
                 for (let K = 0; K < width; K++) {

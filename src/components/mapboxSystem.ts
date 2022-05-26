@@ -63,12 +63,12 @@ export class MapBoxSystem extends System {
                 lastTime = Date.now();
                 let device = this._scene.render.device;
                 device.unbindVao();
-                device.unBindShaderProgram();
+                device.unbindShaderProgram();
                 device.unbindVbo();
                 device.unbindTextureUnit();
                 this._scene.update(deltaTime);
                 device.unbindVao();
-                device.unBindShaderProgram();
+                device.unbindShaderProgram();
                 device.unbindVbo();
                 device.unbindTextureUnit();
 

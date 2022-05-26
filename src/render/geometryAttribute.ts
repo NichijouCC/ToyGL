@@ -168,23 +168,6 @@ export class GeometryAttribute extends EventEmitter<IObjectEvent> {
         this._computeCount = (this.buffer.data.byteLength - this.bytesOffset - this.buffer.data.byteOffset) / elementOffset;
     }
 
-    // getOrCreateGlTarget(device: GraphicsDevice) {
-    //     if (this._glTarget == null) {
-    //         let buffer = this.buffer.syncData(device);
-    //         this._glTarget = device.createVertexAtt({
-    //             type: this.type,
-    //             data: buffer,
-    //             componentSize: this.componentSize,
-    //             componentDatatype: this.componentDatatype,
-    //             normalize: this.normalize,
-    //             bytesOffset: this.bytesOffset,
-    //             bytesStride: this.bytesStride,
-    //             instanceDivisor: this.instanceDivisor
-    //         });
-    //     }
-    //     return this._glTarget;
-    // }
-
     syncData(device: GraphicsDevice) {
         if (this._glTarget == null) {
             let buffer = this.buffer.syncData(device);

@@ -13,6 +13,7 @@ import { TextureUnit } from "./textureUnit";
 import { IVertexAttributeOption, VertexAttribute } from "./vertexAttribute";
 import { Buffer, bufferOption, BufferTargetEnum } from "./buffer";
 import { VertexBuffer } from "./vertexBuffer";
+import { IRenderBufferOptions, WebglRenderBuffer } from "./renderBuffer";
 
 export interface IEngineOption {
     disableWebgl2?: boolean;
@@ -32,6 +33,7 @@ export class GraphicsDevice {
     bindingVao: WebGLVertexArrayObject = null;
     bindingArrayBuffer: WebGLBuffer = null;
     bindingProgram: WebGLProgram = null;
+    bindingFrameBuffer: WebGLFramebuffer = null;
     readonly options: IEngineOption;
     constructor(canvas: HTMLCanvasElement, option?: IEngineOption) {
         if (canvas == null) return;
@@ -99,19 +101,23 @@ export class GraphicsDevice {
     }
 
     createTextureFromTypedArray(options: ITypedArrayTexOpts) {
-        return new Texture(this, { ...options, source: { arrayBufferView: options.arrayBufferView } });
+        return new Texture(this, options);
     }
 
     createTextureFromFrameBuffer(options: IFrameBufferTexOpts) {
-        return new Texture(this, { ...options, source: { framebuffer: options.framebuffer, xOffset: options.xOffset, yOffset: options.yOffset } });
+        return new Texture(this, options);
     }
 
     createTextureFromImageSource(options: IImageSourceTexOpts) {
-        return new Texture(this, { ...options, source: options.image });
+        return new Texture(this, options);
     }
 
     createFrameBuffer(options: IFrameBufferOptions) {
         return new FrameBuffer(this, options);
+    }
+
+    createRenderBuffer(options: IRenderBufferOptions) {
+        return new WebglRenderBuffer(this, options);
     }
 
     // -----------------------------gl state
@@ -158,21 +164,21 @@ export class GraphicsDevice {
     private _cachedViewPortWidth: number;
     private _cachedViewPortHeight: number;
     /**
-     * 0-1范围
+     * pixel范围
      */
     setViewPort(x: number, y: number, width: number, height: number, force = false) {
         if (
             force ||
-            x * this.canvas.width != this._cachedViewPortX ||
-            y * this.canvas.height != this._cachedViewPortY ||
-            width * this.canvas.width != this._cachedViewPortWidth ||
-            height * this.canvas.height != this._cachedViewPortHeight
+            x != this._cachedViewPortX ||
+            y != this._cachedViewPortY ||
+            width != this._cachedViewPortWidth ||
+            height != this._cachedViewPortHeight
         ) {
-            this.gl.viewport(x * this.canvas.width, y * this.canvas.height, width * this.canvas.width, height * this.canvas.height);
-            this._cachedViewPortX = x * this.canvas.width;
-            this._cachedViewPortY = y * this.canvas.height;
-            this._cachedViewPortWidth = width * this.canvas.width;
-            this._cachedViewPortHeight = height * this.canvas.height;
+            this.gl.viewport(x, y, width, height);
+            this._cachedViewPortX = x;
+            this._cachedViewPortY = y;
+            this._cachedViewPortWidth = width;
+            this._cachedViewPortHeight = height;
         }
     }
 
@@ -378,13 +384,18 @@ export class GraphicsDevice {
         this.bindingArrayBuffer = null;
     }
 
-    unBindShaderProgram() {
+    unbindShaderProgram() {
         this.gl.useProgram(null);
         this.bindingProgram = null;
     }
 
     unbindTextureUnit() {
         this.units.clear();
+    }
+
+    unbindFrameBuffer() {
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+        this.bindingFrameBuffer = null;
     }
 
     draw(vertexArray: VertexArray, instanceCount: number = 0) {

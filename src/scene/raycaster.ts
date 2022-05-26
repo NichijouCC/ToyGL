@@ -19,8 +19,8 @@ export class RayCaster {
         const ndc_y = (screenPos[1] / screen.height) * 2 - 1;
         const ndc_near = vec3.fromValues(ndc_x, ndc_y, -1);
         const ndc_far = vec3.fromValues(ndc_x, ndc_y, 1);
-        const view_near = ndcToView(ndc_near, this._toy.scene.mainCamera.projectMatrix);
-        const view_far = ndcToView(ndc_far, this._toy.scene.mainCamera.projectMatrix);
+        const view_near = ndcToView(ndc_near, this._toy.world.mainCamera.projectMatrix);
+        const view_far = ndcToView(ndc_far, this._toy.world.mainCamera.projectMatrix);
         this._toy.gizmos.drawLine(view_near, view_far);
     }
 }

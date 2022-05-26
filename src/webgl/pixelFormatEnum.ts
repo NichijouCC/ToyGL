@@ -5,6 +5,9 @@ import { GlConstants } from "./glConstant";
 import { PixelDatatypeEnum } from "./pixelDatatype";
 
 export enum PixelFormatEnum {
+
+    DEPTH_COMPONENT16 = GlConstants.DEPTH_COMPONENT16,
+
     /**
      * A pixel format containing a depth value.
      */

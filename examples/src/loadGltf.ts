@@ -15,5 +15,5 @@ toy.resource.load(cesiumMan)
         const newAsset = Prefab.instance(asset as Prefab);
         newAsset.localRotation = quat.fromEuler(quat.create(), 0, 0, 0);
         newAsset.localPosition = vec3.fromValues(0, 0, 0);
-        toy.scene.addChild(newAsset);
+        toy.world.addChild(newAsset);
     });

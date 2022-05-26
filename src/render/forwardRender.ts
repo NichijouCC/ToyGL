@@ -7,9 +7,10 @@ import { AutoUniforms } from "./autoUniform";
 import { ShaderBucket } from "./shaderBucket";
 import { IRenderable } from "./irenderable";
 import { GraphicsDevice, IEngineOption, ShaderProgram, VertexAttEnum } from "../webgl";
-import { mat4, vec3 } from "../mathD";
+import { mat4, Rect, vec3, vec4 } from "../mathD";
 import { BaseTexture } from "./baseTexture";
 import { ICamera } from "./camera";
+import { RenderTarget } from "./renderTarget";
 export class ForwardRender {
     readonly device: GraphicsDevice;
     uniformState = new UniformState();
@@ -32,7 +33,7 @@ export class ForwardRender {
         var viewProjectMatrix: mat4 = mat4.create();
         var frustum = new Frustum();
         return (camera: ICamera, renderItems: IRenderable[], options?: { onAfterFrustumCull?: (renderInsArr: IRenderable[], viewer: ICamera) => IRenderable[] }) => {
-            const { cullingMask, projectMatrix, viewMatrix } = camera;
+            const { cullingMask, projectMatrix, viewMatrix, renderTarget, viewport } = camera;
             mat4.multiply(viewProjectMatrix, projectMatrix, viewMatrix);
             frustum.setFromMatrix(viewProjectMatrix);
             this.uniformState.matrixViewProject = viewProjectMatrix;
@@ -54,9 +55,21 @@ export class ForwardRender {
             if (options?.onAfterFrustumCull != null) {
                 renderList = options?.onAfterFrustumCull(renderList, camera);
             }
+
             //准备视口和清理画布
             this.uniformState.viewer = camera;
             this.device.setViewPort(camera.viewport.x, camera.viewport.y, camera.viewport.width, camera.viewport.height);
+            let pixelWidth = this.device.canvas.width;
+            let pixelHeight = this.device.canvas.height;
+            if (renderTarget != null) {
+                let fb = renderTarget.syncData(this.device);
+                fb.bind();
+                pixelWidth = renderTarget.width;
+                pixelHeight = renderTarget.height;
+            } else {
+                this.device.unbindFrameBuffer();
+            }
+            this.device.setViewPort(viewport.x * pixelWidth, viewport.y * pixelHeight, viewport.width * pixelWidth, viewport.height * pixelHeight);
             this.device.setClearStateAndClear({
                 clearDepth: camera.enableClearDepth ? camera.dePthValue : null,
                 clearColor: camera.enableClearColor ? camera.backgroundColor : null,

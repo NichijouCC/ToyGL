@@ -2,6 +2,7 @@ import { Color, mat4, quat, Rect, vec3 } from "../mathD";
 import { Camera, LayerMask } from "../render/camera";
 import { ISceneCamera } from "../scene/isceneCamera";
 import { Component, Entity } from "../scene/entity";
+import { RenderTarget } from "../render";
 
 export const CAMERA_ASPECT = Symbol("aspect");
 
@@ -53,6 +54,7 @@ export class CameraComponent extends Component implements ISceneCamera {
     stencilValue: number = 0;
     enableClearStencil = false;
     cullingMask: LayerMask = LayerMask.default;
+    renderTarget: RenderTarget;
 
     private _aspect: number = 16 / 9;
     get aspect(): number { return this._aspect; }

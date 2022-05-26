@@ -19,3 +19,4 @@ export * from "./vertexBuffer";
 export * from "./buffer";
 export * from "./vertexArray";
 export * from "./shaderState";
+export * from "./renderBuffer";

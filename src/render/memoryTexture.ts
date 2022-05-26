@@ -79,5 +79,5 @@ export class MemoryTexture extends BaseTexture {
 export interface IMemoryTextureOption extends IBaseTextureOptions {
     width: number;
     height: number;
-    arrayBufferView: TypedArray;
+    arrayBufferView?: TypedArray;
 }

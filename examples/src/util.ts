@@ -3,7 +3,7 @@ import { ToyGL } from "../../src/toygl";
 
 export function initToy() {
     const toy = ToyGL.create(document.getElementById("canvas") as HTMLCanvasElement);
-    const cam = toy.scene.addNewCamera();
+    const cam = toy.world.addNewCamera();
 
     const size = 10;
     cam.entity.localPosition = vec3.fromValues(size, size, size);

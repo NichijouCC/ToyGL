@@ -17,3 +17,5 @@ export * from './forwardRender';
 export * from './uniformState';
 export * from '../webgl';
 export * from './instancedGeometryAttribute';
+export * from './renderBuffer';
+export * from './renderTarget';

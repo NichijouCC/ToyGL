@@ -2,7 +2,7 @@ import { Input, ToyGL, KeyCodeEnum, MouseKeyEnum, DefaultMesh, DefaultGeometry, 
 import { initToy } from "./util";
 
 const toy = initToy();
-const { scene } = toy;
+const { world: scene } = toy;
 const ins = scene.addRenderIns({
     geometry: DefaultGeometry.cube,
     material: DefaultMaterial.color_3d,

@@ -3,14 +3,14 @@ import { initToy } from "./util";
 
 (async function () {
     const toy = initToy();
-    const { scene, canvas } = toy;
+    const { world: scene, canvas } = toy;
     toy.addSystem(new HudSystem(scene, canvas, { style: { position: "absolute", top: "0", right: "0" } }));
 
     const cesiumMan = "../resources/glTF/CesiumMan/glTF/CesiumMan.gltf";
     const asset = await toy.resource.load(cesiumMan);
     const newasset = Prefab.instance(asset as Prefab);
     newasset.localRotation = quat.fromEuler(quat.create(), 0, -90, 0);
-    toy.scene.addChild(newasset);
+    toy.world.addChild(newasset);
 
     const child = scene.addNewChild();
     const comp = child.addComponent(Hud);
