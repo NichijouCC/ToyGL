@@ -147,6 +147,7 @@ export class Geometry extends Asset {
             this._beDirty = false
         } else {
             if (this._beDirty) {
+                this._beDirty = false;
                 device.unbindVao();
                 if (this.indices) {
                     this._glTarget.indexBuffer = this._indices.syncData(device);
