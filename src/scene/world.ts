@@ -95,6 +95,7 @@ export class World extends ECS {
         this.render.renderList(this._cameras, renders, {
             onAfterFrustumCull: sortRenderItems
         });
+        this.afterRender.raiseEvent();
     }
 
     pick(screenPos?: vec2) {

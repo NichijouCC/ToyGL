@@ -1,5 +1,5 @@
 import { Material } from "./material";
-import { RenderState } from "./renderState";
+import { BlitRenderState, RenderState } from "./renderState";
 import { Frustum } from "./frustum";
 import { BoundingSphere } from "../scene/bounds";
 import { UniformState } from "./uniformState";
@@ -7,9 +7,11 @@ import { AutoUniforms } from "./autoUniform";
 import { ShaderBucket } from "./shaderBucket";
 import { IRenderable } from "./irenderable";
 import { GraphicsDevice, IEngineOption, ShaderProgram, VertexAttEnum } from "../webgl";
-import { mat4, Rect, vec3, vec4 } from "../mathD";
+import { Color, mat4, Rect, vec3, vec4 } from "../mathD";
 import { BaseTexture } from "./baseTexture";
 import { ICamera } from "./camera";
+import { RenderTarget } from "./renderTarget";
+import { DefaultGeometry, DefaultMesh } from "../resources";
 export class ForwardRender {
     readonly device: GraphicsDevice;
     uniformState = new UniformState();
@@ -26,6 +28,35 @@ export class ForwardRender {
         } else {
             this._renderList(camera, renderItems, options);
         }
+    }
+
+    /**
+     * 通过材质(将source作为"MainTex"参数)绘制source图像到destination中
+     * destination=null时，则绘制到屏幕上
+    */
+    blit(source: BaseTexture, destination: RenderTarget | null, mat: Material) {
+        mat.setUniform("MainTex", source);
+        if (destination != null) {
+            let fb = destination.syncData(this.device);
+            fb.bind();
+            this.device.setViewPort(0, 0, destination.width, destination.height);
+        } else {
+            this.device.unbindFrameBuffer();
+            this.device.setViewPort(0, 0, this.device.canvas.width, this.device.canvas.height);
+        }
+        // this.device.setClearStateAndClear({ clearDepth: null, clearColor: Color.WHITE, clearStencil: null });
+        this.device.setCullState(BlitRenderState.cull);
+        this.device.setDepthState(BlitRenderState.depth);
+        this.device.setColorMaskState(BlitRenderState.colorMask);
+        this.device.setBlendState(BlitRenderState.blend);
+        this.device.setStencilState(BlitRenderState.stencilTest);
+        this.device.setScissorState(BlitRenderState.scissorTest);
+        //shader bind
+        let shaderIns = mat.shader.bind(0, this.device);
+        //shader uniform bind
+        this.bindShaderUniforms(shaderIns, mat.uniformParameters);
+        let vao = DefaultGeometry.quad2d.syncDataAndBind(this.device);
+        this.device.draw(vao);
     }
 
     private _renderList = (() => {
