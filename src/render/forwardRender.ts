@@ -4,7 +4,7 @@ import { Frustum } from "./frustum";
 import { BoundingSphere } from "../scene/bounds";
 import { UniformState } from "./uniformState";
 import { AutoUniforms } from "./autoUniform";
-import { ShaderBucket } from "./shaderBucket";
+import { ShaderFeat } from "./shaderBucket";
 import { IRenderable } from "./irenderable";
 import { GraphicsDevice, IEngineOption, ShaderProgram, VertexAttEnum } from "../webgl";
 import { Color, mat4, Rect, vec3, vec4 } from "../mathD";
@@ -51,12 +51,14 @@ export class ForwardRender {
         this.device.setBlendState(BlitRenderState.blend);
         this.device.setStencilState(BlitRenderState.stencilTest);
         this.device.setScissorState(BlitRenderState.scissorTest);
-        //shader bind
-        let shaderIns = mat.shader.bind(0, this.device);
-        //shader uniform bind
-        this.bindShaderUniforms(shaderIns, mat.uniformParameters);
-        let vao = DefaultGeometry.quad2d.syncDataAndBind(this.device);
-        this.device.draw(vao);
+        mat.shader.getSubPasses(0, this.device).forEach(el => {
+            //shader bind
+            el.bind();
+            //shader uniform bind
+            this.bindShaderUniforms(el, mat.uniformParameters);
+            let vao = DefaultGeometry.quad2d.syncDataAndBind(this.device);
+            this.device.draw(vao);
+        });
     }
 
     private _renderList = (() => {
@@ -116,7 +118,7 @@ export class ForwardRender {
         return (renderItem: IRenderable) => {
             let bucketId = 0;
             if (renderItem.skin) {
-                bucketId = bucketId | ShaderBucket.SKIN;
+                bucketId = bucketId | ShaderFeat.SKIN;
                 this.uniformState.matrixModel = renderItem.skin.worldMat;
                 this.uniformState.boneMatrices = renderItem.skin.boneMatrices;
             } else {
@@ -126,37 +128,39 @@ export class ForwardRender {
             material = renderItem.material;
             uniforms = material.uniformParameters;
             if (uniforms.MainTex) {
-                bucketId = bucketId | ShaderBucket.DIFFUSE_MAP;
+                bucketId = bucketId | ShaderFeat.DIFFUSE_MAP;
             }
             renderItem.instanceData?.attributes.forEach(item => {
                 bucketId = bucketId | item.shaderBucketId;
             });
-            //shader bind
-            let shaderIns = material.shader.bind(bucketId, this.device);
-            //shader uniform bind
-            this.bindShaderUniforms(shaderIns, uniforms);
-            //render state bind
-            renderState = material.renderState;
-            if (preMaterial != material && preRenderState != renderState) {
-                preRenderState = renderState;
-                this.device.setCullState(renderState.cull);
-                this.device.setDepthState(renderState.depth);
-                this.device.setColorMaskState(renderState.colorMask);
-                this.device.setBlendState(renderState.blend);
-                this.device.setStencilState(renderState.stencilTest);
-                this.device.setScissorState(renderState.scissorTest);
-            }
-            if (renderItem.instanceData) {//instance draw
-                renderItem.instanceData.attributes.forEach(item => renderItem.geometry.addAttribute(item));
-                //vao bind
-                let vao = renderItem.geometry.syncDataAndBind(this.device);
-                this.device.draw(vao, renderItem.instanceData.count);
-            } else {
-                //vao bind
-                let vao = renderItem.geometry.syncDataAndBind(this.device);
-                this.device.draw(vao);
-            }
-            preMaterial = material;
+            material.shader.getSubPasses(bucketId, this.device).forEach(el => {
+                //shader bind
+                el.bind();
+                //shader uniform bind
+                this.bindShaderUniforms(el, uniforms);
+                //render state bind
+                renderState = material.renderState;
+                if (preMaterial != material && preRenderState != renderState) {
+                    preRenderState = renderState;
+                    this.device.setCullState(renderState.cull);
+                    this.device.setDepthState(renderState.depth);
+                    this.device.setColorMaskState(renderState.colorMask);
+                    this.device.setBlendState(renderState.blend);
+                    this.device.setStencilState(renderState.stencilTest);
+                    this.device.setScissorState(renderState.scissorTest);
+                }
+                if (renderItem.instanceData) {//instance draw
+                    renderItem.instanceData.attributes.forEach(item => renderItem.geometry.addAttribute(item));
+                    //vao bind
+                    let vao = renderItem.geometry.syncDataAndBind(this.device);
+                    this.device.draw(vao, renderItem.instanceData.count);
+                } else {
+                    //vao bind
+                    let vao = renderItem.geometry.syncDataAndBind(this.device);
+                    this.device.draw(vao);
+                }
+                preMaterial = material;
+            })
             renderItem.children?.forEach(item => this.drawGeometry(item))
         }
     })()

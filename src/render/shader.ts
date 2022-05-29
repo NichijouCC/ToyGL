@@ -1,16 +1,12 @@
 import { RenderTypeEnum } from "./renderLayer";
 import { Asset } from "../resources/asset";
-import { ShaderBucket } from "./shaderBucket";
+import { ShaderFeat } from "./shaderBucket";
 import { GraphicsDevice, IShaderProgramOption, ShaderProgram, VertexAttEnum } from "../webgl";
 
 export class Shader extends Asset {
     static totalCount: number = 0;
-
-    private _vsStr: string;
-    private _fsStr: string;
-    private _attributes: { [attName: string]: VertexAttEnum };
     readonly create_id: number;
-
+    private _config: IMultiplyPassShaderOption;
     /**
      * 用于调整绘制顺序
      */
@@ -21,43 +17,40 @@ export class Shader extends Asset {
     sortOrder: number = 0;
 
     private _bucketFeats: number = 0;
-    set bucketFeats(feat: ShaderBucket | number) { this._bucketFeats = feat; }
-    private _programs: Map<number, ShaderProgram> = new Map();
+    set bucketFeats(feat: ShaderFeat | number) { this._bucketFeats = feat; }
+    private _programs: Map<number, ShaderProgram[]> = new Map();
 
-    constructor(options: IShaderOption) {
+    constructor(options: ISinglePassShaderOption | IMultiplyPassShaderOption) {
         super();
         this.create_id = Shader.totalCount++;
-
-        this._vsStr = options.vsStr;
-        this._fsStr = options.fsStr;
-        this._attributes = options.attributes;
+        if (options["subPasses"] != null) {
+            this._config = options as any;
+        } else {
+            let op = options as ISinglePassShaderOption;
+            this._config = { attributes: op.attributes, subPasses: [{ vs: op.vsStr, fs: op.fsStr }] }
+        }
     }
 
-    getProgram(bucketId: ShaderBucket, device: GraphicsDevice) {
+    getSubPasses(bucketId: ShaderFeat, device: GraphicsDevice) {
         bucketId = bucketId | this._bucketFeats;
         if (!this._programs.has(bucketId)) {
-            const packStr = ShaderBucket.packShaderStr(bucketId);
-            const program = device.createShaderProgram({
-                attributes: this._attributes,
-                vsStr: packStr + this._vsStr,
-                fsStr: packStr + this._fsStr
-            });
-
-            this._programs.set(bucketId, program);
+            const packStr = ShaderFeat.packShaderStr(bucketId);
+            let programs = this._config.subPasses.map(item => {
+                return device.createShaderProgram({
+                    attributes: this._config.attributes,
+                    vsStr: packStr + item.vs,
+                    fsStr: packStr + item.fs,
+                })
+            })
+            this._programs.set(bucketId, programs);
         }
         return this._programs.get(bucketId);
-    }
-
-    bind(bucketId: ShaderBucket, device: GraphicsDevice) {
-        let program = this.getProgram(bucketId, device);
-        program.bind();
-        return program;
     }
 
     destroy() { }
 
     clone() {
-        const newShader = new Shader({ vsStr: this._vsStr, fsStr: this._fsStr, attributes: this._attributes });
+        const newShader = new Shader(this._config);
         newShader._bucketFeats = this._bucketFeats;
         newShader.renderType = this.renderType;
         newShader.sortOrder = this.sortOrder;
@@ -65,7 +58,17 @@ export class Shader extends Asset {
     }
 }
 
-export type IShaderOption = IShaderProgramOption
+export interface ISinglePassShaderOption {
+    attributes: { [attName: string]: VertexAttEnum },
+    vsStr: string,
+    fsStr: string,
+}
+
+export interface IMultiplyPassShaderOption {
+    attributes: { [attName: string]: VertexAttEnum },
+    subPasses: { vs: string, fs: string, feat?: number }[],
+}
+
 export interface ILayerIndexEvent {
     layer: RenderTypeEnum;
     layerIndex: number

@@ -1,6 +1,6 @@
 import { ComponentDatatypeEnum, VertexAttEnum } from "../webgl";
 import { GeometryAttribute, IGeometryAttributeOptions } from "./geometryAttribute";
-import { ShaderBucket } from "./shaderBucket";
+import { ShaderFeat } from "./shaderBucket";
 
 export class InstancedGeometryAttribute extends GeometryAttribute {
     protected _instanceDivisor: number = 1;
@@ -16,7 +16,7 @@ export class InstanceWorldMat extends InstancedGeometryAttribute {
     constructor(options: Omit<IGeometryAttributeOptions, "type" | "componentDatatype" | "componentSize">) {
         super({
             ...options,
-            shaderBucketId: ShaderBucket.INS_MAT4,
+            shaderBucketId: ShaderFeat.INS_MAT4,
             type: VertexAttEnum.INS_MAT4,
             componentDatatype: ComponentDatatypeEnum.FLOAT,
             componentSize: 16,
@@ -28,7 +28,7 @@ export class InstanceColor extends InstancedGeometryAttribute {
     constructor(options: Omit<IGeometryAttributeOptions, "type" | "componentDatatype" | "componentSize">) {
         super({
             ...options,
-            shaderBucketId: ShaderBucket.INS_COLOR,
+            shaderBucketId: ShaderFeat.INS_COLOR,
             type: VertexAttEnum.INS_COLOR,
             componentDatatype: ComponentDatatypeEnum.UNSIGNED_BYTE,
             componentSize: 4,

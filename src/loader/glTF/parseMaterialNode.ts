@@ -5,7 +5,7 @@ import { Material } from "../../render/material";
 import { DefaultMaterial } from "../../resources/defAssets/defaultMaterial";
 import { SkinInstance, SkinMode } from "../../scene/primitive/animation/skinInstance";
 import { MaterialAlphaMode } from "./gltfJsonStruct";
-import { ShaderBucket } from "../../render/shaderBucket";
+import { ShaderFeat } from "../../render/shaderBucket";
 import { RenderTypeEnum } from "../../render/renderLayer";
 
 // namespace Private {
@@ -204,7 +204,7 @@ export class ParseMaterialNode {
                         mat.renderState.depth.depthWrite = false;
                         break;
                     case MaterialAlphaMode.MASK:
-                        mat.shader.bucketFeats = ShaderBucket.AlPHA_CUT;
+                        mat.shader.bucketFeats = ShaderFeat.AlPHA_CUT;
                         break;
                 }
             }
