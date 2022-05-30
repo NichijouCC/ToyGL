@@ -1,5 +1,5 @@
 import { setInterval } from "timers";
-import { Color, DefaultGeometry, DefaultMaterial, mat4, Material, RenderTarget, Shader, TextureAsset, ToyGL, vec3, vec4, VertexAttEnum } from "../../src";
+import { Color, DefaultGeometry, DefaultMaterial, DefaultTexture, mat4, Material, RenderTarget, Shader, TextureAsset, ToyGL, vec3, vec4, VertexAttEnum } from "../../src";
 
 function createPostEffectShader() {
     return new Shader({
@@ -36,6 +36,7 @@ window.onload = () => {
 
     const geometry = DefaultGeometry.cube;
     const material = DefaultMaterial.unlit_3d.clone();
+    // material.setUniform("MainTex", DefaultTexture.grid);
     TextureAsset.fromUrl({ image: "./images/001.jpg" })
         .then(tex => {
             material.setUniform("MainTex", tex);

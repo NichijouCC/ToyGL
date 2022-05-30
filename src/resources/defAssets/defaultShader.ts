@@ -7,16 +7,17 @@ namespace Private {
             POSITION: VertexAttEnum.POSITION
         },
         vsStr: `attribute vec3 POSITION;
-        void main()
-        {
-            highp vec4 temp_1=vec4(POSITION.xyz,1.0);\
-            gl_Position = temp_1;\
-        }`,
-        fsStr: `uniform highp vec4 MainColor;
-        void main()
-        {
-            gl_FragData[0] = MainColor;
-        }`
+                void main()
+                {
+                    vec4 temp_1=vec4(POSITION.xyz,1.0);\
+                    gl_Position = temp_1;\
+                }`,
+        fsStr: `precision highp float;
+                uniform  vec4 MainColor;
+                void main()
+                {
+                    gl_FragData[0] = MainColor;
+                }`
     });
     export const tex_2d = new Shader({
         attributes: {
@@ -24,21 +25,21 @@ namespace Private {
             TEXCOORD_0: VertexAttEnum.TEXCOORD_0
         },
         vsStr: `attribute vec3 POSITION;
-          attribute vec2 TEXCOORD_0;
-          varying mediump vec2 xlv_TEXCOORD0;
-          void main()
-          {
-              highp vec4 temp_1=vec4(POSITION.xyz*2.0,1.0);
-              xlv_TEXCOORD0 = TEXCOORD_0.xy;
-              gl_Position = temp_1;
-          }`,
-        fsStr: `uniform highp vec4 MainColor;
-          uniform lowp sampler2D MainTex;
-          varying mediump vec2 xlv_TEXCOORD0;
-          void main()
-          {
-              gl_FragData[0] = texture2D(MainTex, xlv_TEXCOORD0);
-          }`
+                attribute vec2 TEXCOORD_0;
+                varying vec2 xlv_TEXCOORD0;
+                void main()
+                {
+                    xlv_TEXCOORD0 = TEXCOORD_0.xy;
+                    gl_Position = vec4(POSITION.xyz,1.0);
+                }`,
+        fsStr: `precision highp float;
+                uniform vec4 MainColor;
+                uniform sampler2D MainTex;
+                varying vec2 xlv_TEXCOORD0;
+                void main()
+                {
+                    gl_FragData[0] = texture2D(MainTex, xlv_TEXCOORD0);
+                }`
     });
 
     export const color_3d = new Shader({
@@ -47,51 +48,52 @@ namespace Private {
             TEXCOORD_0: VertexAttEnum.TEXCOORD_0
         },
         vsStr: `attribute vec3 POSITION;
-        uniform highp mat4 czm_modelViewP;
-        void main()
-        {
-            highp vec4 temp_1=vec4(POSITION.xyz,1.0);
-            gl_Position = czm_modelViewP * temp_1;
-        }`,
-        fsStr: `uniform highp vec4 MainColor;
-        void main()
-        {
-            gl_FragData[0] = MainColor;
-        }`
+                uniform mat4 czm_modelViewP;
+                void main()
+                {
+                    vec4 temp_1=vec4(POSITION.xyz,1.0);
+                    gl_Position = czm_modelViewP * temp_1;
+                }`,
+        fsStr: `precision highp float;
+                uniform  vec4 MainColor;
+                void main()
+                {
+                    gl_FragData[0] = MainColor;
+                }`
     });
 
     const fsStr = `precision highp float;
-    uniform vec4 MainColor;
-    #ifdef DIFFUSEMAP
-    varying vec2 xlv_TEXCOORD0;
-    uniform sampler2D MainTex;
-    #endif
-    #ifdef AlPHACUT
-    uniform float czm_alphaCut;
-    #endif
+                    uniform vec4 MainColor;
+                    #ifdef DIFFUSEMAP
+                    varying vec2 xlv_TEXCOORD0;
+                    uniform sampler2D MainTex;
+                    #endif
+                    #ifdef AlPHACUT
+                    uniform float czm_alphaCut;
+                    #endif
 
-    #ifdef INS_COLOR
-    varying vec4 v_a_color;
-    #endif
+                    #ifdef INS_COLOR
+                    varying vec4 v_a_color;
+                    #endif
 
-    void main()
-    {
-        vec4 outColor=MainColor;
-        #ifdef DIFFUSEMAP
-        outColor=outColor*texture2D(MainTex, xlv_TEXCOORD0);
-        #endif
+                    void main()
+                    {
+                        vec4 outColor=MainColor;
+                        #ifdef DIFFUSEMAP
+                        outColor=outColor*texture2D(MainTex, xlv_TEXCOORD0);
+                        #endif
 
-        #ifdef INS_COLOR
-        outColor=outColor*v_a_color;
-        #endif
+                        #ifdef INS_COLOR
+                        outColor=outColor*v_a_color;
+                        #endif
 
-        #ifdef AlPHACUT
-        if(outColor.a<czm_alphaCut){
-            discard;
-        }
-        #endif
-        gl_FragData[0] = outColor;
-    }`
+                        #ifdef AlPHACUT
+                        if(outColor.a<czm_alphaCut){
+                            discard;
+                        }
+                        #endif
+                        gl_FragData[0] = outColor;
+                    }`
 
     export const unlit_3d = new Shader({
         attributes: {
@@ -102,8 +104,7 @@ namespace Private {
             ins_mat4: VertexAttEnum.INS_MAT4,
             ins_color: VertexAttEnum.INS_COLOR,
         },
-        vsStr: `precision highp float;
-        attribute vec4 POSITION;
+        vsStr: `attribute vec4 POSITION;
         attribute vec2 TEXCOORD_0;
         varying vec2 xlv_TEXCOORD0;
 
@@ -186,9 +187,8 @@ namespace Private {
             skinIndex: VertexAttEnum.JOINTS_0,
             skinWeight: VertexAttEnum.WEIGHTS_0,
         },
-        vsStr: `precision highp float;
-        attribute vec3 TEXCOORD_0;
-        varying mediump vec2 xlv_TEXCOORD0;
+        vsStr: `attribute vec3 TEXCOORD_0;
+        varying vec2 xlv_TEXCOORD0;
         #ifdef SKIN
         uniform mat4 czm_viewP;
         attribute vec4 skinIndex;

@@ -135,10 +135,12 @@ function compileAndLinkShader(gl: WebGLRenderingContext, definition: Pick<IShade
         gl.attachShader(shader, vsShader);
         gl.attachShader(shader, fsShader);
         gl.linkProgram(shader);
-        const check = gl.getProgramParameter(shader, gl.LINK_STATUS);
-        if (check == false) {
-            const debugInfo = "ERROR: compile program Error! \n" + gl.getProgramInfoLog(shader);
-            console.error(debugInfo);
+        const linkCheck = gl.getProgramParameter(shader, gl.LINK_STATUS);
+        if (linkCheck == false) {
+            //https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_best_practices#dont_check_shader_compile_status_unless_linking_fails
+            console.error("ERROR: program link failed! \n" + gl.getProgramInfoLog(shader));
+            console.error("VS INFO-LOG： \n" + gl.getShaderInfoLog(vsShader));
+            console.error("FS INFO-LOG： \n" + gl.getShaderInfoLog(fsShader));
             gl.deleteProgram(shader);
             return null;
         } else {
@@ -155,15 +157,7 @@ function compileShaderSource(gl: WebGLRenderingContext, source: string, beVertex
     const item = gl.createShader(target);
     gl.shaderSource(item, source);
     gl.compileShader(item);
-    const check = gl.getShaderParameter(item, gl.COMPILE_STATUS);
-    if (check == false) {
-        let debug = beVertex ? "ERROR: compile  VS Shader Error! VS:" : "ERROR: compile FS Shader Error! FS:";
-        debug = debug + name + ".\n";
-        console.error(debug, source + "\n", gl.getShaderInfoLog(item));
-        gl.deleteShader(item);
-    } else {
-        return item;
-    }
+    return item;
 }
 
 function preSetAttributeLocation(gl: WebGLRenderingContext, program: WebGLProgram, attInfo: { [attName: string]: VertexAttEnum }): { [attName: string]: IAttributeInfo } {

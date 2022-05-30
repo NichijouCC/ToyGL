@@ -35,7 +35,7 @@ export class ParseTextureNode {
                                 texOp.filterMin = samplerInfo.minFilter;
                             }
                         }
-                        const texture: Texture2D = new Texture2D({ image: img });
+                        const texture: Texture2D = new Texture2D({ image: img, flipY: false });
                         return texture;
                     })
                     .catch(err => {

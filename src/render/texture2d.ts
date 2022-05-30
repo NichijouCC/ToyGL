@@ -10,6 +10,7 @@ export class Texture2D extends BaseTexture {
         this._source = options.image;
         this.width = options.image.width;
         this.height = options.image.height;
+        this._flipY = options.flipY ?? true;
     }
 
     protected create(device: GraphicsDevice): Texture {

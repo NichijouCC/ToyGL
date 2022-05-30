@@ -69,7 +69,7 @@ export class Texture {
         this.pixelFormat = options.pixelFormat ?? PixelFormatEnum.RGBA;
         this.pixelDatatype = options.pixelDatatype ?? PixelDatatypeEnum.UNSIGNED_BYTE;
         this.flipY = options.flipY ?? false;
-        this.preMultiplyAlpha = options.preMultiplyAlpha || options.pixelFormat === PixelFormatEnum.RGB || options.pixelFormat === PixelFormatEnum.LUMINANCE;
+        this.preMultiplyAlpha = options.preMultiplyAlpha ?? false;
         const isCompressed = PixelFormatEnum.isCompressedFormat(this.pixelFormat);
         const sizeInBytes = isCompressed
             ? PixelFormatEnum.compressedTextureSizeInBytes(this.pixelFormat, this.width, this.height)
@@ -196,16 +196,13 @@ export class Texture {
         this.unpackAlignment = unpackAlignment;
         switch (this.sourceType) {
             case TextureSourceEnum.TYPED_ARRAY:
-                gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
-                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+                gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, preMultiplyAlpha);
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flipY);
 
                 var arrayBufferView = source as TypedArray;
                 if (isCompressed) {
                     gl.compressedTexImage2D(target, 0, internalFormat, width, height, 0, arrayBufferView);
                 } else {
-                    if (flipY) {
-                        arrayBufferView = PixelFormatEnum.flipY(arrayBufferView, pixelFormat, pixelDatatype, width, height);
-                    }
                     gl.texImage2D(target, 0, internalFormat, width, height, 0, pixelFormat, pixelDatatype, arrayBufferView);
                 }
                 break;
@@ -318,9 +315,13 @@ export enum TextureSourceEnum {
 
 
 export interface IBaseTextureOptions extends ISamplerOptions {
+    /** 默认：RGBA */
     pixelFormat?: PixelFormatEnum;
+    /** 默认：UNSIGNED_BYTE */
     pixelDatatype?: PixelDatatypeEnum;
+    /** 默认：false*/
     preMultiplyAlpha?: boolean;
+    /** 默认：false */
     flipY?: boolean;
 }
 
@@ -345,12 +346,18 @@ export interface IFrameBufferTexOpts extends IBaseTextureOptions {
 
 export interface ISamplerOptions {
     // ----------------texParameteri-------------
+    /** 默认：LINEAR */
     filterMax?: TextureFilterEnum;
+    /** 默认：LINEAR */
     filterMin?: TextureFilterEnum;
+    /** 默认：REPEAT */
     wrapS?: TextureWrapEnum;
+    /** 默认：REPEAT */
     wrapT?: TextureWrapEnum;
     maximumAnisotropy?: number;
+    /** 默认：false */
     enableMipmap?: boolean;
+    /** 默认：REPEAT */
     mipmapFilter?: TextureFilterEnum;
 }
 export enum MipmapHintEnum {

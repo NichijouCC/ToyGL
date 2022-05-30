@@ -14,7 +14,7 @@ namespace Private {
     export const grid = new MemoryTexture({
         width: 256,
         height: 256,
-        arrayBufferView: getGridTexData(256, 256)
+        arrayBufferView: getGridTexData(256, 256),
     });
 
     function getGridTexData(width: number, height: number) {

@@ -92,12 +92,12 @@ export namespace Private {
                 type: VertexAttEnum.TEXCOORD_0,
                 componentSize: 2,
                 data: [
-                    0.0, 1.0,
-                    1.0, 1.0,
-                    1.0, 0.0,
-                    1.0, 0.0,
                     0.0, 0.0,
-                    0.0, 1.0
+                    1.0, 0.0,
+                    1.0, 1.0,
+                    1.0, 1.0,
+                    0.0, 1.0,
+                    0.0, 0.0
                 ]
             }
         ]
