@@ -7,6 +7,7 @@ import { SkinInstance, SkinMode } from "../../scene/primitive/animation/skinInst
 import { MaterialAlphaMode } from "./gltfJsonStruct";
 import { ShaderFeat } from "../../render/shaderBucket";
 import { RenderTypeEnum } from "../../render/renderLayer";
+import { DefaultTexture } from "../../resources";
 
 // namespace Private {
 //     /**
@@ -185,10 +186,13 @@ export class ParseMaterialNode {
                         mat.setUniform("MainTex", tex);
                     });
             } else {
-                mat.shader = DefaultMaterial.color_3d.shader;
+                mat.shader = DefaultMaterial.unlit_3d.shader;
+                mat.setUniform("MainTex", DefaultTexture.white);
                 const baseColor = node.pbrMetallicRoughness?.baseColorFactor;
                 if (baseColor) {
                     mat.setUniform("MainColor", Color.create(baseColor[0], baseColor[1], baseColor[2], baseColor[3]));
+                } else {
+                    mat.setUniform("MainColor", Color.create(1.0, 1.0, 1.0, 1.0))
                 }
             }
             if (node.doubleSided) {

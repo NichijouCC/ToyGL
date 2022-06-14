@@ -4,6 +4,8 @@ import { ClipInstance, ClipOptions } from "../scene/primitive/animation/clipInst
 
 export class Animation extends Component {
     beAutoPlay: boolean = true;
+
+    timeScale = 1;
     private _clips: AnimationClip[] = [];
     get clips() { return this._clips; }
 

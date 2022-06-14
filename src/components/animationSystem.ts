@@ -7,7 +7,7 @@ export class AnimationSystem extends System {
         this.queries.comps.forEach((node) => {
             const comp = node.getComponent(Animation);
             if (comp.currentClip) {
-                comp.currentClip._update(deltaTime);
+                comp.currentClip._update(deltaTime * comp.timeScale);
             } else {
                 if (comp.beAutoPlay && comp.clips.length > 0) {
                     comp.playByIndex(0);
