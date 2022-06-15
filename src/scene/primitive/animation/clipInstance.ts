@@ -22,12 +22,6 @@ export class ClipInstance {
         this._options = options;
     }
 
-    setState(state?: { curFrame?: number, localTime?: number }) {
-        const { curFrame = 0, localTime = 0 } = state || {};
-        this.curFrame = curFrame;
-        this.localTime = localTime;
-    }
-
     private _state = ClipStateEnum.INITING;
     get bePlaying() { return this._state == ClipStateEnum.PLAYING; }
     _init() {
@@ -42,16 +36,25 @@ export class ClipInstance {
     }
 
     private _execute(deltaTime: number) {
-        this.localTime += deltaTime * this.speed;
+        this.setTime(this.localTime + deltaTime * this.speed);
+    }
+    /** 指定动画时间显示*/
+    setTime(time: number) {
+        this.localTime = time;
         let newFrame = (this.localTime * AnimationClip.FPS) | 0;
-        if (newFrame != this.curFrame) {
+        this.setFrameIndex(newFrame);
+    }
+
+    /** 指定动画帧显示*/
+    setFrameIndex(frameIndex: number) {
+        if (frameIndex != this.curFrame) {
             const { channelInsArr, clip: { totalFrame } } = this;
-            if (newFrame > totalFrame) {
+            if (frameIndex > totalFrame) {
                 if (this.curFrame < totalFrame) {
-                    newFrame = totalFrame;
+                    frameIndex = totalFrame;
                 } else {
                     if (this.beLoop) { // ----------------------restart play
-                        newFrame = 0;
+                        frameIndex = 0;
                         this.localTime = 0;
                         this.channelInsArr.forEach(item => item.jumpToStart());
                         this.onEnd.raiseEvent();
@@ -62,8 +65,8 @@ export class ClipInstance {
                     }
                 }
             }
-            this.curFrame = newFrame;
-            channelInsArr.forEach(item => item.execute(newFrame));
+            this.curFrame = frameIndex;
+            channelInsArr.forEach(item => item.execute(frameIndex));
         }
     }
 

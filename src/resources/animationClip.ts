@@ -3,7 +3,8 @@ import { Asset } from "./asset";
 
 export class AnimationClip extends Asset {
     channels: AnimationChannel[] = [];
-    totalFrame: number = 0;
+    totalTime: number = 0;
+    get totalFrame() { return (this.totalTime * AnimationClip.FPS) | 0 }
     static readonly FPS: number = 30;
 
     constructor(name?: string) {
@@ -19,12 +20,13 @@ export class AnimationClip extends Asset {
 export class AnimationChannel {
     targetName: string;// find transform(bone) by TargetName;
     propertyName: AnimationChannelTargetPath;
+    /** 关键帧时间 */
     keyframes: number[] = [];
     values: any[] = [];
     interPolation: AnimationSamplerInterpolation = AnimationSamplerInterpolation.LINEAR;
 
-    get startFrame() { return this.keyframes[0]; };
-    get endFrame() { return this.keyframes[this.keyframes.length - 1]; };
+    get startTime() { return this.keyframes[0]; };
+    get endTime() { return this.keyframes[this.keyframes.length - 1]; };
 }
 
 export enum AnimationSamplerInterpolation {

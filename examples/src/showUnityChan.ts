@@ -1,24 +1,11 @@
-import { Prefab, quat, vec3, Animation, ToyGL, ModelComponent, Texture2D, TextureAsset } from "TOYGL";
-import { initToy } from "./util";
+import { Prefab, quat, vec3, Animation, ToyGL, ModelComponent, Texture2D, TextureAsset, AnimationClip } from "TOYGL";
 
 const toy = ToyGL.create(document.getElementById("canvas") as HTMLCanvasElement);
 const cam = toy.world.addNewCamera();
 
-const size = 250;
-cam.entity.localPosition = vec3.fromValues(size, size, size);
+cam.entity.localPosition = vec3.fromValues(0, 100, 200);
 // cam.node.lookAtPoint(vec3.create());
-
-cam.entity.lookAtPoint(vec3.fromValues(0, 100, 0));
-
-const building = "./A1_003.glb";
-const duck = "../resources/glTF/duck/Duck.gltf";
-const tree = "../resources/glTF/apple/AppleTree.gltf";
-const uvtest = "../resources/glTF/TextureCoordinateTest/glTF/TextureCoordinateTest.gltf";
-const cesiumMan = "./glTF/cesiumMan/glTF/CesiumMan.gltf";
-const boxanimation = "../resources/glTF/BoxAnimated/glTF/BoxAnimated.gltf";
-const Monster = "../resources/glTF/Monster/glTF/Monster.gltf";
-
-
+cam.entity.lookAtPoint(vec3.fromValues(0, 80, 0));
 const parts: { [part: string]: string } = {
     "button": "body_01.png",
     "cheek": "cheek_00.png",
@@ -46,31 +33,87 @@ const parts: { [part: string]: string } = {
     "MTH_DEF": "face_00.png",
 }
 
-toy.resource.load("./glTF/unitychan/unitychan.glb")
-    .then(asset => {
-        const newAsset = Prefab.instance(asset as Prefab);
-        newAsset.localRotation = quat.fromEuler(quat.create(), 0, 0, 0);
-        newAsset.localPosition = vec3.fromValues(0, 0, 0);
-        toy.world.addChild(newAsset);
+let loadAsset = async () => {
+    let root = await toy.resource.load("./glTF/unitychan/unitychan.glb")
+        .then(asset => {
+            const newAsset = Prefab.instance(asset as Prefab);
+            newAsset.localRotation = quat.fromEuler(quat.create(), 0, 0, 0);
+            newAsset.localPosition = vec3.fromValues(0, 0, 0);
+            toy.world.addChild(newAsset);
+            newAsset.findComponents(Animation).forEach(el => el.entity.removeComponent(Animation))
+            return newAsset;
+        });
 
-        for (let key in parts) {
-            TextureAsset.fromUrl({ image: `./glTf/unitychan/textures/${parts[key]}` }).then(res => {
-                let tex = res as Texture2D;
-                let node = newAsset.find(el => el.name == key);
-                if (node) {
-                    node.getComponent(ModelComponent).material.setUniform("MainTex", tex)
-                } else {
-                    console.warn("无法找到节点", key);
-                }
-            })
+    await toy.resource.load("./glTF/unitychan/unitychan.gltf")
+        .then(asset => {
+
+        })
+
+    // await Promise.all(Object.keys(parts).map(key => TextureAsset.fromUrl({ image: `./glTf/unitychan/textures/${parts[key]}`, flipY: false })
+    //     .then(res => {
+    //         let tex = res as Texture2D;
+    //         let node = root.find(el => el.name == key);
+    //         if (node) {
+    //             node.getComponent(ModelComponent).material.setUniform("MainTex", tex)
+    //         } else {
+    //             console.warn("无法找到节点", key);
+    //         }
+    //     })))
+    return toy.resource.load("./glTF/unitychan/pos1.glb")
+        .then(asset => {
+            let a = asset as Prefab;
+            root.localRotation = quat.fromEuler(quat.create(), 90, 0, 0);
+            let comp = a.root.findComponents(Animation)?.[0]?.clone();
+            comp.timeScale = 0.01;
+            root.addComponentDirect(comp);
+            return comp;
+        });
+}
+
+loadAsset().then(comp => {
+    //UI
+    let container = createUIContainer();
+    let posData = [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24]
+    createRowSelect(container, {
+        title: "摆POSE",
+        options: posData.map((el, index) => { return { name: `Pos${index + 1}`, data: el } }),
+        onchange: (el) => {
+            console.info(el.name);
+            comp.frameIndex = el.data
         }
-
-        toy.resource.load("./glTF/unitychan/pos1.glb")
-            .then(asset => {
-                let a = asset as Prefab;
-                newAsset.localRotation = quat.fromEuler(quat.create(), 90, 0, 0);
-                let comp = a.root.findComponents(Animation)?.[0]?.clone();
-                comp.timeScale = 0.01;
-                newAsset.addComponentDirect(comp);
-            });
     });
+})
+
+function createUIContainer() {
+    let container = document.createElement("div");
+    document.body.appendChild(container);
+    container.style.position = "absolute";
+    container.style.right = "0px";
+    container.style.top = "0px";
+    container.style.backgroundColor = "rgb(26,115,232)";
+    container.style.padding = "10px";
+    return container;
+}
+
+function createRowSelect<T = any>(parent: HTMLDivElement, info: { title: string, options: { name: string, data?: T }[], onchange?: (el: { name: string, data?: T }) => void }) {
+    let row = document.createElement("div");
+    row.style.display = "flex"
+    row.style.flexDirection = "row"
+    row.style.minWidth = "200px"
+    let title = document.createElement("div");
+    title.innerText = info.title;
+    title.style.marginRight = "20px"
+    let select = document.createElement("select");
+    select.style.minWidth = "150px"
+    info.options.map(el => {
+        let opt = document.createElement("option");
+        opt.text = el.name;
+        select.add(opt);
+    })
+    select.onchange = (ev) => {
+        info.onchange?.(info.options[(ev.target as HTMLSelectElement).selectedIndex])
+    }
+    row.appendChild(title);
+    row.appendChild(select);
+    parent.appendChild(row);
+}
