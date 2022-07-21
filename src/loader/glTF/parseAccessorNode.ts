@@ -21,7 +21,7 @@ export interface IaccessorData {
 
 export namespace Accessor {
     export function getTypedData(data: IaccessorData) {
-        const result: any[] = [];
+        const result: TypedArray[] = [];
         const { typedArray, componentSize, bytesStride, bytesOffset } = data;
         const startOffset = bytesOffset / typedArray.BYTES_PER_ELEMENT;
         let elementOffset = 0;

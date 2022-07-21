@@ -17,8 +17,8 @@ export class ParseAnimationNode {
             return this.parseChannelData(item.target, sampleNode, gltf)
                 .then((channel) => {
                     newClip.channels.push(channel);
-                    if (channel.endFrame > newClip.totalFrame) {
-                        newClip.totalFrame = channel.endFrame;
+                    if (channel.endTime > newClip.totalTime) {
+                        newClip.totalTime = channel.endTime;
                     }
                 });
         })).then(() => { return newClip; });
@@ -36,7 +36,7 @@ export class ParseAnimationNode {
         ]).then(([inputData, outputData]) => {
             const keyframes = Accessor.getTypedData(inputData);
             for (let i = 0; i < keyframes.length; i++) {
-                chan.keyframes[i] = (keyframes[i] * AnimationClip.FPS) | 0;// 变成frame
+                chan.keyframes[i] = keyframes[i][0];
             }
             chan.values = Accessor.getTypedData(outputData);
             return chan;

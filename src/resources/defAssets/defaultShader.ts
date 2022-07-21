@@ -45,7 +45,6 @@ namespace Private {
     export const color_3d = new Shader({
         attributes: {
             POSITION: VertexAttEnum.POSITION,
-            TEXCOORD_0: VertexAttEnum.TEXCOORD_0
         },
         vsStr: `attribute vec3 POSITION;
                 uniform mat4 czm_modelViewP;
@@ -111,7 +110,7 @@ namespace Private {
         #ifdef SKIN
         attribute vec4 skinIndex;
         attribute vec4 skinWeight;
-        uniform mat4 czm_boneMatrices[65];
+        uniform mat4 czm_boneMatrices[200];
         uniform mat4 czm_viewP;
         vec4 calcVertex(vec4 srcVertex,vec4 blendIndex,vec4 blendWeight)
         {

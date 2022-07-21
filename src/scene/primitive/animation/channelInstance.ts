@@ -1,5 +1,5 @@
 import { numberLerp, quat, vec3 } from "../../../mathD";
-import { AnimationChannel } from "../../../resources/animationClip";
+import { AnimationChannel, AnimationClip } from "../../../resources/animationClip";
 import { Entity } from "../../entity";
 
 export class ChannelInstance {
@@ -37,17 +37,18 @@ export class ChannelInstance {
 
     execute(currentFrame: number) {
         if (!this.beInit) { return; }
-        if (currentFrame < this.channel.startFrame || currentFrame > this.channel.endFrame) { return; }
+        let frameTime = currentFrame * 1.0 / AnimationClip.FPS;
+        if (frameTime < this.channel.startTime || frameTime > this.channel.endTime) { return; }
 
-        const { keyframes, endFrame, values } = this.channel;
+        const { keyframes, endTime, values } = this.channel;
         // ---------------------------------寻找lerp start end frame
-        let startIndex = this.temptLastStartIndex ?? ((keyframes.length - 1) * currentFrame / endFrame) | 0;
-        if (keyframes[startIndex] < currentFrame) {
+        let startIndex = this.temptLastStartIndex ?? ((keyframes.length - 1) * frameTime / endTime) | 0;
+        if (keyframes[startIndex] < frameTime) {
             startIndex++;
-            while (keyframes[startIndex] < currentFrame) { startIndex++; }
-            if (keyframes[startIndex] > currentFrame) { startIndex--; }
+            while (keyframes[startIndex] < frameTime) { startIndex++; }
+            if (keyframes[startIndex] > frameTime) { startIndex--; }
         } else {
-            while (keyframes[startIndex] > currentFrame) { startIndex--; }
+            while (keyframes[startIndex] > frameTime) { startIndex--; }
         }
         this.temptLastStartIndex = startIndex;
         const endIndex = startIndex + 1;
@@ -57,7 +58,7 @@ export class ChannelInstance {
         } else {
             const frameOffset = keyframes[endIndex] - keyframes[startIndex];
             if (frameOffset == 0) return;
-            const lerp = (currentFrame - keyframes[startIndex]) / frameOffset;
+            const lerp = (frameTime - keyframes[startIndex]) / frameOffset;
             const value = this.lerpFunc(values[startIndex], values[endIndex], lerp);
             this.setFunc(value, this.target);
         }
