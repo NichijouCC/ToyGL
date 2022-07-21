@@ -11,9 +11,9 @@ export class ModelSystem extends System {
     }
 
     update(deltaTime: number): void {
-        this.queries.comps.forEach((node) => {
+        this.queries.comps.filter(el => el.beActive && el.beInWorld).forEach((node) => {
             const comp = node.getComponent(ModelComponent);
-            if (comp.entity.beActive == true && comp.mesh != null) {
+            if (comp.mesh != null) {
                 let { mesh, skinIns, materials, entity: { worldMatrix } } = comp;
                 let baseRender: IRenderable = {
                     geometry: mesh.subMeshes[0],

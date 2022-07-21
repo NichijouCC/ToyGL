@@ -3,8 +3,6 @@
 
 import { ECS } from "./ecs";
 import { UnitedBitKey } from "./bitKey";
-import { EventEmitter } from "@mtgoo/ctool";
-import { IEntityEvent } from "./entity";
 export const UPDATE = Symbol("update");
 export const UNIT_BIT_KEY = Symbol("uniteBitKey");
 export const COMPS = Symbol("comps");
@@ -19,7 +17,7 @@ export interface IComponent {
     clone(): IComponent;
 }
 
-export interface IEntity extends EventEmitter<IEntityEvent> {
+export interface IEntity {
     id: string;
     readonly ecs: ECS;
     // beInWorld: boolean;

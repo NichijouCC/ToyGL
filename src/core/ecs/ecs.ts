@@ -27,7 +27,7 @@ export class ECS {
     removeEntity(entity: IEntity) {
         if (entity == null) return;
         delete this.entities[entity.id];
-        entity.removeAllListeners();
+        // entity.removeAllListeners();
         this.systems.forEach(item => item.system.removeEntity(entity))
     }
 
@@ -58,7 +58,7 @@ export class ECS {
         });
         entity[COMPS][comp.compName] = comp;
         entity[UNIT_BIT_KEY].addBitKey(compInfo.bitKey);
-        entity.emit("AddComp", comp);
+        // entity.emit("AddComp", comp);
         this.systemAddEntityByComp(comp);
     }
 
@@ -68,7 +68,7 @@ export class ECS {
             const compInfo = this.registeredComps[comp.name];
             entity[UNIT_BIT_KEY].removeBitKey(compInfo.bitKey);
             delete entity[COMPS][comp.name];
-            entity.emit("removeComp", component);
+            // entity.emit("removeComp", component);
             this.systemRemoveEntityByComp(component);
         }
     }

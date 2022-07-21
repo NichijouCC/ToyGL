@@ -105,15 +105,10 @@ export class Geometry extends Asset {
         let vAtt: GeometryAttribute = data as any;
         if (!(data instanceof GeometryAttribute)) {
             vAtt = new GeometryAttribute({ ...data });
-            this.attributes[vAtt.type]?.off("BeDirty", this.listenToAttBeDirty);
-            this.attributes[vAtt.type] = vAtt;
-            vAtt.on("BeDirty", this.listenToAttBeDirty);
-        } else {
-            if (this.attributes[vAtt.type] == vAtt) return;
-            this.attributes[vAtt.type]?.off("BeDirty", this.listenToAttBeDirty);
-            this.attributes[vAtt.type] = vAtt;
-            vAtt.on("BeDirty", this.listenToAttBeDirty);
         }
+        this.attributes[vAtt.type]?.off("BeDirty", this.listenToAttBeDirty);
+        this.attributes[vAtt.type] = vAtt;
+        vAtt.on("BeDirty", this.listenToAttBeDirty);
         this._beDirty = true;
     }
 

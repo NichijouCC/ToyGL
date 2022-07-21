@@ -1,6 +1,6 @@
 import { vec3, mat4, quat, mat4Pool, vec3Pool } from "../mathD/index";
 import { ECS, Entity as BaseEntity } from "../core/ecs";
-enum DirtyFlagEnum {
+export enum DirtyFlagEnum {
     WORLD_POS = 0b000100,
     WORLD_ROTATION = 0b001000,
     WORLD_SCALE = 0b010000,
@@ -12,7 +12,7 @@ export class Transform extends BaseEntity {
     get parent() { return this._parent; }
     protected _children: this[] = [];
     get children() { return this._children; }
-    private dirtyFlag = 0;
+    protected dirtyFlag = 0;
 
     // -----------------------------------------------------------------------------------------------------------
     //  本节点是否显示由节点自身是否显示和递归的父节点是否显示综合决定，【beActive = selfBeActive & p1_beActive & p2_beActive & .... 】 
@@ -39,6 +39,15 @@ export class Transform extends BaseEntity {
             if (this._parentsBeActive) {
                 this._children.forEach(item => item._setParentsBeActive(active));
             }
+        }
+    }
+
+    private _beInWorld = false;
+    get beInWorld() { return this._beInWorld }
+    set beInWorld(value: boolean) {
+        if (this._beInWorld != value) {
+            this._beInWorld = value
+            this._children.forEach(item => item.beInWorld = value);
         }
     }
 
@@ -262,20 +271,23 @@ export class Transform extends BaseEntity {
      * 添加子物体实例
      */
     addChild(node: this) {
-        if (node._parent != null) {
-            node._parent.removeChild(node);
-        }
+        // if (node._parent != null) {
+        //     node._parent.removeChild(node);
+        // }
+
         this._children.push(node);
         node._parent = this;
         node.markDirty();
         node._setParentsBeActive(this.beActive);
-
-        if (this.beInWorld && node.beInWorld == false) {
-            node.traverse((el) => {
-                this.ecs.addEntity(el);
-                el.beInWorld = true;
-            }, true)
+        if (node.beInWorld != this.beInWorld) {
+            node.beInWorld = this.beInWorld;
         }
+        // if (this.beInWorld && node.beInWorld == false) {
+        //     node.traverse((el) => {
+        //         this.ecs.addEntity(el);
+        //         el.beInWorld = true;
+        //     }, true)
+        // }
         return node;
     }
 
@@ -286,14 +298,10 @@ export class Transform extends BaseEntity {
         // if(this.children==undefined||this.children.length==0) return;
         if (this._children.length == 0) return;
 
-        this.traverse((el) => {
-            el._parentsBeActive = false;
+        this._children.forEach(el => {
             el._parent = null;
-            if (el.beInWorld) {
-                el.beInWorld = false;
-                this.ecs.removeEntity(el);
-            }
-        }, false)
+            el.beInWorld = false;
+        })
         this._children.length = 0;
     }
 
@@ -309,14 +317,7 @@ export class Transform extends BaseEntity {
         if (i >= 0) {
             this._children.splice(i, 1);
             node._parent = null;
-        }
-        node._parentsBeActive = false;
-
-        if (this.beInWorld && node.beInWorld) {
-            node.traverse((el) => {
-                this.ecs.removeEntity(el);
-                el.beInWorld = false;
-            }, true)
+            node.beInWorld = false;
         }
     }
 

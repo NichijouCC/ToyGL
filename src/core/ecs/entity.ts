@@ -3,21 +3,20 @@ import { ECS } from "./ecs";
 import { UnitedBitKey } from "./bitKey";
 import { EventEmitter, UUID } from "@mtgoo/ctool";
 
-export interface IEntityEvent {
-    "AddComp": IComponent,
-    "removeComp": IComponent
-}
+// export interface IEntityEvent {
+//     "AddComp": IComponent,
+//     "removeComp": IComponent
+// }
 
-export class Entity extends EventEmitter<IEntityEvent> implements IEntity {
+export class Entity implements IEntity {
     readonly ecs: ECS;
     readonly id: string = UUID.create_v4();
     [COMPS]: { [compName: string]: IComponent } = {};
     [UNIT_BIT_KEY]: UnitedBitKey = new UnitedBitKey();
 
-    beInWorld = false;
     constructor(ecs: ECS) {
-        super()
         this.ecs = ecs;
+        ecs.addEntity(this);
     }
 
     addComponent<T extends IComponent, P extends Partial<T>>(comp: new () => T, properties?: P): T {
