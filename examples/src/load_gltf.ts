@@ -1,14 +1,18 @@
-import { Prefab, quat, vec3 } from "TOYGL";
-import { initToy } from "./util";
+import { Prefab, quat, ToyGL, vec3 } from "TOYGL";
 
-const toy = initToy();
+const toy = ToyGL.create(document.getElementById("canvas") as HTMLCanvasElement);
+const cam = toy.world.addNewCamera();
+const size = 10;
+cam.entity.localPosition = vec3.fromValues(size, size, size);
+cam.entity.lookAtPoint(vec3.create());
+
 const building = "./A1_003.glb";
 const duck = "../resources/glTF/duck/Duck.gltf";
 const tree = "../resources/glTF/apple/AppleTree.gltf";
 const uvtest = "../resources/glTF/TextureCoordinateTest/glTF/TextureCoordinateTest.gltf";
-const cesiumMan = "./glTF/cesiumMan/glTF/CesiumMan.gltf";
 const boxanimation = "../resources/glTF/BoxAnimated/glTF/BoxAnimated.gltf";
 const Monster = "../resources/glTF/Monster/glTF/Monster.gltf";
+const cesiumMan = "./glTF/cesiumMan/glTF/CesiumMan.gltf";
 
 toy.resource.load(cesiumMan)
     .then(asset => {

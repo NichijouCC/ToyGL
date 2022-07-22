@@ -8,7 +8,7 @@ export class SpineTexture extends Texture {
     get height() { return this._texture.height }
     constructor(image: HTMLImageElement | ImageBitmap) {
         super(image);
-        this._texture = new Texture2D({ image });
+        this._texture = new Texture2D({ image, flipY: false });
     }
     setFilters(minFilter: TextureFilter, magFilter: TextureFilter): void {
         switch (minFilter) {
