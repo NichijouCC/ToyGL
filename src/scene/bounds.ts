@@ -136,6 +136,12 @@ export class BoundingSphere {
     center: vec3 = vec3.create();
     radius: number = 0;
 
+    private constructor(params?: Partial<BoundingSphere>) {
+        for (let key in params) {
+            this[key] = params[key]
+        }
+    }
+
     applyMatrix(mat: mat4) {
         vec3.transformMat4(this.center, this.center, mat);
 
@@ -193,11 +199,11 @@ export class BoundingSphere {
     }
 
     private static pool: BoundingSphere[] = [];
-    static create() {
+    static create(params?: Partial<BoundingSphere>) {
         if (this.pool.length > 0) {
             return this.pool.pop();
         } else {
-            return new BoundingSphere();
+            return new BoundingSphere(params);
         }
     }
 
