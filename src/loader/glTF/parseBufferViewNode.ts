@@ -1,5 +1,5 @@
 import { ParseBufferNode } from "./parseBufferNode";
-import { IGltfJson, IGltfBufferView } from "../loadGltf";
+import { IGltfJson, IGltfBufferView } from "./loadGltf";
 
 export class ParseBufferViewNode {
     static parse(index: number, gltf: IGltfJson): Promise<IGltfBufferView> {

@@ -24,8 +24,8 @@ export class Texture {
     private initialized: boolean;
     private _textureFilterAnisotropic: any;
 
-    filterMax: TextureFilterEnum;
-    filterMin: TextureFilterEnum;
+    magFilter: TextureFilterEnum;
+    minFilter: TextureFilterEnum;
     wrapS: TextureWrapEnum;
     wrapT: TextureWrapEnum;
     maximumAnisotropy: number;
@@ -76,8 +76,8 @@ export class Texture {
             : PixelFormatEnum.textureSizeInBytes(this.pixelFormat, this.pixelDatatype, this.width, this.height);
         this.sizeInBytes = sizeInBytes;
 
-        this.filterMax = options?.filterMax ?? TextureFilterEnum.LINEAR;
-        this.filterMin = options?.filterMin ?? TextureFilterEnum.LINEAR;
+        this.magFilter = options?.magFilter ?? TextureFilterEnum.LINEAR;
+        this.minFilter = options?.minFilter ?? TextureFilterEnum.LINEAR;
         this.wrapS = options?.wrapS ?? TextureWrapEnum.REPEAT;
         this.wrapT = options?.wrapT ?? TextureWrapEnum.REPEAT;
         this.maximumAnisotropy = options?.maximumAnisotropy ?? 1.0;
@@ -247,16 +247,16 @@ export class Texture {
             // float textures only support nearest filtering unless the linear extensions are supported, so override the sampler's settings
             if ((pixelDatatype === PixelDatatypeEnum.FLOAT && !context.caps.textureFloat) ||
                 (pixelDatatype === PixelDatatypeEnum.HALF_FLOAT && !context.caps.textureHalfFloat)) {
-                this.filterMax = TextureFilterEnum.NEAREST;
-                this.filterMin = TextureFilterEnum.NEAREST;
+                this.magFilter = TextureFilterEnum.NEAREST;
+                this.minFilter = TextureFilterEnum.NEAREST;
                 this.mipmapFilter = TextureFilterEnum.NEAREST;
             }
         }
 
         gl.texParameteri(target, gl.TEXTURE_WRAP_S, this.wrapS);
         gl.texParameteri(target, gl.TEXTURE_WRAP_T, this.wrapT);
-        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, TextureFilterEnum.realFilter(this.filterMin, this.enableMipmap, this.mipmapFilter));
-        gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, this.filterMax);
+        gl.texParameteri(target, gl.TEXTURE_MIN_FILTER, TextureFilterEnum.realFilter(this.minFilter, this.enableMipmap, this.mipmapFilter));
+        gl.texParameteri(target, gl.TEXTURE_MAG_FILTER, this.magFilter);
         if (this._textureFilterAnisotropic) {
             gl.texParameteri(target, this._textureFilterAnisotropic.TEXTURE_MAX_ANISOTROPY_EXT, this.maximumAnisotropy);
         }
@@ -347,9 +347,9 @@ export interface IFrameBufferTexOpts extends IBaseTextureOptions {
 export interface ISamplerOptions {
     // ----------------texParameteri-------------
     /** 默认：LINEAR */
-    filterMax?: TextureFilterEnum;
+    magFilter?: TextureFilterEnum;
     /** 默认：LINEAR */
-    filterMin?: TextureFilterEnum;
+    minFilter?: TextureFilterEnum;
     /** 默认：REPEAT */
     wrapS?: TextureWrapEnum;
     /** 默认：REPEAT */

@@ -1,8 +1,6 @@
-import { loadImg } from "../../io/loadTool";
 import { ParseBufferViewNode } from "./parseBufferViewNode";
-import { IGltfJson } from "../loadGltf";
-import { Texture2D } from "../../render/texture2d";
-import { retryFn } from "@mtgoo/ctool";
+import { IGltfJson } from "./loadGltf";
+import { loadImg, Texture2D } from "../../index";
 
 export class ParseTextureNode {
     static parse(index: number, gltf: IGltfJson): Promise<Texture2D | null> {
@@ -29,10 +27,10 @@ export class ParseTextureNode {
                                 texOp.wrapT = samplerInfo.wrapT;
                             }
                             if (samplerInfo.magFilter) {
-                                texOp.filterMax = samplerInfo.magFilter;
+                                texOp.magFilter = samplerInfo.magFilter;
                             }
                             if (samplerInfo.minFilter) {
-                                texOp.filterMin = samplerInfo.minFilter;
+                                texOp.minFilter = samplerInfo.minFilter;
                             }
                         }
                         const texture: Texture2D = new Texture2D({ image: img, flipY: false });
@@ -57,10 +55,10 @@ export class ParseTextureNode {
                                 texOp.wrapT = samplerInfo.wrapT;
                             }
                             if (samplerInfo.magFilter) {
-                                texOp.filterMax = samplerInfo.magFilter;
+                                texOp.magFilter = samplerInfo.magFilter;
                             }
                             if (samplerInfo.minFilter) {
-                                texOp.filterMin = samplerInfo.minFilter;
+                                texOp.minFilter = samplerInfo.minFilter;
                             }
                         }
 

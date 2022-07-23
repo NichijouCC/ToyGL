@@ -11,7 +11,7 @@ import { Color, mat4, Rect, vec3, vec4 } from "../mathD";
 import { BaseTexture } from "./baseTexture";
 import { ICamera } from "./camera";
 import { RenderTarget } from "./renderTarget";
-import { DefaultGeometry, DefaultMesh } from "../resources";
+import { DefaultGeometry } from "../resources/defAssets/defaultGeometry";
 export class ForwardRender {
     readonly device: GraphicsDevice;
     uniformState = new UniformState();
@@ -186,7 +186,7 @@ export class ForwardRender {
     }
 
     private frustumCull = (() => {
-        const _temptSphere = new BoundingSphere();
+        const _temptSphere = BoundingSphere.create();
         return (frustum: Frustum, drawCall: IRenderable) => {
             const box = drawCall.boundingBox ?? drawCall.geometry.boundingBox;
             vec3.copy(_temptSphere.center, box.center);

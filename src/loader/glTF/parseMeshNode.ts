@@ -1,13 +1,8 @@
-import { IGltfJson, IGltfPrimitive } from "../loadGltf";
+import { IGltfJson, IGltfPrimitive } from "./loadGltf";
 import { IGltfMeshPrimitive } from "./gltfJsonStruct";
 import { ParseMaterialNode } from "./parseMaterialNode";
 import { ParseAccessorNode } from "./parseAccessorNode";
-import { Material } from "../../render/material";
-import { DefaultMaterial } from "../../resources/defAssets/defaultMaterial";
-import { BoundingBox } from "../../scene/index";
-import { vec3 } from "../../mathD";
-import { GraphicBuffer, GraphicIndexBuffer } from "../../render/buffer";
-import { BufferTargetEnum, Geometry, IGeometryOptions, VertexAttEnum } from "../../render";
+import { BoundingBox, BufferTargetEnum, DefaultMaterial, Geometry, GraphicBuffer, GraphicIndexBuffer, IGeometryOptions, Material, vec3, VertexAttEnum } from "../../index";
 
 const MapGltfAttributeToToyAtt: { [name: string]: VertexAttEnum } = {
     POSITION: VertexAttEnum.POSITION,

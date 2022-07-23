@@ -1,6 +1,6 @@
 import { IComponent } from "../core/ecs/iecs";
 import { vec3 } from "../mathD";
-import { Component, Entity } from "../scene/index";
+import { Component } from "../scene/entity";
 
 export class Rigidbody extends Component {
     mass = 1;

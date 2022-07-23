@@ -1,4 +1,4 @@
-import { Shader, IShaderOption } from "./shader";
+import { IMultiplyPassShaderOption, ISinglePassShaderOption, Shader } from "./shader";
 import { RenderTypeEnum } from "./renderLayer";
 import { RenderState } from "./renderState";
 import { Asset } from "../resources/asset";
@@ -65,5 +65,5 @@ export class Material extends Asset {
 export interface IMatOption {
     name?: string;
     uniformParameters?: { [name: string]: any };
-    shader?: IShaderOption | Shader;
+    shader?: ISinglePassShaderOption | IMultiplyPassShaderOption | Shader;
 }

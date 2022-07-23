@@ -1,4 +1,4 @@
-import { BlendMode, ClippingAttachment, Color, MeshAttachment, NumberArrayLike, RegionAttachment, Skeleton, SkeletonClipping, TextureAtlasRegion, Vector2, VertexEffect } from "@esotericsoftware/spine-core";
+import { BlendMode, ClippingAttachment, Color, MeshAttachment, NumberArrayLike, RegionAttachment, Skeleton, SkeletonClipping, TextureAtlasRegion, Vector2 } from "@esotericsoftware/spine-core";
 import { IComponent } from "../../core/ecs";
 import { mat4, vec2, vec3 } from "../../mathD";
 import { BlendParamEnum, IRenderable, Material, Shader, VertexAttEnum } from "../../render";
@@ -78,7 +78,7 @@ export class SpineSystem extends System {
         this._batcher.begin();
         this.queries.comps.forEach(node => {
             let comp = node.getComponent(SpineComp);
-            let { animationState, skeleton, vertexEffect } = comp;
+            let { animationState, skeleton } = comp;
             animationState.update(deltaTime);
             animationState.apply(skeleton);
             skeleton.updateWorldTransform();
@@ -141,7 +141,7 @@ export class SpineSystem extends System {
         let vertices = new Float32Array(1024);
         let clipper = new SkeletonClipping();
         return (comp: SpineComp) => {
-            let { skeleton, vertexEffect, mainColor } = comp;
+            let { skeleton, mainColor } = comp;
             let triangles: Array<number> = null;
             let uvs = null;
             let drawOrder = skeleton.drawOrder;
@@ -158,7 +158,7 @@ export class SpineSystem extends System {
                     let region = <RegionAttachment>attachment;
                     attachmentColor = region.color;
                     numFloats = vertexSize * 4;
-                    region.computeWorldVertices(slot.bone, vertices, 0, vertexSize);
+                    region.computeWorldVertices(slot, vertices, 0, vertexSize);
                     triangles = [0, 1, 2, 2, 3, 0];
                     uvs = region.uvs;
                     texture = <SpineTexture>(<TextureAtlasRegion>region.region.renderObject).page.texture;
@@ -213,69 +213,21 @@ export class SpineSystem extends System {
                         clipper.clipTriangles(vertices, numFloats, triangles, triangles.length, uvs, finalColor, darkColor, true);
                         let clippedVertices = clipper.clippedVertices;
                         let clippedTriangles = clipper.clippedTriangles;
-                        if (vertexEffect != null) {
-                            let verts = clippedVertices;
-                            for (let v = 0, n = clippedVertices.length; v < n; v += vertexSize) {
-                                tempPos.x = verts[v];
-                                tempPos.y = verts[v + 1];
-                                tempLight.set(verts[v + 2], verts[v + 3], verts[v + 4], verts[v + 5]);
-                                tempUv.x = verts[v + 6];
-                                tempUv.y = verts[v + 7];
-                                tempDark.set(verts[v + 8], verts[v + 9], verts[v + 10], verts[v + 11]);
-                                vertexEffect.transform(tempPos, tempUv, tempLight, tempDark);
-                                verts[v] = tempPos.x;
-                                verts[v + 1] = tempPos.y;
-                                verts[v + 2] = tempUv.x;
-                                verts[v + 3] = tempUv.y;
-                                verts[v + 4] = tempLight.r;
-                                verts[v + 5] = tempLight.g;
-                                verts[v + 6] = tempLight.b;
-                                verts[v + 7] = tempLight.a;
-                                verts[v + 8] = tempDark.r;
-                                verts[v + 9] = tempDark.g;
-                                verts[v + 10] = tempDark.b;
-                                verts[v + 11] = tempDark.a;
-                            }
-                        }
                         finalVertices = clippedVertices;
                         finalIndices = clippedTriangles;
                     } else {
                         let verts = vertices;
-                        if (vertexEffect != null) {
-                            for (let v = 0, u = 0, n = numFloats; v < n; v += vertexSize, u += 2) {
-                                tempPos.x = verts[v];
-                                tempPos.y = verts[v + 1];
-                                tempUv.x = uvs[u];
-                                tempUv.y = uvs[u + 1]
-                                tempLight.setFromColor(finalColor);
-                                tempDark.setFromColor(darkColor);
-                                vertexEffect.transform(tempPos, tempUv, tempLight, tempDark);
-                                verts[v] = tempPos.x;
-                                verts[v + 1] = tempPos.y;
-                                verts[v + 2] = tempUv.x;
-                                verts[v + 3] = tempUv.y;
-                                verts[v + 4] = tempLight.r;
-                                verts[v + 5] = tempLight.g;
-                                verts[v + 6] = tempLight.b;
-                                verts[v + 7] = tempLight.a;
-                                verts[v + 8] = tempDark.r;
-                                verts[v + 9] = tempDark.g;
-                                verts[v + 10] = tempDark.b;
-                                verts[v + 11] = tempDark.a;
-                            }
-                        } else {
-                            for (let v = 2, u = 0, n = numFloats; v < n; v += vertexSize, u += 2) {
-                                verts[v + 0] = uvs[u];
-                                verts[v + 1] = uvs[u + 1];
-                                verts[v + 2] = finalColor.r;
-                                verts[v + 3] = finalColor.g;
-                                verts[v + 4] = finalColor.b;
-                                verts[v + 5] = finalColor.a;
-                                verts[v + 6] = darkColor.r;
-                                verts[v + 7] = darkColor.g;
-                                verts[v + 8] = darkColor.b;
-                                verts[v + 9] = darkColor.a;
-                            }
+                        for (let v = 2, u = 0, n = numFloats; v < n; v += vertexSize, u += 2) {
+                            verts[v + 0] = uvs[u];
+                            verts[v + 1] = uvs[u + 1];
+                            verts[v + 2] = finalColor.r;
+                            verts[v + 3] = finalColor.g;
+                            verts[v + 4] = finalColor.b;
+                            verts[v + 5] = finalColor.a;
+                            verts[v + 6] = darkColor.r;
+                            verts[v + 7] = darkColor.g;
+                            verts[v + 8] = darkColor.b;
+                            verts[v + 9] = darkColor.a;
                         }
                         finalVertices = vertices.subarray(0, numFloats);
                         finalIndices = triangles;

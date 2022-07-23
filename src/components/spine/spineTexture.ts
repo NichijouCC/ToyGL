@@ -13,28 +13,28 @@ export class SpineTexture extends Texture {
     setFilters(minFilter: TextureFilter, magFilter: TextureFilter): void {
         switch (minFilter) {
             case TextureFilter.Linear:
-                this._texture.filterMin = TextureFilterEnum.LINEAR;
+                this._texture.minFilter = TextureFilterEnum.LINEAR;
                 break;
             case TextureFilter.Nearest:
-                this._texture.filterMin = TextureFilterEnum.NEAREST;
+                this._texture.minFilter = TextureFilterEnum.NEAREST;
                 break;
             case TextureFilter.MipMapLinearLinear:
                 this._texture.enableMipmap = true;
-                this._texture.filterMin = TextureFilterEnum.LINEAR;
+                this._texture.minFilter = TextureFilterEnum.LINEAR;
                 this._texture.mipmapFilter = TextureFilterEnum.LINEAR;
                 break;
             case TextureFilter.MipMapLinearNearest:
                 this._texture.enableMipmap = true;
-                this._texture.filterMin = TextureFilterEnum.LINEAR;
+                this._texture.minFilter = TextureFilterEnum.LINEAR;
                 this._texture.mipmapFilter = TextureFilterEnum.NEAREST;
                 break;
             case TextureFilter.MipMapNearestLinear:
                 this._texture.enableMipmap = true;
-                this._texture.filterMin = TextureFilterEnum.NEAREST;
+                this._texture.minFilter = TextureFilterEnum.NEAREST;
                 this._texture.mipmapFilter = TextureFilterEnum.LINEAR;
             case TextureFilter.MipMapNearestNearest:
                 this._texture.enableMipmap = true;
-                this._texture.filterMin = TextureFilterEnum.NEAREST;
+                this._texture.minFilter = TextureFilterEnum.NEAREST;
                 this._texture.mipmapFilter = TextureFilterEnum.NEAREST;
                 break;
             case TextureFilter.MipMap:
@@ -43,10 +43,10 @@ export class SpineTexture extends Texture {
         }
         switch (magFilter) {
             case TextureFilter.Linear:
-                this._texture.filterMax = TextureFilterEnum.LINEAR;
+                this._texture.magFilter = TextureFilterEnum.LINEAR;
                 break;
             case TextureFilter.Nearest:
-                this._texture.filterMax = TextureFilterEnum.NEAREST;
+                this._texture.magFilter = TextureFilterEnum.NEAREST;
                 break;
             default:
                 console.warn("unsupported magFilter type", magFilter);

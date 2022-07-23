@@ -1,9 +1,8 @@
-import { IGltfBufferView, IGltfJson } from "../loadGltf";
+import { IGltfBufferView, IGltfJson } from "./loadGltf";
 import { ParseBufferViewNode } from "./parseBufferViewNode";
-import { TypedArray } from "../../core/typedArray";
-import { GraphicBuffer, BufferTargetEnum } from "../../render/index";
+import { GraphicBuffer, BufferTargetEnum, TypedArray } from "../../index";
 
-export interface IaccessorData {
+export interface IAccessorData {
     componentSize: number;
     componentDataType: number;
     count: number;
@@ -20,7 +19,7 @@ export interface IaccessorData {
 }
 
 export namespace Accessor {
-    export function getTypedData(data: IaccessorData) {
+    export function getTypedData(data: IAccessorData) {
         const result: TypedArray[] = [];
         const { typedArray, componentSize, bytesStride, bytesOffset } = data;
         const startOffset = bytesOffset / typedArray.BYTES_PER_ELEMENT;
@@ -37,8 +36,8 @@ export namespace Accessor {
 }
 
 export class ParseAccessorNode {
-    static async parse(index: number, gltf: IGltfJson): Promise<IaccessorData> {
-        const arrayInfo: IaccessorData = {} as any;
+    static async parse(index: number, gltf: IGltfJson): Promise<IAccessorData> {
+        const arrayInfo: IAccessorData = {} as any;
         // return new Promise<AccessorNode>((resolve,reject)=>{
         const accessor = gltf.accessors[index];
 

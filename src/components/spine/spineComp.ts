@@ -1,4 +1,4 @@
-import { AnimationState, AnimationStateData, ClippingAttachment, Color, MeshAttachment, NumberArrayLike, RegionAttachment, Skeleton, SkeletonClipping, SkeletonData, TextureAtlasPage, TextureAtlasRegion, Vector2, VertexEffect } from "@esotericsoftware/spine-core";
+import { AnimationState, AnimationStateData, ClippingAttachment, Color, MeshAttachment, NumberArrayLike, RegionAttachment, Skeleton, SkeletonClipping, SkeletonData, TextureAtlasPage, TextureAtlasRegion, Vector2 } from "@esotericsoftware/spine-core";
 import { IComponent } from "../../core/ecs";
 import { mat4, vec4 } from "../../mathD";
 import { Component } from "../../scene";
@@ -22,7 +22,6 @@ export class SpineComp extends Component {
 
     private _state: AnimationState;
     get animationState() { return this._state }
-    vertexEffect: VertexEffect;
     clone(): IComponent {
         throw new Error("Method not implemented.");
     }
@@ -40,13 +39,12 @@ export class SpineComp extends Component {
             let copy = att.copy() as MeshAttachment;
             let region = this.createTextureRegion(texture);
             copy.region = region;
-            copy.updateUVs();
+            copy.updateRegion();
             slot.setAttachment(copy);
         } else if (att instanceof RegionAttachment) {
             let copy = att.copy() as RegionAttachment;
-            let region = this.createTextureRegion(texture);
-            copy.setRegion(region);
-            copy.updateOffset();
+            copy.region = this.createTextureRegion(texture);
+            copy.updateRegion();
             slot.setAttachment(copy);
         } else {
             console.warn("changeSlotTexture failed,unsupported attachment type", att);
@@ -54,11 +52,11 @@ export class SpineComp extends Component {
     }
 
     private createTextureRegion(texture: SpineTexture) {
-        let page = new TextureAtlasPage()
+        let page = new TextureAtlasPage("")
         page.width = texture.width;
         page.height = texture.height;
         page.setTexture(texture);
-        let region = new TextureAtlasRegion()
+        let region = new TextureAtlasRegion(page, "")
         region.page = page
         region.width = texture.width
         region.height = texture.height

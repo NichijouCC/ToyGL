@@ -1,5 +1,4 @@
-import { loadJson } from "../io";
-import { IAssetLoader } from "../resources";
+import { IAssetLoader, loadJson } from "../index";
 import { Cesium3dTiles, Tileset3dParser } from "./3dtiles/tileset3d";
 
 export class LoadTileset3d implements IAssetLoader {

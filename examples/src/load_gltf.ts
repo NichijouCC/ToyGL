@@ -1,4 +1,4 @@
-import { Prefab, quat, ToyGL, vec3 } from "TOYGL";
+import { Gltf, Prefab, quat, ToyGL, vec3 } from "TOYGL";
 
 const toy = ToyGL.create(document.getElementById("canvas") as HTMLCanvasElement);
 const cam = toy.world.addNewCamera();
@@ -16,8 +16,8 @@ const cesiumMan = "./glTF/cesiumMan/glTF/CesiumMan.gltf";
 
 toy.resource.load(cesiumMan)
     .then(asset => {
-        const newAsset = Prefab.instance(asset as Prefab);
-        newAsset.localRotation = quat.fromEuler(quat.create(), 0, 0, 0);
-        newAsset.localPosition = vec3.fromValues(0, 0, 0);
-        toy.world.addChild(newAsset);
+        let ins = (asset as Gltf.GltfAsset).createInstance(toy.world)
+        ins.localRotation = quat.fromEuler(quat.create(), 0, 0, 0);
+        ins.localPosition = vec3.fromValues(0, 0, 0);
+        toy.world.addChild(ins);
     });

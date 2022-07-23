@@ -1,17 +1,8 @@
-import { getAssetDirectory } from "../resources/util";
-import { loadJson, loadArrayBuffer } from "../io/loadTool";
-import { BinReader } from "../io/stream";
-import { IGltf, IProperty } from "./glTF/gltfJsonStruct";
-import { ParseSceneNode } from "./glTF/parseSceneNode";
-import { Material } from "../render/material";
-import { IAssetLoader } from "../resources/resource";
-import { Prefab } from "../resources/prefab";
-import { Texture2D } from "../render/texture2d";
-import { ParseAnimationNode } from "./glTF/parseAnimationNode";
-import { Animation } from "../components/animation";
-import { GraphicBuffer, GraphicIndexBuffer } from "../render/buffer";
-import { Geometry } from "../render/geometry";
-import { World } from "../scene/index";
+import { IGltf, IProperty } from "./gltfJsonStruct";
+import { ParseSceneNode } from "./parseSceneNode";
+import { ParseAnimationNode } from "./parseAnimationNode";
+import { BinReader, Geometry, getAssetDirectory, GraphicBuffer, IAssetLoader, loadArrayBuffer, loadJson, Material, Prefab, Texture2D, World } from "../../index";
+import { GltfAsset } from "./gltfAsset";
 
 export interface IglTFExtension {
     load(extensionNode: any, loader: LoadGlTF): Promise<any>;
@@ -41,27 +32,18 @@ export interface IGltfJson extends IGltf {
     cache: GltfNodeCache;
 }
 export class LoadGlTF implements IAssetLoader {
-    private _scene: World;
-    constructor(scene: World) {
-        this._scene = scene;
-    }
-
-    load(url: string): Promise<Prefab> {
+    load(url: string): Promise<GltfAsset> {
         return this.loadAsync(url)
             .then(async (gltfJson) => {
                 const scene = gltfJson.scene != null ? gltfJson.scene : 0;
-                const sceneRoot = await ParseSceneNode.parse(this._scene, scene, gltfJson);
-
+                const sceneRoot = await ParseSceneNode.parse(scene, gltfJson);
                 if (gltfJson.animations != null) {
                     const animations = await Promise.all(gltfJson.animations.map((item, index) => {
                         return ParseAnimationNode.parse(index, gltfJson);
                     }));
-                    const comp = sceneRoot.addComponent(Animation);
-                    animations.forEach(item => comp.addAnimationClip(item));
+                    sceneRoot.animations = animations;
                 }
-                const prefab = new Prefab();
-                prefab.root = sceneRoot;
-                return prefab;
+                return new GltfAsset(sceneRoot);
             });
     }
 

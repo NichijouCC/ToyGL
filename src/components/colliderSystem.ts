@@ -2,8 +2,8 @@ import { mat4, vec3 } from "../mathD";
 import { BoxCollider, SphereCollider } from "./collider";
 import * as CANNON from "cannon-es";
 import { Rigidbody } from "./rigidbody";
-import { Entity, System } from "../scene/index";
-import { World } from "../scene";
+import { System } from "../scene/entity";
+import { World } from "../scene/world";
 
 export class ColliderSystem extends System {
     caries = { boxColliders: [BoxCollider], SphereColliders: [SphereCollider], rigidbodies: [Rigidbody] };

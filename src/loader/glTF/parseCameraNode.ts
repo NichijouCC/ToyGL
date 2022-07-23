@@ -1,6 +1,6 @@
 import { CameraType } from "./gltfJsonStruct";
 // import { Camera, ProjectionEnum } from "../../ec/components/camera";
-import { IGltfJson } from "../loadGltf";
+import { IGltfJson } from "./loadGltf";
 import { CameraComponent, ProjectionEnum } from "../../components";
 
 export class ParseCameraNode {

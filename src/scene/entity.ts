@@ -3,6 +3,7 @@ import { ECS } from "../core/ecs/ecs";
 import { Transform } from "./transform";
 import { AbsComponent, AbsSystem } from "../core/ecs";
 import { LayerMask } from "../render/camera";
+import { World } from "./world";
 
 export class Entity extends Transform implements IEntity {
     name: string;

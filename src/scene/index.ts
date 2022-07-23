@@ -9,3 +9,4 @@ export * from "./world";
 export * from "./screen";
 export * from "./entity";
 export * from "./transform";
+export * from "./primitive/index"

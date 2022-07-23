@@ -4,6 +4,7 @@ import { BoundingBox } from "../bounds";
 import { IRenderable } from "../../render/irenderable";
 import { ComponentDatatypeEnum, Geometry, PrimitiveTypeEnum, VertexAttEnum } from "../../render";
 import { World } from "../world";
+import { BoxCollider } from "../../components";
 
 export class Gizmos {
     private _scene: World;
@@ -43,9 +44,9 @@ export class Gizmos {
         });
     }
 
-    private _dic = new Map<BoundingBox, IRenderable>();
+    private _dic = new Map<BoundingBox | BoxCollider, IRenderable>();
 
-    drawAABB(aabb: BoundingBox, worldMat?: mat4) {
+    drawAABB(aabb: BoundingBox | BoxCollider, worldMat?: mat4) {
         const { center, halfSize } = aabb;
         const parentMat = worldMat ?? mat4.IDENTITY;
         const selfToParent = mat4.fromTranslation(mat4.create(), center);

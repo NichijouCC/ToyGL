@@ -1,10 +1,10 @@
 import { AssetReferenceArray } from "../scene/assetReferenceArray";
 import { AssetReference } from "../scene/assetReference";
-import { StaticGeometry } from "../resources/geometry/staticGeometry";
 import { Material } from "../render/material";
 import { SkinInstance } from "../scene/primitive/animation/skinInstance";
 import { Skin } from "../resources/skin";
 import { Component, Entity } from "../scene";
+import { StaticGeometry } from "../resources/geometry/staticGeometry";
 
 export class ModelComponent extends Component {
     protected _mesh = new AssetReference<StaticGeometry>();

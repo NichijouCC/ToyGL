@@ -1,4 +1,4 @@
-import { Entity } from ".";
+import { Entity } from "./entity";
 import { BitKey, UnitedBitKey } from "./bitKey";
 import { ISystem, IComponent, COMPS, UNIT_BIT_KEY, UPDATE, UNIT_BIT_KEY_DIC, ENTITIES, IEntity } from "./iecs";
 

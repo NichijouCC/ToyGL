@@ -1,7 +1,7 @@
 import { IComponent } from "../core/ecs/iecs";
 import { vec3 } from "../mathD";
-import { Component, Entity } from "../scene/index";
 import { StaticGeometry } from "../resources/index";
+import { Component } from "../scene/entity";
 
 export class BoxCollider extends Component {
     center: vec3 = vec3.create();

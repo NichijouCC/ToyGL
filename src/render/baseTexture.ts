@@ -25,16 +25,16 @@ export abstract class BaseTexture extends Asset {
     set flipY(value: boolean) { this._flipY = value; }
     get flipY() { return this._flipY }
 
-    protected _filterMax: TextureFilterEnum;
-    get filterMax() { return this._filterMax; }
-    set filterMax(value: TextureFilterEnum) {
-        this._filterMax = value;
+    protected _magFilter: TextureFilterEnum;
+    get magFilter() { return this._magFilter; }
+    set magFilter(value: TextureFilterEnum) {
+        this._magFilter = value;
         this.beDirty = true;
     }
-    protected _filterMin: TextureFilterEnum;
-    get filterMin() { return this._filterMin }
-    set filterMin(value: TextureFilterEnum) {
-        this._filterMin = value;
+    protected _minFilter: TextureFilterEnum;
+    get minFilter() { return this._minFilter }
+    set minFilter(value: TextureFilterEnum) {
+        this._minFilter = value;
         this.beDirty = true;
     }
     protected _wrapS: TextureWrapEnum;
@@ -77,8 +77,8 @@ export abstract class BaseTexture extends Asset {
         this._preMultiplyAlpha = options.preMultiplyAlpha || this._pixelFormat === PixelFormatEnum.RGB || this._pixelFormat === PixelFormatEnum.LUMINANCE;
         this._flipY = options.flipY ?? false;
 
-        this._filterMax = options.filterMax ?? TextureFilterEnum.LINEAR;
-        this._filterMin = options.filterMin ?? TextureFilterEnum.LINEAR;
+        this._magFilter = options.magFilter ?? TextureFilterEnum.LINEAR;
+        this._minFilter = options.minFilter ?? TextureFilterEnum.LINEAR;
         this._wrapS = options.wrapS ?? TextureWrapEnum.REPEAT;
         this._wrapT = options.wrapT ?? TextureWrapEnum.REPEAT;
         this._maximumAnisotropy = options?.maximumAnisotropy ?? 1.0;
@@ -91,8 +91,8 @@ export abstract class BaseTexture extends Asset {
         if (options.pixelDatatype != null) this._pixelDatatype = options.pixelDatatype;
         if (options.preMultiplyAlpha != null) this._preMultiplyAlpha = options.preMultiplyAlpha;
         if (options.flipY != null) this._flipY = options.flipY;
-        if (options.filterMax != null) this._filterMax = options.filterMax;
-        if (options.filterMin != null) this._filterMin = options.filterMin;
+        if (options.magFilter != null) this._magFilter = options.magFilter;
+        if (options.minFilter != null) this._minFilter = options.minFilter;
         if (options.wrapS != null) this._wrapS = options.wrapS;
         if (options.wrapT != null) this._wrapT = options.wrapT;
         if (options.maximumAnisotropy != null) this._maximumAnisotropy = options.maximumAnisotropy;
@@ -112,8 +112,8 @@ export abstract class BaseTexture extends Asset {
                 pixelDatatype: this._pixelDatatype,
                 preMultiplyAlpha: this._preMultiplyAlpha,
                 flipY: this._flipY,
-                filterMax: this._filterMax,
-                filterMin: this._filterMin,
+                magFilter: this._magFilter,
+                minFilter: this._minFilter,
                 wrapS: this._wrapS,
                 wrapT: this._wrapT,
                 maximumAnisotropy: this._maximumAnisotropy,

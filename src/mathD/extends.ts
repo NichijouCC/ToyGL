@@ -113,4 +113,7 @@ export const mat4 = Object.assign({
 export type quat = glQuat;
 export const quat = Object.assign({
     IDENTITY: glQuat.create(),
+    fromArray: (arr: ArrayLike<number>) => {
+        return glQuat.fromValues(arr[0], arr[1], arr[2], arr[3]);
+    }
 }, glQuat)

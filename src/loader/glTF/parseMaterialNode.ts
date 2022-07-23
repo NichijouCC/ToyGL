@@ -1,13 +1,7 @@
-import { IGltfJson } from "../loadGltf";
+import { IGltfJson } from "./loadGltf";
 import { ParseTextureNode } from "./parseTextureNode";
-import { Color } from "../../mathD/color";
-import { Material } from "../../render/material";
-import { DefaultMaterial } from "../../resources/defAssets/defaultMaterial";
-import { SkinInstance, SkinMode } from "../../scene/primitive/animation/skinInstance";
 import { MaterialAlphaMode } from "./gltfJsonStruct";
-import { ShaderFeat } from "../../render/shaderBucket";
-import { RenderTypeEnum } from "../../render/renderLayer";
-import { DefaultTexture } from "../../resources";
+import { Color, DefaultMaterial, DefaultTexture, Material, RenderTypeEnum, ShaderFeat, SkinInstance, SkinMode } from "../../index";
 
 // namespace Private {
 //     /**

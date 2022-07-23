@@ -1,51 +1,32 @@
 
-import { mat4, vec3, quat } from "../../mathD/index";
-import { ParseCameraNode } from "./parseCameraNode";
 import { ParseMeshNode } from "./parseMeshNode";
-import { IGltfJson } from "../loadGltf";
-import { Entity } from "../../scene/entity";
-import { ModelComponent } from "../../components/modelComponent";
-import { StaticGeometry } from "../../resources/geometry/staticGeometry";
+import { IGltfJson } from "./loadGltf";
 import { ParseSkinNode } from "./parseSkinNode";
-import { GlTF } from "./util";
-import { World } from "../../scene/index";
+import { StaticGeometry } from "../../index";
+import { GltfNode, Mesh } from "./gltfAsset";
 
 export class ParseNode {
-    static parse(scene: World, index: number, gltf: IGltfJson, root: Entity): Promise<Entity> {
+    static parse(index: number, gltf: IGltfJson, root: GltfNode): Promise<GltfNode> {
         const node = gltf.nodes[index];
-        const name = GlTF.getNodeName(index, gltf);
-        const sceneNode = new Entity(scene, { name });
-        if (node.matrix) {
-            sceneNode.localMatrix = mat4.fromArray(node.matrix);
-        }
-        if (node.translation) {
-            vec3.copy(sceneNode.localPosition, node.translation as any);
-        }
-        if (node.rotation) {
-            quat.copy(sceneNode.localRotation, node.rotation as any);
-        }
-        if (node.scale) {
-            vec3.copy(sceneNode.localScale, node.scale as any);
-        }
-
-        if (node.camera != null) {
-            const cam = ParseCameraNode.parse(node.camera, gltf);
-            sceneNode.addComponentDirect(cam)
-        }
+        const sceneNode = new GltfNode();
+        sceneNode.raw = node;
+        sceneNode.index = index;
+        sceneNode.name = node.name || "node" + index;
 
         const allTask: Promise<void>[] = [];
         if (node.mesh != null) {
-            const comp = sceneNode.addComponent(ModelComponent);
+            const mesh = new Mesh();
+            sceneNode.mesh = mesh;
             const task = ParseMeshNode.parse(node.mesh, gltf)
                 .then(primitives => {
                     let subMeshes = primitives.map(item => item.geometry);
-                    comp.mesh = new StaticGeometry(subMeshes);
-                    comp.materials = primitives.map(item => item.material);
+                    mesh.mesh = new StaticGeometry(subMeshes);
+                    mesh.materials = primitives.map(item => item.material);
                 });
 
             if (node.skin != null) {
-                ParseSkinNode.parse(node.skin, name, root, gltf).then((skin) => {
-                    comp.skin = skin;
+                ParseSkinNode.parse(node.skin, root, gltf).then((skin) => {
+                    mesh.skin = skin;
                 });
             }
             allTask.push(task);
@@ -54,31 +35,17 @@ export class ParseNode {
         if (node.children) {
             for (let i = 0; i < node.children.length; i++) {
                 const nodeIndex = node.children[i];
-                const childTask = this.parse(scene, nodeIndex, gltf, root)
-                    .then(child => {
-                        sceneNode.addChild(child);
-                    });
+                const childTask = this.parse(nodeIndex, gltf, root)
+                    .then(child => { sceneNode.children.push(child) });
                 allTask.push(childTask);
             }
         }
-
-        // ------------------debug skin
-        // let arr: number[] = [];
-        // gltf.skins.forEach(item => arr = arr.concat(item.joints));
-        // if (arr.indexOf(index) >= 0) {
-        //     let debugNode = Entity.create(name);
-        //     let comp = debugNode.addComponent("ModelComponent") as ModelComponent;
-        //     comp.mesh = DefaultMesh.cube;
-        //     comp.material = DefaultMaterial.color_3d;
-        //     debugNode.localScale = vec3.create(0.1, 0.1, 0.1);
-        //     sceneNode.addChild(debugNode);
-        // }
-
-        return Promise.all(allTask).then(() => {
-            return sceneNode;
-        }).catch(err => {
-            console.error("ParseNode error", err);
-            return Promise.reject(err);
-        });
+        return Promise.all(allTask)
+            .then(() => {
+                return sceneNode;
+            }).catch(err => {
+                console.error("ParseNode error", err);
+                return Promise.reject(err);
+            });
     }
 }
