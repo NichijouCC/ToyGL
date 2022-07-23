@@ -1,4 +1,4 @@
-import { Camera, Color, DefaultGeometry, DefaultMaterial, mat4, RenderTarget, TextureAsset, ToyGL, vec3 } from "../../src";
+import { Camera, Color, DefaultGeometry, DefaultMaterial, mat4, RenderTarget, TextureAsset, ToyGL, vec3 } from "TOYGL";
 
 window.onload = () => {
     const toy = ToyGL.create(document.getElementById("canvas") as HTMLCanvasElement);
@@ -18,7 +18,7 @@ window.onload = () => {
                 rotAngle += dt;
                 camera.renderTarget = renderTarget;
                 camera.backgroundColor = new Color(1.0, 0.5, 0.5, 1.0);
-                toy.render.renderList(camera, [{
+                toy.world.render.renderList(camera, [{
                     geometry,
                     material,
                     worldMat: mat4.fromYRotation(mat4.create(), rotAngle),
@@ -34,4 +34,3 @@ window.onload = () => {
         worldMat: mat4.create()
     });
 }
-

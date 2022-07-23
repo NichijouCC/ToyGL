@@ -3,14 +3,14 @@ import { IComponent } from "../../core/ecs";
 import { mat4, vec2, vec3 } from "../../mathD";
 import { BlendParamEnum, IRenderable, Material, Shader, VertexAttEnum } from "../../render";
 import { World, System } from "../../scene";
-import { SpineAssetMgr } from "./spineAssetMgr";
+import { AssetMgr } from "./spineAssetMgr";
 import { SpineBatcher } from "./spineBatcher";
 import { SpineComp } from "./spineComp";
 import { SpineTexture } from "./spineTexture";
 
 export class SpineSystem extends System {
     caries: { [queryKey: string]: (new () => IComponent)[]; } = { comps: [SpineComp] }
-    readonly assetMgr: SpineAssetMgr;
+    readonly assetMgr: AssetMgr;
     readonly premultipliedAlpha: boolean;
     //2d画布的尺寸, 高度自适应
     private _canvasSize = vec2.create();
@@ -27,7 +27,7 @@ export class SpineSystem extends System {
     constructor(scene: World, options?: { pathPrefix?: string, premultipliedAlpha?: boolean }) {
         super();
         this._scene = scene;
-        this.assetMgr = new SpineAssetMgr(options?.pathPrefix);
+        this.assetMgr = new AssetMgr(options?.pathPrefix);
         this.canvasWidth = 1800;
         this.premultipliedAlpha = options?.premultipliedAlpha ?? false;
 

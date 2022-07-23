@@ -1,8 +1,10 @@
-import { Color, DefaultMaterial, Geometry, LoadPLY, ManualCamera, mat4, Material, vec3, VertexAttEnum } from "TOYGL";
-import { initToy } from "./util";
+import { Color, Geometry, LoadPLY, ManualCamera, mat4, Material, ToyGL, vec3, VertexAttEnum } from "TOYGL";
 
-const toy = initToy();
-
+const toy = ToyGL.create(document.getElementById("canvas") as HTMLCanvasElement);
+const cam = toy.world.addNewCamera();
+const size = 250;
+cam.entity.localPosition = vec3.fromValues(size, size, size);
+cam.lookAtPoint(vec3.create());
 
 let mat = new Material({
     shader: {
@@ -56,7 +58,7 @@ let mat = new Material({
 
 
 toy.resource.registLoaderWithExt(".ply", new LoadPLY())
-toy.resource.load<Geometry>("./aisland.ply")
+toy.resource.load<Geometry>("https://mine-res.oss-cn-shanghai.aliyuncs.com/ply/aiisland.ply")
     .then(asset => {
         toy.world.addRenderIns({
             geometry: asset,

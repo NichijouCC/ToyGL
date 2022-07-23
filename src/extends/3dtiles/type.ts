@@ -20,14 +20,16 @@ export interface ITile {
     geometricError: number,
     boundingVolume: IBoundingVolume,
     transform?: number[],//mat4
-    content?: {
-        boundingVolume: IBoundingVolume,
-        url: string,
-    },
+    content?: ITileContent,
     viewerRequestVolume?: IBoundingVolume,
     refine?: IRefine,
     children?: ITile[],
     extras?: any,
+}
+
+export interface ITileContent {
+    boundingVolume: IBoundingVolume,
+    url: string,
 }
 
 
@@ -37,7 +39,7 @@ export interface I3dtileProperty {
     extensions?: object,
 }
 
-export interface I3dTilesJson {
+export interface I3dTiles {
     asset: { version: string, tilesetVersion?: string, extensions?: object, extras?: any };
     geometricError: number,
     root: ITile,

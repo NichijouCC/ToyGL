@@ -1,4 +1,4 @@
-import { Geometry, IAssetLoader, loadArrayBuffer, PrimitiveTypeEnum, VertexAttEnum } from "../index";
+import { Geometry, IAssetLoader, loadArrayBuffer, PrimitiveTypeEnum, VertexAttEnum } from "../../index";
 
 interface IHeader {
     format: string,

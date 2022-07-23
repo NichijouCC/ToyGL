@@ -1,27 +1,25 @@
-import { IComponent } from "../core/ecs";
-import { glMatrix, mat4, quat, vec3 } from "../mathD";
-import { World, System } from "../scene";
-import { CameraComponent } from "./cameraComponent";
-import { EventTarget } from '@mtgoo/ctool'
-import { LoadCss, LoadScript } from "../io";
+import { CameraComponent, glMatrix, LoadCss, LoadScript, mat4, quat, System, vec3, World } from '../../index';
 
-export class MapBoxSystem extends System {
-    caries: { [queryKey: string]: (new () => IComponent)[]; } = { comps: [CameraComponent] };
+import map from 'mapbox-gl';
+declare global {
+    export const mapboxgl: typeof map;
+}
+
+export class MapboxSystem {
+    caries = { comps: [CameraComponent] };
     readonly worldCenter: number[] = [];
     readonly worldRot: number[] = [-90, 0, 0];
-    private _scene: World;
+    world: World;
     map: mapboxgl.Map;
-    private _mapboxOption: mapboxgl.MapboxOptions & { mapboxScript: string, mapboxCss: string };
-    constructor(worldCenter: number[], mapboxOption: mapboxgl.MapboxOptions & { mapboxScript: string, mapboxCss: string }) {
-        super();
+    private _option: mapboxgl.MapboxOptions & { script: string, css: string };
+    constructor(worldCenter: number[], option: mapboxgl.MapboxOptions & { script: string, css: string }) {
         this.worldCenter = worldCenter;
-        this._mapboxOption = mapboxOption;
+        this._option = option;
     }
-
-    async init() {
-        await Promise.all([LoadScript(this._mapboxOption.mapboxScript), LoadCss(this._mapboxOption.mapboxCss)])
+    async start() {
+        await Promise.all([LoadScript(this._option.script), LoadCss(this._option.css)])
         mapboxgl.accessToken = 'pk.eyJ1IjoibmljaGlqb3VjYyIsImEiOiJja3BnZzVwMDkwNW9rMnNudmZmMzdwaDV4In0.O5_AwAIIoI4ee5PxbY2r4A';
-        const map = new mapboxgl.Map(this._mapboxOption);
+        const map = new mapboxgl.Map(this._option);
         this.map = map;
 
         const modelAsMercatorCoordinate = mapboxgl.MercatorCoordinate.fromLngLat(
@@ -40,33 +38,35 @@ export class MapBoxSystem extends System {
         let toGlMat = mat4.create()
         let projectMat = mat4.create();
         let lastTime;
+
+        let resolveTask: (data: { canvas: HTMLCanvasElement, gl: WebGLRenderingContext }) => void
+        let task = new Promise<{ canvas: HTMLCanvasElement, gl: WebGLRenderingContext }>((resolve, reject) => {
+            resolveTask = resolve;
+        })
         const customLayer: mapboxgl.AnyLayer = {
             id: '3d-model',
             type: 'custom',
             renderingMode: '3d',
             onAdd: (map, gl) => {
-                this.onAdd.raiseEvent({
-                    canvas: map.getCanvas(),
-                    gl
-                })
+                resolveTask({ canvas: map.getCanvas(), gl })
             },
             render: (gl, matrix) => {
-                if (this._scene?.mainCamera == null) return;
-                this._scene.mainCamera["_projectMatBeDirty"] = false;
+                if (this.world?.mainCamera == null) return;
+                this.world.mainCamera["_projectMatBeDirty"] = false;
                 mat4.set(toGlMat, matrix[0], matrix[1], matrix[2], matrix[3],
                     matrix[4], matrix[5], matrix[6], matrix[7],
                     matrix[8], matrix[9], matrix[10], matrix[11],
                     matrix[12], matrix[13], matrix[14], matrix[15])
                 const result = mat4.multiply(projectMat, toGlMat, toWorldCoordinate);
-                this._scene.mainCamera["_projectMatrix"] = result;
+                this.world.mainCamera["_projectMatrix"] = result;
                 let deltaTime = lastTime ? Date.now() - lastTime : 0;
                 lastTime = Date.now();
-                let device = this._scene.render.device;
+                let device = this.world.render.device;
                 device.unbindVao();
                 device.unbindShaderProgram();
                 device.unbindVbo();
                 device.unbindTextureUnit();
-                this._scene.update(deltaTime);
+                this.world.update(deltaTime);
                 device.unbindVao();
                 device.unbindShaderProgram();
                 device.unbindVbo();
@@ -79,13 +79,7 @@ export class MapBoxSystem extends System {
         map.on('style.load', () => {
             map.addLayer(customLayer, 'waterway-label');
         });
-    }
-    onAdd = new EventTarget<{ canvas: HTMLCanvasElement, gl: WebGLRenderingContext }>();
-    initWorld(scene: World) {
-        this._scene = scene;
-        let cam = scene.addNewCamera();
-        cam.enableClearColor = false;
-        cam.enableClearDepth = false;
-        cam.enableClearStencil = false;
+
+        return task;
     }
 }

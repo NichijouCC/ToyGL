@@ -1,11 +1,34 @@
 import { mat4, vec3 } from "../../mathD";
 import { BinReader } from "../../io";
-import { IB3dmBatchTableJson, IB3dmFeatureTableJson } from "./type";
-import { LoadGlTF } from "..";
-import { Entity } from "../../scene";
+import { IB3dmBatchTableJson, IB3dmFeatureTableJson, ITileContent } from "./type";
+import { GltfAsset, LoadGlTF } from "../glTF/index";
+import { IBoundingVolume, IFeatureTile, parseBoundingVolume } from "./tile";
+import { Loader } from "./loader";
 
-export class B3dmParser {
-    static parse(arrayBuffer: ArrayBuffer) {
+export class B3dmTile implements IFeatureTile {
+    boundingVolume?: IBoundingVolume
+    rtc_center: vec3;
+    modelMatrix: mat4;
+    root: GltfAsset;
+    readonly url: string
+    readonly loader: Loader;
+    constructor(data: ITileContent, loader: Loader) {
+        this.url = data.url;
+        this.loader = loader;
+        if (data.boundingVolume) {
+            this.boundingVolume = parseBoundingVolume(data.boundingVolume);
+        }
+    }
+    beActive: boolean;
+    loadState: "NONE" | "JSON_LOADING" | "JSON_READY" | "ASSET_LOADING" | "ASSET_READY";
+    show() {
+        throw new Error("Method not implemented.");
+    }
+    hide() {
+        throw new Error("Method not implemented.");
+    }
+
+    load(arrayBuffer: ArrayBuffer) {
         let reader = new BinReader(arrayBuffer);
         let magic = reader.readUint8ArrToString(4);
         let version = reader.readUint32();
@@ -39,23 +62,12 @@ export class B3dmParser {
 
         let gltfView = reader.readUint8Array(gltfByteLength);
         //tile
-        let tile = new B3dmTile();
         if (featureTableJson.RTC_CENTER) {
-            tile.rtc_center = vec3.fromArray(featureTableJson.RTC_CENTER);
+            this.rtc_center = vec3.fromArray(featureTableJson.RTC_CENTER);
         }
-
-        let loader = new LoadGlTF();
-        return loader.loadByArrayBuffer(gltfView.buffer, gltfView.byteOffset)
+        return this.loader.gltfLoader.loadGltfBin(gltfView.buffer)
             .then(asset => {
-                tile.root = asset["_root"];
-                return tile;
+                this.root = asset;
             })
     }
-}
-
-
-export class B3dmTile {
-    rtc_center: vec3;
-    modelMatrix: mat4;
-    root: Entity;
 }

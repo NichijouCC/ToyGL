@@ -2,7 +2,6 @@ import { Prefab, quat, vec3, Animation, ToyGL, ModelComponent, Texture2D, Textur
 
 const toy = ToyGL.create(document.getElementById("canvas") as HTMLCanvasElement);
 const cam = toy.world.addNewCamera();
-
 cam.entity.localPosition = vec3.fromValues(0, 100, 200);
 // cam.node.lookAtPoint(vec3.create());
 cam.entity.lookAtPoint(vec3.fromValues(0, 80, 0));

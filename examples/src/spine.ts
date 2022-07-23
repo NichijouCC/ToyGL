@@ -1,4 +1,4 @@
-import { CameraSystem, Color, Spine, World } from "../../src";
+import { CameraSystem, Color, Spine, World } from "TOYGL";
 import { Timer } from "../../src/core/timer";
 
 const world = new World(document.getElementById("canvas") as HTMLCanvasElement);

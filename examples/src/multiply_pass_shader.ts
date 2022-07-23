@@ -1,4 +1,4 @@
-import { Color, DefaultGeometry, DefaultMaterial, mat4, Material, RenderTarget, Shader, TextureAsset, ToyGL, vec3, vec4, VertexAttEnum } from "../../src";
+import { Color, DefaultGeometry, DefaultMaterial, mat4, Material, RenderTarget, Shader, TextureAsset, ToyGL, vec3, vec4, VertexAttEnum } from "TOYGL";
 
 function createMultiplyPassShader() {
     return new Shader({

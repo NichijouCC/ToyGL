@@ -1,7 +1,7 @@
 import { AnimationSystem, CameraSystem, ISceneOptions, ModelSystem, Resource, Timer, World } from "./index";
 import { EventTarget } from "@mtgoo/ctool";
-import { LoadGlTF } from "./loader/glTF";
-export * from "./loader/index";
+import { LoadGlTF } from "./extends/glTF";
+export * from "./extends/index";
 export * from "./index";
 
 export class ToyGL {
