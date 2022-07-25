@@ -1,35 +1,51 @@
-import { mat4, vec3 } from "../../mathD";
-import { BoundingBox, BoundingSphere } from "../../scene";
+import { BoundingBox, BoundingSphere, IRenderable, loadJson, mat4, vec3 } from "../../index";
 import { B3dmTile } from "./b3dm";
 import { Loader } from "./loader";
+import { ITileFrameState } from "./tilesetSystem";
 import { I3dTiles, IRefine, ITile, ITileFormat } from "./type";
 
-export class TileSet implements IFeatureTile {
+export class Tileset implements I3DTileContent {
     beActive: boolean;
-    loadState: LoadState;
+    loadState: LoadState = "NONE"
     geometricError: number;
     root: TileNode;
     //json
     readonly url: string;
     readonly loader: Loader;
+
+    get boundingVolume() { return this.root.boundingVolume }
     constructor(url: string, loader: Loader) {
         this.url = url;
         this.beActive = false;
         this.loadState = "NONE"
         this.loader = loader;
     }
-    show() {
-        throw new Error("Method not implemented.");
+    static create(url: string, loader: Loader) {
+        let tile = new Tileset(url, loader);
+        return tile.load()
     }
-    hide() {
-        throw new Error("Method not implemented.");
-    }
-    parse(json: I3dTiles, baseUrl: string) {
-        this.geometricError = json.geometricError;
-        this.root = new TileNode(json.root, baseUrl, this.loader);
-    }
-    tick() {
 
+    update(options: ITileFrameState) {
+        switch (this.loadState) {
+            case "NONE":
+                this.load();
+                break;
+            case "ASSET_READY":
+                this.root.update(options);
+                break;
+        }
+    }
+
+    private load() {
+        this.loadState = "ASSET_LOADING";
+        return loadJson(this.url)
+            .then((json) => {
+                this.geometricError = json.geometricError;
+                this.root = new TileNode(json.root, this.url.substring(0, this.url.lastIndexOf("/")), this.loader);
+                console.log("load tileset json", this.url)
+                this.loadState = "ASSET_READY";
+                return this;
+            })
     }
 }
 
@@ -37,7 +53,7 @@ export class TileNode {
     geometricError: number;
     boundingVolume: IBoundingVolume;
     transform: mat4;//mat4
-    content?: IFeatureTile;
+    content?: I3DTileContent;
     viewerRequestVolume?: IBoundingVolume;
     refine?: IRefine;
     children?: TileNode[];
@@ -56,7 +72,7 @@ export class TileNode {
         if (node.content) {
             let url = node.content.url;
             if (url.endsWith("b3dm")) {
-                this.content = new B3dmTile(node.content, loader);
+                this.content = new B3dmTile(node.content, baseUrl, loader);
             } else if (url.endsWith("i3dm")) {
 
             } else if (url.endsWith("pnts")) {
@@ -64,7 +80,7 @@ export class TileNode {
             } else if (url.endsWith("cmpt")) {
 
             } else if (url.endsWith("json")) {
-
+                this.content = new Tileset(`${baseUrl}/${url}`, this.loader);
             }
             else {
                 throw new Error(`unknown tile format ${url}`)
@@ -78,9 +94,18 @@ export class TileNode {
             }
         }
     }
+
+    update(options: ITileFrameState) {
+        let sse = options.sseParams * this.geometricError / vec3.distance(options.campos, this.boundingVolume.center);
+        if (sse < options.maxSSE) {
+            return;
+        }
+        this.content?.update(options);
+        this.children?.forEach(el => el.update(options));
+    }
 }
 
-export function parseBoundingVolume(bv: any) {
+export function parseBoundingVolume(bv: any): IBoundingVolume {
     if (bv["box"]) {
         let data = bv["box"];
         let center = vec3.fromValues(data[0], data[1], data[2]);
@@ -94,13 +119,15 @@ export function parseBoundingVolume(bv: any) {
         let center = vec3.fromValues(data[0], data[1], data[2]);
         let radius = data[4];
         return BoundingSphere.create({ center, radius });
-    } else if (bv["region"]) {
-        let data = bv["region"];
-        let region = [data[0], data[1], data[2], data[3]];
-        let minHeight = data[4];
-        let maxHeight = data[5];
-        return BoundingRegion.create({ region, maxHeight, minHeight });
-    } else {
+    }
+    // else if (bv["region"]) {
+    //     let data = bv["region"];
+    //     let region = [data[0], data[1], data[2], data[3]];
+    //     let minHeight = data[4];
+    //     let maxHeight = data[5];
+    //     return BoundingRegion.create({ region, maxHeight, minHeight });
+    // } 
+    else {
         throw new Error("Something wrong!")
     }
 }
@@ -121,14 +148,13 @@ export class BoundingRegion {
 }
 
 export interface IBoundingVolume {
-
+    center: vec3;
 }
 
-type LoadState = "NONE" | "JSON_LOADING" | "JSON_READY" | "ASSET_LOADING" | "ASSET_READY"
+export type LoadState = "NONE" | "ASSET_LOADING" | "ASSET_READY"
 
-export interface IFeatureTile {
+export interface I3DTileContent {
     beActive: boolean
     loadState: LoadState
-    show()
-    hide()
+    update(state: ITileFrameState)
 }

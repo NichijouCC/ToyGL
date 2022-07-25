@@ -2,7 +2,7 @@ import { AnimationClip, Asset, Entity, Geometry, mat4, Material, ModelComponent,
 import { IGltfNode } from "./gltfJsonStruct";
 
 export class GltfAsset extends Asset {
-    private data: GltfNode;
+    readonly data: GltfNode;
     constructor(data: GltfNode) {
         super();
         this.data = data;

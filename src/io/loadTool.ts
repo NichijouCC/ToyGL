@@ -78,7 +78,7 @@ function httpRequest(
         };
     });
 }
-export function loadJson(url: string, onProgress: (info: IDownloadInfo) => void = null): Promise<object> {
+export function loadJson(url: string, onProgress: (info: IDownloadInfo) => void = null): Promise<any> {
     return httpRequest(url, ResponseTypeEnum.json, onProgress);
 }
 export function loadText(url: string, onProgress: (info: IDownloadInfo) => void = null): Promise<string> {

@@ -1,31 +1,33 @@
-import { Asset, IAssetLoader } from "../../index";
+import { Asset, IAssetLoader, IRenderable, vec3 } from "../../index";
 import { LoadGlTF } from "../glTF/index";
-import { TileSet } from "./tile";
+import { Gltf1Loader } from "./gltf1";
+import { Tileset } from "./tileset";
+import { ITileFrameState } from "./tilesetSystem";
 
 export class Loader implements IAssetLoader {
-    loadJson: (url: string) => Promise<any>
-    loadBin: (url: string) => Promise<ArrayBuffer>
-    readonly gltfLoader = new LoadGlTF();
-    load(url: string): Promise<Cesium3dTiles> {
-        return Promise.resolve(new Cesium3dTiles(url, this));
+    readonly gltfLoader = new Gltf1Loader();
+    load(url: string): Promise<Cesium3dTileset> {
+        return Cesium3dTileset.create(url, this)
     }
 }
 
-export class Cesium3dTiles extends Asset {
-    readonly data: TileSet;
-    readonly url: string;
-    readonly loader: Loader;
-    constructor(url: string, loader: Loader) {
-        super();
-        this.url = url;
-        this.loader = loader;
-        this.data = new TileSet(url, loader);
+export class Cesium3dTileset extends Asset {
+    private _data: Tileset;
+    get data() { return this._data }
+    get boundingVolume() { return this._data.boundingVolume }
+    static create(url: string, loader: Loader) {
+        let tileset = new Cesium3dTileset();
+        return Tileset.create(url, loader)
+            .then((res) => {
+                tileset._data = res;
+                return tileset;
+            })
     }
     destroy(): void {
         throw new Error("Method not implemented.");
     }
 
-    tick() {
-        this.data.tick();
+    update(options: ITileFrameState) {
+        this.data.update(options);
     }
 }
