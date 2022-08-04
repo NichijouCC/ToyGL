@@ -9,8 +9,7 @@ export class B3dmTile implements I3DTileContent {
     boundingVolume?: IBoundingVolume
     rtc_center: vec3;
     modelMatrix: mat4;
-    content: GltfAsset;
-
+    content: GltfNode;
     beActive: boolean;
     loadState: LoadState = "NONE";
 
@@ -31,7 +30,7 @@ export class B3dmTile implements I3DTileContent {
                 this.load();
                 break;
             case "ASSET_READY":
-                this.collectRender(this.content.data, options.renders)
+                this.collectRender(this.content, options.renders)
                 break;
         }
     }
