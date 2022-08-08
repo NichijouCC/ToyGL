@@ -41,7 +41,7 @@ export class Tileset implements I3DTileContent {
         return loadJson(this.url)
             .then((json) => {
                 this.geometricError = json.geometricError;
-                this.root = new TileNode(json.root, this.url.substring(0, this.url.lastIndexOf("/")), this.loader);
+                this.root = new TileNode(json.root, null, this.url.substring(0, this.url.lastIndexOf("/")), this.loader);
                 console.log("load tileset json", this.url)
                 this.loadState = "ASSET_READY";
                 return this;
@@ -60,7 +60,7 @@ export class TileNode {
     extras?: any;
 
     readonly loader: Loader;
-    constructor(node: ITile, baseUrl: string, loader: Loader) {
+    constructor(node: ITile, parentNode: TileNode, baseUrl: string, loader: Loader) {
         this.loader = loader;
         this.geometricError = node.geometricError;
         this.boundingVolume = parseBoundingVolume(node.boundingVolume);
@@ -69,6 +69,7 @@ export class TileNode {
         } else {
             this.transform = mat4.create();
         }
+        this.refine = node.refine ?? parentNode.refine;
         if (node.content) {
             let url = node.content.url;
             if (url.endsWith("b3dm")) {
@@ -89,19 +90,35 @@ export class TileNode {
         if (node.children) {
             this.children = [];
             for (let i = 0; i < node.children.length; i++) {
-                let childTile = new TileNode(node.children[i], baseUrl, loader);
+                let childTile = new TileNode(node.children[i], this, baseUrl, loader);
                 this.children.push(childTile);
             }
         }
     }
 
     update(options: ITileFrameState) {
-        let sse = options.sseParams * this.geometricError / vec3.distance(options.campos, this.boundingVolume.center);
-        if (sse < options.maxSSE) {
-            return;
+        if (this.children != null && this.refine == "REPLACE") {
+            let useChild = false;
+            for (let i = 0; i < this.children.length; i++) {
+                if (this.children[i].checkSSE(options)) {
+                    useChild = true;
+                    break;
+                }
+            }
+            if (useChild) {
+                this.children?.forEach(el => el.update(options));
+            } else {
+                this.content?.update(options);
+            }
+        } else {
+            this.content?.update(options);
+            this.children?.forEach(el => el.update(options));
         }
-        this.content?.update(options);
-        this.children?.forEach(el => el.update(options));
+    }
+
+    checkSSE(options: ITileFrameState) {
+        let sse = options.sseParams * this.geometricError / vec3.distance(options.campos, this.boundingVolume.center);
+        return sse > options.maxSSE;
     }
 }
 

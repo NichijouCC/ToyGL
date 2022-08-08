@@ -321,7 +321,7 @@ export interface IBaseTextureOptions extends ISamplerOptions {
     pixelDatatype?: PixelDatatypeEnum;
     /** 默认：false*/
     preMultiplyAlpha?: boolean;
-    /** 默认：false */
+    /** 默认：true */
     flipY?: boolean;
 }
 

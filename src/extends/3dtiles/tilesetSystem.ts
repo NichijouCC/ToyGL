@@ -21,7 +21,7 @@ export class TilesetSystem extends System {
         let sseParams = drawHeight / (2 * Math.tan(fovY / 2));
         this.queries.comps.forEach((node) => {
             let tileset = node.getComponent(TilesetRender).asset;
-            tileset.update({ sseParams, campos, renders, maxSSE: 8 });
+            tileset.update({ sseParams, campos, renders, maxSSE: 1.0 });
         });
         renders.forEach(el => this._scene.addFrameRenderIns(el))
     }

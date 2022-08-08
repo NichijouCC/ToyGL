@@ -1,4 +1,4 @@
-import { BinReader, BufferTargetEnum, DefaultMaterial, DefaultTexture, Geometry, GraphicBuffer, GraphicIndexBuffer, IGeometryOptions, StaticGeometry, Texture2D, TextureAsset, TextureFilterEnum, TypedArray, VertexAttEnum } from "../../index";
+import { BinReader, BufferTargetEnum, DefaultMaterial, DefaultTexture, Geometry, GraphicBuffer, GraphicIndexBuffer, IGeometryOptions, mat4, quat, StaticGeometry, Texture2D, TextureAsset, TextureFilterEnum, TypedArray, vec3, VertexAttEnum } from "../../index";
 import { GltfNode, Mesh } from "../glTF";
 
 export class Gltf1Loader {
@@ -31,12 +31,26 @@ export class Gltf1Loader {
         let gltf = JSON.parse(contentString) as IGltf1Json;
         let scene = gltf.scenes[gltf.scene];
 
-
         let bufferCache: { [viewName: string]: GraphicBuffer } = {};
 
-        let parseNode = (nodeName: string) => {
+        let parseNode = (nodeName: string, parentMat: mat4) => {
             const node = new GltfNode();
             let nodeData = gltf.nodes[nodeName];
+            let localMatrix = mat4.create();
+            if (nodeData.matrix) localMatrix = mat4.fromArray(nodeData.matrix);
+            {
+                let translate = nodeData.translation ?? [0, 0, 0];
+                let scale = nodeData.scale ?? [1, 1, 1];
+                let rot = nodeData.rotation ?? [0, 0, 0];
+                mat4.fromRotationTranslationScale(
+                    localMatrix,
+                    quat.fromEuler(quat.create(), rot[0], rot[1], rot[2]),
+                    vec3.fromArray(translate),
+                    vec3.fromArray(scale),
+                );
+            }
+            node.modelMatrix = mat4.multiply(localMatrix, parentMat, localMatrix);
+
             nodeData.meshes.forEach(meshName => {
                 let meshData = gltf.meshes[meshName];
                 let primitives = meshData.primitives.map(el => {
@@ -114,7 +128,7 @@ export class Gltf1Loader {
                                 resolve(img);
                             };
                         }).then((img) => {
-                            const texture = new Texture2D({ image: img });
+                            const texture = new Texture2D({ image: img, flipY: false });
                             mat.setUniform("MainTex", texture);
                         });
                     }
@@ -122,13 +136,13 @@ export class Gltf1Loader {
                     let program = gltf.programs[technique.program];
                     {
                         let shader = gltf.shaders[program.vertexShader];
-                        let extend = shader.extensions["KHR_binary_glTF"] as IKHRBinaryGlTF;
+                        let extend = shader.extensions[EXT_KHR_binary_glTF] as IKHRBinaryGlTF;
                         let bufferView = gltf.bufferViews[extend.bufferView];
                         const viewBuffer = new Uint8Array(binaryBuffer.buffer, (bufferView.byteOffset ?? 0) + binaryBuffer.byteOffset, bufferView.byteLength);
                     }
                     {
                         let shader = gltf.shaders[program.fragmentShader];
-                        let extend = shader.extensions["KHR_binary_glTF"] as IKHRBinaryGlTF;
+                        let extend = shader.extensions[EXT_KHR_binary_glTF] as IKHRBinaryGlTF;
                         let bufferView = gltf.bufferViews[extend.bufferView];
                         const viewBuffer = new Uint8Array(binaryBuffer.buffer, (bufferView.byteOffset ?? 0) + binaryBuffer.byteOffset, bufferView.byteLength);
                     }
@@ -140,15 +154,25 @@ export class Gltf1Loader {
                 node.mesh = mesh;
             })
             nodeData.children?.forEach(el => {
-                let child = parseNode(el)
+                let child = parseNode(el, node.modelMatrix)
                 node.children.push(child);
             })
             return node;
         }
-
         let sceneNode = new GltfNode();
+        //y-up to z-up
+        let transformMat = mat4.fromRotation(mat4.create(), Math.PI / 2, vec3.RIGHT);
+
+        let rtc = gltf.extensions[EXT_CESIUM_RTC] as ICESIUM_RTC;
+        if (rtc) {
+            let rtcMat = mat4.fromTranslation(mat4.create(), rtc.center as any);
+            sceneNode.modelMatrix = mat4.multiply(rtcMat, rtcMat, transformMat);
+        } else {
+            sceneNode.modelMatrix = transformMat;
+        };
+
         scene.nodes.forEach(el => {
-            let root = parseNode(el);
+            let root = parseNode(el, sceneNode.modelMatrix);
             sceneNode.children.push(root);
         })
         return sceneNode
@@ -202,7 +226,11 @@ export interface IGltf1Json {
     nodes: {
         [name: string]: {
             children?: string[]
-            meshes: string[]
+            meshes: string[],
+            scale?: number[],
+            rotation?: number[],
+            translation?: number[],
+            matrix?: number[],
         }
     },
     meshes: {
@@ -314,3 +342,7 @@ interface IKHRBinaryGlTF {
     width: number;// 256
 }
 
+const EXT_CESIUM_RTC = "CESIUM_RTC"
+interface ICESIUM_RTC {
+    center: number[],
+}

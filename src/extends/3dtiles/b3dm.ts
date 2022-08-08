@@ -37,6 +37,7 @@ export class B3dmTile implements I3DTileContent {
 
     private load() {
         this.loadState = "ASSET_LOADING"
+        console.log("b3dm", `${this.baseUrl}/${this.url}`);
         return loadArrayBuffer(`${this.baseUrl}/${this.url}`)
             .then((data) => this.parse(data))
             .then(res => {
@@ -51,7 +52,7 @@ export class B3dmTile implements I3DTileContent {
             let baseRender: IRenderable = {
                 geometry: mesh.subMeshes[0],
                 material: materials[0],
-                worldMat: mat4.IDENTITY,
+                worldMat: data.modelMatrix,
                 boundingBox: mesh.boundingBox,
             }
             if (mesh.subMeshes.length > 1) {
@@ -74,7 +75,6 @@ export class B3dmTile implements I3DTileContent {
         let reader = new BinReader(arrayBuffer);
         let magic = reader.readUint8ArrToString(4);
         let version = reader.readUint32();
-        console.log("b3dm", magic, version);
         let byteLength = reader.readUint32();
         let featureTableJsonByteLength = reader.readUint32();
         let featureTableBinaryByteLength = reader.readUint32();

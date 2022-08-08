@@ -49,6 +49,7 @@ export class GltfNode {
     raw?: IGltfNode;
     mesh?: Mesh;
     animations?: AnimationClip[];
+    modelMatrix: mat4;
     children: GltfNode[] = [];
 }
 
