@@ -1,4 +1,4 @@
-import { BinReader, BufferTargetEnum, DefaultMaterial, Geometry, GraphicBuffer, GraphicIndexBuffer, IGeometryOptions, StaticGeometry, TextureAsset, TypedArray, VertexAttEnum } from "../../index";
+import { BinReader, BufferTargetEnum, DefaultMaterial, DefaultTexture, Geometry, GraphicBuffer, GraphicIndexBuffer, IGeometryOptions, StaticGeometry, Texture2D, TextureAsset, TextureFilterEnum, TypedArray, VertexAttEnum } from "../../index";
 import { GltfNode, Mesh } from "../glTF";
 
 export class Gltf1Loader {
@@ -95,12 +95,28 @@ export class Gltf1Loader {
                     let material = gltf.materials[el.material];
                     let tex = gltf.textures[material.values.tex];
                     let image = gltf.images[tex.source];
+                    mat.setUniform("MainTex", DefaultTexture.grid);
                     {
                         let extend = image.extensions["KHR_binary_glTF"] as IKHRBinaryGlTF;
                         let bufferView = gltf.bufferViews[extend.bufferView];
                         const viewBuffer = new Uint8Array(binaryBuffer.buffer, (bufferView.byteOffset ?? 0) + binaryBuffer.byteOffset, bufferView.byteLength);
-                        let tex2d = TextureAsset.fromTypeArray({ arrayBufferView: viewBuffer, width: extend.width, height: extend.height });
-                        mat.setUniform("MainTex", tex2d);
+                        new Promise<HTMLImageElement>((resolve, reject) => {
+                            var blob = new Blob([viewBuffer], { type: extend.mimeType });
+                            var imageUrl = window.URL.createObjectURL(blob);
+                            const img: HTMLImageElement = new Image();
+                            img.crossOrigin = "";
+                            img.src = imageUrl;
+                            img.onerror = error => {
+                                reject(error);
+                            };
+                            img.onload = () => {
+                                URL.revokeObjectURL(img.src);
+                                resolve(img);
+                            };
+                        }).then((img) => {
+                            const texture = new Texture2D({ image: img });
+                            mat.setUniform("MainTex", texture);
+                        });
                     }
                     let technique = gltf.techniques[material.technique];
                     let program = gltf.programs[technique.program];
@@ -167,6 +183,15 @@ function getComponentSize(type: string): number {
             return 16;
     }
 }
+
+function Uint8ArrayToString(fileData) {
+    var dataString = "";
+    for (var i = 0; i < fileData.length; i++) {
+        dataString += String.fromCharCode(fileData[i]);
+    }
+    return dataString
+}
+
 export interface IGltf1Json {
     scene: string,
     scenes: {

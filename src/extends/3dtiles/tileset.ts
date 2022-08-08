@@ -117,7 +117,7 @@ export function parseBoundingVolume(bv: any): IBoundingVolume {
     } else if (bv["sphere"]) {
         let data = bv["sphere"];
         let center = vec3.fromValues(data[0], data[1], data[2]);
-        let radius = data[4];
+        let radius = data[3];
         return BoundingSphere.create({ center, radius });
     }
     // else if (bv["region"]) {
