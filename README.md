@@ -9,10 +9,13 @@ scene层管理场景
 
 comp/system 自由拓展系统
 ## 案例截图
-![游戏](https://github.com/NichijouCC/ToyGL/blob/master/examples/public/captures/game.jpg)![SPINE](https://github.com/NichijouCC/ToyGL/blob/master/examples/public/spine_gif.gif)
-![mapbox](https://github.com/NichijouCC/ToyGL/blob/master/examples/public/captures/mapbox.jpg)![PLY点云](https://github.com/NichijouCC/ToyGL/blob/master/examples/public/captures/ply_point_cloud.jpg)
-![3DTILES](https://github.com/NichijouCC/ToyGL/blob/master/examples/public/captures/3dtiles.jpg)
-
-
-
-
+- 游戏
+![](https://github.com/NichijouCC/ToyGL/blob/master/examples/public/captures/game.jpg)
+- PLY点云
+![](https://github.com/NichijouCC/ToyGL/blob/master/examples/public/captures/ply_point_cloud.jpg)
+- 3DTILES模型
+![](https://github.com/NichijouCC/ToyGL/blob/master/examples/public/captures/3dtiles.jpg)
+- 适配mapbox
+![](https://github.com/NichijouCC/ToyGL/blob/master/examples/public/captures/mapbox.jpg)
+- 适配SPINE
+![](https://github.com/NichijouCC/ToyGL/blob/master/examples/public/spine_gif.gif)
