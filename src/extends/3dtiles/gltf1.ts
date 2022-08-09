@@ -33,23 +33,22 @@ export class Gltf1Loader {
 
         let bufferCache: { [viewName: string]: GraphicBuffer } = {};
 
-        let parseNode = (nodeName: string, parentMat: mat4) => {
+        let parseNode = (nodeName: string) => {
             const node = new GltfNode();
             let nodeData = gltf.nodes[nodeName];
-            let localMatrix = mat4.create();
-            if (nodeData.matrix) localMatrix = mat4.fromArray(nodeData.matrix);
-            {
+            if (nodeData.matrix) {
+                node.matrix = mat4.fromArray(nodeData.matrix);
+            } else {
                 let translate = nodeData.translation ?? [0, 0, 0];
+                let rotation = nodeData.rotation ?? [0, 0, 0];
                 let scale = nodeData.scale ?? [1, 1, 1];
-                let rot = nodeData.rotation ?? [0, 0, 0];
-                mat4.fromRotationTranslationScale(
-                    localMatrix,
-                    quat.fromEuler(quat.create(), rot[0], rot[1], rot[2]),
+                node.matrix = mat4.fromRotationTranslationScale(
+                    mat4.create(),
+                    quat.fromEuler(quat.create(), rotation[0], rotation[1], rotation[2]),
                     vec3.fromArray(translate),
-                    vec3.fromArray(scale),
+                    vec3.fromArray(scale)
                 );
             }
-            node.modelMatrix = mat4.multiply(localMatrix, parentMat, localMatrix);
 
             nodeData.meshes.forEach(meshName => {
                 let meshData = gltf.meshes[meshName];
@@ -154,25 +153,20 @@ export class Gltf1Loader {
                 node.mesh = mesh;
             })
             nodeData.children?.forEach(el => {
-                let child = parseNode(el, node.modelMatrix)
+                let child = parseNode(el)
                 node.children.push(child);
             })
             return node;
         }
         let sceneNode = new GltfNode();
-        //y-up to z-up
-        let transformMat = mat4.fromRotation(mat4.create(), Math.PI / 2, vec3.RIGHT);
-
         let rtc = gltf.extensions[EXT_CESIUM_RTC] as ICESIUM_RTC;
         if (rtc) {
-            let rtcMat = mat4.fromTranslation(mat4.create(), rtc.center as any);
-            sceneNode.modelMatrix = mat4.multiply(rtcMat, rtcMat, transformMat);
+            sceneNode.matrix = mat4.fromTranslation(mat4.create(), rtc.center as any);
         } else {
-            sceneNode.modelMatrix = transformMat;
+            sceneNode.matrix = mat4.create();
         };
-
         scene.nodes.forEach(el => {
-            let root = parseNode(el, sceneNode.modelMatrix);
+            let root = parseNode(el);
             sceneNode.children.push(root);
         })
         return sceneNode

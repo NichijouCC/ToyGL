@@ -1,5 +1,5 @@
-import { Asset, IAssetLoader, IRenderable, vec3 } from "../../index";
-import { LoadGlTF } from "../glTF/index";
+import { Asset, BinReader, IAssetLoader, IRenderable, mat4, vec3 } from "../../index";
+import { GltfNode, LoadGlTF } from "../glTF/index";
 import { Gltf1Loader } from "./gltf1";
 import { Tileset } from "./tileset";
 import { ITileFrameState } from "./tilesetSystem";
@@ -8,6 +8,29 @@ export class Loader implements IAssetLoader {
     readonly gltfLoader = new Gltf1Loader();
     load(url: string): Promise<Cesium3dTileset> {
         return Cesium3dTileset.create(url, this)
+    }
+    private _gltf1Loader: Gltf1Loader;
+    private get gltf1Loader() {
+        if (this._gltf1Loader == null) this._gltf1Loader = new Gltf1Loader();
+        return this._gltf1Loader;
+    }
+
+    private _gltf2Loader: LoadGlTF;
+    private get gltf2Loader() {
+        if (this._gltf2Loader == null) this._gltf2Loader = new LoadGlTF();
+        return this._gltf2Loader;
+    }
+
+    loadGltfBin(bin: ArrayBuffer, offset = 0) {
+        const bReader = new BinReader(bin, offset);
+        const magic = bReader.readUint32();
+        const version = bReader.readUint32();
+        if (version == 1) {
+            let node = this.gltf1Loader.loadGltfBin(bin, offset);
+            return Promise.resolve(node);
+        } else {
+            return this.gltf2Loader.loadGltfBin(bin)
+        }
     }
 }
 

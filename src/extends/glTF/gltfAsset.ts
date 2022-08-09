@@ -13,12 +13,7 @@ export class GltfAsset extends Asset {
     private nodeToEntity(node: GltfNode, world: World) {
         let ins = new Entity(world);
         if (node.name) ins.name = node.name;
-        if (node.raw) {
-            if (node.raw.matrix) ins.localMatrix = mat4.fromArray(node.raw.matrix);
-            if (node.raw.translation) ins.localPosition = vec3.fromArray(node.raw.translation);
-            if (node.raw.rotation) ins.localRotation = quat.fromArray(node.raw.rotation);
-            if (node.raw.scale) ins.localScale = vec3.fromArray(node.raw.scale);
-        }
+        ins.localMatrix = node.matrix;
         if (node.mesh) {
             let comp = ins.addComponent(ModelComponent);
             comp.mesh = node.mesh.mesh
@@ -49,7 +44,7 @@ export class GltfNode {
     raw?: IGltfNode;
     mesh?: Mesh;
     animations?: AnimationClip[];
-    modelMatrix: mat4;
+    matrix: mat4;
     children: GltfNode[] = [];
 }
 

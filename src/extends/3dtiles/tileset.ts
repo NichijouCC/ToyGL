@@ -71,7 +71,7 @@ export class TileNode {
         }
         this.refine = node.refine ?? parentNode.refine;
         if (node.content) {
-            let url = node.content.url;
+            let url = node.content.url ?? node.content.uri;
             if (url.endsWith("b3dm")) {
                 this.content = new B3dmTile(node.content, baseUrl, loader);
             } else if (url.endsWith("i3dm")) {

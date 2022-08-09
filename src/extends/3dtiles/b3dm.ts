@@ -7,8 +7,7 @@ import { BinReader, IRenderable, loadArrayBuffer, mat4, vec3 } from "../../index
 
 export class B3dmTile implements I3DTileContent {
     boundingVolume?: IBoundingVolume
-    rtc_center: vec3;
-    modelMatrix: mat4;
+    rtcMatrix: mat4;
     content: GltfNode;
     beActive: boolean;
     loadState: LoadState = "NONE";
@@ -17,7 +16,7 @@ export class B3dmTile implements I3DTileContent {
     readonly loader: Loader;
     private baseUrl: string;
     constructor(data: ITileContent, baseUrl: string, loader: Loader) {
-        this.url = data.url;
+        this.url = data.url ?? data.uri;
         this.baseUrl = baseUrl;
         this.loader = loader;
         if (data.boundingVolume) {
@@ -52,7 +51,7 @@ export class B3dmTile implements I3DTileContent {
             let baseRender: IRenderable = {
                 geometry: mesh.subMeshes[0],
                 material: materials[0],
-                worldMat: data.modelMatrix,
+                worldMat: data.matrix,
                 boundingBox: mesh.boundingBox,
             }
             if (mesh.subMeshes.length > 1) {
@@ -106,8 +105,33 @@ export class B3dmTile implements I3DTileContent {
         let gltfView = reader.readUint8Array(gltfByteLength).slice();
         //tile
         if (featureTableJson.RTC_CENTER) {
-            this.rtc_center = vec3.fromArray(featureTableJson.RTC_CENTER);
+            this.rtcMatrix = mat4.fromTranslation(mat4.create(), featureTableJson.RTC_CENTER as any);
         }
-        return this.loader.gltfLoader.loadGltfBin(gltfView.buffer)
+        return this.loader.loadGltfBin(gltfView.buffer).then(node => {
+            updateNodeMatrix(node, { rtcMat: this.rtcMatrix });
+            return node;
+        })
     }
 }
+
+function updateNodeMatrix(node: GltfNode, options?: { computeWorldMatrix?: boolean, transformToZUp?: boolean, rtcMat?: mat4 }) {
+    let { computeWorldMatrix = true, transformToZUp = true, rtcMat } = options || {};
+    if (rtcMat) {
+        mat4.multiply(node.matrix, rtcMat, node.matrix);
+    }
+    if (transformToZUp) {
+        //y-up to z-up
+        let transformMat = mat4.fromRotation(mat4.create(), Math.PI / 2, vec3.RIGHT);
+        mat4.multiply(node.matrix, node.matrix, transformMat);
+    }
+    if (computeWorldMatrix) {
+        let update = (node: GltfNode, parent: GltfNode) => {
+            if (parent != null) {
+                mat4.multiply(node.matrix, parent.matrix, node.matrix);
+            }
+            node.children?.forEach(el => update(el, node))
+        }
+        update(node, null);
+    }
+}
+

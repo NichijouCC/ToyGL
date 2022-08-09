@@ -29,7 +29,8 @@ export interface ITile {
 
 export interface ITileContent {
     boundingVolume: IBoundingVolume,
-    url: string,
+    url?: string,
+    uri?: string,
 }
 
 

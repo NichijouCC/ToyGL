@@ -63,11 +63,14 @@ export class LoadGlTF implements IAssetLoader {
                 gltfJson.rootURL = getAssetDirectory(url);
                 return gltfJson;
             })
-            .then((data) => this.toAsset(data));
+            .then((data) => this.parseJson(data))
+            .then(data => new GltfAsset(data))
     }
 
     loadGlb(url: string) {
-        return loadArrayBuffer(url).then((bin) => this.loadGltfBin(bin))
+        return loadArrayBuffer(url)
+            .then((bin) => this.loadGltfBin(bin))
+            .then(data => new GltfAsset(data))
     }
 
     loadGltfBin(bin: ArrayBuffer) {
@@ -121,10 +124,10 @@ export class LoadGlTF implements IAssetLoader {
         for (let i = 0; i < _chunkBin.length; i++) {
             _json.cache.bufferNodeCache[i] = Promise.resolve(_chunkBin[i]);
         }
-        return this.toAsset(_json);
+        return this.parseJson(_json);
     }
 
-    private async toAsset(gltfJson: any) {
+    private async parseJson(gltfJson: any) {
         const scene = gltfJson.scene != null ? gltfJson.scene : 0;
         const sceneRoot = await ParseSceneNode.parse(scene, gltfJson);
         if (gltfJson.animations != null) {
@@ -133,6 +136,6 @@ export class LoadGlTF implements IAssetLoader {
             }));
             sceneRoot.animations = animations;
         }
-        return new GltfAsset(sceneRoot);
+        return sceneRoot
     }
 }
