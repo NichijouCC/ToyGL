@@ -76,7 +76,7 @@ export class ParseTextureNode {
                                 resolve(img);
                             };
                         }).then((img) => {
-                            const texture = new Texture2D({ image: img });
+                            const texture = new Texture2D({ image: img, flipY: false });
                             return texture;
                         });
                     })
