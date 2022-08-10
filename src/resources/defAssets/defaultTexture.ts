@@ -46,18 +46,3 @@ export class DefaultTexture {
     static get grid() { return Private.grid; };
 }
 
-export function arraybufferToimage(arrayBufferView: Uint8Array, mimeType: string = "image/jpeg"): Promise<HTMLImageElement> {
-    return new Promise<HTMLImageElement>((resolve, reject) => {
-        var blob = new Blob([arrayBufferView], { type: mimeType });
-        var imageUrl = window.URL.createObjectURL(blob);
-        const img: HTMLImageElement = new Image();
-        img.src = imageUrl;
-        img.onerror = error => {
-            reject(error);
-        };
-        img.onload = () => {
-            URL.revokeObjectURL(img.src);
-            resolve(img);
-        };
-    });
-}

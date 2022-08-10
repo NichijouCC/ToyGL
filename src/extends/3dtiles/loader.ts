@@ -20,19 +20,48 @@ export class Loader implements IAssetLoader {
         if (this._gltf2Loader == null) this._gltf2Loader = new LoadGlTF();
         return this._gltf2Loader;
     }
-
+    queue = new QueueTask();
     loadGltfBin(bin: ArrayBuffer, offset = 0) {
         const bReader = new BinReader(bin, offset);
         const magic = bReader.readUint32();
         const version = bReader.readUint32();
         if (version == 1) {
             let node = this.gltf1Loader.loadGltfBin(bin, offset);
-            return Promise.resolve(node);
+            return Promise.resolve(node)
         } else {
             return this.gltf2Loader.loadGltfBin(bin)
         }
     }
 }
+
+export class QueueTask {
+    tasks: (() => Promise<any>)[] = [];
+    private doingCount = 0;
+    limitCount = 5;
+    push<T = any>(task: () => Promise<T>): Promise<T> {
+        return new Promise((resolve, reject) => {
+            this.tasks.push(() => {
+                return task().then(result => {
+                    resolve(result);
+                })
+            });
+            this.checkQueue();
+        })
+    }
+    private checkQueue() {
+        if (this.doingCount < this.limitCount) {
+            let task = this.tasks.shift();
+            if (task != null) {
+                this.doingCount++;
+                task().then(() => {
+                    this.doingCount--;
+                    this.checkQueue();
+                })
+            }
+        }
+    }
+}
+
 
 export class Cesium3dTileset extends Asset {
     private _data: Tileset;

@@ -38,14 +38,16 @@ export class Tileset implements I3DTileContent {
 
     private load() {
         this.loadState = "ASSET_LOADING";
-        return loadJson(this.url)
-            .then((json) => {
-                this.geometricError = json.geometricError;
-                this.root = new TileNode(json.root, null, this.url.substring(0, this.url.lastIndexOf("/")), this.loader);
-                console.log("load tileset json", this.url)
-                this.loadState = "ASSET_READY";
-                return this;
-            })
+        return this.loader.queue.push(() => {
+            return loadJson(this.url)
+                .then((json) => {
+                    this.geometricError = json.geometricError;
+                    this.root = new TileNode(json.root, null, this.url.substring(0, this.url.lastIndexOf("/")), this.loader);
+                    console.log("load tileset json", this.url)
+                    this.loadState = "ASSET_READY";
+                    return this;
+                })
+        })
     }
 }
 

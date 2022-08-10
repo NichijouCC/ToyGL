@@ -1,4 +1,4 @@
-import { BinReader, BufferTargetEnum, DefaultMaterial, DefaultTexture, Geometry, GraphicBuffer, GraphicIndexBuffer, IGeometryOptions, mat4, quat, StaticGeometry, Texture2D, TextureAsset, TextureFilterEnum, TypedArray, vec3, VertexAttEnum } from "../../index";
+import { loadImgFromArrayBuffer, BinReader, BufferTargetEnum, DefaultMaterial, DefaultTexture, Geometry, GraphicBuffer, GraphicIndexBuffer, IGeometryOptions, mat4, quat, StaticGeometry, Texture2D, TextureAsset, TextureFilterEnum, TypedArray, vec3, VertexAttEnum } from "../../index";
 import { GltfNode, Mesh } from "../glTF";
 
 export class Gltf1Loader {
@@ -113,23 +113,11 @@ export class Gltf1Loader {
                         let extend = image.extensions["KHR_binary_glTF"] as IKHRBinaryGlTF;
                         let bufferView = gltf.bufferViews[extend.bufferView];
                         const viewBuffer = new Uint8Array(binaryBuffer.buffer, (bufferView.byteOffset ?? 0) + binaryBuffer.byteOffset, bufferView.byteLength);
-                        new Promise<HTMLImageElement>((resolve, reject) => {
-                            var blob = new Blob([viewBuffer], { type: extend.mimeType });
-                            var imageUrl = window.URL.createObjectURL(blob);
-                            const img: HTMLImageElement = new Image();
-                            img.crossOrigin = "";
-                            img.src = imageUrl;
-                            img.onerror = error => {
-                                reject(error);
-                            };
-                            img.onload = () => {
-                                URL.revokeObjectURL(img.src);
-                                resolve(img);
-                            };
-                        }).then((img) => {
-                            const texture = new Texture2D({ image: img, flipY: false });
-                            mat.setUniform("MainTex", texture);
-                        });
+                        loadImgFromArrayBuffer(viewBuffer, extend.mimeType)
+                            .then((img) => {
+                                const texture = new Texture2D({ image: img, flipY: false });
+                                mat.setUniform("MainTex", texture);
+                            });
                     }
                     let technique = gltf.techniques[material.technique];
                     let program = gltf.programs[technique.program];

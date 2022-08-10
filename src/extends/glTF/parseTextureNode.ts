@@ -1,6 +1,6 @@
 import { ParseBufferViewNode } from "./parseBufferViewNode";
 import { IGltfJson } from "./loadGltf";
-import { loadImg, Texture2D } from "../../index";
+import { loadImgFromArrayBuffer, loadImg, Texture2D } from "../../index";
 
 export class ParseTextureNode {
     static parse(index: number, gltf: IGltfJson): Promise<Texture2D | null> {
@@ -61,24 +61,11 @@ export class ParseTextureNode {
                                 texOp.minFilter = samplerInfo.minFilter;
                             }
                         }
-
-                        return new Promise<HTMLImageElement>((resolve, reject) => {
-                            var blob = new Blob([viewNode.viewBuffer], { type: imageNode.mimeType });
-                            var imageUrl = window.URL.createObjectURL(blob);
-                            const img: HTMLImageElement = new Image();
-                            img.crossOrigin = "";
-                            img.src = imageUrl;
-                            img.onerror = error => {
-                                reject(error);
-                            };
-                            img.onload = () => {
-                                URL.revokeObjectURL(img.src);
-                                resolve(img);
-                            };
-                        }).then((img) => {
-                            const texture = new Texture2D({ image: img, flipY: false });
-                            return texture;
-                        });
+                        return loadImgFromArrayBuffer(viewNode.viewBuffer, imageNode.mimeType)
+                            .then((img) => {
+                                const texture = new Texture2D({ image: img, flipY: false });
+                                return texture;
+                            });
                     })
                     .catch(err => {
                         console.error("ParseTextureNode->bufferView error", err);

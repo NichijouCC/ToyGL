@@ -37,12 +37,15 @@ export class B3dmTile implements I3DTileContent {
     private load() {
         this.loadState = "ASSET_LOADING"
         console.log("b3dm", `${this.baseUrl}/${this.url}`);
-        return loadArrayBuffer(`${this.baseUrl}/${this.url}`)
-            .then((data) => this.parse(data))
-            .then(res => {
-                this.content = res;
-                this.loadState = "ASSET_READY";
-            })
+
+        return this.loader.queue.push(() => {
+            return loadArrayBuffer(`${this.baseUrl}/${this.url}`)
+                .then((data) => this.parse(data))
+                .then(res => {
+                    this.content = res;
+                    this.loadState = "ASSET_READY";
+                })
+        });
     }
 
     private collectRender(data: GltfNode, renders: IRenderable[]) {

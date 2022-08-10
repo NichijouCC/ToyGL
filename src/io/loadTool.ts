@@ -52,30 +52,33 @@ interface IDownloadInfo {
 function httpRequest(
     url: string,
     type: requestType,
-    onProgress: (info: IDownloadInfo) => void = null
+    onProgress?: (info: IDownloadInfo) => void
 ): Promise<any> {
     return new Promise<any>((resolve, reject) => {
         const req = new XMLHttpRequest();
         req.open("GET", url);
         req.responseType = type;
-
         req.onprogress = e => {
             onProgress?.({ loaded: e.loaded, total: e.total });
         };
         req.onerror = e => {
             reject(e);
         };
-        req.send();
-
+        req.ontimeout = () => {
+            reject("请求超时");
+        }
         req.onreadystatechange = () => {
-            if (req.readyState == 4) {
-                if (req.status == 404) {
-                    reject(new Error("got a 404:" + url));
-                    return;
+            if (req.readyState == XMLHttpRequest.DONE) {
+                if (req.status == 200) {
+                    resolve(req.response);
+                } else {
+                    if (req.status == 404) {
+                        reject(new Error("req 404 ：" + url));
+                    }
                 }
-                resolve(req.response);
             }
         };
+        req.send();
     });
 }
 export function loadJson(url: string, onProgress: (info: IDownloadInfo) => void = null): Promise<any> {
@@ -93,30 +96,15 @@ export function loadBlob(url: string, onProgress: (info: IDownloadInfo) => void 
 }
 
 export function loadImg(url: string, onProgress: (info: IDownloadInfo) => void = null): Promise<HTMLImageElement> {
-    return new Promise<HTMLImageElement>((resolve, reject) => {
-        loadArrayBuffer(url, onProgress)
-            .then(res => {
-                const blob = new Blob([res], { type: url.endsWith("png") ? "image/png" : "image/jpeg" });
-                const imageUrl = window.URL.createObjectURL(blob);
-                const img = new Image();
-                img.src = imageUrl;
-                img.onerror = error => {
-                    reject(error);
-                };
-                img.onload = () => {
-                    URL.revokeObjectURL(img.src);
-                    resolve(img);
-                };
-            });
-    });
+    return loadArrayBuffer(url, onProgress)
+        .then(res => loadImgFromArrayBuffer(res, url.endsWith("png") ? "image/png" : "image/jpeg"));
 }
 
-export function arraybufferToImage(data: ArrayBuffer): Promise<HTMLImageElement> {
+export function loadImgFromArrayBuffer(arrayBufferView: Uint8Array | ArrayBuffer, mimeType: string = "image/jpeg"): Promise<HTMLImageElement> {
     return new Promise<HTMLImageElement>((resolve, reject) => {
-        var arrayBufferView = new Uint8Array(data);
-        var blob = new Blob([arrayBufferView], { type: "image/jpeg" });
+        var blob = new Blob([arrayBufferView], { type: mimeType });
         var imageUrl = window.URL.createObjectURL(blob);
-        const img = new Image();
+        const img: HTMLImageElement = new Image();
         img.src = imageUrl;
         img.onerror = error => {
             reject(error);
