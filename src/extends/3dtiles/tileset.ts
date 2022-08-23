@@ -102,7 +102,7 @@ export class TileNode {
         if (this.children != null && this.refine == "REPLACE") {
             let useChild = false;
             for (let i = 0; i < this.children.length; i++) {
-                if (this.children[i].checkSSE(options)) {
+                if (options.checkTilesetSSE(this.children[i])) {
                     useChild = true;
                     break;
                 }
@@ -116,11 +116,6 @@ export class TileNode {
             this.content?.update(options);
             this.children?.forEach(el => el.update(options));
         }
-    }
-
-    checkSSE(options: ITileFrameState) {
-        let sse = options.sseParams * this.geometricError / vec3.distance(options.campos, this.boundingVolume.center);
-        return sse > options.maxSSE;
     }
 }
 

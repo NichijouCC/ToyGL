@@ -4,6 +4,7 @@ import { IBoundingVolume, I3DTileContent, parseBoundingVolume, LoadState } from 
 import { Loader } from "./loader";
 import { ITileFrameState } from "./tilesetSystem";
 import { BinReader, IRenderable, loadArrayBuffer, mat4, vec3 } from "../../index";
+import { ecefToWs84, transformEnuToEcef } from "./math";
 
 export class B3dmTile implements I3DTileContent {
     boundingVolume?: IBoundingVolume
@@ -119,13 +120,13 @@ export class B3dmTile implements I3DTileContent {
 
 function updateNodeMatrix(node: GltfNode, options?: { computeWorldMatrix?: boolean, transformToZUp?: boolean, rtcMat?: mat4 }) {
     let { computeWorldMatrix = true, transformToZUp = true, rtcMat } = options || {};
-    if (rtcMat) {
-        mat4.multiply(node.matrix, rtcMat, node.matrix);
-    }
     if (transformToZUp) {
         //y-up to z-up
         let transformMat = mat4.fromRotation(mat4.create(), Math.PI / 2, vec3.RIGHT);
         mat4.multiply(node.matrix, node.matrix, transformMat);
+    }
+    if (rtcMat) {
+        mat4.multiply(node.matrix, rtcMat, node.matrix);
     }
     if (computeWorldMatrix) {
         let update = (node: GltfNode, parent: GltfNode) => {

@@ -1,4 +1,5 @@
-import { glMatrix, ManualCamera, Tiles3d, ToyGL, vec3 } from "TOYGL";
+import { DefaultGeometry, DefaultMaterial, glMatrix, Input, ManualCamera, mat4, Tiles3d, ToyGL, vec3 } from "TOYGL";
+import { transformEnuToEcef, ws84ToEcef } from "../../src/extends/3dtiles/math";
 
 window.onload = () => {
     const { world } = ToyGL.create(document.getElementById("canvas") as HTMLCanvasElement);
@@ -12,7 +13,22 @@ window.onload = () => {
             let node = world.addNewChild();
             let comp = node.addComponent(Tiles3d.TilesetRender);
             comp.asset = res;
-            cam.viewTargetPoint(res.boundingVolume.center, 1500, vec3.fromValues(0, 0, 0));
-            cam.entity.addComponent(ManualCamera)
+            cam.viewTargetPoint(res.boundingVolume.center, 300, vec3.fromValues(0, 0, 0));
+            cam.entity.addComponent(ManualCamera);
+
+
+            let gps = [97.84178400504315, 39.623357933744096, 3139.3547552377504];
+            let scale = mat4.fromScaling(mat4.create(), vec3.fromValues(0.05, 0.05, 0.05));
+            mat4.multiply(scale, transformEnuToEcef(gps), scale);
+            world.addRenderIns({
+                geometry: DefaultGeometry.cube,
+                material: DefaultMaterial.color_3d.clone(),
+                worldMat: scale
+            })
+
         })
+    Input.mouse.on("mouseup", (ev) => {
+        world.pick(Input.mouse.position);
+        console.log(Input.mouse.position);
+    });
 }

@@ -43,9 +43,10 @@ interface KeyboardEventMap {
 
 export class Keyboard extends EventEmitter<KeyboardEventMap> {
     private _pressed: { [key: string]: boolean } = {};
-    constructor() {
+    constructor(canvas?: HTMLCanvasElement) {
         super();
-        document.onkeydown = (ev: KeyboardEvent) => {
+        let dom = canvas ?? document;
+        dom.onkeydown = (ev: KeyboardEvent) => {
             const keystr = ev.key.toUpperCase(); // safari浏览器不支持keypress事件中的key属性
 
             if (Object.values(KeyCodeEnum).indexOf(keystr as any) >= 0) {
@@ -56,7 +57,7 @@ export class Keyboard extends EventEmitter<KeyboardEventMap> {
                 this._pressed = {};
             }
         };
-        document.onkeyup = (ev: KeyboardEvent) => {
+        dom.onkeyup = (ev: KeyboardEvent) => {
             const keystr = ev.key.toUpperCase(); // safari浏览器不支持keypress事件中的key属性
             if (Object.values(KeyCodeEnum).indexOf(keystr as any) >= 0) {
                 this._pressed[keystr] = false;
@@ -66,7 +67,7 @@ export class Keyboard extends EventEmitter<KeyboardEventMap> {
                 this._pressed = {};
             }
         };
-        document.onblur = () => {
+        dom.onblur = () => {
             this._pressed = {};
         };
     }

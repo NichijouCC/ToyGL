@@ -52,40 +52,41 @@ export class Mouse extends EventEmitter<MyMouseEvent> {
     get position() { return this._position; };
     private _pressed: { [key: string]: boolean } = {};
     private _moved: { [key: string]: number } = {};
-    constructor() {
+    constructor(canvas?: HTMLCanvasElement) {
         super();
+        let dom = canvas ?? document;
         /**
          * 屏蔽网页原生鼠标事件
          */
-        document.oncontextmenu = e => {
+        dom.oncontextmenu = e => {
             return false;
         };
 
-        document.addEventListener("mousedown", (ev: MouseEvent) => {
+        dom.addEventListener("mousedown", (ev: any) => {
             const key = ev.button;
             this._pressed[Private.keyDic[key]] = true;
             const event = this.getClickEventByMouseEvent(ev);
             this.emit("mousedown", event);
         });
 
-        document.addEventListener("mouseup", (ev: MouseEvent) => {
+        dom.addEventListener("mouseup", (ev: any) => {
             const key = ev.button;
             this._pressed[Private.keyDic[key]] = false;
             const event = this.getClickEventByMouseEvent(ev);
             this.emit("mouseup", event);
         });
 
-        document.addEventListener("mousemove", (ev: MouseEvent) => {
+        dom.addEventListener("mousemove", (ev: any) => {
             const event = this.getClickEventByMouseEvent(ev);
             this.emit("mousemove", event);
         });
 
-        document.addEventListener("mousewheel", (ev: any) => {
+        dom.addEventListener("mousewheel", (ev: any) => {
             const event = this.getClickEventByMouseEvent(ev);
             this.emit("mousewheel", event);
         });
 
-        document.onblur = () => {
+        dom.onblur = () => {
             this._pressed = {};
         };
     }
