@@ -1,6 +1,6 @@
 import { IB3dmBatchTableJson, IB3dmFeatureTableJson, ITileContent } from "./type";
 import { GltfAsset, GltfNode, LoadGlTF } from "../glTF/index";
-import { IBoundingVolume, I3DTileContent, parseBoundingVolume, LoadState } from "./tileset";
+import { IBoundingVolume, I3DTileContent, parseBoundingVolume, LoadState, TileNode } from "./tileset";
 import { Loader } from "./loader";
 import { ITileFrameState } from "./tilesetSystem";
 import { BinReader, IRenderable, loadArrayBuffer, mat4, vec3 } from "../../index";
@@ -14,12 +14,12 @@ export class B3dmTile implements I3DTileContent {
     loadState: LoadState = "NONE";
 
     readonly url: string
-    readonly loader: Loader;
+    readonly node: TileNode;
     private baseUrl: string;
-    constructor(data: ITileContent, baseUrl: string, loader: Loader) {
+    constructor(data: ITileContent, baseUrl: string, node: TileNode) {
         this.url = data.url ?? data.uri;
         this.baseUrl = baseUrl;
-        this.loader = loader;
+        this.node = node;
         if (data.boundingVolume) {
             this.boundingVolume = parseBoundingVolume(data.boundingVolume);
         }
@@ -39,14 +39,14 @@ export class B3dmTile implements I3DTileContent {
         this.loadState = "ASSET_LOADING"
         console.log("b3dm", `${this.baseUrl}/${this.url}`);
 
-        return this.loader.queue.push(() => {
+        return this.node.loader.queue.push(() => {
             return loadArrayBuffer(`${this.baseUrl}/${this.url}`)
                 .then((data) => this.parse(data))
                 .then(res => {
                     this.content = res;
                     this.loadState = "ASSET_READY";
                 })
-        });
+        }, this.node.currentSSE);
     }
 
     private collectRender(data: GltfNode, renders: IRenderable[]) {
@@ -111,7 +111,7 @@ export class B3dmTile implements I3DTileContent {
         if (featureTableJson.RTC_CENTER) {
             this.rtcMatrix = mat4.fromTranslation(mat4.create(), featureTableJson.RTC_CENTER as any);
         }
-        return this.loader.loadGltfBin(gltfView.buffer).then(node => {
+        return this.node.loader.loadGltfBin(gltfView.buffer).then(node => {
             updateNodeMatrix(node, { rtcMat: this.rtcMatrix });
             return node;
         })

@@ -35,16 +35,20 @@ export class Loader implements IAssetLoader {
 }
 
 export class QueueTask {
-    tasks: (() => Promise<any>)[] = [];
+    tasks: { task: () => Promise<any>, priority: number }[] = [];
     private doingCount = 0;
     limitCount = 5;
-    push<T = any>(task: () => Promise<T>): Promise<T> {
+    push<T = any>(task: () => Promise<T>, priority: number = Number.POSITIVE_INFINITY): Promise<T> {
         return new Promise((resolve, reject) => {
-            this.tasks.push(() => {
-                return task().then(result => {
-                    resolve(result);
-                })
+            this.tasks.push({
+                task: () => {
+                    return task().then(result => {
+                        resolve(result);
+                    })
+                },
+                priority
             });
+            this.tasks.sort((a, b) => a.priority - b.priority)
             this.checkQueue();
         })
     }
@@ -53,7 +57,7 @@ export class QueueTask {
             let task = this.tasks.shift();
             if (task != null) {
                 this.doingCount++;
-                task().then(() => {
+                task.task().then(() => {
                     this.doingCount--;
                     this.checkQueue();
                 })

@@ -75,7 +75,7 @@ export class TileNode {
         if (node.content) {
             let url = node.content.url ?? node.content.uri;
             if (url.endsWith("b3dm")) {
-                this.content = new B3dmTile(node.content, baseUrl, loader);
+                this.content = new B3dmTile(node.content, baseUrl, this);
             } else if (url.endsWith("i3dm")) {
 
             } else if (url.endsWith("pnts")) {
@@ -97,12 +97,13 @@ export class TileNode {
             }
         }
     }
-
+    currentSSE: number;
     update(options: ITileFrameState) {
         if (this.children != null && this.refine == "REPLACE") {
             let useChild = false;
             for (let i = 0; i < this.children.length; i++) {
-                if (options.checkTilesetSSE(this.children[i])) {
+                this.children[i].currentSSE = options.computeTileNodeSSE(this.children[i]);
+                if (this.children[i].currentSSE > options.maximumScreenSpaceError) {
                     useChild = true;
                     break;
                 }
@@ -116,6 +117,25 @@ export class TileNode {
             this.content?.update(options);
             this.children?.forEach(el => el.update(options));
         }
+
+        // this.currentSSE = options.computeTileNodeSSE(this);
+        // if (this.currentSSE > options.maximumScreenSpaceError) {
+        //     if (this.refine == "REPLACE") {
+        //         if (this.children) {
+        //             this.children.forEach(el => {
+        //                 el.update(options);
+        //             });
+        //         } else {
+        //             this.content?.update(options);
+        //         }
+        //     } else {
+        //         this.content?.update(options);
+        //         this.children?.forEach(el => {
+        //             el.update(options);
+        //         })
+        //     }
+        // }
+
     }
 }
 
