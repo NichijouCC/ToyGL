@@ -188,10 +188,11 @@ export class ForwardRender {
     private frustumCull = (() => {
         const _temptSphere = BoundingSphere.create();
         return (frustum: Frustum, drawCall: IRenderable) => {
-            const box = drawCall.boundingBox ?? drawCall.geometry.boundingBox;
-            vec3.copy(_temptSphere.center, box.center);
-            _temptSphere.radius = vec3.len(box.halfSize);
-            return frustum.containSphere(_temptSphere, drawCall.worldMat);
+            if (drawCall.worldBounding) {
+                return frustum.containSphere(drawCall.worldBounding);
+            } else {
+                return frustum.containSphere(drawCall.geometry.bounding, drawCall.worldMat);
+            }
         };
     })()
 }

@@ -1,6 +1,6 @@
 
 import { GeometryAttribute, IGeometryAttributeOptions } from "./geometryAttribute";
-import { BoundingBox } from "../scene/bounds";
+import { BoundingSphere } from "../scene/bounds";
 import { TypedArray } from "../core/typedArray";
 import { GraphicIndexBuffer } from "./buffer";
 import { Asset } from "../resources/asset";
@@ -30,7 +30,7 @@ export class Geometry extends Asset {
     attributes: { [keyName: string]: GeometryAttribute } = {};
 
     private _indices?: GraphicIndexBuffer;
-    get indices() { return this._indices }
+    get indices(): GraphicIndexBuffer { return this._indices }
     set indices(data: IndicesArray | Array<number> | GraphicIndexBuffer) {
         if (data instanceof GraphicIndexBuffer) {
             if (this._indices != null) {
@@ -74,15 +74,15 @@ export class Geometry extends Asset {
     private _vertexCount: number;
     get vertexCount() { return this._vertexCount; };
 
-    private _bounding: BoundingBox;
-    get boundingBox() {
+    private _bounding: BoundingSphere;
+    get bounding() {
         if (this._bounding == null) {
-            this._bounding = BoundingBox.fromTypedArray(this.attributes[VertexAttEnum.POSITION]?.data);
+            this._bounding = BoundingSphere.fromTypedArray(this.attributes[VertexAttEnum.POSITION]?.data);
         }
         return this._bounding;
     }
-    set boundingBox(box: BoundingBox) {
-        this._bounding = box;
+    set bounding(value: BoundingSphere) {
+        this._bounding = value;
     }
 
     private _beDirty: boolean = true;
@@ -98,7 +98,7 @@ export class Geometry extends Asset {
         this.primitiveType = option.primitiveType ?? GlConstants.TRIANGLES;
         this.bytesOffset = option.bytesOffset ?? 0;
         this._count = option.count;
-        this._bounding = option.boundingBox;
+        this._bounding = option.bounding;
     }
 
     addAttribute(data: IGeometryAttributeOptions | GeometryAttribute) {
@@ -174,7 +174,7 @@ export interface IGeometryOptions {
     attributes?: (GeometryAttribute | IGeometryAttributeOptions)[];
     indices?: IndicesArray | Array<number> | GraphicIndexBuffer;
     primitiveType?: number;
-    boundingBox?: BoundingBox;
+    bounding?: BoundingSphere;
     bytesOffset?: number;
     count?: number;
 }

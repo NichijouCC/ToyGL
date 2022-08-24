@@ -1,9 +1,10 @@
 import { IB3dmBatchTableJson, IB3dmFeatureTableJson, ITileContent } from "./type";
 import { GltfAsset, GltfNode, LoadGlTF } from "../glTF/index";
-import { IBoundingVolume, I3DTileContent, parseBoundingVolume, LoadState, TileNode } from "./tileset";
+import { IBoundingVolume, I3DTileContent, parseBoundingVolume, LoadState } from "./tileset";
+import { TileNode } from "./tileNode";
 import { Loader } from "./loader";
 import { ITileFrameState } from "./tilesetSystem";
-import { BinReader, IRenderable, loadArrayBuffer, mat4, vec3 } from "../../index";
+import { BinReader, BoundingSphere, IRenderable, loadArrayBuffer, mat4, vec3 } from "../../index";
 import { ecefToWs84, transformEnuToEcef } from "./math";
 
 export class B3dmTile implements I3DTileContent {
@@ -46,7 +47,7 @@ export class B3dmTile implements I3DTileContent {
                     this.content = res;
                     this.loadState = "ASSET_READY";
                 })
-        }, this.node.currentSSE);
+        }, this.node.geometricError);
     }
 
     private collectRender(data: GltfNode, renders: IRenderable[]) {
@@ -56,7 +57,7 @@ export class B3dmTile implements I3DTileContent {
                 geometry: mesh.subMeshes[0],
                 material: materials[0],
                 worldMat: data.matrix,
-                boundingBox: mesh.boundingBox,
+                worldBounding: (this.boundingVolume ?? this.node.boundingVolume) as BoundingSphere,
             }
             if (mesh.subMeshes.length > 1) {
                 baseRender.children = [];

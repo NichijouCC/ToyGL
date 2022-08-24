@@ -9,6 +9,7 @@ import { CameraComponent } from "../components/cameraComponent";
 import { PhysicsWorld } from "../components/colliderSystem";
 import { Screen } from "./screen";
 import { Gizmos } from "./gizmos/gizmos";
+import { Ray } from "./ray";
 
 export type ISceneOptions = { autoAdaptScreenSize?: boolean } & IEngineOption;
 export class World extends ECS {
@@ -108,6 +109,18 @@ export class World extends ECS {
         const world_near = ndcToWorld(ndc_near, this.mainCamera.projectMatrix, this.mainCamera.worldMatrix);
         const world_far = ndcToWorld(ndc_far, this.mainCamera.projectMatrix, this.mainCamera.worldMatrix);
         gizmos.drawLine(world_near, world_far);
+    }
+
+    createRay(screenPos?: vec2) {
+        screenPos = screenPos ?? Input.mouse.position;
+        const { screen, gizmos } = this;
+        const ndc_x = (screenPos[0] / screen.width) * 2 - 1;
+        const ndc_y = -1 * ((screenPos[1] / screen.height) * 2 - 1);
+        const ndc_near = vec3.fromValues(ndc_x, ndc_y, -1);
+        const ndc_far = vec3.fromValues(ndc_x, ndc_y, 1);
+        const world_near = ndcToWorld(ndc_near, this.mainCamera.projectMatrix, this.mainCamera.worldMatrix);
+        const world_far = ndcToWorld(ndc_far, this.mainCamera.projectMatrix, this.mainCamera.worldMatrix);
+        return new Ray(world_near).setByTwoPoint(world_near, world_far);
     }
 
     pickTestCollider() {

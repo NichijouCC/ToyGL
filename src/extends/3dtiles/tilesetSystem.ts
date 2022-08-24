@@ -1,15 +1,18 @@
-import { IRenderable, System, vec3, World } from "../../index";
-import { TileNode, Tileset } from "./tileset";
+import { IRenderable, System, vec3, World, Ray, Color } from "../../index";
+import { Tileset } from "./tileset";
+import { TileNode } from "./tileNode";
 import { TilesetRender } from "./tilesetComp";
+import { transformEnuToEcef } from "./math";
 
 export class TilesetSystem extends System {
     caries = { comps: [TilesetRender] }
     private _scene: World;
+    renders: IRenderable[];
     constructor(scene: World) {
         super();
         this._scene = scene;
     }
-    maximumScreenSpaceError = 0.3;
+    maximumScreenSpaceError = 0.8;
     update(deltaTime: number): void {
         let cam = this._scene.mainCamera;
         if (cam == null) return;
@@ -31,9 +34,28 @@ export class TilesetSystem extends System {
             tileset.update({ renders, computeTileNodeSSE, maximumScreenSpaceError: this.maximumScreenSpaceError });
         });
         renders.forEach(el => this._scene.addFrameRenderIns(el))
+        this.renders = renders;
     }
 
-
+    rayTest(ray: Ray): vec3 | null {
+        let distance = Number.POSITIVE_INFINITY;
+        let nearPoint: vec3 | null;
+        for (let i = 0; i < this.renders.length; i++) {
+            let el = this.renders[i];
+            if (ray.intersectWithBoundingSphere(el.worldBounding)) {
+                el.material.setUniform("MainColor", Color.random())
+                let point = ray.intersectWithGeometry(el.geometry, el.worldMat);
+                if (point != null) {
+                    let dis = vec3.distance(ray.origin, point);
+                    if (dis < distance) {
+                        nearPoint = point;
+                        distance = dis;
+                    }
+                }
+            }
+        }
+        return nearPoint;
+    }
 }
 
 export interface ITileFrameState {

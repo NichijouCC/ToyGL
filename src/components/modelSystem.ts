@@ -19,7 +19,6 @@ export class ModelSystem extends System {
                     geometry: mesh.subMeshes[0],
                     material: materials[0],
                     worldMat: worldMatrix,
-                    boundingBox: mesh.boundingBox,
                 }
                 // this._toy.gizmos.drawAABB(mesh.boundingBox, comp.entity.worldMatrix);
                 if (skinIns != null) {

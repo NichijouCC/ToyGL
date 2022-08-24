@@ -1,5 +1,5 @@
 import { Material } from "./material";
-import { BoundingBox } from "../scene/bounds";
+import { BoundingBox, BoundingSphere } from "../scene/bounds";
 import { mat4 } from "../mathD";
 import { Geometry } from "./geometry";
 import { MemoryTexture } from "./memoryTexture";
@@ -22,7 +22,7 @@ export interface IRenderable {
     geometry: Geometry;
     material: Material;
     worldMat: mat4;
-    boundingBox?: BoundingBox;
+    worldBounding?: BoundingSphere;
     skin?: {
         worldMat: mat4,
         boneMatrices: Float32Array | MemoryTexture,

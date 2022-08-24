@@ -4,6 +4,7 @@ export * from "./bounds";
 export * from "./isceneCamera";
 export * from "./shaderCodeInjector";
 
+export * from "./ray";
 export * from "./plane";
 export * from "./world";
 export * from "./screen";
