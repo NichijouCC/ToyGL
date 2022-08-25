@@ -58,6 +58,7 @@ export class B3dmTile implements I3DTileContent {
                 material: materials[0],
                 worldMat: data.matrix,
                 worldBounding: (this.boundingVolume ?? this.node.boundingVolume) as BoundingSphere,
+                enableCull: true
             }
             if (mesh.subMeshes.length > 1) {
                 baseRender.children = [];

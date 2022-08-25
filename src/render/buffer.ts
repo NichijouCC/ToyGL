@@ -19,6 +19,17 @@ export class GraphicIndexBuffer extends EventEmitter<IObjectEvent> {
         this.beDirty = true;
         this.computeCount();
     }
+    private _elements: TypedArray;
+    /**
+     * 格式化后的数据
+     */
+    get elements() {
+        if (this._elements == null) {
+            this._elements = TypedArray.fromGlType(this._dataType, this.data);;
+        }
+        return this._elements;
+    }
+
 
     private _dataType: IndexDatatypeEnum;
     get dataType() { return this._dataType }

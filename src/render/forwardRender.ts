@@ -68,7 +68,7 @@ export class ForwardRender {
             const { cullingMask, projectMatrix, viewMatrix, renderTarget, viewport } = camera;
             mat4.multiply(viewProjectMatrix, projectMatrix, viewMatrix);
             frustum.setFromMatrix(viewProjectMatrix);
-            this.uniformState.matrixViewProject = viewProjectMatrix;
+            this.uniformState.matrixViewProject = viewProjectMatrix as any;
             let item: IRenderable
             let renderList = [];
             //检查mask,做视锥体剔除

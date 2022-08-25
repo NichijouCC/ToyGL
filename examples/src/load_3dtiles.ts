@@ -3,8 +3,6 @@ import { transformEnuToEcef, ws84ToEcef } from "../../src/extends/3dtiles/math";
 glMatrix.setMatrixArrayType(Float64Array as any);
 
 window.onload = () => {
-
-
     const { world } = ToyGL.create(document.getElementById("canvas") as HTMLCanvasElement);
     world.registComp(GisManualCamera);
     let system = new Tiles3d.TilesetSystem(world);

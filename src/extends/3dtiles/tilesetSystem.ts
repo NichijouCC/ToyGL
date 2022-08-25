@@ -44,14 +44,14 @@ export class TilesetSystem extends System {
             let el = this.renders[i];
             if (ray.intersectWithBoundingSphere(el.worldBounding)) {
                 el.material.setUniform("MainColor", Color.random())
-                let point = ray.intersectWithGeometry(el.geometry, el.worldMat);
-                if (point != null) {
-                    let dis = vec3.distance(ray.origin, point);
+                let points = ray.intersectWithGeometry(el.geometry, el.worldMat);
+                points?.forEach(el => {
+                    let dis = vec3.distance(ray.origin, el);
                     if (dis < distance) {
-                        nearPoint = point;
+                        nearPoint = el;
                         distance = dis;
                     }
-                }
+                })
             }
         }
         return nearPoint;

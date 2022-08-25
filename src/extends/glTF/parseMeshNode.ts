@@ -123,7 +123,6 @@ export class ParseMeshNode {
         return Promise.all(taskAtts)
             .then(() => {
                 const geo = new Geometry(geoOpts);
-                geo.bounding = box;
                 return geo;
             }).catch(err => {
                 console.error("ParseMeshNode->parseMesh error", err);
