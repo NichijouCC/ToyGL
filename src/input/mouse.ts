@@ -30,6 +30,7 @@ export class ClickEvent {
 
     movementX: number;
     movementY: number;
+    keyType: MouseKeyEnum;
 }
 
 namespace Private {
@@ -97,6 +98,7 @@ export class Mouse extends EventEmitter<MyMouseEvent> {
 
     private getClickEventByMouseEvent(ev: any): ClickEvent {
         const event = new ClickEvent();
+        event.keyType = Private.keyDic[ev.button];
         event.pointx = ev.offsetX; // 鼠标指针相对于目标节点内边位置的X坐标
         event.pointy = ev.offsetY; // 鼠标指针相对于目标节点内边位置的Y坐标
 

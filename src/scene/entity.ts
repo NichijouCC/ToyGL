@@ -8,8 +8,8 @@ import { World } from "./world";
 export class Entity extends Transform implements IEntity {
     name: string;
     layer: LayerMask = LayerMask.default;
-    constructor(ecs: ECS, properties?: Partial<Entity>) {
-        super(ecs);
+    constructor(world: World, properties?: Partial<Entity>) {
+        super(world);
         if (properties) {
             Object.keys(properties).forEach(item => (this as any)[item] = (properties as any)[item]);
         }

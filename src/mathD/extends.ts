@@ -1,5 +1,6 @@
 import { vec3 as glVec3, vec4 as glVec4, mat4 as glMat4, quat as glQuat } from "gl-matrix";
 import { TypedArray } from "../core/typedArray";
+import { Tempt } from "./tempt";
 
 export { vec2, mat2, mat2d, mat3, glMatrix } from 'gl-matrix';
 
@@ -108,6 +109,20 @@ export const mat4 = Object.assign({
         return out;
     },
     transformPoint: glVec3.transformMat4,
+    ndcToView(out: vec3, ndcPos: vec3, projectMat: mat4) {
+        let tempMat = Tempt.getMat4();
+        let temptVec4 = Tempt.getVec4();
+        const inversePrjMat = mat4.invert(tempMat, projectMat);
+        const viewPosH = vec4.transformMat4(temptVec4, vec4.fromValues(ndcPos[0], ndcPos[1], ndcPos[2], 1), inversePrjMat);
+        out[0] = viewPosH[0] / viewPosH[3];
+        out[1] = viewPosH[1] / viewPosH[3];
+        out[2] = viewPosH[2] / viewPosH[3];
+        return out;
+    },
+    ndcToWorld(out: vec3, ndcPos: vec3, projectMat: mat4, camToWorld: mat4) {
+        const view_pos = mat4.ndcToView(out, ndcPos, projectMat);
+        return vec3.transformMat4(view_pos, view_pos, camToWorld);
+    }
 }, glMat4);
 
 export type quat = glQuat;

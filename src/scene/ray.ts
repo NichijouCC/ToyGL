@@ -12,8 +12,8 @@ export class Ray {
         this.length = length;
     }
     setByTwoPoint(start: vec3, end: vec3) {
-        vec3.copy(start, this.origin);
-        let dir = vec3.subtract(vec3.create(), end, start);
+        vec3.copy(this.origin, start);
+        let dir = vec3.subtract(Tempt.getVec3(), end, start);
         vec3.normalize(dir, dir);
         vec3.copy(this.dir, dir);
         this.length = vec3.len(dir);
@@ -61,6 +61,7 @@ export class Ray {
     }
 
     intersectTriangle(v0: vec3, v1: vec3, v2: vec3): vec3 | null {
+        //https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-polygon-mesh/Ray-Tracing%20a%20Polygon%20Mesh-part-1
         let vec3_tempt1 = Tempt.getVec3();
         let vec3_tempt2 = Tempt.getVec3(1);
         let vec3_tempt3 = Tempt.getVec3(2);

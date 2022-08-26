@@ -22,14 +22,14 @@ window.onload = () => {
 
             cam.viewTargetPoint(res.boundingVolume.center, 1300, vec3.fromValues(0, 0, 0));
             cam.entity.addComponent(GisManualCamera);
-            document.addEventListener("keyup", (ev) => {
-                if (ev.key == "a") {
-                    let ray = world.createRay();
+            Input.mouse.on("mousedown", (ev) => {
+                if (ev.keyType == MouseKeyEnum.Left) {
+                    let ray = world.mainCamera.screenPointToRay(Input.mouse.position);
                     let point = system.rayTest(ray);
                     console.log("raytest", point);
 
                     if (point != null) {
-                        let scale = mat4.fromRotationTranslationScale(mat4.create(), quat.IDENTITY, point, vec3.fromValues(1, 1, 1));
+                        let scale = mat4.fromRotationTranslationScale(mat4.create(), quat.IDENTITY, point, vec3.fromValues(0.1, 0.1, 0.1));
                         world.addRenderIns({
                             geometry: DefaultGeometry.cube,
                             material: DefaultMaterial.color_3d.clone(),

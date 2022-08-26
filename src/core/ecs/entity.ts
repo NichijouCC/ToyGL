@@ -1,20 +1,20 @@
 import { COMPS, IComponent, IEntity, UNIT_BIT_KEY } from "./iecs";
 import { ECS } from "./ecs";
 import { UnitedBitKey } from "./bitKey";
-import { EventEmitter, UUID } from "@mtgoo/ctool";
+import { UUID } from "@mtgoo/ctool";
 
 // export interface IEntityEvent {
 //     "AddComp": IComponent,
 //     "removeComp": IComponent
 // }
 
-export class Entity implements IEntity {
-    readonly ecs: ECS;
+export class Entity<T extends ECS> implements IEntity {
+    readonly ecs: T;
     readonly id: string = UUID.create_v4();
     [COMPS]: { [compName: string]: IComponent } = {};
     [UNIT_BIT_KEY]: UnitedBitKey = new UnitedBitKey();
 
-    constructor(ecs: ECS) {
+    constructor(ecs: T) {
         this.ecs = ecs;
         ecs.addEntity(this);
     }

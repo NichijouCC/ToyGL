@@ -1,5 +1,6 @@
 import { vec3, mat4, quat, mat4Pool, vec3Pool } from "../mathD/index";
 import { ECS, Entity as BaseEntity } from "../core/ecs";
+import { World } from "./world";
 export enum DirtyFlagEnum {
     WORLD_POS = 0b000100,
     WORLD_ROTATION = 0b001000,
@@ -7,7 +8,7 @@ export enum DirtyFlagEnum {
     LOCAL_MAT = 0b000001,
     WORLD_MAT = 0b000010,
 }
-export class Transform extends BaseEntity {
+export class Transform extends BaseEntity<World> {
     protected _parent: this;
     get parent() { return this._parent; }
     protected _children: this[] = [];
@@ -51,7 +52,7 @@ export class Transform extends BaseEntity {
         }
     }
 
-    constructor(ecs: ECS) {
+    constructor(ecs: World) {
         super(ecs);
         // --------attach to dirty-------
         const _this = this;

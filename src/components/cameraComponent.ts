@@ -1,8 +1,9 @@
-import { Color, mat4, quat, Rect, vec3 } from "../mathD";
+import { Color, mat4, quat, Rect, vec2, vec3 } from "../mathD";
 import { Camera, LayerMask } from "../render/camera";
 import { ISceneCamera } from "../scene/isceneCamera";
 import { Component, Entity } from "../scene/entity";
 import { RenderTarget } from "../render";
+import { Ray } from "../scene/ray";
 
 export const CAMERA_ASPECT = Symbol("aspect");
 
@@ -132,6 +133,7 @@ export class CameraComponent extends Component implements ISceneCamera {
     lookAtPoint(point: vec3) {
         this.entity?.lookAtPoint(point);
     }
+
     viewTargetPoint(point: vec3, distance: number, angle: vec3 = vec3.fromValues(-45, 0, 0)) {
         let rot = quat.fromEuler(quat.create(), angle[0], angle[1], angle[2]);
         let forward = vec3.transformQuat(vec3.create(), vec3.FORWARD, rot);
@@ -139,8 +141,45 @@ export class CameraComponent extends Component implements ISceneCamera {
         this.entity.worldPosition = camPos;
         this.entity.worldRotation = rot;
     }
+
     lookAt(node: Entity) {
         this.entity?.lookAt(node);
+    }
+
+    /**
+     * 左上角0,0, y down 
+     * 
+     * x in 0 ~ canvas.width, y in 0 ~ canvas.height
+     * @param screenPos 屏幕坐标
+     */
+    screenPointToRay(screenPos: vec2) {
+        let world = this.entity.ecs
+        let { mainCamera, screen } = world;
+        const ndc_x = (screenPos[0] / screen.width) * 2 - 1;
+        const ndc_y = -1 * ((screenPos[1] / screen.height) * 2 - 1);
+        const ndc_far = vec3.fromValues(ndc_x, ndc_y, 1);
+        const world_far = mat4.ndcToWorld(vec3.create(), ndc_far, mainCamera.projectMatrix, mainCamera.worldMatrix);
+        let ray = new Ray().setByTwoPoint(mainCamera.worldPos, world_far);
+        world.gizmos.drawLine(mainCamera.worldPos, world_far);
+        return ray;
+    }
+
+    /**
+     * 左下角0,0, y up, x in 0~1,y in 0~1,
+     * @param viewportPos 视口坐标
+     */
+    viewportPointToRay(viewportPos: vec2) {
+        let world = this.entity.ecs
+        let { mainCamera } = world;
+        const ndc_x = viewportPos[0] - 0.5;
+        const ndc_y = viewportPos[1] - 0.5;
+        const ndc_near = vec3.fromValues(ndc_x, ndc_y, -1);
+        const world_near = mat4.ndcToWorld(vec3.create(), ndc_near, mainCamera.projectMatrix, mainCamera.worldMatrix);
+        // const ndc_far = vec3.fromValues(ndc_x, ndc_y, 1);
+        // const world_far = mat4.ndcToWorld(vec3.create(), ndc_far, mainCamera.projectMatrix, mainCamera.worldMatrix);
+        // let ray1 = new Ray().setByTwoPoint(world_near, world_far);
+        let ray = new Ray().setByTwoPoint(mainCamera.worldPos, world_near);
+        return ray;
     }
 
     clone(): CameraComponent {
