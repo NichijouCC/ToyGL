@@ -130,9 +130,6 @@ export class CameraComponent extends Component implements ISceneCamera {
         });
     }
 
-    lookAtPoint(point: vec3) {
-        this.entity?.lookAtPoint(point);
-    }
 
     viewTargetPoint(point: vec3, distance: number, angle: vec3 = vec3.fromValues(-45, 0, 0)) {
         let rot = quat.fromEuler(quat.create(), angle[0], angle[1], angle[2]);
@@ -142,8 +139,12 @@ export class CameraComponent extends Component implements ISceneCamera {
         this.entity.worldRotation = rot;
     }
 
-    lookAt(node: Entity) {
-        this.entity?.lookAt(node);
+    lookAt(node: Entity, up?: vec3) {
+        this.entity?.lookAt(node, up);
+    }
+
+    lookAtPoint(point: vec3, up?: vec3) {
+        this.entity?.lookAtPoint(point, up);
     }
 
     /**

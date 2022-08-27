@@ -3,7 +3,7 @@
 //https://gist.github.com/govert/1b373696c9a27ff4c72a
 //https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_ENU_to_ECEF
 
-import { mat4 } from "../../mathD";
+import { mat4, vec3 } from "../../mathD";
 
 // WGS-84 geodetic constants
 const a = 6378137.0;         // WGS-84 Earth semimajor axis (m)
@@ -52,8 +52,10 @@ export function ws84ToEcef(gps: number[], out: number[]) {
  * @param ecef ecef坐标系下的位置(x,y,z)
  * @param out ws84坐标系下的位置(lon0, lat0, h0)
  */
-export function ecefToWs84(ecef: number[], out: number[]) {
-    let [x, y, z] = ecef
+export function ecefToWs84(ecef: ArrayLike<number>, out: number[]) {
+    let x = ecef[0];
+    let y = ecef[1];
+    let z = ecef[2];
     var eps = e_sq / (1.0 - e_sq);
     var p = Math.sqrt(x * x + y * y);
     var q = Math.atan2((z * a), (p * b));
@@ -69,10 +71,6 @@ export function ecefToWs84(ecef: number[], out: number[]) {
     out[2] = (p / Math.cos(phi)) - v;
     return out;
 }
-
-// Converts the Earth-Centered Earth-Fixed (ECEF) coordinates (x, y, z) to 
-// East-North-Up coordinates in a Local Tangent Plane that is centered at the 
-// (WGS-84) Geodetic point (lat0, lon0, h0).
 
 /**
  * 转换ecef坐标到enu坐标
@@ -109,10 +107,6 @@ export function ecefToEnu(pos: number[], center: number[], out: number[]) {
     out[2] = cos_lambda * cos_phi * xd + cos_lambda * sin_phi * yd + sin_lambda * zd;
 }
 
-// Inverse of EcefToEnu. Converts East-North-Up coordinates (xEast, yNorth, zUp) in a
-// Local Tangent Plane that is centered at the (WGS-84) Geodetic point (lat0, lon0, h0)
-// to the Earth-Centered Earth-Fixed (ECEF) coordinates (x, y, z).
-
 /**
  * 转换enu坐标到ecef坐标
  * @param pos enu坐标系下的位置(x,y,z)
@@ -146,12 +140,27 @@ export function enuToEcef(pos: number[], center: number[], out: number[]) {
     out[2] = zd + z0;
 }
 
-// Converts the geodetic WGS-84 coordinated (lat, lon, h) to 
-// East-North-Up coordinates in a Local Tangent Plane that is centered at the 
-// (WGS-84) Geodetic point (lat0, lon0, h0).
+/**
+ * ws84坐标转enu坐标
+ * @param gps WS84下的gps坐标
+ * @param center enu原点在ws84坐标系下的位置(lon0, lat0, h0)
+ * @param out enu坐标系下的位置(x,y,z)
+ */
 export function ws84ToEnu(gps: number[], center: number[], out: number[]) {
     ws84ToEcef(gps, out);
     ecefToEnu(out, center, out);
+}
+
+
+/**
+ * ws84坐标转enu坐标
+ * @param gps enu坐标系下的位置(x,y,z)
+ * @param center enu原点在ws84坐标系下的位置(lon0, lat0, h0)
+ * @param out WS84下的gps坐标
+ */
+export function enuToWs84(pos: number[], center: number[], out: number[]) {
+    enuToEcef(pos, center, out);
+    ecefToWs84(out, out);
 }
 
 
@@ -233,4 +242,61 @@ export function transformEcefToEnu(center: ArrayLike<number>) {
     mat[13] = -cos_phi * sin_lambda * (-x0) - sin_lambda * sin_phi * (-y0) + cos_lambda * (-z0);
     mat[14] = cos_lambda * cos_phi * (-x0) + cos_lambda * sin_phi * (-y0) + sin_lambda * (-z0);
     return mat;
+}
+
+
+/**
+ * enu坐标系的北向量
+ * @param center WS84坐标
+ * @returns 转换矩阵
+ */
+export function surfaceEnuNorthFromGps(center: ArrayLike<number>) {
+    // let [lon0, lat0, h0] = center;
+    let lon0 = center[0];
+    let lat0 = center[1];
+    let h0 = center[2];
+
+    var lambda = degreesToRadians(lat0);
+    var phi = degreesToRadians(lon0);
+    var s = Math.sin(lambda);
+    var N = a / Math.sqrt(1 - e_sq * s * s);
+
+    var sin_lambda = Math.sin(lambda);
+    var cos_lambda = Math.cos(lambda);
+    var cos_phi = Math.cos(phi);
+    var sin_phi = Math.sin(phi);
+
+    let value = vec3.create();
+    value[0] = - cos_phi * sin_lambda;
+    value[1] = - sin_lambda * sin_phi;
+    value[2] = cos_lambda;
+    return value;
+}
+
+
+/**
+ * enu坐标系的NORMAL向量
+ * @param center WS84坐标
+ * @returns 转换矩阵
+ */
+export function surfaceEnuZUnitFromGps(center: ArrayLike<number>) {
+    let lon0 = center[0];
+    let lat0 = center[1];
+    let h0 = center[2];
+
+    var lambda = degreesToRadians(lat0);
+    var phi = degreesToRadians(lon0);
+    var s = Math.sin(lambda);
+    var N = a / Math.sqrt(1 - e_sq * s * s);
+
+    var sin_lambda = Math.sin(lambda);
+    var cos_lambda = Math.cos(lambda);
+    var cos_phi = Math.cos(phi);
+    var sin_phi = Math.sin(phi);
+
+    let value = vec3.create();
+    value[0] = cos_lambda * cos_phi;
+    value[1] = cos_lambda * sin_phi;
+    value[2] = sin_lambda;
+    return value;
 }

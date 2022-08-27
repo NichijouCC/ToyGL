@@ -1,5 +1,5 @@
-import { CameraComponent, Component, DefaultGeometry, DefaultMaterial, glMatrix, Input, KeyCodeEnum, ManualCamera, mat4, MouseKeyEnum, quat, Tiles3d, ToyGL, vec3 } from "TOYGL";
-import { transformEnuToEcef, ws84ToEcef } from "../../src/extends/3dtiles/math";
+import { CameraComponent, Component, DefaultGeometry, DefaultMaterial, glMatrix, Input, KeyCodeEnum, ManualCamera, mat4, MouseKeyEnum, quat, Tiles3d, ToyGL, vec2, vec3 } from "TOYGL";
+import { ecefToWs84, surfaceEnuNorthFromGps, surfaceEnuZUnitFromGps, transformEnuToEcef, ws84ToEcef } from "../../src/extends/3dtiles/math";
 glMatrix.setMatrixArrayType(Float64Array as any);
 
 window.onload = () => {
@@ -22,24 +22,44 @@ window.onload = () => {
 
             cam.viewTargetPoint(res.boundingVolume.center, 1300, vec3.fromValues(0, 0, 0));
             cam.entity.addComponent(GisManualCamera);
+
+            let lookAt: vec3;
             Input.mouse.on("mousedown", (ev) => {
                 if (ev.keyType == MouseKeyEnum.Left) {
+                    if (lookAt == null) {
+                        let ray = world.mainCamera.viewportPointToRay(vec2.fromValues(0.5, 0.5));
+                        lookAt = system.rayTest(ray);
+                    }
                     let ray = world.mainCamera.screenPointToRay(Input.mouse.position);
                     let point = system.rayTest(ray);
                     console.log("raytest", point);
 
-                    if (point != null) {
+                    if (point != null && lookAt) {
                         let scale = mat4.fromRotationTranslationScale(mat4.create(), quat.IDENTITY, point, vec3.fromValues(0.1, 0.1, 0.1));
                         world.addRenderIns({
                             geometry: DefaultGeometry.cube,
                             material: DefaultMaterial.color_3d.clone(),
                             worldMat: scale
                         });
+                        let offset = vec3.subtract(vec3.create(), point, lookAt);
+                        lookAt = point;
+                        let worldPos = world.mainCamera.worldPos;
+                        world.mainCamera.entity.worldPosition = vec3.add(vec3.create(), worldPos, offset)
+                        // let gps = ecefToWs84(point, vec3.create() as any);
+
+                        // let normal = surfaceEnuZUnitFromGps(gps);
+                        // let camPos = vec3.scaleAndAdd(vec3.create(), point, normal, 300);
+                        // world.mainCamera.entity.worldPosition = camPos;
+
+                        // let north = surfaceEnuNorthFromGps(gps);
+                        // world.mainCamera.lookAtPoint(point, north);
                     }
                 }
             })
         })
 }
+
+
 
 export class GisManualCamera extends Component {
     moveSpeed: number = 1;
@@ -62,6 +82,14 @@ export class GisManualCamera extends Component {
                 quat.multiply(tempt_q, comp.entity.localRotation, tempt_q);
                 comp.entity.localRotation = tempt_q;
             }
+        });
+        Input.mouse.on("mousewheel", (ev) => {
+            let comp = this.entity.getComponent(CameraComponent);
+            if (comp == null) return;
+            let forward = comp.forwardInWorld;
+            let worldPos = comp.worldPos;
+            let newPos = vec3.scaleAndAdd(vec3.create(), worldPos, forward, -1 * ev.rotateDelta);
+            comp.entity.worldPosition = newPos;
         });
     }
     private _totalTime: number = 0;

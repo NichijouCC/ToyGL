@@ -1,4 +1,4 @@
-import { vec3, mat4, quat, mat4Pool, vec3Pool } from "../mathD/index";
+import { vec3, mat4, quat, mat4Pool, vec3Pool, Tempt } from "../mathD/index";
 import { ECS, Entity as BaseEntity } from "../core/ecs";
 import { World } from "./world";
 export enum DirtyFlagEnum {
@@ -402,10 +402,9 @@ export class Transform extends BaseEntity<World> {
     }
 
     lookAtPoint(pos: vec3, up?: vec3) {
-        const temptMat = mat4Pool.create();
+        const temptMat = Tempt.getMat4();
         mat4.targetTo(temptMat, this.worldPosition, pos, up ?? vec3.UP);
         this.worldMatrix = temptMat;
-        mat4Pool.recycle(temptMat);
     }
 
     lookAt(tran: Transform, up?: vec3) {
