@@ -70,7 +70,6 @@ export class CameraComponent extends Component implements ISceneCamera {
     }
 
     private _viewMatrix: mat4 = mat4.create();
-
     get viewMatrix() {
         return mat4.invert(this._viewMatrix, this.worldMatrix);
     }

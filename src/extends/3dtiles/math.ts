@@ -300,3 +300,20 @@ export function surfaceEnuZUnitFromGps(center: ArrayLike<number>) {
     value[2] = sin_lambda;
     return value;
 }
+
+/**
+ * enu坐标系的NORMAL向量
+ * @param center WS84坐标
+ * @returns 转换矩阵
+ */
+export function surfaceEnuEastFromGps(center: ArrayLike<number>) {
+    let lon0 = center[0];
+    var phi = degreesToRadians(lon0);
+    var cos_phi = Math.cos(phi);
+    var sin_phi = Math.sin(phi);
+
+    let value = vec3.create();
+    value[0] = -sin_phi;
+    value[1] = cos_phi;
+    return value;
+}

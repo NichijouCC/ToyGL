@@ -130,5 +130,6 @@ export const quat = Object.assign({
     IDENTITY: glQuat.create(),
     fromArray: (arr: ArrayLike<number>) => {
         return glQuat.fromValues(arr[0], arr[1], arr[2], arr[3]);
-    }
+    },
+    fromAxisAngle: glQuat.setAxisAngle,
 }, glQuat)

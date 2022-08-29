@@ -411,6 +411,10 @@ export class Transform extends BaseEntity<World> {
         this.lookAtPoint(tran.worldPosition, up);
     }
 
+    rotateAxisAngle(origin: vec3, axis: vec3, angle: number) {
+
+    }
+
     dispose(): void {
         this._parent = null;
         this._children = null;
