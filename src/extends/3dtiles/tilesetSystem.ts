@@ -35,24 +35,41 @@ export class TilesetSystem extends System {
         this.renders = renders;
     }
 
-    rayTest(ray: Ray): vec3 | null {
+    rayTest(ray: Ray, type: "first" | "last" = "first"): vec3 | null {
         let distance = Number.POSITIVE_INFINITY;
-        let nearPoint: vec3 | null;
+        let targetPoint: vec3 | null;
+        let checkPoint: (pos: vec3) => void;
+        if (type == "first") {
+            distance = Number.POSITIVE_INFINITY;
+            checkPoint = (pos: vec3) => {
+                let dis = vec3.distance(ray.origin, pos);
+                if (dis < distance) {
+                    targetPoint = pos;
+                    distance = dis;
+                }
+            }
+        } else {
+            distance = Number.NEGATIVE_INFINITY;
+            checkPoint = (pos: vec3) => {
+                let dis = vec3.distance(ray.origin, pos);
+                if (dis > distance) {
+                    targetPoint = pos;
+                    distance = dis;
+                }
+            }
+        }
+
         for (let i = 0; i < this.renders.length; i++) {
             let el = this.renders[i];
             if (ray.intersectWithBoundingSphere(el.worldBounding)) {
                 el.material.setUniform("MainColor", Color.random())
                 let points = ray.intersectWithGeometry(el.geometry, el.worldMat);
                 points?.forEach(el => {
-                    let dis = vec3.distance(ray.origin, el);
-                    if (dis < distance) {
-                        nearPoint = el;
-                        distance = dis;
-                    }
+                    checkPoint(el);
                 })
             }
         }
-        return nearPoint;
+        return targetPoint;
     }
 }
 

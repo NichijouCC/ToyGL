@@ -2,10 +2,8 @@ import { IB3dmBatchTableJson, IB3dmFeatureTableJson, ITileContent } from "./type
 import { GltfAsset, GltfNode, LoadGlTF } from "../glTF/index";
 import { IBoundingVolume, I3DTileContent, parseBoundingVolume, LoadState } from "./tileset";
 import { TileNode } from "./tileNode";
-import { Loader } from "./loader";
 import { ITileFrameState } from "./tilesetSystem";
 import { BinReader, BoundingSphere, IRenderable, loadArrayBuffer, mat4, vec3 } from "../../index";
-import { ecefToWs84, transformEnuToEcef } from "./math";
 
 export class B3dmTile implements I3DTileContent {
     boundingVolume?: IBoundingVolume

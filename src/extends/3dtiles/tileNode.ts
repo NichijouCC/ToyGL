@@ -63,16 +63,6 @@ export class TileNode {
             }
             if (useChild) {
                 this.children.forEach(el => el.update(options));
-                // let useParent = false;
-                // for (let i = 0; i < this.children.length; i++) {
-                //     if (this.children[i].content?.loadState != "ASSET_READY") {
-                //         useParent = true;
-                //         break;
-                //     }
-                // }
-                // if (useParent) {
-                //     this.content?.update(options);
-                // }
             } else {
                 this.content?.update(options);
             }

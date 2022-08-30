@@ -1,4 +1,6 @@
-import { CameraComponent, glMatrix, Input, mat4, MouseKeyEnum, quat, Tiles3d, ToyGL, vec2, vec3, vec4, World } from "TOYGL";
+import { Task } from "@mtgoo/ctool";
+import { CameraComponent, ComponentDatatypeEnum, Geometry, glMatrix, Input, mat4, MouseKeyEnum, PrimitiveTypeEnum, quat, Ray, Tempt, Tiles3d, ToyGL, vec2, vec3, vec4, VertexAttEnum, World } from "TOYGL";
+import { TilesetSystem } from "../../src/extends/3dtiles";
 glMatrix.setMatrixArrayType(Float64Array as any);
 
 window.onload = () => {
@@ -93,4 +95,66 @@ function initCameraController(world: World, system: Tiles3d.TilesetSystem) {
         let newPos = vec3.scaleAndAdd(vec3.create(), worldPos, forward, -1 * ev.rotateDelta);
         comp.entity.worldPosition = newPos;
     });
+}
+
+export class RoadLineRender {
+    private _points: vec3[];
+    private _origin: vec3;
+    readonly clampToGround: boolean;
+    set points(value: vec3[]) {
+        this._points = value;
+        this.initOrUpdateGeo();
+    }
+    get points() { return this._points }
+    constructor(options: { origin: vec3, points: vec3[], clampToGround?: boolean }) {
+        this._origin = options.origin;
+        this._points = options.points;
+        this.clampToGround = options.clampToGround ?? true;
+        this.initOrUpdateGeo();
+    }
+    private geo: Geometry;
+    private initOrUpdateGeo() {
+        let { _origin: origin, _points: points } = this;
+        let mat = mat4.fromTranslation(Tempt.getMat4(), origin);
+        mat4.invert(mat, mat);
+        let data: number[] = [];
+        points.forEach(el => {
+            let localPoint = mat4.transformPoint(vec3.create(), el, mat);
+            data.push(localPoint[0], localPoint[1], localPoint[2]);
+        });
+
+        if (this.geo == null) {
+            this.geo = new Geometry({
+                attributes: [
+                    {
+                        type: VertexAttEnum.POSITION,
+                        data: data,
+                        componentSize: 3,
+                        componentDatatype: ComponentDatatypeEnum.FLOAT
+                    }
+                ],
+                primitiveType: PrimitiveTypeEnum.LINES
+            });
+        } else {
+            this.geo.attributes[VertexAttEnum.POSITION].set({ data })
+        }
+    }
+
+    update(system: TilesetSystem) {
+
+    }
+
+    private tryClampToGround(system: TilesetSystem) {
+        let points = this._points;
+        let clampPoints: vec3[] = [];
+        points.forEach(el => {
+            let gps = Tiles3d.ecefToWs84(el, vec3.create() as any);
+            let dir = Tiles3d.surfaceEnuZUnitFromGps(gps);
+            let pickPoint = system.rayTest(new Ray(vec3.create(), dir), "last");
+            if (pickPoint != null) {
+                clampPoints.push(pickPoint);
+            }
+        });
+        this.points = clampPoints;
+    }
 }
