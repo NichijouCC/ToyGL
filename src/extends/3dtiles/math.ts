@@ -282,12 +282,9 @@ export function surfaceEnuNorthFromGps(center: ArrayLike<number>) {
 export function surfaceEnuZUnitFromGps(center: ArrayLike<number>) {
     let lon0 = center[0];
     let lat0 = center[1];
-    let h0 = center[2];
 
     var lambda = degreesToRadians(lat0);
     var phi = degreesToRadians(lon0);
-    var s = Math.sin(lambda);
-    var N = a / Math.sqrt(1 - e_sq * s * s);
 
     var sin_lambda = Math.sin(lambda);
     var cos_lambda = Math.cos(lambda);

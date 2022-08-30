@@ -160,7 +160,7 @@ export class CameraComponent extends Component implements ISceneCamera {
         const ndc_far = vec3.fromValues(ndc_x, ndc_y, 1);
         const world_far = mat4.ndcToWorld(vec3.create(), ndc_far, mainCamera.projectMatrix, mainCamera.worldMatrix);
         let ray = new Ray().setByTwoPoint(mainCamera.worldPos, world_far);
-        world.gizmos.drawLine(mainCamera.worldPos, world_far);
+        // world.gizmos.drawLine(mainCamera.worldPos, world_far);
         return ray;
     }
 

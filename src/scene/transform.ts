@@ -1,4 +1,4 @@
-import { vec3, mat4, quat, mat4Pool, vec3Pool, Tempt } from "../mathD/index";
+import { vec3, mat4, quat, Tempt } from "../mathD/index";
 import { ECS, Entity as BaseEntity } from "../core/ecs";
 import { World } from "./world";
 export enum DirtyFlagEnum {
@@ -154,10 +154,9 @@ export class Transform extends BaseEntity<World> {
         if (this._parent._parent == null) {
             vec3.copy(this._localPosition, value);
         } else {
-            const invParentWorld = mat4Pool.create();
+            const invParentWorld = Tempt.getMat4();
             mat4.invert(invParentWorld, this._parent.worldMatrix);
             vec3.transformMat4(this._localPosition, value, invParentWorld);
-            mat4Pool.recycle(invParentWorld);
         }
         this.markDirty();
     }
@@ -229,11 +228,10 @@ export class Transform extends BaseEntity<World> {
         if (this._parent._parent == null) {
             this.localMatrix = value;
         } else {
-            const invParentWorld = mat4Pool.create();
+            const invParentWorld = Tempt.getMat4();
             mat4.invert(invParentWorld, this._parent.worldMatrix);
             mat4.multiply(invParentWorld, invParentWorld, value);
             this.localMatrix = invParentWorld;
-            mat4Pool.recycle(invParentWorld);
         }
         this.dirtyFlag = this.dirtyFlag & ~DirtyFlagEnum.WORLD_MAT;
         this.dirtyFlag =
@@ -387,11 +385,10 @@ export class Transform extends BaseEntity<World> {
     }
 
     moveInWorld(dir: vec3, amount: number) {
-        const dirInLocal = vec3Pool.create();
+        const dirInLocal = Tempt.getVec3();
         mat4.transformVector(dirInLocal, dir, this.worldToLocalMatrix);
         vec3.scaleAndAdd(this._localPosition, this._localPosition, dirInLocal, amount);
         this.markDirty();
-        vec3Pool.recycle(dirInLocal);
         return this;
     }
 

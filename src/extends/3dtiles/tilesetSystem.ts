@@ -1,8 +1,6 @@
 import { IRenderable, System, vec3, World, Ray, Color } from "../../index";
-import { Tileset } from "./tileset";
 import { TileNode } from "./tileNode";
 import { TilesetRender } from "./tilesetComp";
-import { transformEnuToEcef } from "./math";
 
 export class TilesetSystem extends System {
     caries = { comps: [TilesetRender] }

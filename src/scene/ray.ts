@@ -21,15 +21,11 @@ export class Ray {
     }
 
     intersectWithBoundingSphere(sphere: BoundingSphere) {
-        let tempt1 = vec3Pool.create();
+        let tempt1 = Tempt.getVec3();
         let dir = vec3.subtract(tempt1, sphere.center, this.origin);
         let dotRes = vec3.dot(dir, this.dir);
-        if (dotRes < 0) {
-            vec3Pool.recycle(tempt1);
-            return false;
-        }
+        if (dotRes < 0) return false;
         let dis2 = vec3.dot(dir, dir) - dotRes * dotRes;
-
         return dis2 < sphere.radius * sphere.radius
     }
     private static temptRay = new Ray();
