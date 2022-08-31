@@ -58,7 +58,7 @@
   },
   "dependencies": {
     "@esotericsoftware/spine-core": "^4.0.27",
-    "@mtgoo/ctool": "^0.0.17",
+    "@mtgoo/ctool": "^0.1.4",
     "@types/dat.gui": "^0.7.2",
     "cannon-es": "^0.16.0",
     "dat.gui": "^0.7.6",

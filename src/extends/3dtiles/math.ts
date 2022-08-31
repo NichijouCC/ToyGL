@@ -3,6 +3,7 @@
 //https://gist.github.com/govert/1b373696c9a27ff4c72a
 //https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_ENU_to_ECEF
 
+import { TypedArray } from "../../core";
 import { mat4, vec3 } from "../../mathD";
 
 // WGS-84 geodetic constants
@@ -30,7 +31,7 @@ export function radiansToDegrees(value: number) {
  * @param ecef ws84坐标系下的位置(lon0, lat0, h0)
  * @param out ecef坐标系下的位置(x,y,z)
  */
-export function ws84ToEcef(gps: number[], out: number[]) {
+export function ws84ToEcef(gps: number[] | TypedArray, out: number[] | TypedArray) {
     let [lon, lat, h] = gps;
     var phi = degreesToRadians(lon);
     var lambda = degreesToRadians(lat);
@@ -52,7 +53,7 @@ export function ws84ToEcef(gps: number[], out: number[]) {
  * @param ecef ecef坐标系下的位置(x,y,z)
  * @param out ws84坐标系下的位置(lon0, lat0, h0)
  */
-export function ecefToWs84(ecef: ArrayLike<number>, out: number[]) {
+export function ecefToWs84(ecef: number[] | TypedArray, out: number[] | TypedArray) {
     let x = ecef[0];
     let y = ecef[1];
     let z = ecef[2];
@@ -78,7 +79,7 @@ export function ecefToWs84(ecef: ArrayLike<number>, out: number[]) {
  * @param center enu原点的ws84坐标系下的位置(lon0, lat0, h0)
  * @param out enu坐标系下的位置(x,y,z)
  */
-export function ecefToEnu(pos: number[], center: number[], out: number[]) {
+export function ecefToEnu(pos: number[] | TypedArray, center: number[] | TypedArray, out: number[] | TypedArray) {
     let [x, y, z] = pos;
     let [lon0, lat0, h0] = center;
     // Convert to radians in notation consistent with the paper:
@@ -105,6 +106,8 @@ export function ecefToEnu(pos: number[], center: number[], out: number[]) {
     out[0] = -sin_phi * xd + cos_phi * yd;
     out[1] = -cos_phi * sin_lambda * xd - sin_lambda * sin_phi * yd + cos_lambda * zd;
     out[2] = cos_lambda * cos_phi * xd + cos_lambda * sin_phi * yd + sin_lambda * zd;
+
+    return out;
 }
 
 /**
@@ -113,7 +116,7 @@ export function ecefToEnu(pos: number[], center: number[], out: number[]) {
  * @param center enu原点的ws84坐标系下的位置(lon0, lat0, h0)
  * @param out ecef坐标系下的位置(x,y,z)
  */
-export function enuToEcef(pos: number[], center: number[], out: number[]) {
+export function enuToEcef(pos: number[] | TypedArray, center: number[] | TypedArray, out: number[] | TypedArray) {
     // Convert to radians in notation consistent with the paper:
     let [xEast, yNorth, zUp] = pos;
     let [lon0, lat0, h0] = center;
@@ -138,6 +141,7 @@ export function enuToEcef(pos: number[], center: number[], out: number[]) {
     out[0] = xd + x0;
     out[1] = yd + y0;
     out[2] = zd + z0;
+    return out;
 }
 
 /**
@@ -146,9 +150,10 @@ export function enuToEcef(pos: number[], center: number[], out: number[]) {
  * @param center enu原点在ws84坐标系下的位置(lon0, lat0, h0)
  * @param out enu坐标系下的位置(x,y,z)
  */
-export function ws84ToEnu(gps: number[], center: number[], out: number[]) {
+export function ws84ToEnu(gps: number[] | TypedArray, center: number[] | TypedArray, out: number[] | TypedArray) {
     ws84ToEcef(gps, out);
     ecefToEnu(out, center, out);
+    return out;
 }
 
 
@@ -158,9 +163,10 @@ export function ws84ToEnu(gps: number[], center: number[], out: number[]) {
  * @param center enu原点在ws84坐标系下的位置(lon0, lat0, h0)
  * @param out WS84下的gps坐标
  */
-export function enuToWs84(pos: number[], center: number[], out: number[]) {
+export function enuToWs84(pos: number[] | TypedArray, center: number[] | TypedArray, out: number[]) {
     enuToEcef(pos, center, out);
     ecefToWs84(out, out);
+    return out;
 }
 
 
@@ -169,7 +175,7 @@ export function enuToWs84(pos: number[], center: number[], out: number[]) {
  * @param center WS84坐标
  * @returns 转换矩阵
  */
-export function transformEnuToEcef(center: ArrayLike<number>) {
+export function transformEnuToEcef(center: number[] | TypedArray) {
     // let [lon0, lat0, h0] = center;
     let lon0 = center[0];
     let lat0 = center[1];
@@ -209,7 +215,7 @@ export function transformEnuToEcef(center: ArrayLike<number>) {
  * @param center WS84坐标
  * @returns 转换矩阵
  */
-export function transformEcefToEnu(center: ArrayLike<number>) {
+export function transformEcefToEnu(center: number[] | TypedArray) {
     // let [lon0, lat0, h0] = center;
     let lon0 = center[0];
     let lat0 = center[1];
@@ -246,11 +252,11 @@ export function transformEcefToEnu(center: ArrayLike<number>) {
 
 
 /**
- * enu坐标系的北向量
+ * enu坐标系的北向量（y）
  * @param center WS84坐标
  * @returns 转换矩阵
  */
-export function surfaceEnuNorthFromGps(center: ArrayLike<number>) {
+export function surfaceEnuNorthFromGps(center: number[] | TypedArray) {
     // let [lon0, lat0, h0] = center;
     let lon0 = center[0];
     let lat0 = center[1];
@@ -275,11 +281,11 @@ export function surfaceEnuNorthFromGps(center: ArrayLike<number>) {
 
 
 /**
- * enu坐标系的NORMAL向量
+ * enu坐标系的NORMAL向量（z）
  * @param center WS84坐标
  * @returns 转换矩阵
  */
-export function surfaceEnuZUnitFromGps(center: ArrayLike<number>) {
+export function surfaceEnuNormalFromGps(center: number[] | TypedArray) {
     let lon0 = center[0];
     let lat0 = center[1];
 
@@ -299,11 +305,11 @@ export function surfaceEnuZUnitFromGps(center: ArrayLike<number>) {
 }
 
 /**
- * enu坐标系的NORMAL向量
+ * enu坐标系的East向量(x)
  * @param center WS84坐标
  * @returns 转换矩阵
  */
-export function surfaceEnuEastFromGps(center: ArrayLike<number>) {
+export function surfaceEnuEastFromGps(center: number[] | TypedArray) {
     let lon0 = center[0];
     var phi = degreesToRadians(lon0);
     var cos_phi = Math.cos(phi);

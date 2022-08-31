@@ -37,6 +37,10 @@ export const vec3 = Object.assign({
     },
     fromArray: (arr: ArrayLike<number>) => {
         return glVec3.fromValues(arr[0], arr[1], arr[2]);
+    },
+    /** 从typedArray中取一段数据作为vec3 */
+    fromTypedArray: (arr: Float32Array, index: number): vec3 => {
+        return new Float32Array(arr.buffer, index * Float32Array.BYTES_PER_ELEMENT * 3, 3)
     }
 }, glVec3);
 
