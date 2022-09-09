@@ -25,14 +25,14 @@ export class GeometryAttribute extends EventEmitter<IObjectEvent> {
     private _componentSize: number;
     set componentSize(value: number) {
         this._componentSize = value;
-        this.beMetaDirty = true;
+        this.beDirty = true;
         this.computeCount();
     }
     get componentSize() { return this._componentSize }
     private _componentDatatype: ComponentDatatypeEnum;
     set componentDatatype(value: ComponentDatatypeEnum) {
         this._componentDatatype = value;
-        this.beMetaDirty = true;
+        this.beDirty = true;
         this.computeCount();
     }
     get componentDatatype() { return this._componentDatatype }
@@ -42,7 +42,7 @@ export class GeometryAttribute extends EventEmitter<IObjectEvent> {
     }
     set normalize(value: boolean) {
         this._normalize = value;
-        this.beMetaDirty = true;
+        this.beDirty = true;
     }
     // beDynamic: boolean;
     private _bytesOffset: number;
@@ -51,7 +51,7 @@ export class GeometryAttribute extends EventEmitter<IObjectEvent> {
     }
     set bytesOffset(value: number) {
         this._bytesOffset = value;
-        this.beMetaDirty = true;
+        this.beDirty = true;
         this.computeCount();
     }
     private _bytesStride: number;
@@ -60,7 +60,7 @@ export class GeometryAttribute extends EventEmitter<IObjectEvent> {
     }
     set bytesStride(value: number) {
         this._bytesStride = value;
-        this.beMetaDirty = true;
+        this.beDirty = true;
         this.computeCount();
     }
     protected _instanceDivisor: number;
@@ -119,12 +119,6 @@ export class GeometryAttribute extends EventEmitter<IObjectEvent> {
     private _beDataDirty = false;
     set beDataDirty(value: boolean) {
         this._beDataDirty = value;
-        this.beDirty = true;
-    };
-
-    private _beMetaDirty = false;
-    set beMetaDirty(value: boolean) {
-        this._beMetaDirty = value;
         this.beDirty = true;
     };
 
@@ -187,16 +181,13 @@ export class GeometryAttribute extends EventEmitter<IObjectEvent> {
                 this.buffer.syncData(device);
                 this._beDataDirty = false;
             }
-            if (this._beMetaDirty) {
-                this._glTarget.set({
-                    componentSize: this.componentSize,
-                    componentDatatype: this.componentDatatype,
-                    normalize: this.normalize,
-                    bytesOffset: this.bytesOffset,
-                    bytesStride: this.bytesStride,
-                });
-                this._beMetaDirty = false;
-            }
+            this._glTarget.set({
+                componentSize: this.componentSize,
+                componentDatatype: this.componentDatatype,
+                normalize: this.normalize,
+                bytesOffset: this.bytesOffset,
+                bytesStride: this.bytesStride,
+            });
             this._beDirty = false;
         }
         return this._glTarget;
@@ -215,6 +206,7 @@ export class GeometryAttribute extends EventEmitter<IObjectEvent> {
             } else {
                 this.buffer.data = option.data;
             }
+            this.beDataDirty = true;
         }
         this.beDirty = true;
         this.computeCount();
