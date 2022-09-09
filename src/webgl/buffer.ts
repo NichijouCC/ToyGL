@@ -44,7 +44,8 @@ export class Buffer implements IglElement {
             if (options.data != null) {
                 this.bind();
                 this._data = options.data;
-                gl.bufferSubData(this.target, 0, this.data);
+                //WebGL: INVALID_VALUE: bufferSubData: buffer overflow
+                gl.bufferData(this.target, this.data, this.usage);
             }
             if (options.partial != null) {
                 this.bind();

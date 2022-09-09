@@ -25,14 +25,14 @@ export class GeometryAttribute extends EventEmitter<IObjectEvent> {
     private _componentSize: number;
     set componentSize(value: number) {
         this._componentSize = value;
-        this.beDirty = true;
+        this.beMetaDirty = true;
         this.computeCount();
     }
     get componentSize() { return this._componentSize }
     private _componentDatatype: ComponentDatatypeEnum;
     set componentDatatype(value: ComponentDatatypeEnum) {
         this._componentDatatype = value;
-        this.beDirty = true;
+        this.beMetaDirty = true;
         this.computeCount();
     }
     get componentDatatype() { return this._componentDatatype }
@@ -42,7 +42,7 @@ export class GeometryAttribute extends EventEmitter<IObjectEvent> {
     }
     set normalize(value: boolean) {
         this._normalize = value;
-        this.beDirty = true;
+        this.beMetaDirty = true;
     }
     // beDynamic: boolean;
     private _bytesOffset: number;
@@ -51,7 +51,7 @@ export class GeometryAttribute extends EventEmitter<IObjectEvent> {
     }
     set bytesOffset(value: number) {
         this._bytesOffset = value;
-        this.beDirty = true;
+        this.beMetaDirty = true;
         this.computeCount();
     }
     private _bytesStride: number;
@@ -60,7 +60,7 @@ export class GeometryAttribute extends EventEmitter<IObjectEvent> {
     }
     set bytesStride(value: number) {
         this._bytesStride = value;
-        this.beDirty = true;
+        this.beMetaDirty = true;
         this.computeCount();
     }
     protected _instanceDivisor: number;
@@ -122,6 +122,12 @@ export class GeometryAttribute extends EventEmitter<IObjectEvent> {
         this.beDirty = true;
     };
 
+    private _beMetaDirty = false;
+    set beMetaDirty(value: boolean) {
+        this._beMetaDirty = value;
+        this.beDirty = true;
+    };
+
     constructor(option: IGeometryAttributeOptions) {
         super();
         this.type = option.type;
@@ -135,7 +141,7 @@ export class GeometryAttribute extends EventEmitter<IObjectEvent> {
         this._count = option.count;
         if (option.data instanceof GraphicBuffer) {
             this.buffer = option.data;
-            this.buffer.on("BeDirty", () => this.beDataDirty = true)
+            this.buffer.on("BeDirty", () => { this.beDataDirty = true; })
         } else {
             if (option.data instanceof Array) {
                 option.data = new Float32Array(option.data);
@@ -181,24 +187,42 @@ export class GeometryAttribute extends EventEmitter<IObjectEvent> {
                 this.buffer.syncData(device);
                 this._beDataDirty = false;
             }
-            this._glTarget.set({
-                componentSize: this.componentSize,
-                componentDatatype: this.componentDatatype,
-                normalize: this.normalize,
-                bytesOffset: this.bytesOffset,
-                bytesStride: this.bytesStride,
-            });
+            if (this._beMetaDirty) {
+                this._beMetaDirty = false;
+                this._glTarget.set({
+                    componentSize: this.componentSize,
+                    componentDatatype: this.componentDatatype,
+                    normalize: this.normalize,
+                    bytesOffset: this.bytesOffset,
+                    bytesStride: this.bytesStride,
+                });
+            }
             this._beDirty = false;
         }
         return this._glTarget;
     }
 
     set(option: Partial<Omit<IGeometryAttributeOptions, "data" | "type"> & { data: TypedArray | Array<number> }>) {
-        if (option.componentSize != null) this._componentSize = option.componentSize;
-        if (option.componentDatatype != null) this._componentDatatype = option.componentDatatype;
-        if (option.normalize != null) this._normalize = option.normalize;
-        if (option.bytesOffset != null) this._bytesOffset = option.bytesOffset;
-        if (option.bytesStride != null) this._bytesStride = option.bytesStride;
+        if (option.componentSize != null) {
+            this._componentSize = option.componentSize;
+            this._beMetaDirty = true;
+        }
+        if (option.componentDatatype != null) {
+            this._componentDatatype = option.componentDatatype;
+            this._beMetaDirty = true;
+        }
+        if (option.normalize != null) {
+            this._normalize = option.normalize;
+            this._beMetaDirty = true;
+        }
+        if (option.bytesOffset != null) {
+            this._bytesOffset = option.bytesOffset;
+            this._beMetaDirty = true;
+        }
+        if (option.bytesStride != null) {
+            this._bytesStride = option.bytesStride;
+            this._beMetaDirty = true;
+        }
         // if (option.beDynamic != null) this.beDynamic = option.beDynamic;
         if (option.data != null) {
             if (option.data instanceof Array) {
@@ -206,7 +230,7 @@ export class GeometryAttribute extends EventEmitter<IObjectEvent> {
             } else {
                 this.buffer.data = option.data;
             }
-            this.beDataDirty = true;
+            this._beDataDirty = true;
         }
         this.beDirty = true;
         this.computeCount();
