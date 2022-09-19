@@ -1,5 +1,5 @@
 import { TaskPromise, Timer } from "@mtgoo/ctool";
-import { CameraComponent, ComponentDatatypeEnum, DefaultMaterial, Geometry, glMatrix, Input, mat4, MouseKeyEnum, PrimitiveTypeEnum, quat, Ray, Tempt, Tiles3d, ToyGL, vec2, vec3, vec4, VertexAttEnum, World } from "TOYGL";
+import { CameraComponent, Color, ComponentDatatypeEnum, DefaultMaterial, Geometry, glMatrix, Input, mat4, MouseKeyEnum, PrimitiveTypeEnum, quat, Ray, Tempt, Tiles3d, ToyGL, vec2, vec3, vec4, VertexAttEnum, World } from "TOYGL";
 glMatrix.setMatrixArrayType(Float64Array as any);
 
 window.onload = () => {
@@ -18,10 +18,11 @@ window.onload = () => {
             comp.asset = res;
             cam.viewTargetPoint(res.boundingVolume.center, 1300, vec3.fromValues(0, 0, 0));
             initCameraController(world, system);
-            let line = new RoadLineRender({ system, origin: res.boundingVolume.center, gpsArr: [] });
+            let line = new RoadLineRender({ system, origin: res.boundingVolume.center, gpsArr: [], clampToGround: true });
 
             let mat = mat4.fromTranslation(mat4.create(), res.boundingVolume.center);
             let material = DefaultMaterial.color_3d.clone();
+            material.customSortOrder = 10;
             material.renderState.depth.depthTest = false;
 
             world.preUpdate.addEventListener(ev => {
@@ -29,19 +30,30 @@ window.onload = () => {
                     geometry: line.geo,
                     material: material,
                     worldMat: mat,
-                })
-            })
+                });
+            });
 
-            document.addEventListener("keydown", (ev) => {
-                if (ev.key.toLowerCase() == "p") {
+            Input.mouse.on("mousedown", (ev) => {
+                if (ev.keyType == MouseKeyEnum.Left) {
                     let ray = world.mainCamera.screenPointToRay(Input.mouse.position);
                     let pickPoint = system.rayTest(ray);
-                    line.addPoint(pickPoint);
+                    if (pickPoint) {
+                        let first = pickPoint[0];
+                        first.render.material.setUniform("MainColor", Color.random());
+                        line.addPoint(pickPoint[0].point);
+                    }
                 }
             })
         })
 }
 
+/**
+ * gis类相机控制:  
+ *      1. 鼠标左键拖拽     
+ *      2. 鼠标右键旋转
+ * @param world 
+ * @param system 
+ */
 function initCameraController(world: World, system: Tiles3d.TilesetSystem) {
     let beActiveDrag = false;
     let beActiveRot = false;
@@ -52,7 +64,10 @@ function initCameraController(world: World, system: Tiles3d.TilesetSystem) {
         if (ev.keyType == MouseKeyEnum.Left) {
             beActiveDrag = true;
             let ray = world.mainCamera.screenPointToRay(Input.mouse.position);
-            let pickPoint = system.rayTest(ray);
+            let pickResult = system.rayTest(ray);
+            if (pickResult == null) return;
+            let pickPoint = pickResult[0].point;
+
             let camToWorld = mat4.clone(world.mainCamera.worldMatrix);
             let projectMat = mat4.clone(world.mainCamera.projectMatrix);
             let camWorldPos = vec3.clone(world.mainCamera.worldPos);
@@ -72,7 +87,9 @@ function initCameraController(world: World, system: Tiles3d.TilesetSystem) {
         } else if (ev.keyType == MouseKeyEnum.Right) {
             beActiveRot = true;
             let ray = world.mainCamera.screenPointToRay(Input.mouse.position);
-            let pickPoint = system.rayTest(ray);
+            let pickResult = system.rayTest(ray);
+            if (pickResult == null) return;
+            let pickPoint = pickResult[0].point;
 
             let gps = Tiles3d.ecefToWs84(pickPoint, vec3.create() as any);
             let upAxis = Tiles3d.surfaceEnuNormalFromGps(gps);
@@ -113,8 +130,9 @@ function initCameraController(world: World, system: Tiles3d.TilesetSystem) {
         let forward = comp.forwardInWorld;
 
         let ray = world.mainCamera.screenPointToRay(Input.mouse.position);
-        let pickPoint = system.rayTest(ray);
-        if (pickPoint) {
+        let pickResult = system.rayTest(ray);
+        if (pickResult) {
+            let pickPoint = pickResult[0].point;
             forward = vec3.subtract(vec3.create(), comp.entity.worldPosition, pickPoint);
             let distance = vec3.len(forward);
             vec3.normalize(forward, forward);
@@ -134,6 +152,7 @@ export class RoadLineRender {
     private _origin: vec3;
     readonly clampToGround: boolean;
     readonly system: Tiles3d.TilesetSystem;
+    private _invertMat: mat4;
     get points() { return this._gpsArr }
     constructor(options: { system: Tiles3d.TilesetSystem, origin: vec3, gpsArr: vec3[], clampToGround?: boolean }) {
         this.system = options.system;
@@ -145,8 +164,10 @@ export class RoadLineRender {
     geo: Geometry;
     private initOrUpdateGeo() {
         let { _origin: origin, _gpsArr } = this;
-        let mat = mat4.fromTranslation(Tempt.getMat4(), origin);
+        let mat = mat4.fromTranslation(mat4.create(), origin);
         mat4.invert(mat, mat);
+        this._invertMat = mat;
+
         let data = new Float32Array(_gpsArr.length * 3);
 
         _gpsArr.forEach((el, index) => {
@@ -164,7 +185,7 @@ export class RoadLineRender {
                         componentDatatype: ComponentDatatypeEnum.FLOAT
                     }
                 ],
-                primitiveType: PrimitiveTypeEnum.LINES
+                primitiveType: PrimitiveTypeEnum.LINE_STRIP
             });
         } else {
             this.geo.attributes[VertexAttEnum.POSITION].set({ data })
@@ -183,14 +204,18 @@ export class RoadLineRender {
     }
     private localPoints: number[] = [];
     addPoint(point: vec3) {
-        let mat = mat4.fromTranslation(Tempt.getMat4(), this._origin);
-        mat4.invert(mat, mat);
-        clampToGround(this.system, point)
-            .then(clamp => {
-                let localPos = mat4.transformPoint(vec3.create(), clamp, mat);
-                this.localPoints.push(localPos[0], localPos[1], localPos[2]);
-                this.geo.attributes[VertexAttEnum.POSITION].set({ data: this.localPoints })
-            })
+        if (this.clampToGround) {
+            clampToGround(this.system, point)
+                .then(clamp => {
+                    let localPos = mat4.transformPoint(vec3.create(), clamp, this._invertMat);
+                    this.localPoints.push(localPos[0], localPos[1], localPos[2]);
+                    this.geo.attributes[VertexAttEnum.POSITION].set({ data: this.localPoints })
+                })
+        } else {
+            let localPos = mat4.transformPoint(vec3.create(), point, this._invertMat);
+            this.localPoints.push(localPos[0], localPos[1], localPos[2]);
+            this.geo.attributes[VertexAttEnum.POSITION].set({ data: this.localPoints })
+        }
     }
 
     update(system: Tiles3d.TilesetSystem) {
@@ -200,16 +225,18 @@ export class RoadLineRender {
 
 export const timer = new Timer({ interval: 1000 });
 export function clampToGround(system: Tiles3d.TilesetSystem, targetPos: vec3, out = vec3.create()): Promise<vec3> {
-    let ray = new Ray().setByTwoPoint(vec3.create(), targetPos)
-    let pickPoint = system.rayTest(ray, "last");
-    if (pickPoint != null) {
+    let ray = new Ray().setByTwoPoint(vec3.create(), targetPos);
+    let pickResult = system.rayTest(ray);
+    if (pickResult != null) {
+        let pickPoint = pickResult[pickResult.length - 1].point;
         vec3.copy(out, pickPoint);
         return Promise.resolve(out);
     } else {
         let task = TaskPromise.create<vec3>();
         timer.tick.addEventListener(() => {
-            pickPoint = system.rayTest(ray, "last");
-            if (pickPoint) {
+            pickResult = system.rayTest(ray);
+            if (pickResult) {
+                let pickPoint = pickResult[pickResult.length - 1].point;
                 vec3.copy(out, pickPoint);
                 task.resolve(out);
                 return true

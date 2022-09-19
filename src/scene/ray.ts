@@ -1,4 +1,4 @@
-import { mat4, Tempt, vec3, vec3Pool } from "../mathD";
+import { mat4, Tempt, vec3 } from "../mathD";
 import { Geometry, VertexAttEnum } from "../render";
 import { BoundingSphere } from "./bounds";
 
@@ -29,7 +29,7 @@ export class Ray {
         return dis2 < sphere.radius * sphere.radius
     }
     private static temptRay = new Ray();
-    intersectWithGeometry(geo: Geometry, worldMat?: mat4): vec3[] | null {
+    intersectWithGeometry(geo: Geometry, worldMat?: mat4): IIntersectResult[] | null {
         let computeRay: Ray = this;
         if (worldMat != null) {
             let inverse = mat4.invert(Tempt.getMat4(), worldMat);
@@ -38,25 +38,26 @@ export class Ray {
             Ray.temptRay.length = this.length;
             computeRay = Ray.temptRay;
         }
-        let nearPoints: vec3[] = [];
+        let intersectPoints: IIntersectResult[] = [];
         let points = geo.attributes[VertexAttEnum.POSITION].elements;
         let indices = geo.indices.elements;
         for (let i = 0; i < indices.length;) {
             let point_a = points[indices[i++]] as any;
             let point_b = points[indices[i++]] as any;
             let point_c = points[indices[i++]] as any;
-            let point = computeRay.intersectTriangle(point_a, point_b, point_c);
-            if (point != null) {
+            let result = computeRay.intersectTriangle(point_a, point_b, point_c);
+            if (result != null) {
                 if (worldMat != null) {
-                    mat4.transformPoint(point, point, worldMat);
+                    mat4.transformPoint(result.point, result.point, worldMat);
                 }
-                nearPoints.push(point);
+                intersectPoints.push(result);
             }
-        }
-        return nearPoints.length == null ? null : nearPoints;
+        };
+        intersectPoints.sort((a, b) => a.distance - b.distance);
+        return intersectPoints.length == null ? null : intersectPoints;
     }
 
-    intersectTriangle(v0: vec3, v1: vec3, v2: vec3): vec3 | null {
+    intersectTriangle(v0: vec3, v1: vec3, v2: vec3): IIntersectResult | null {
         //https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-polygon-mesh/Ray-Tracing%20a%20Polygon%20Mesh-part-1
         let vec3_tempt1 = Tempt.getVec3();
         let vec3_tempt2 = Tempt.getVec3(1);
@@ -80,6 +81,12 @@ export class Ray {
         if (v < 0 || u + v > 1) return null;
 
         let t = vec3.dot(v0v2, qvec) * invDet;
-        return vec3.scaleAndAdd(vec3.create(), this.origin, this.dir, t);
+        let point = vec3.scaleAndAdd(vec3.create(), this.origin, this.dir, t);
+        return { point, distance: t }
     }
+}
+
+export interface IIntersectResult {
+    point: vec3;
+    distance: number;
 }

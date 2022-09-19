@@ -182,6 +182,18 @@ export class CameraComponent extends Component implements ISceneCamera {
         return ray;
     }
 
+    screenPointToNdc(screenPos: vec2, ndc_z: number = 0) {
+        const ndc_x = (screenPos[0] / screen.width) * 2 - 1;
+        const ndc_y = -1 * ((screenPos[1] / screen.height) * 2 - 1);
+        return vec3.fromValues(ndc_x, ndc_y, ndc_z);
+    }
+
+    screenPointToWorld(screenPos: vec2, ndc_z: number = 0) {
+        let ndc = this.screenPointToNdc(screenPos, ndc_z);
+        let worldPoint = mat4.ndcToWorld(vec3.create(), ndc, this.projectMatrix, this.worldMatrix);
+        return worldPoint;
+    }
+
     clone(): CameraComponent {
         throw new Error("Method not implemented.");
     }

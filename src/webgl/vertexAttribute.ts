@@ -70,8 +70,15 @@ export class VertexAttribute implements IVertexAttribute {
         this._instanceDivisor = value;
         this.bindToVao.clear();
     }
-    private _count: number;
-    get count() { return this._count }
+    // private _count: number;
+    get count() {
+        const bytes = this._buffer.byteLength - this._bytesOffset;
+        if (this._bytesStride == 0) {
+            return bytes / (this._componentSize * GlType.bytesPerElement(this._componentDatatype));
+        } else {
+            return bytes / this._bytesStride;
+        }
+    }
 
     private _gl: WebGLRenderingContext;
     private _context: GraphicsDevice;
@@ -98,12 +105,12 @@ export class VertexAttribute implements IVertexAttribute {
             this._buffer = new Buffer(context, { data: options.data, usage: options.usage, target: BufferTargetEnum.ARRAY_BUFFER })
         }
 
-        const bytes = this._buffer.byteLength - this._bytesOffset;
-        if (this._bytesStride == 0) {
-            this._count = bytes / (this._componentSize * GlType.bytesPerElement(this._componentDatatype));
-        } else {
-            this._count = bytes / this._bytesStride;
-        }
+        // const bytes = this._buffer.byteLength - this._bytesOffset;
+        // if (this._bytesStride == 0) {
+        //     this._count = bytes / (this._componentSize * GlType.bytesPerElement(this._componentDatatype));
+        // } else {
+        //     this._count = bytes / this._bytesStride;
+        // }
     }
 
     set(options: Partial<IBufferSetOptions & Omit<IVertexAttributeOption, "data" | "type" | "usage">>) {
@@ -114,12 +121,12 @@ export class VertexAttribute implements IVertexAttribute {
         if (options.bytesOffset != null) this.bytesOffset = options.bytesOffset;
         if (options.bytesStride != null) this.bytesStride = options.bytesStride;
         if (options.instanceDivisor != null) this.instanceDivisor = options.instanceDivisor;
-        const bytes = this._buffer.byteLength - this._bytesOffset;
-        if (this._bytesStride == 0) {
-            this._count = bytes / (this._componentSize * GlType.bytesPerElement(this._componentDatatype));
-        } else {
-            this._count = bytes / this._bytesStride;
-        }
+        // const bytes = this._buffer.byteLength - this._bytesOffset;
+        // if (this._bytesStride == 0) {
+        //     this._count = bytes / (this._componentSize * GlType.bytesPerElement(this._componentDatatype));
+        // } else {
+        //     this._count = bytes / this._bytesStride;
+        // }
         this.bindToVao.clear();
     }
 

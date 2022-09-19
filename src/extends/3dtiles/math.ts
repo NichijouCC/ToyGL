@@ -4,7 +4,7 @@
 //https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_ENU_to_ECEF
 
 import { TypedArray } from "../../core";
-import { mat4, vec3 } from "../../mathD";
+import { mat4, Tempt, vec3 } from "../../mathD";
 
 // WGS-84 geodetic constants
 const a = 6378137.0;         // WGS-84 Earth semimajor axis (m)
@@ -303,6 +303,17 @@ export function surfaceEnuNormalFromGps(center: number[] | TypedArray) {
     value[2] = sin_lambda;
     return value;
 }
+
+/**
+ * enu坐标系的NORMAL向量（z）
+ * @param center ecef坐标
+ * @returns 转换矩阵
+ */
+export function surfaceEnuNormalFromEcef(ecef: number[] | TypedArray) {
+    let gps = ecefToWs84(ecef, Tempt.getVec3());
+    return surfaceEnuNormalFromGps(gps);
+}
+
 
 /**
  * enu坐标系的East向量(x)
