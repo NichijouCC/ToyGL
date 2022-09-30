@@ -9,9 +9,8 @@ import { CameraComponent } from "../components/cameraComponent";
 import { PhysicsWorld } from "../components/colliderSystem";
 import { Screen } from "./screen";
 import { Gizmos } from "./gizmos/gizmos";
-import { Ray } from "./ray";
 
-export type ISceneOptions = { autoAdaptScreenSize?: boolean } & IEngineOption;
+export type IWorldOptions = { autoAdaptScreenSize?: boolean } & IEngineOption;
 export class World extends ECS {
     readonly screen: Screen;
     readonly render: ForwardRender;
@@ -27,7 +26,7 @@ export class World extends ECS {
         return comp;
     }
     private root: Entity;
-    constructor(element: HTMLDivElement | HTMLCanvasElement, options?: ISceneOptions) {
+    constructor(element: HTMLDivElement | HTMLCanvasElement, options?: IWorldOptions) {
         super();
         this.screen = Screen.create(element, options);
         this.render = new ForwardRender(this.screen.canvas, options);
@@ -102,24 +101,16 @@ export class World extends ECS {
     pick(screenPos?: vec2) {
         screenPos = screenPos ?? Input.mouse.position;
         const { screen, gizmos } = this;
-        const ndc_x = (screenPos[0] / screen.width) * 2 - 1;
-        const ndc_y = -1 * ((screenPos[1] / screen.height) * 2 - 1);
-        const ndc_near = vec3.fromValues(ndc_x, ndc_y, -1);
-        const ndc_far = vec3.fromValues(ndc_x, ndc_y, 1);
-        const world_near = ndcToWorld(ndc_near, this.mainCamera.projectMatrix, this.mainCamera.worldMatrix);
-        const world_far = ndcToWorld(ndc_far, this.mainCamera.projectMatrix, this.mainCamera.worldMatrix);
+        const world_near = this.mainCamera.screenPointToWorld(screenPos, -1);
+        const world_far = this.mainCamera.screenPointToWorld(screenPos, 1);
         gizmos.drawLine(world_near, world_far);
     }
 
     pickTestCollider() {
         const { screen } = this;
         const screenPos = Input.mouse.position;
-        const ndc_x = (screenPos[0] / screen.width) * 2 - 1;
-        const ndc_y = -1 * ((screenPos[1] / screen.height) * 2 - 1);
-        const ndc_near = vec3.fromValues(ndc_x, ndc_y, -1);
-        const ndc_far = vec3.fromValues(ndc_x, ndc_y, 1);
-        const world_near = ndcToWorld(ndc_near, this.mainCamera.projectMatrix, this.mainCamera.worldMatrix);
-        const world_far = ndcToWorld(ndc_far, this.mainCamera.projectMatrix, this.mainCamera.worldMatrix);
+        const world_near = this.mainCamera.screenPointToWorld(screenPos, -1);
+        const world_far = this.mainCamera.screenPointToWorld(screenPos, 1);
 
         const result = PhysicsWorld.rayTest(world_near, world_far);
         console.log("pickFromRay", result);
@@ -132,18 +123,6 @@ export class World extends ECS {
     intersectCollider(from: vec3, to: vec3) {
         return PhysicsWorld.rayTest(from, to);
     }
-}
-
-
-function ndcToView(ndcPos: vec3, projectMat: mat4) {
-    const inversePrjMat = mat4.invert(mat4.create(), projectMat);
-    const viewPosH = vec4.transformMat4(vec4.create(), vec4.fromValues(ndcPos[0], ndcPos[1], ndcPos[2], 1), inversePrjMat);
-    return vec3.fromValues(viewPosH[0] / viewPosH[3], viewPosH[1] / viewPosH[3], viewPosH[2] / viewPosH[3]);
-}
-
-function ndcToWorld(ndcPos: vec3, projectMat: mat4, camToWorld: mat4) {
-    const view_pos = ndcToView(ndcPos, projectMat);
-    return vec3.transformMat4(vec3.create(), view_pos, camToWorld);
 }
 
 function sortRenderItems(items: IRenderable[], cam: ICamera) {

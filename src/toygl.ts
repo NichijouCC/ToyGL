@@ -1,4 +1,4 @@
-import { AnimationSystem, CameraSystem, ISceneOptions, ModelSystem, Resource, Timer, World } from "./index";
+import { AnimationSystem, CameraSystem, IWorldOptions, ModelSystem, Resource, Timer, World } from "./index";
 import { EventTarget } from "@mtgoo/ctool";
 import { LoadGlTF } from "./extends/glTF";
 export * from "./extends/index";
@@ -6,7 +6,7 @@ export * from "./index";
 
 export class ToyGL {
     onresize = new EventTarget<{ width: number, height: number }>();
-    static create(element: HTMLDivElement | HTMLCanvasElement, options?: ISceneOptions): ToyGL {
+    static create(element: HTMLDivElement | HTMLCanvasElement, options?: IWorldOptions): ToyGL {
         const toy = new ToyGL();
         const world = new World(element, options);
         toy._world = world;

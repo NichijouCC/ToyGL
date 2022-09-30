@@ -74,7 +74,7 @@ export class ForwardRender {
             //检查mask,做视锥体剔除
             for (let i = 0; i < renderItems.length; i++) {
                 item = renderItems[i];
-                if (item.layerMask != null && ((item.layerMask & cullingMask) == 0)) continue;
+                if (item.layer != null && ((item.layer & cullingMask) == 0)) continue;
                 if (item.enableCull) {
                     if (this.frustumCull(frustum, item)) {
                         renderList.push(item);

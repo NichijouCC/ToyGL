@@ -9,7 +9,7 @@ export interface IRenderable {
     /**
      * 和相机cullMask配合剔除元素
      */
-    layerMask?: number;
+    layer?: number;
     /**
      * 用于调整绘制顺序
      */
@@ -31,5 +31,5 @@ export interface IRenderable {
         count: number,
         attributes: InstancedGeometryAttribute[],
     }
-    children?: Omit<IRenderable, "beVisible" | "enableCull" | "sortOrder" | "boundingBox" | "layerMask">[];
+    children?: Omit<IRenderable, "beVisible" | "enableCull" | "sortOrder" | "boundingBox" | "layer">[];
 }
