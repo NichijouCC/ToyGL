@@ -34,7 +34,7 @@ export class ParseNode {
             const task = ParseMeshNode.parse(nodeData.mesh, gltf)
                 .then(primitives => {
                     let subMeshes = primitives.map(item => item.geometry);
-                    mesh.mesh = new StaticGeometry(subMeshes);
+                    mesh.geometry = new StaticGeometry(subMeshes);
                     mesh.materials = primitives.map(item => item.material);
                 });
 

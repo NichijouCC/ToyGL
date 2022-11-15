@@ -31,6 +31,7 @@ window.onload = () => {
                     let pickPoint = system.rayTest(ray);
                     if (pickPoint) {
                         let first = pickPoint[0];
+                        console.log(pickPoint, first);
                         first.render.material.setUniform("MainColor", Color.random());
                         line.addPoint(pickPoint[0].point);
                     }

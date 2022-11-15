@@ -1,5 +1,4 @@
-import { type } from "os";
-import { IRenderable, System, vec3, World, Ray, Color, IIntersectResult } from "../../index";
+import { IRenderable, System, vec3, World, Ray, Color, IIntersectResult, quat, mat4, Frustum, BoundingSphere } from "../../index";
 import { TileNode } from "./tileNode";
 import { TilesetRender } from "./tilesetComp";
 
@@ -12,6 +11,9 @@ export class TilesetSystem extends System {
         this._scene = scene;
     }
     maximumScreenSpaceError = 0.8;
+    frustum = new Frustum();
+    viewProjectMatrix = mat4.create();
+
     update(deltaTime: number): void {
         let cam = this._scene.mainCamera;
         if (cam == null) return;
@@ -28,9 +30,17 @@ export class TilesetSystem extends System {
             return sse;
         }
 
+        const { projectMatrix, viewMatrix, } = cam;
+        let { frustum, viewProjectMatrix } = this;
+        mat4.multiply(viewProjectMatrix, projectMatrix, viewMatrix);
+        frustum.setFromMatrix(viewProjectMatrix);
+
+        let checkBeInView = (sphere: BoundingSphere, mat?: mat4) => {
+            return frustum.containSphere(sphere, mat)
+        }
         this.queries.comps.forEach((node) => {
             let tileset = node.getComponent(TilesetRender).asset;
-            tileset.update({ renders, computeTileNodeSSE, maximumScreenSpaceError: this.maximumScreenSpaceError });
+            tileset.update({ renders, computeTileNodeSSE, maximumScreenSpaceError: this.maximumScreenSpaceError, needNodes: null, checkBeInView });
         });
         renders.forEach(el => this._scene.addFrameRenderIns(el))
         this.renders = renders;
@@ -55,5 +65,7 @@ export type ITileIntersectResult = IIntersectResult & { render: IRenderable }
 export interface ITileFrameState {
     renders: IRenderable[];
     computeTileNodeSSE: (tileset: TileNode) => number;
+    checkBeInView: (sphere: BoundingSphere, mat?: mat4) => boolean;
     maximumScreenSpaceError: number
+    needNodes: Set<TileNode>;
 }

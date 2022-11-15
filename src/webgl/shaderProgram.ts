@@ -64,6 +64,8 @@ export class ShaderProgram implements IShaderProgram {
             gl.useProgram(null);
             context.bindingProgram = null;
         };
+
+        this.destroy = () => gl.deleteProgram(this.program);
     }
 
     bindUniform(key: string, value: any) {

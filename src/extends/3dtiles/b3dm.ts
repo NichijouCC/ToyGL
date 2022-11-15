@@ -4,12 +4,12 @@ import { IBoundingVolume, I3DTileContent, parseBoundingVolume, LoadState } from 
 import { TileNode } from "./tileNode";
 import { ITileFrameState } from "./tilesetSystem";
 import { BinReader, BoundingSphere, IRenderable, loadArrayBuffer, mat4, vec3 } from "../../index";
+import { QueuedTask } from "./loader";
 
 export class B3dmTile implements I3DTileContent {
     boundingVolume?: IBoundingVolume
     rtcMatrix: mat4;
     content: GltfNode;
-    beActive: boolean;
     loadState: LoadState = "NONE";
 
     readonly url: string
@@ -23,40 +23,65 @@ export class B3dmTile implements I3DTileContent {
             this.boundingVolume = parseBoundingVolume(data.boundingVolume);
         }
     }
-    update(options: ITileFrameState) {
-        switch (this.loadState) {
-            case "NONE":
-                this.load();
-                break;
-            case "ASSET_READY":
-                this.collectRender(this.content, options.renders)
-                break;
+
+    recycleResource() {
+        if (this.loadState == "ASSET_READY") {
+            this.loadState = "NONE";
+            this.content.dispose();
+            this.node.asset.loadedNode.delete(this.node);
+
+            if (this.baseUrl.includes("Tile_p002_p003")) {
+                console.log("unload b3dm", `${this.baseUrl}/${this.url}`);
+            }
         }
     }
 
-    private load() {
-        this.loadState = "ASSET_LOADING"
-        console.log("b3dm", `${this.baseUrl}/${this.url}`);
+    update(options: ITileFrameState) {
+        if (this.loadState == "NONE") {
+            this.loadState = "ASSET_LOADING"
+            if (this.baseUrl.includes("Tile_p002_p003")) {
+                console.log("start load b3dm", `${this.baseUrl}/${this.url}`);
+            }
+            this.node.asset.loader.queue.push(
+                () => {
+                    return loadArrayBuffer(`${this.baseUrl}/${this.url}`)
+                        .then((data) => this.parse(data))
+                        .then(res => {
+                            this.content = res;
+                            this.loadState = "ASSET_READY";
 
-        return this.node.loader.queue.push(() => {
-            return loadArrayBuffer(`${this.baseUrl}/${this.url}`)
-                .then((data) => this.parse(data))
-                .then(res => {
-                    this.content = res;
-                    this.loadState = "ASSET_READY";
-                })
-        }, this.node.geometricError);
+                            if (this.baseUrl.includes("Tile_p002_p003")) {
+                                console.log("end load b3dm", `${this.baseUrl}/${this.url}`);
+                            }
+
+                            this.node.asset.loadedNode.add(this.node);
+                        })
+                },
+                {
+                    priority: () => this.node.geometricError,
+                    checkNeedCancel: () => !options.needNodes.has(this.node),
+                    onCancel: () => {
+                        if (this.baseUrl.includes("Tile_p002_p003")) {
+                            console.log("cancel load b3dm", `${this.baseUrl}/${this.url}`);
+                        }
+                        this.loadState = "NONE";
+                    }
+                });
+        } else if (this.loadState == "ASSET_READY") {
+            this.renderNode(this.content, options.renders);
+        }
     }
 
-    private collectRender(data: GltfNode, renders: IRenderable[]) {
+    private renderNode(data: GltfNode, renders: IRenderable[]) {
         if (data.mesh) {
-            let { mesh, materials } = data.mesh;
+            let { geometry: mesh, materials } = data.mesh;
             let baseRender: IRenderable = {
                 geometry: mesh.subMeshes[0],
                 material: materials[0],
                 worldMat: data.matrix,
                 worldBounding: (this.boundingVolume ?? this.node.boundingVolume) as BoundingSphere,
-                enableCull: true
+                enableCull: true,
+                from: this,
             }
             if (mesh.subMeshes.length > 1) {
                 baseRender.children = [];
@@ -71,8 +96,9 @@ export class B3dmTile implements I3DTileContent {
             }
             renders.push(baseRender);
         }
-        data.children.forEach(el => this.collectRender(el, renders))
+        data.children.forEach(el => this.renderNode(el, renders))
     }
+
 
     private parse(arrayBuffer: ArrayBuffer) {
         let reader = new BinReader(arrayBuffer);
@@ -111,7 +137,7 @@ export class B3dmTile implements I3DTileContent {
         if (featureTableJson.RTC_CENTER) {
             this.rtcMatrix = mat4.fromTranslation(mat4.create(), featureTableJson.RTC_CENTER as any);
         }
-        return this.node.loader.loadGltfBin(gltfView.buffer).then(node => {
+        return this.node.asset.loader.loadGltfBin(gltfView.buffer).then(node => {
             updateNodeMatrix(node, { rtcMat: this.rtcMatrix });
             return node;
         })

@@ -46,7 +46,7 @@ export class Material extends Asset {
     }
 
     destroy(): void {
-        throw new Error("Method not implemented.");
+        this._shader?.destroy();
     }
 
     clone() {

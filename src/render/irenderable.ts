@@ -32,4 +32,5 @@ export interface IRenderable {
         attributes: InstancedGeometryAttribute[],
     }
     children?: Omit<IRenderable, "beVisible" | "enableCull" | "sortOrder" | "boundingBox" | "layer">[];
+    from?: any
 }

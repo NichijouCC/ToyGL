@@ -47,7 +47,10 @@ export class Shader extends Asset {
         return this._programs.get(bucketId);
     }
 
-    destroy() { }
+    destroy() {
+        this._programs.forEach(el => el.forEach(program => program.destroy()));
+        this._programs.clear();
+    }
 
     clone() {
         const newShader = new Shader(this._config);

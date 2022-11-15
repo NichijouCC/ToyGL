@@ -16,7 +16,7 @@ export class GltfAsset extends Asset {
         ins.localMatrix = node.matrix;
         if (node.mesh) {
             let comp = ins.addComponent(ModelComponent);
-            comp.mesh = node.mesh.mesh
+            comp.geometry = node.mesh.geometry
             comp.materials = node.mesh.materials;
             if (node.mesh.skin) {
                 comp.skin = node.mesh.skin;
@@ -46,6 +46,14 @@ export class GltfNode {
     animations?: AnimationClip[];
     matrix: mat4;
     children: GltfNode[] = [];
+
+    dispose() {
+        this.name = undefined;
+        this.raw = undefined;
+        this.animations = undefined;
+        this.mesh?.dispose();
+        this.children.forEach(el => el.dispose())
+    }
 }
 
 
@@ -55,7 +63,14 @@ export class Primitive {
 }
 
 export class Mesh {
-    mesh: StaticGeometry;
+    geometry: StaticGeometry;
     materials: Material[];
     skin?: Skin;
+
+    dispose() {
+        this.geometry.destroy();
+        this.materials.forEach(el => el.destroy());
+        this.materials = undefined;
+        this.skin = undefined;
+    }
 }

@@ -33,6 +33,7 @@ export class Gltf1Loader {
 
         let bufferCache: { [viewName: string]: GraphicBuffer } = {};
 
+        var loadTexTasks: Promise<any>[] = [];
         let parseNode = (nodeName: string) => {
             const node = new GltfNode();
             let nodeData = gltf.nodes[nodeName];
@@ -113,11 +114,12 @@ export class Gltf1Loader {
                         let extend = image.extensions["KHR_binary_glTF"] as IKHRBinaryGlTF;
                         let bufferView = gltf.bufferViews[extend.bufferView];
                         const viewBuffer = new Uint8Array(binaryBuffer.buffer, (bufferView.byteOffset ?? 0) + binaryBuffer.byteOffset, bufferView.byteLength);
-                        loadImgFromArrayBuffer(viewBuffer, extend.mimeType)
+                        let loadTex = loadImgFromArrayBuffer(viewBuffer, extend.mimeType)
                             .then((img) => {
                                 const texture = new Texture2D({ image: img, flipY: false });
                                 mat.setUniform("MainTex", texture);
                             });
+                        loadTexTasks.push(loadTex);
                     }
                     let technique = gltf.techniques[material.technique];
                     let program = gltf.programs[technique.program];
@@ -136,7 +138,7 @@ export class Gltf1Loader {
                     return { geo, mat }
                 })
                 const mesh = new Mesh();
-                mesh.mesh = new StaticGeometry(primitives.map(el => el.geo));
+                mesh.geometry = new StaticGeometry(primitives.map(el => el.geo));
                 mesh.materials = primitives.map(el => el.mat);
                 node.mesh = mesh;
             })
@@ -157,7 +159,7 @@ export class Gltf1Loader {
             let root = parseNode(el);
             sceneNode.children.push(root);
         })
-        return sceneNode
+        return Promise.all(loadTexTasks).then(() => sceneNode)
     }
 }
 

@@ -1,8 +1,7 @@
 import { Asset, BinReader, IAssetLoader, IRenderable, mat4, vec3 } from "../../index";
 import { GltfNode, LoadGlTF } from "../glTF/index";
+import { Cesium3dTileset } from "./Cesium3dTileset";
 import { Gltf1Loader } from "./gltf1";
-import { Tileset } from "./tileset";
-import { ITileFrameState } from "./tilesetSystem";
 
 export class Loader implements IAssetLoader {
     readonly gltfLoader = new Gltf1Loader();
@@ -35,55 +34,52 @@ export class Loader implements IAssetLoader {
 }
 
 export class QueueTask {
-    tasks: { task: () => Promise<any>, priority: number }[] = [];
+    tasks: QueuedTask[] = [];
     private doingCount = 0;
     limitCount = 5;
-    push<T = any>(task: () => Promise<T>, priority: number = Number.POSITIVE_INFINITY): Promise<T> {
-        return new Promise((resolve, reject) => {
-            this.tasks.push({
-                task: () => {
-                    return task().then(result => {
-                        resolve(result);
-                    })
-                },
-                priority
-            });
-            this.tasks.sort((a, b) => a.priority - b.priority)
-            this.checkQueue();
+    push<T = any>(task: () => Promise<T>, options?: { priority?: () => number, checkNeedCancel?: () => boolean, onCancel?: () => void }) {
+        let newTask: QueuedTask = { task, ...options, } as any;
+        newTask.cancel = () => this.tasks.splice(this.tasks.indexOf(newTask), 1);
+        this.tasks.push(newTask);
+        this.tasks.sort((a, b) => {
+
+            if (a.priority && b.priority) {
+                return a.priority() - b.priority()
+            } else {
+                if (a.priority == null) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
         })
+        this.checkQueue();
+        return newTask;
     }
     private checkQueue() {
         if (this.doingCount < this.limitCount) {
             let task = this.tasks.shift();
             if (task != null) {
-                this.doingCount++;
-                task.task().then(() => {
-                    this.doingCount--;
+                if (task.checkNeedCancel == null || !task.checkNeedCancel()) {
+                    this.doingCount++;
+                    task.task().then(() => {
+                        this.doingCount--;
+                        this.checkQueue();
+                    })
+                } else {
+                    task.onCancel?.();
                     this.checkQueue();
-                })
+                }
             }
         }
     }
 }
 
-
-export class Cesium3dTileset extends Asset {
-    private _data: Tileset;
-    get data() { return this._data }
-    get boundingVolume() { return this._data.boundingVolume }
-    static create(url: string, loader: Loader) {
-        let tileset = new Cesium3dTileset();
-        return Tileset.create(url, loader)
-            .then((res) => {
-                tileset._data = res;
-                return tileset;
-            })
-    }
-    destroy(): void {
-        throw new Error("Method not implemented.");
-    }
-
-    update(options: ITileFrameState) {
-        this.data.update(options);
-    }
+export class QueuedTask {
+    task: () => Promise<any>;
+    priority: () => number;
+    cancel() { };
+    checkNeedCancel?: () => boolean;
+    onCancel?: () => void;
 }
+

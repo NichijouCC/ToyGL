@@ -1,34 +1,33 @@
 import { BoundingBox, BoundingSphere, IRenderable, loadJson, Ray, vec3 } from "../../index";
-import { Loader } from "./loader";
+import { Cesium3dTileset } from "./Cesium3dTileset";
 import { TileNode } from "./tileNode";
 import { ITileFrameState } from "./tilesetSystem";
-import { I3dTiles, ITileFormat } from "./type";
 
-export class Tileset implements I3DTileContent {
-    beActive: boolean;
+export class Tileset {
     loadState: LoadState = "NONE"
     geometricError: number;
     root: TileNode;
     //json
     readonly url: string;
-    readonly loader: Loader;
+    readonly asset: Cesium3dTileset;
 
     get boundingVolume() { return this.root.boundingVolume }
-    constructor(url: string, loader: Loader) {
+    constructor(url: string, asset: Cesium3dTileset) {
         this.url = url;
-        this.beActive = false;
         this.loadState = "NONE"
-        this.loader = loader;
+        this.asset = asset;
     }
-    static create(url: string, loader: Loader) {
-        let tile = new Tileset(url, loader);
-        return tile.load()
+    static create(url: string, asset: Cesium3dTileset) {
+        let tile = new Tileset(url, asset);
+        return tile._load()
     }
+
+    recycleResource() { }
 
     update(options: ITileFrameState) {
         switch (this.loadState) {
             case "NONE":
-                this.load();
+                this._load();
                 break;
             case "ASSET_READY":
                 this.root.update(options);
@@ -36,22 +35,21 @@ export class Tileset implements I3DTileContent {
         }
     }
 
-    private load() {
-        this.loadState = "ASSET_LOADING";
-        return this.loader.queue.push(() => {
-            return loadJson(this.url)
-                .then((json) => {
-                    this.geometricError = json.geometricError;
-                    this.root = new TileNode(json.root, null, this.url.substring(0, this.url.lastIndexOf("/")), this.loader);
-                    console.log("load tileset json", this.url)
-                    this.loadState = "ASSET_READY";
-                    return this;
-                })
+    private _load() {
+        return new Promise<Tileset>((resolve, reject) => {
+            this.loadState = "ASSET_LOADING";
+            let task = () => {
+                return loadJson(this.url)
+                    .then((json) => {
+                        this.geometricError = json.geometricError;
+                        this.root = new TileNode(json.root, null, this.url.substring(0, this.url.lastIndexOf("/")), this.asset);
+                        // console.log("load tileset json", this.url)
+                        this.loadState = "ASSET_READY";
+                        resolve(this);
+                    })
+            }
+            this.asset.loader.queue.push(task)
         })
-    }
-
-    rayTest(ray: Ray) {
-
     }
 }
 
@@ -104,7 +102,7 @@ export interface IBoundingVolume {
 export type LoadState = "NONE" | "ASSET_LOADING" | "ASSET_READY"
 
 export interface I3DTileContent {
-    beActive: boolean
     loadState: LoadState
     update(state: ITileFrameState)
+    recycleResource()
 }
