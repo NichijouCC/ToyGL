@@ -1,5 +1,5 @@
 import { Color, DefaultMaterial, glMatrix, Input, mat4, MouseKeyEnum, Tiles3d, ToyGL, vec3 } from "TOYGL";
-import { initGisCameraController } from "./3dtiles/gisCameraController";
+import { gisCameraController } from "./3dtiles/gisCameraController";
 import { GisLineRender } from "./3dtiles/gisLineRender";
 glMatrix.setMatrixArrayType(Float64Array as any);
 
@@ -17,8 +17,11 @@ window.onload = () => {
             let node = world.addNewChild();
             let comp = node.addComponent(Tiles3d.TilesetRender);
             comp.asset = res;
-            cam.viewTargetPoint(res.boundingVolume.center, 1300, vec3.fromValues(0, 0, 0));
-            initGisCameraController(world, system);
+            // cam.viewTargetPoint(res.boundingVolume.center, 1300, vec3.fromValues(0, 0, 0));
+
+            let camController = new gisCameraController(world, system);
+            camController.viewTargetPoint(res.boundingVolume.center, 1300, vec3.fromValues(0, 0, 0));
+
             let line = new GisLineRender({ system, origin: res.boundingVolume.center, gpsArr: [], clampToGround: true });
 
             world.preRender.addEventListener(ev => {
