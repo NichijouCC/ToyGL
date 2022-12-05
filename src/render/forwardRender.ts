@@ -7,11 +7,13 @@ import { AutoUniforms } from "./autoUniform";
 import { ShaderFeat } from "./shaderBucket";
 import { IRenderable } from "./irenderable";
 import { GraphicsDevice, IEngineOption, ShaderProgram, VertexAttEnum } from "../webgl";
-import { Color, mat4, Rect, vec3, vec4 } from "../mathD";
+import { Color, mat4, Rect, Tempt, vec3, vec4 } from "../mathD";
 import { BaseTexture } from "./baseTexture";
 import { ICamera } from "./camera";
 import { RenderTarget } from "./renderTarget";
 import { DefaultGeometry } from "../resources/defAssets/defaultGeometry";
+import { RenderTypeEnum } from "./renderLayer";
+import { ISceneCamera } from "../scene";
 export class ForwardRender {
     readonly device: GraphicsDevice;
     uniformState = new UniformState();
@@ -19,7 +21,7 @@ export class ForwardRender {
         this.device = new GraphicsDevice(canvas, option);
     }
 
-    renderList(camera: ICamera[] | ICamera, renderItems: IRenderable[], options?: { onAfterFrustumCull?: (renderInsArr: IRenderable[], viewer: ICamera) => IRenderable[] }) {
+    renderList(camera: ICamera[] | ICamera, renderItems: IRenderable[], options?: { onAfterFrustumCull?: (renderInsArr: IRenderable[], viewer: ICamera) => void }) {
         renderItems = renderItems.filter(item => { return !(item.beVisible == false || item.geometry == null || item.material?.shader == null) });
         if (camera instanceof Array) {
             for (let k = 0; k < camera.length; k++) {
@@ -64,7 +66,7 @@ export class ForwardRender {
     private _renderList = (() => {
         var viewProjectMatrix: mat4 = mat4.create();
         var frustum = new Frustum();
-        return (camera: ICamera, renderItems: IRenderable[], options?: { onAfterFrustumCull?: (renderInsArr: IRenderable[], viewer: ICamera) => IRenderable[] }) => {
+        return (camera: ICamera, renderItems: IRenderable[], options?: { onAfterFrustumCull?: (renderInsArr: IRenderable[], viewer: ICamera) => void }) => {
             const { cullingMask, projectMatrix, viewMatrix, renderTarget, viewport } = camera;
             mat4.multiply(viewProjectMatrix, projectMatrix, viewMatrix);
             frustum.setFromMatrix(viewProjectMatrix);
@@ -83,10 +85,11 @@ export class ForwardRender {
                     renderList.push(item);
                 }
             }
-            //可做renderItems排序
             if (options?.onAfterFrustumCull != null) {
-                renderList = options?.onAfterFrustumCull(renderList, camera);
+                options?.onAfterFrustumCull(renderList, camera);
             }
+            //renderItems排序
+            this.sortRenderItems(renderList, camera);
 
             //准备视口和清理画布
             this.uniformState.viewer = camera;
@@ -185,14 +188,81 @@ export class ForwardRender {
         // shaderIns.bindUniforms(values);
     }
 
-    private frustumCull = (() => {
-        const _temptSphere = BoundingSphere.create();
-        return (frustum: Frustum, drawCall: IRenderable) => {
-            if (drawCall.worldBounding) {
-                return frustum.containSphere(drawCall.worldBounding);
-            } else {
-                return frustum.containSphere(drawCall.geometry.bounding, drawCall.worldMat);
+    private frustumCull(frustum: Frustum, drawCall: IRenderable) {
+        if (drawCall.worldBounding) {
+            return frustum.containSphere(drawCall.worldBounding);
+        } else {
+            return frustum.containSphere(drawCall.geometry.bounding, drawCall.worldMat);
+        }
+    }
+
+    private sortRenderItems(items: IRenderable[], cam: ICamera) {
+        if (items.length <= 1) return items;
+        let zdistDic: Map<IRenderable, number> = new Map();
+        // let camera: CameraComponent = cam as any;
+        let camWorldMat = cam.worldMatrix;
+        const camPos = mat4.getTranslation(Tempt.getVec3(0), camWorldMat);
+        let camFwd = mat4.transformVector(Tempt.getVec3(1), vec3.FORWARD, camWorldMat);
+        vec3.normalize(camFwd, camFwd);
+        let tempX, tempY, tempZ;
+        let insPos = Tempt.getVec3(2);
+
+        items.sort((a, b) => {
+            let firstSortOrder = a.sortOrder - b.sortOrder;
+            if (!isNaN(firstSortOrder) && firstSortOrder != 0) return firstSortOrder;
+            let renderType = a.material.renderType - b.material.renderType;
+            if (renderType != 0) return renderType;
+            let sortOrder = a.material.sortOrder - b.material.sortOrder
+            if (!isNaN(sortOrder) && sortOrder) return sortOrder;
+            if (a.material.renderType == RenderTypeEnum.OPAQUE) {
+                //先shader排序
+                let shaderId = a.material.shader.create_id - b.material.shader.create_id;
+                if (shaderId != 0) return shaderId;
+
+                //由近到远
+                let aZdist: number = zdistDic.get(a);
+                let bZdist: number = zdistDic.get(b);
+                if (aZdist == null) {
+                    mat4.getTranslation(insPos, a.worldMat);
+                    tempX = insPos[0] - camPos[0];
+                    tempY = insPos[1] - camPos[1];
+                    tempZ = insPos[2] - camPos[2];
+                    aZdist = tempX * camFwd[0] + tempY * camFwd[1] + tempZ * camFwd[2];
+                    zdistDic.set(a, aZdist);
+                }
+                if (bZdist == null) {
+                    mat4.getTranslation(insPos, b.worldMat);
+                    tempX = insPos[0] - camPos[0];
+                    tempY = insPos[1] - camPos[1];
+                    tempZ = insPos[2] - camPos[2];
+                    bZdist = tempX * camFwd[0] + tempY * camFwd[1] + tempZ * camFwd[2];
+                    zdistDic.set(b, bZdist);
+                }
+                return bZdist - aZdist;
+            } else if (a.material.renderType == RenderTypeEnum.TRANSPARENT || a.material.renderType == RenderTypeEnum.ALPHA_CUT) {
+                //由远到近
+                let aZdist: number = zdistDic.get(a);
+                let bZdist: number = zdistDic.get(b);
+                if (aZdist == null) {
+                    mat4.getTranslation(insPos, a.worldMat);
+                    tempX = insPos[0] - camPos[0];
+                    tempY = insPos[1] - camPos[1];
+                    tempZ = insPos[2] - camPos[2];
+                    aZdist = tempX * camFwd[0] + tempY * camFwd[1] + tempZ * camFwd[2];
+                    zdistDic.set(a, aZdist);
+                }
+                if (bZdist == null) {
+                    mat4.getTranslation(insPos, b.worldMat);
+                    tempX = insPos[0] - camPos[0];
+                    tempY = insPos[1] - camPos[1];
+                    tempZ = insPos[2] - camPos[2];
+                    bZdist = tempX * camFwd[0] + tempY * camFwd[1] + tempZ * camFwd[2];
+                    zdistDic.set(b, bZdist);
+                }
+                return aZdist - bZdist;
             }
-        };
-    })()
+            return 0;
+        });
+        return items;
+    }
 }

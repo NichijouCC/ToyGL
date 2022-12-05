@@ -70,25 +70,24 @@ export class TileNode {
                 });
             } else {
                 if (this.content) {
-                    options.needNodes.add(this);
-                    this.content.update(options);
+                    if (this.content instanceof Tileset) {
+                        this.content.update(options);
+                    } else {
+                        options.needNodes.add(this);
+                    }
+                    // this.content.update(options);
                 }
             }
         } else {
             if (this.content) {
-                options.needNodes.add(this);
-                this.content.update(options);
+                if (this.content instanceof Tileset) {
+                    this.content.update(options);
+                } else {
+                    options.needNodes.add(this);
+                }
+                // this.content.update(options);
             }
             this.children?.forEach(el => el.update(options));
         }
-    }
-
-    contentBeReady() {
-        if (this.content?.loadState == "ASSET_READY") return true;
-        if (this.children == null) return false;
-        for (let i = 0; i < this.children.length; i++) {
-            if (this.children[i].contentBeReady() == false) return false;
-        }
-        return true;
     }
 }

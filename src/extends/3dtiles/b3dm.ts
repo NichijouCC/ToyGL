@@ -4,7 +4,6 @@ import { IBoundingVolume, I3DTileContent, parseBoundingVolume, LoadState } from 
 import { TileNode } from "./tileNode";
 import { ITileFrameState } from "./tilesetSystem";
 import { BinReader, BoundingSphere, IRenderable, loadArrayBuffer, mat4, vec3 } from "../../index";
-import { QueuedTask } from "./loader";
 
 export class B3dmTile implements I3DTileContent {
     boundingVolume?: IBoundingVolume
@@ -42,29 +41,27 @@ export class B3dmTile implements I3DTileContent {
             if (this.baseUrl.includes("Tile_p002_p003")) {
                 console.log("start load b3dm", `${this.baseUrl}/${this.url}`);
             }
-            this.node.asset.loader.queue.push(
+            this.node.asset.loader.taskPool.push(
                 () => {
-                    return loadArrayBuffer(`${this.baseUrl}/${this.url}`)
-                        .then((data) => this.parse(data))
-                        .then(res => {
-                            this.content = res;
-                            this.loadState = "ASSET_READY";
-
-                            if (this.baseUrl.includes("Tile_p002_p003")) {
-                                console.log("end load b3dm", `${this.baseUrl}/${this.url}`);
-                            }
-
-                            this.node.asset.loadedNode.add(this.node);
-                        })
-                },
-                {
-                    priority: () => this.node.geometricError,
-                    checkNeedCancel: () => !options.needNodes.has(this.node),
-                    onCancel: () => {
+                    if (!options.needNodes.has(this.node)) {
                         if (this.baseUrl.includes("Tile_p002_p003")) {
                             console.log("cancel load b3dm", `${this.baseUrl}/${this.url}`);
                         }
                         this.loadState = "NONE";
+                        return Promise.resolve();
+                    } else {
+                        return loadArrayBuffer(`${this.baseUrl}/${this.url}`)
+                            .then((data) => this.parse(data))
+                            .then(res => {
+                                this.content = res;
+                                this.loadState = "ASSET_READY";
+
+                                if (this.baseUrl.includes("Tile_p002_p003")) {
+                                    console.log("end load b3dm", `${this.baseUrl}/${this.url}`);
+                                }
+
+                                this.node.asset.loadedNode.add(this.node);
+                            })
                     }
                 });
         } else if (this.loadState == "ASSET_READY") {

@@ -29,9 +29,11 @@ export class Cesium3dTileset extends Asset {
 
         let { loadedNode, needNodes } = this;
         needNodes.clear();
-        this.data.update({ ...options, needNodes });
+        let frameOps = { ...options, needNodes }
+        this.data.update(frameOps);
         let allLoadReady = true;
         for (let value of needNodes) {
+            value.content?.update(frameOps);
             if (value.content.loadState != "ASSET_READY") {
                 allLoadReady = false;
             }

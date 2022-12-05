@@ -64,31 +64,33 @@ export class Frustum {
      * @param sphere 包围球
      * @param mat 用于变换包围球
      */
-    containSphere(sphere: BoundingSphere, mat: mat4 = null): boolean {
-        const planes = this.planes;
-        if (mat != null) {
-            const cloneSphere = sphere.clone();
-            cloneSphere.applyMatrix(mat);
+    containSphere = (() => {
+        let temptSphere = BoundingSphere.create();
+        return (sphere: BoundingSphere, mat: mat4 = null): boolean => {
+            const planes = this.planes;
+            if (mat != null) {
+                sphere.copyTo(temptSphere);
+                temptSphere.applyMatrix(mat);
 
-            const center = cloneSphere.center;
-            const negRadius = -cloneSphere.radius;
-            for (let i = 0; i < 6; i++) {
-                const distance: number = planes[i].distanceToPoint(center);
-                if (distance < negRadius) {
-                    return false;
+                const center = temptSphere.center;
+                const negRadius = -temptSphere.radius;
+                for (let i = 0; i < 6; i++) {
+                    const distance: number = planes[i].distanceToPoint(center);
+                    if (distance < negRadius) {
+                        return false;
+                    }
+                }
+            } else {
+                const center = sphere.center;
+                const negRadius = -sphere.radius;
+                for (let i = 0; i < 6; i++) {
+                    const distance: number = planes[i].distanceToPoint(center);
+                    if (distance < negRadius) {
+                        return false;
+                    }
                 }
             }
-            BoundingSphere.recycle(sphere);
-        } else {
-            const center = sphere.center;
-            const negRadius = -sphere.radius;
-            for (let i = 0; i < 6; i++) {
-                const distance: number = planes[i].distanceToPoint(center);
-                if (distance < negRadius) {
-                    return false;
-                }
-            }
+            return true;
         }
-        return true;
-    }
+    })()
 }

@@ -69,10 +69,10 @@
   resolved "https://registry.npmmirror.com/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz#b520529ec21d8e5945a1851dfd1c32e94e39ff45"
   integrity sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==
 
-"@mtgoo/ctool@^0.1.4":
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/@mtgoo/ctool/-/ctool-0.1.4.tgz#bff278c827dc32ae4dfc07457e271f85b0c3ca8f"
-  integrity sha512-jlfZXippaDfY5T1nvPF0FnLX2kAoxppPV5NtJe2+aH2K6qimONDoE4Dyu3I1C2S3tJ/bmh2KT4waQbkB/hJnZA==
+"@mtgoo/ctool@^0.1.6":
+  version "0.1.6"
+  resolved "https://registry.npmmirror.com/@mtgoo/ctool/-/ctool-0.1.6.tgz#2d73be9e587e0fc96b7b6e61387fbc140012de5e"
+  integrity sha512-bMudJP9Q3wD2KbCk02KBdlLAXGapBn1wCrpSMAq7rVwxU/502U+RZYq9eXqlPcPXcncleLkjO4d++pWd62gkRQ==
 
 "@types/cannon@^0.1.5":
   version "0.1.8"

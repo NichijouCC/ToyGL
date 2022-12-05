@@ -4,10 +4,10 @@ import { GisLineRender } from "./3dtiles/gisLineRender";
 glMatrix.setMatrixArrayType(Float64Array as any);
 
 window.onload = () => {
-    const { world } = ToyGL.create(document.getElementById("canvas") as HTMLCanvasElement);
+    const { world, timer } = ToyGL.create(document.getElementById("canvas") as HTMLCanvasElement);
     let system = new Tiles3d.TilesetSystem(world);
     world.addSystem(system);
-
+    timer.FPS = 30;
     const cam = world.addNewCamera();
     cam.far = 10000;
     let loader = new Tiles3d.Loader();

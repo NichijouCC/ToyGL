@@ -4,6 +4,7 @@ import { RenderTarget } from "./renderTarget";
 export interface ICamera {
     viewport: Rect;
     viewMatrix: mat4,
+    worldMatrix: mat4,
     projectMatrix: mat4,
     enableClearColor: boolean;
     backgroundColor: Color;
@@ -27,6 +28,7 @@ export class Camera implements ICamera {
      * 控制需要渲染的层级
      */
     cullingMask: number = LayerMask.everything;
+    worldMatrix: mat4 = mat4.create();
     viewMatrix: mat4 = mat4.create();
     projectMatrix: mat4 = mat4.create();
     renderTarget: RenderTarget;
