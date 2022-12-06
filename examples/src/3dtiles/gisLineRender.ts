@@ -1,4 +1,4 @@
-import { TaskPromise, Timer } from "@mtgoo/ctool";
+import { TaskPool, retryPromise } from "@mtgoo/ctool";
 import { ComponentDatatypeEnum, DefaultMaterial, Geometry, mat4, Material, PrimitiveTypeEnum, Ray, Tempt, Tiles3d, vec3, VertexAttEnum } from "TOYGL";
 import { FrameState } from "../../../src/scene/frameState";
 
@@ -87,25 +87,21 @@ export class GisLineRender {
     }
 }
 
-export const timer = new Timer({ interval: 1000 });
+export var clamper = new TaskPool({ maxConcurrency: 1 })
 export function clampToGround(system: Tiles3d.TilesetSystem, targetPos: vec3, out = vec3.create()): Promise<vec3> {
-    let ray = new Ray().setByTwoPoint(vec3.create(), targetPos);
-    let pickResult = system.rayTest(ray);
-    if (pickResult != null) {
-        let pickPoint = pickResult[pickResult.length - 1].point;
-        vec3.copy(out, pickPoint);
-        return Promise.resolve(out);
-    } else {
-        let task = TaskPromise.create<vec3>();
-        timer.tick.addEventListener(() => {
-            pickResult = system.rayTest(ray);
-            if (pickResult) {
-                let pickPoint = pickResult[pickResult.length - 1].point;
-                vec3.copy(out, pickPoint);
-                task.resolve(out);
-                return true;
-            }
-        });
-        return task.ins;
-    }
+    return clamper.push(() => {
+        return retryPromise<vec3>(
+            () => {
+                let ray = new Ray().setByTwoPoint(vec3.create(), targetPos);
+                let pickResult = system.rayTest(ray);
+                if (pickResult != null) {
+                    let pickPoint = pickResult[pickResult.length - 1].point;
+                    vec3.copy(out, pickPoint);
+                    return Promise.resolve(out);
+                } else {
+                    return Promise.reject();
+                }
+            },
+            { count: Number.POSITIVE_INFINITY, retryFence: 300 })
+    })
 }
