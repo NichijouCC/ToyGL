@@ -1,81 +1,114 @@
 import { TaskPool, retryPromise } from "@mtgoo/ctool";
-import { ComponentDatatypeEnum, DefaultMaterial, Geometry, mat4, Material, PrimitiveTypeEnum, Ray, Tempt, Tiles3d, vec3, VertexAttEnum } from "TOYGL";
+import { ComponentDatatypeEnum, DefaultMaterial, Geometry, mat4, Material, PrimitiveTypeEnum, Ray, Tempt, Tiles3d, vec2, vec3, VertexAttEnum } from "TOYGL";
 import { FrameState } from "../../../src/scene/frameState";
 
 export class GisLineRender {
-    private _gpsArr: vec3[];
+    private gpsArr: vec3[];
     private _origin: vec3;
     readonly clampToGround: boolean;
     readonly system: Tiles3d.TilesetSystem;
-    private _invertMat: mat4;
+    private invertWorldMat: mat4;
     private worldMat: mat4;
     private material: Material;
-    get points() { return this._gpsArr; }
+    lineWidth: number = 0.6;
+    get points() { return this.gpsArr; }
     constructor(options: { system: Tiles3d.TilesetSystem; origin: vec3; gpsArr: vec3[]; clampToGround?: boolean; }) {
         this.system = options.system;
         this._origin = options.origin;
-        this._gpsArr = options.gpsArr;
+        this.gpsArr = options.gpsArr;
         this.clampToGround = options.clampToGround ?? true;
-        this.worldMat = mat4.fromTranslation(mat4.create(), this._origin);
-        this._invertMat = mat4.invert(mat4.create(), this.worldMat);
 
-        this.initGeo();
+        let originGps = Tiles3d.ecefToWs84(this._origin, vec3.create());
+        this.worldMat = Tiles3d.transformEnuToEcef(originGps);
+        this.invertWorldMat = mat4.invert(mat4.create(), this.worldMat);
         let material = DefaultMaterial.color_3d.clone();
         material.customSortOrder = 10;
         material.renderState.depth.depthTest = false;
+        material.renderState.cull.enable = false;
         this.material = material;
+
+        if (this.gpsArr.length > 1) { this.process() }
     }
     geo: Geometry;
-    private initGeo() {
-        let { _gpsArr } = this;
-        let data = new Float32Array(_gpsArr.length * 3);
-
-        _gpsArr.forEach((el, index) => {
+    private process() {
+        let { lineWidth, gpsArr } = this;
+        let centerPoints = gpsArr.map((el, index) => {
             let worldPos = Tiles3d.ws84ToEcef(el, vec3.create());
-            mat4.transformPoint(vec3.fromTypedArray(data, index), worldPos as any, this._invertMat);
+            let localPos = mat4.transformPoint(vec3.create(), worldPos as any, this.invertWorldMat);
+            return localPos;
         });
 
-        if (this.geo == null) {
-            this.geo = new Geometry({
-                attributes: [
-                    {
-                        type: VertexAttEnum.POSITION,
-                        data: data,
-                        componentSize: 3,
-                        componentDatatype: ComponentDatatypeEnum.FLOAT
-                    }
-                ],
-                primitiveType: PrimitiveTypeEnum.LINE_STRIP
-            });
-        } else {
-            this.geo.attributes[VertexAttEnum.POSITION].set({ data });
+        let points = [];
+        let uvs = [];
+        let indices = [];
+
+        let currentLength = 0;
+        let tangent = vec3.create();
+        let normal = vec3.fromValues(0, 0.0, 1.0);
+        let expandDir = vec3.create();
+        let preDir = vec3.create();
+        let nextDir = vec3.create();
+        for (let i = 0; i < centerPoints.length; i++) {
+            if (i == 0) {
+                vec3.subtract(tangent, centerPoints[1], centerPoints[0])
+                vec3.normalize(tangent, tangent)
+                vec3.cross(expandDir, tangent, normal);
+                vec3.scale(expandDir, expandDir, lineWidth / 2);
+            } else {
+                vec3.subtract(preDir, centerPoints[i], centerPoints[i - 1]);
+                currentLength += vec3.length(preDir);
+                indices.push(2 * (i - 1) + 1, 2 * i, 2 * (i - 1), 2 * (i - 1) + 1, 2 * i + 1, 2 * i);
+
+                if (i == centerPoints.length - 1) {
+                    vec3.copy(tangent, preDir);
+                    vec3.normalize(tangent, tangent)
+                    vec3.cross(expandDir, tangent, normal);
+                    vec3.scale(expandDir, expandDir, lineWidth / 2);
+                } else {
+                    vec3.subtract(nextDir, centerPoints[i + 1], centerPoints[i]);
+                    vec3.normalize(preDir, preDir);
+                    vec3.normalize(nextDir, nextDir);
+                    vec3.add(tangent, preDir, nextDir);
+                    vec3.cross(expandDir, tangent, normal);
+                    vec3.normalize(expandDir, expandDir);
+
+                    let crossAngle = vec3.dot(expandDir, nextDir);
+                    let angle = Math.acos(crossAngle);
+                    vec3.scale(expandDir, expandDir, (lineWidth / 2) / Math.cos(Math.PI * 0.5 - angle));
+                }
+            }
+
+            let upPoint = vec3.scaleAndAdd(vec3.create(), centerPoints[i], expandDir, -1);
+            points.push(upPoint[0], upPoint[1], upPoint[2]);
+            uvs.push(currentLength / 100, 1.0);
+
+            let downPoint = vec3.scaleAndAdd(vec3.create(), centerPoints[i], expandDir, 1);
+            points.push(downPoint[0], downPoint[1], downPoint[2]);
+            uvs.push(currentLength / 100, 0.0);
         }
 
-        if (this.clampToGround) {
-            Promise.all(_gpsArr.map((el, index) => clampToGround(this.system, el)))
-                .then(results => {
-                    results.forEach((el, index) => {
-                        let localPos = mat4.transformPoint(Tempt.getVec3(), el, this.worldMat);
-                        this.localPoints.push(localPos[0], localPos[1], localPos[2]);
-                    });
-                    this.geo.attributes[VertexAttEnum.POSITION].set({ data: this.localPoints });
-                });
-        }
+        this.geo = new Geometry({
+            attributes: [
+                {
+                    type: VertexAttEnum.POSITION,
+                    data: points,
+                    componentSize: 3,
+                    componentDatatype: ComponentDatatypeEnum.FLOAT
+                },
+                {
+                    type: VertexAttEnum.TEXCOORD_0,
+                    data: uvs,
+                    componentSize: 2,
+                    componentDatatype: ComponentDatatypeEnum.FLOAT
+                }
+            ],
+            indices,
+            primitiveType: PrimitiveTypeEnum.TRIANGLES
+        });
     }
-    private localPoints: number[] = [];
-    addPoint(point: vec3) {
-        if (this.clampToGround) {
-            clampToGround(this.system, point)
-                .then(clamp => {
-                    let localPos = mat4.transformPoint(vec3.create(), clamp, this._invertMat);
-                    this.localPoints.push(localPos[0], localPos[1], localPos[2]);
-                    this.geo.attributes[VertexAttEnum.POSITION].set({ data: this.localPoints });
-                });
-        } else {
-            let localPos = mat4.transformPoint(vec3.create(), point, this._invertMat);
-            this.localPoints.push(localPos[0], localPos[1], localPos[2]);
-            this.geo.attributes[VertexAttEnum.POSITION].set({ data: this.localPoints });
-        }
+    addGpsPoint(point: vec3) {
+        this.gpsArr.push(point);
+        if (this.gpsArr.length > 1) { this.process() }
     }
 
     render(frameState: FrameState) {

@@ -7,7 +7,7 @@ window.onload = () => {
     const { world, timer } = ToyGL.create(document.getElementById("canvas") as HTMLCanvasElement);
     let system = new Tiles3d.TilesetSystem(world);
     world.addSystem(system);
-    timer.FPS = 30;
+    // timer.FPS = 30;
     const cam = world.addNewCamera();
     cam.far = 10000;
     let loader = new Tiles3d.Loader();
@@ -36,7 +36,8 @@ window.onload = () => {
                         let first = pickPoint[0];
                         console.log(pickPoint, first);
                         first.render.material.setUniform("MainColor", Color.random());
-                        line.addPoint(pickPoint[0].point);
+                        let gps = Tiles3d.ecefToWs84(first.point, vec3.create()) as vec3;
+                        line.addGpsPoint(gps);
                     }
                 }
             })
