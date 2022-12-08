@@ -1,5 +1,5 @@
 import { TaskPool, retryPromise } from "@mtgoo/ctool";
-import { ComponentDatatypeEnum, DefaultMaterial, Geometry, mat4, Material, PrimitiveTypeEnum, quat, Ray, Tempt, Tiles3d, vec2, vec3, VertexAttEnum } from "TOYGL";
+import { ComponentDatatypeEnum, DefaultMaterial, Geometry, mat4, Material, PrimitiveTypeEnum, quat, Ray, Tempt, TextureAsset, TextureWrapEnum, Tiles3d, vec2, vec3, VertexAttEnum } from "TOYGL";
 import { FrameState } from "../../../src/scene/frameState";
 
 export class GisLineRender {
@@ -10,7 +10,7 @@ export class GisLineRender {
     private invertWorldMat: mat4;
     private worldMat: mat4;
     private material: Material;
-    lineWidth: number = 1;
+    lineWidth: number = 10;
     get points() { return this.gpsArr; }
     constructor(options: { system: Tiles3d.TilesetSystem; origin: vec3; gpsArr: vec3[]; clampToGround?: boolean; }) {
         this.system = options.system;
@@ -21,10 +21,14 @@ export class GisLineRender {
         let originGps = Tiles3d.ecefToWs84(this._origin, vec3.create());
         this.worldMat = Tiles3d.transformEnuToEcef(originGps);
         this.invertWorldMat = mat4.invert(mat4.create(), this.worldMat);
-        let material = DefaultMaterial.color_3d.clone();
+        let material = DefaultMaterial.unlit_3d.clone();
         material.customSortOrder = 10;
         material.renderState.depth.depthTest = false;
         material.renderState.cull.enable = false;
+        TextureAsset.fromUrl({ image: "./images/road.jpg", wrapS: TextureWrapEnum.REPEAT, wrapT: TextureWrapEnum.REPEAT })
+            .then(tex => {
+                material.setUniform("MainTex", tex);
+            });
         this.material = material;
 
         if (this.gpsArr.length > 1) { this.process() }
@@ -74,7 +78,8 @@ export class GisLineRender {
 
             } else {
                 vec3.subtract(preDir, centerPoints[i], centerPoints[i - 1]);
-                currentLength += vec3.length(preDir);
+                let preLen = vec3.length(preDir);
+                currentLength += preLen;
 
                 if (i == centerPoints.length - 1) {
                     vec3.normalize(dir, preDir)
@@ -109,7 +114,88 @@ export class GisLineRender {
                     let halfUvOffset = Math.tan(halfAngle) * 0.5 * lineWidth / 100;
 
                     let splitAngle = Math.PI * 5 / 180;
-                    if (halfAngle > splitAngle) {//转大弯
+                    if (halfAngle < splitAngle) {
+                        vec3.cross(expandDir, dir, currentUp);
+                        vec3.normalize(expandDir, expandDir);
+                        //corner
+                        let leftPoint = vec3.scaleAndAdd(vec3.create(), centerPoints[i], expandDir, -lineWidth * 0.5);
+                        let rightPoint = vec3.scaleAndAdd(vec3.create(), centerPoints[i], expandDir, lineWidth * 0.5);
+
+                        let pointStartIndex = points.length / 3;
+
+                        points.push(
+                            leftPoint[0], leftPoint[1], leftPoint[2],
+                            rightPoint[0], rightPoint[1], rightPoint[2]
+                        );
+                        uvs.push(
+                            currentLength / 100, 1.0,
+                            currentLength / 100, 0.0
+                        );
+
+                        indices.push(
+                            lastLeftIndex, pointStartIndex + 1, pointStartIndex,
+                            lastLeftIndex, lastRightIndex, pointStartIndex + 1,
+                        );
+
+                        lastLeftIndex = pointStartIndex;
+                        lastRightIndex = pointStartIndex + 1;
+                    } else if (halfAngle > Math.PI * 0.25) {
+                        vec3.cross(expandDir, dir, currentUp);
+                        vec3.normalize(expandDir, expandDir);
+                        vec3.cross(dir, currentUp, expandDir);
+                        vec3.normalize(dir, dir)
+
+                        let tempt = Tempt.getVec3()
+                        vec3.cross(tempt, preDir, nextDir)
+                        if (vec3.dot(tempt, currentUp) > 0) {
+                            //左拐
+                            let leftPoint = vec3.scaleAndAdd(vec3.create(), centerPoints[i], dir, lineWidth * 0.5);
+                            let rightPoint = vec3.scaleAndAdd(vec3.create(), centerPoints[i], dir, -lineWidth * 0.5);
+
+                            let pointStartIndex = points.length / 3;
+
+                            points.push(
+                                leftPoint[0], leftPoint[1], leftPoint[2],
+                                rightPoint[0], rightPoint[1], rightPoint[2]
+                            );
+                            uvs.push(
+                                currentLength / 100, 1.0,
+                                currentLength / 100, 0.0
+                            );
+
+                            indices.push(
+                                lastLeftIndex, pointStartIndex + 1, pointStartIndex,
+                                lastLeftIndex, lastRightIndex, pointStartIndex + 1,
+                            );
+
+                            lastLeftIndex = pointStartIndex + 1;
+                            lastRightIndex = pointStartIndex;
+                        } else {
+                            //右拐
+                            let leftPoint = vec3.scaleAndAdd(vec3.create(), centerPoints[i], dir, -lineWidth * 0.5);
+                            let rightPoint = vec3.scaleAndAdd(vec3.create(), centerPoints[i], dir, lineWidth * 0.5);
+
+                            let pointStartIndex = points.length / 3;
+
+                            points.push(
+                                leftPoint[0], leftPoint[1], leftPoint[2],
+                                rightPoint[0], rightPoint[1], rightPoint[2]
+                            );
+                            uvs.push(
+                                currentLength / 100, 1.0,
+                                currentLength / 100, 0.0
+                            );
+
+                            indices.push(
+                                lastLeftIndex, pointStartIndex + 1, pointStartIndex,
+                                lastLeftIndex, lastRightIndex, pointStartIndex + 1,
+                            );
+
+                            lastLeftIndex = pointStartIndex + 1;
+                            lastRightIndex = pointStartIndex;
+                        }
+                    }
+                    else {//转大弯
                         // vec3.cross(currentUp, preDir, nextDir);
                         // vec3.normalize(currentUp, currentUp);
                         vec3.cross(expandDir, dir, currentUp);
@@ -173,8 +259,8 @@ export class GisLineRender {
                             for (let i = 1; i <= count; i++) {
                                 let angle = i * splitAngle;
                                 if (angle > halfAngle) angle = halfAngle;
-                                rotAngles.push(angle);
-                                rotAngles.splice(0, 0, -angle);
+                                rotAngles.push(-angle);
+                                rotAngles.splice(0, 0, angle);
                             }
 
                             //计算扇形顶点
@@ -204,31 +290,6 @@ export class GisLineRender {
                             lastLeftIndex = jointIndex - 1
                             lastRightIndex = jointIndex
                         }
-                    } else {
-                        vec3.cross(expandDir, dir, currentUp);
-                        vec3.normalize(expandDir, expandDir);
-                        //corner
-                        let leftPoint = vec3.scaleAndAdd(vec3.create(), centerPoints[i], expandDir, -lineWidth * 0.5);
-                        let rightPoint = vec3.scaleAndAdd(vec3.create(), centerPoints[i], expandDir, lineWidth * 0.5);
-
-                        let pointStartIndex = points.length / 3;
-
-                        points.push(
-                            leftPoint[0], leftPoint[1], leftPoint[2],
-                            rightPoint[0], rightPoint[1], rightPoint[2]
-                        );
-                        uvs.push(
-                            currentLength / 100, 1.0,
-                            currentLength / 100, 0.0
-                        );
-
-                        indices.push(
-                            lastLeftIndex, pointStartIndex + 1, pointStartIndex,
-                            lastLeftIndex, lastRightIndex, pointStartIndex + 1,
-                        );
-
-                        lastLeftIndex = pointStartIndex;
-                        lastRightIndex = pointStartIndex + 1;
                     }
                 }
             }
