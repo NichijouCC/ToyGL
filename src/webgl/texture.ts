@@ -237,13 +237,13 @@ export class Texture {
                 this.enableMipmap = false;
             }
 
-            if (!isPowerOf2(this.width) ||
-                !isPowerOf2(this.height)
-            ) {
-                // throw new Error("texture repeat need Img size be power of 2!");
-                this.wrapS = TextureWrapEnum.CLAMP_TO_EDGE;
-                this.wrapT = TextureWrapEnum.CLAMP_TO_EDGE;
-            }
+            // if (!isPowerOf2(this.width) ||
+            //     !isPowerOf2(this.height)
+            // ) {
+            //     // throw new Error("texture repeat need Img size be power of 2!");
+            //     this.wrapS = TextureWrapEnum.CLAMP_TO_EDGE;
+            //     this.wrapT = TextureWrapEnum.CLAMP_TO_EDGE;
+            // }
             // float textures only support nearest filtering unless the linear extensions are supported, so override the sampler's settings
             if ((pixelDatatype === PixelDatatypeEnum.FLOAT && !context.caps.textureFloat) ||
                 (pixelDatatype === PixelDatatypeEnum.HALF_FLOAT && !context.caps.textureHalfFloat)) {

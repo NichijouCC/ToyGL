@@ -10,7 +10,7 @@ export class GisLineRender {
     private invertWorldMat: mat4;
     private worldMat: mat4;
     private material: Material;
-    lineWidth: number = 10;
+    lineWidth: number = 1;
     get points() { return this.gpsArr; }
     constructor(options: { system: Tiles3d.TilesetSystem; origin: vec3; gpsArr: vec3[]; clampToGround?: boolean; }) {
         this.system = options.system;
@@ -25,7 +25,7 @@ export class GisLineRender {
         material.customSortOrder = 10;
         material.renderState.depth.depthTest = false;
         material.renderState.cull.enable = false;
-        TextureAsset.fromUrl({ image: "./images/road.jpg", wrapS: TextureWrapEnum.REPEAT, wrapT: TextureWrapEnum.REPEAT })
+        TextureAsset.fromUrl({ image: "./images/girl.png", wrapS: TextureWrapEnum.REPEAT, wrapT: TextureWrapEnum.REPEAT })
             .then(tex => {
                 material.setUniform("MainTex", tex);
             });
@@ -57,6 +57,7 @@ export class GisLineRender {
 
         let lastLeftIndex = 0;
         let lastRightIndex = 0;
+        let uvMeter = 1;
         for (let i = 0; i < centerPoints.length; i++) {
             if (i == 0) {
                 vec3.subtract(dir, centerPoints[1], centerPoints[0])
@@ -67,11 +68,11 @@ export class GisLineRender {
 
                 let leftPoint = vec3.scaleAndAdd(vec3.create(), centerPoints[i], expandDir, -1);
                 points.push(leftPoint[0], leftPoint[1], leftPoint[2]);
-                uvs.push(currentLength / 100, 1.0);
+                uvs.push(currentLength / uvMeter, 1.0);
 
                 let rightPoint = vec3.scaleAndAdd(vec3.create(), centerPoints[i], expandDir, 1);
                 points.push(rightPoint[0], rightPoint[1], rightPoint[2]);
-                uvs.push(currentLength / 100, 0.0);
+                uvs.push(currentLength / uvMeter, 0.0);
 
                 lastLeftIndex = 0;
                 lastRightIndex = 1;
@@ -95,10 +96,10 @@ export class GisLineRender {
                         leftPoint[0], leftPoint[1], leftPoint[2],
                         rightPoint[0], rightPoint[1], rightPoint[2]
                     );
-                    uvs.push(currentLength / 100, 1.0, currentLength / 100, 0.0);
+                    uvs.push(currentLength / uvMeter, 1.0, currentLength / uvMeter, 0.0);
                     indices.push(
-                        lastLeftIndex, pointStartIndex + 1, pointStartIndex,
-                        lastLeftIndex, lastRightIndex, pointStartIndex + 1);
+                        lastRightIndex, pointStartIndex + 1, pointStartIndex,
+                        lastLeftIndex, lastRightIndex, pointStartIndex);
                 } else {
                     vec3.subtract(nextDir, centerPoints[i + 1], centerPoints[i]);
                     vec3.normalize(preDir, preDir);
@@ -111,7 +112,7 @@ export class GisLineRender {
                     let dot = vec3.dot(preDir, nextDir);
                     let halfAngle = Math.acos(dot) / 2;
                     let halfExpandLength = 0.5 * lineWidth / Math.cos(halfAngle);
-                    let halfUvOffset = Math.tan(halfAngle) * 0.5 * lineWidth / 100;
+                    // let halfUvOffset = Math.tan(halfAngle) * 0.5 * lineWidth / uvMeter;
 
                     let splitAngle = Math.PI * 5 / 180;
                     if (halfAngle < splitAngle) {
@@ -128,8 +129,8 @@ export class GisLineRender {
                             rightPoint[0], rightPoint[1], rightPoint[2]
                         );
                         uvs.push(
-                            currentLength / 100, 1.0,
-                            currentLength / 100, 0.0
+                            currentLength / uvMeter, 1.0,
+                            currentLength / uvMeter, 0.0
                         );
 
                         indices.push(
@@ -139,83 +140,38 @@ export class GisLineRender {
 
                         lastLeftIndex = pointStartIndex;
                         lastRightIndex = pointStartIndex + 1;
-                    } else if (halfAngle > Math.PI * 0.25) {
-                        vec3.cross(expandDir, dir, currentUp);
-                        vec3.normalize(expandDir, expandDir);
-                        vec3.cross(dir, currentUp, expandDir);
-                        vec3.normalize(dir, dir)
-
-                        let tempt = Tempt.getVec3()
-                        vec3.cross(tempt, preDir, nextDir)
-                        if (vec3.dot(tempt, currentUp) > 0) {
-                            //左拐
-                            let leftPoint = vec3.scaleAndAdd(vec3.create(), centerPoints[i], dir, lineWidth * 0.5);
-                            let rightPoint = vec3.scaleAndAdd(vec3.create(), centerPoints[i], dir, -lineWidth * 0.5);
-
-                            let pointStartIndex = points.length / 3;
-
-                            points.push(
-                                leftPoint[0], leftPoint[1], leftPoint[2],
-                                rightPoint[0], rightPoint[1], rightPoint[2]
-                            );
-                            uvs.push(
-                                currentLength / 100, 1.0,
-                                currentLength / 100, 0.0
-                            );
-
-                            indices.push(
-                                lastLeftIndex, pointStartIndex + 1, pointStartIndex,
-                                lastLeftIndex, lastRightIndex, pointStartIndex + 1,
-                            );
-
-                            lastLeftIndex = pointStartIndex + 1;
-                            lastRightIndex = pointStartIndex;
-                        } else {
-                            //右拐
-                            let leftPoint = vec3.scaleAndAdd(vec3.create(), centerPoints[i], dir, -lineWidth * 0.5);
-                            let rightPoint = vec3.scaleAndAdd(vec3.create(), centerPoints[i], dir, lineWidth * 0.5);
-
-                            let pointStartIndex = points.length / 3;
-
-                            points.push(
-                                leftPoint[0], leftPoint[1], leftPoint[2],
-                                rightPoint[0], rightPoint[1], rightPoint[2]
-                            );
-                            uvs.push(
-                                currentLength / 100, 1.0,
-                                currentLength / 100, 0.0
-                            );
-
-                            indices.push(
-                                lastLeftIndex, pointStartIndex + 1, pointStartIndex,
-                                lastLeftIndex, lastRightIndex, pointStartIndex + 1,
-                            );
-
-                            lastLeftIndex = pointStartIndex + 1;
-                            lastRightIndex = pointStartIndex;
-                        }
                     }
                     else {//转大弯
-                        // vec3.cross(currentUp, preDir, nextDir);
-                        // vec3.normalize(currentUp, currentUp);
                         vec3.cross(expandDir, dir, currentUp);
                         vec3.normalize(expandDir, expandDir);
 
                         let tempt = Tempt.getVec3()
-                        vec3.cross(tempt, preDir, nextDir)
+                        vec3.cross(tempt, preDir, nextDir);
+
+                        let jointUvOffset = Math.tan(halfAngle) * 0.5 * lineWidth;
                         if (vec3.dot(tempt, currentUp) > 0) {
                             //左拐
                             let jointPoint = vec3.scaleAndAdd(vec3.create(), centerPoints[i], expandDir, -halfExpandLength);
                             let jointDir = vec3.subtract(vec3.create(), centerPoints[i], jointPoint);
                             vec3.normalize(jointDir, jointDir);
-                            vec3.scale(jointDir, jointDir, lineWidth);
+
+                            let preTangent = vec3.cross(vec3.create(), preDir, currentUp);
+                            vec3.normalize(preTangent, preTangent);
+                            let prePoint = vec3.scaleAndAdd(vec3.create(), centerPoints[i], preTangent, 0.5 * lineWidth);
+
+                            let nextTangent = vec3.cross(vec3.create(), nextDir, currentUp);
+                            vec3.normalize(nextTangent, nextTangent);
+                            let nextPoint = vec3.scaleAndAdd(vec3.create(), centerPoints[i], nextTangent, 0.5 * lineWidth);
+
+                            vec3.scale(jointDir, jointDir, vec3.distance(prePoint, jointPoint));
+                            halfAngle = halfAngle - Math.atan(Math.tan(halfAngle) * 0.5)
 
                             //扇形画分
                             let rotAngles = [0];
                             let count = Math.ceil(halfAngle / splitAngle);
                             for (let i = 1; i <= count; i++) {
                                 let angle = i * splitAngle;
-                                if (angle > halfAngle) angle = halfAngle;
+                                if (angle > halfAngle) break;
                                 rotAngles.push(angle);
                                 rotAngles.splice(0, 0, -angle);
                             }
@@ -227,38 +183,63 @@ export class GisLineRender {
                                 let splitPoint = vec3.transformQuat(vec3.create(), jointDir, rot);
                                 vec3.add(splitPoint, jointPoint, splitPoint);
                                 points.push(splitPoint[0], splitPoint[1], splitPoint[2]);
-                                uvs.push(currentLength + halfUvOffset * angle / halfAngle, 1.0);
+                                uvs.push(currentLength / uvMeter, 0.0);
                             })
 
                             //放拐点
-                            points.push(jointPoint[0], jointPoint[1], jointPoint[2]);
-                            uvs.push(currentLength / 100, 0.0);
-                            let jointIndex = points.length / 3 - 1;
+                            points.push(
+                                jointPoint[0], jointPoint[1], jointPoint[2],
+                                prePoint[0], prePoint[1], prePoint[2],
+                                nextPoint[0], nextPoint[1], nextPoint[2],
+                            );
+
+
+                            uvs.push((currentLength - jointUvOffset) / uvMeter, 1.0, currentLength / uvMeter, 0.0, (currentLength - 2 * jointUvOffset) / uvMeter, 0.0);
+                            let jointIndex = points.length / 3 - 3;
+                            let prePointIndex = jointIndex + 1;
+                            let nextPointIndex = jointIndex + 2;
                             //和前一个centerpoint形成线段
                             indices.push(
-                                lastLeftIndex, pointStartIndex, jointIndex,
-                                lastLeftIndex, lastRightIndex, pointStartIndex);
+                                lastLeftIndex, prePointIndex, jointIndex,
+                                lastLeftIndex, lastRightIndex, prePointIndex);
+
+
                             //扇形三角形
                             for (let i = 0; i < rotAngles.length - 1; i++) {
                                 indices.push(jointIndex, pointStartIndex + i, pointStartIndex + i + 1);
                             }
 
+                            indices.push(jointIndex, prePointIndex, pointStartIndex);
+                            indices.push(jointIndex, jointIndex - 1, nextPointIndex);
+
                             lastLeftIndex = jointIndex
-                            lastRightIndex = jointIndex - 1
+                            lastRightIndex = nextPointIndex
 
                         } else {
                             //右拐
                             let jointPoint = vec3.scaleAndAdd(vec3.create(), centerPoints[i], expandDir, halfExpandLength);
                             let jointDir = vec3.subtract(vec3.create(), centerPoints[i], jointPoint);
                             vec3.normalize(jointDir, jointDir);
-                            vec3.scale(jointDir, jointDir, lineWidth);
+
+
+                            let preTangent = vec3.cross(vec3.create(), currentUp, preDir);
+                            vec3.normalize(preTangent, preTangent);
+                            let prePoint = vec3.scaleAndAdd(vec3.create(), centerPoints[i], preTangent, 0.5 * lineWidth);
+
+                            let nextTangent = vec3.cross(vec3.create(), currentUp, nextDir);
+                            vec3.normalize(nextTangent, nextTangent);
+                            let nextPoint = vec3.scaleAndAdd(vec3.create(), centerPoints[i], nextTangent, 0.5 * lineWidth);
+
+                            vec3.scale(jointDir, jointDir, vec3.distance(prePoint, jointPoint));
+
+                            halfAngle = halfAngle - Math.atan(Math.tan(halfAngle) * 0.5)
 
                             //扇形画分
                             let rotAngles = [0];
                             let count = Math.ceil(halfAngle / splitAngle);
                             for (let i = 1; i <= count; i++) {
                                 let angle = i * splitAngle;
-                                if (angle > halfAngle) angle = halfAngle;
+                                if (angle > halfAngle) break;
                                 rotAngles.push(-angle);
                                 rotAngles.splice(0, 0, angle);
                             }
@@ -270,25 +251,36 @@ export class GisLineRender {
                                 let splitPoint = vec3.transformQuat(vec3.create(), jointDir, rot);
                                 vec3.add(splitPoint, jointPoint, splitPoint);
                                 points.push(splitPoint[0], splitPoint[1], splitPoint[2]);
-                                uvs.push(currentLength + halfUvOffset * angle / halfAngle, 1.0);
+                                uvs.push(currentLength / uvMeter, 1.0);
                             })
 
                             //放拐点
-                            points.push(jointPoint[0], jointPoint[1], jointPoint[2]);
-                            uvs.push(currentLength / 100, 0.0);
-                            let jointIndex = points.length / 3 - 1;
+                            points.push(
+                                prePoint[0], prePoint[1], prePoint[2],
+                                jointPoint[0], jointPoint[1], jointPoint[2],
+                                nextPoint[0], nextPoint[1], nextPoint[2],
+                                jointPoint[0], jointPoint[1], jointPoint[2],
+                            );
+                            uvs.push(currentLength / uvMeter, 1.0, (currentLength - jointUvOffset) / uvMeter, 0.0, (currentLength) / uvMeter, 1.0, (currentLength + jointUvOffset) / uvMeter, 0.0);
+                            let prePointIndex = points.length / 3 - 4;
+                            let preJointIndex = prePointIndex + 1;
+                            let nextPointIndex = prePointIndex + 2;
+                            let nextJointIndex = prePointIndex + 3;
                             //和前一个centerpoint形成线段
                             indices.push(
-                                lastLeftIndex, jointIndex, pointStartIndex,
-                                lastLeftIndex, lastRightIndex, jointIndex,
+                                lastLeftIndex, preJointIndex, prePointIndex,
+                                lastLeftIndex, lastRightIndex, preJointIndex,
                             );
                             //扇形三角形
                             for (let i = 0; i < rotAngles.length - 1; i++) {
-                                indices.push(pointStartIndex + i, jointIndex, pointStartIndex + i + 1);
+                                indices.push(pointStartIndex + i, preJointIndex, pointStartIndex + i + 1);
                             }
 
-                            lastLeftIndex = jointIndex - 1
-                            lastRightIndex = jointIndex
+                            indices.push(preJointIndex, prePointIndex, pointStartIndex);
+                            indices.push(prePointIndex - 1, preJointIndex, nextPointIndex);
+
+                            lastLeftIndex = nextPointIndex;
+                            lastRightIndex = nextJointIndex
                         }
                     }
                 }
