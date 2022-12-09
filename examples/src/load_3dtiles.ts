@@ -1,6 +1,7 @@
 import { Color, DefaultMaterial, glMatrix, Input, mat4, MouseKeyEnum, Tiles3d, ToyGL, vec3 } from "TOYGL";
+import { Billboard } from "./3dtiles/gisBillboard";
 import { gisCameraController } from "./3dtiles/gisCameraController";
-import { GisLineRender } from "./3dtiles/gisLineRender";
+import { clampToGround, GisLineRender } from "./3dtiles/gisLineRender";
 glMatrix.setMatrixArrayType(Float64Array as any);
 
 window.onload = () => {
@@ -22,11 +23,33 @@ window.onload = () => {
             let camController = new gisCameraController(world, system);
             camController.viewTargetPoint(res.boundingVolume.center, 1300, vec3.fromValues(0, 0, 0));
 
-            let line = new GisLineRender({ system, origin: res.boundingVolume.center, gpsArr: [], clampToGround: true });
-
+            let line = new GisLineRender({ origin: res.boundingVolume.center, gpsArr: [] });
             world.preRender.addEventListener(ev => {
                 line.render(ev);
             });
+
+            fetch("./2022_11_09_14_09_21.json").then(data => data.json()).then((data => {
+                let gpsArr = data.waypoints.map((el: any) => {
+                    let gps = vec3.fromValues(el.longitude, el.latitude, el.altitude);
+                    let worldPos = Tiles3d.ws84ToEcef(gps, vec3.create()) as vec3;
+                    return clampToGround(system, worldPos).then(pos => Tiles3d.ecefToWs84(pos, vec3.create()) as vec3)
+                });
+
+                Promise.all(gpsArr)
+                    .then(result => {
+                        let line = new GisLineRender({ origin: res.boundingVolume.center, gpsArr: result });
+                        world.preRender.addEventListener(ev => {
+                            line.render(ev);
+                        });
+                    })
+            }));
+
+            clampToGround(system, Tiles3d.ws84ToEcef([97.83289269, 39.62254737, 3410.641], vec3.create()) as any).then(pos => {
+                let mark = new Billboard("./images/girl.png", pos);
+                world.preRender.addEventListener(ev => {
+                    mark.render(ev, world.mainCamera.entity);
+                });
+            })
 
             Input.mouse.on("mousedown", (ev) => {
                 if (ev.keyType == MouseKeyEnum.Left) {

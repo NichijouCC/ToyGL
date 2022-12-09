@@ -5,18 +5,14 @@ import { FrameState } from "../../../src/scene/frameState";
 export class GisLineRender {
     private gpsArr: vec3[];
     private _origin: vec3;
-    readonly clampToGround: boolean;
-    readonly system: Tiles3d.TilesetSystem;
     private invertWorldMat: mat4;
     private worldMat: mat4;
     private material: Material;
-    lineWidth: number = 1;
+    lineWidth: number = 5;
     get points() { return this.gpsArr; }
-    constructor(options: { system: Tiles3d.TilesetSystem; origin: vec3; gpsArr: vec3[]; clampToGround?: boolean; }) {
-        this.system = options.system;
+    constructor(options: { origin: vec3; gpsArr: vec3[]; }) {
         this._origin = options.origin;
         this.gpsArr = options.gpsArr;
-        this.clampToGround = options.clampToGround ?? true;
 
         let originGps = Tiles3d.ecefToWs84(this._origin, vec3.create());
         this.worldMat = Tiles3d.transformEnuToEcef(originGps);
@@ -25,7 +21,7 @@ export class GisLineRender {
         material.customSortOrder = 10;
         material.renderState.depth.depthTest = false;
         material.renderState.cull.enable = false;
-        TextureAsset.fromUrl({ image: "./images/girl.png", wrapS: TextureWrapEnum.REPEAT, wrapT: TextureWrapEnum.REPEAT })
+        TextureAsset.fromUrl({ image: "./images/road.jpg", wrapS: TextureWrapEnum.REPEAT, wrapT: TextureWrapEnum.REPEAT })
             .then(tex => {
                 material.setUniform("MainTex", tex);
             });
@@ -57,7 +53,7 @@ export class GisLineRender {
 
         let lastLeftIndex = 0;
         let lastRightIndex = 0;
-        let uvMeter = 1;
+        let uvMeter = lineWidth * 10;
         for (let i = 0; i < centerPoints.length; i++) {
             if (i == 0) {
                 vec3.subtract(dir, centerPoints[1], centerPoints[0])
@@ -110,12 +106,14 @@ export class GisLineRender {
 
 
                     let dot = vec3.dot(preDir, nextDir);
+                    if (dot > 1) dot = 1;
+                    if (dot < -1) dot = -1;
                     let halfAngle = Math.acos(dot) / 2;
                     let halfExpandLength = 0.5 * lineWidth / Math.cos(halfAngle);
                     // let halfUvOffset = Math.tan(halfAngle) * 0.5 * lineWidth / uvMeter;
 
                     let splitAngle = Math.PI * 5 / 180;
-                    if (halfAngle < splitAngle) {
+                    if (halfAngle < 2 * splitAngle) {
                         vec3.cross(expandDir, dir, currentUp);
                         vec3.normalize(expandDir, expandDir);
                         //corner
@@ -171,7 +169,7 @@ export class GisLineRender {
                             let count = Math.ceil(halfAngle / splitAngle);
                             for (let i = 1; i <= count; i++) {
                                 let angle = i * splitAngle;
-                                if (angle > halfAngle) break;
+                                if (angle >= halfAngle) angle = halfAngle;
                                 rotAngles.push(angle);
                                 rotAngles.splice(0, 0, -angle);
                             }
@@ -188,31 +186,32 @@ export class GisLineRender {
 
                             //放拐点
                             points.push(
-                                jointPoint[0], jointPoint[1], jointPoint[2],
                                 prePoint[0], prePoint[1], prePoint[2],
+                                jointPoint[0], jointPoint[1], jointPoint[2],
                                 nextPoint[0], nextPoint[1], nextPoint[2],
+                                jointPoint[0], jointPoint[1], jointPoint[2],
                             );
 
-
-                            uvs.push((currentLength - jointUvOffset) / uvMeter, 1.0, currentLength / uvMeter, 0.0, (currentLength - 2 * jointUvOffset) / uvMeter, 0.0);
-                            let jointIndex = points.length / 3 - 3;
-                            let prePointIndex = jointIndex + 1;
-                            let nextPointIndex = jointIndex + 2;
+                            uvs.push(currentLength / uvMeter, 0.0, (currentLength - jointUvOffset) / uvMeter, 1.0, (currentLength) / uvMeter, 0.0, (currentLength + jointUvOffset) / uvMeter, 1.0);
+                            let prePointIndex = points.length / 3 - 4;
+                            let preJointIndex = prePointIndex + 1;
+                            let nextPointIndex = prePointIndex + 2;
+                            let nextJointIndex = prePointIndex + 3;
                             //和前一个centerpoint形成线段
                             indices.push(
-                                lastLeftIndex, prePointIndex, jointIndex,
+                                lastLeftIndex, prePointIndex, preJointIndex,
                                 lastLeftIndex, lastRightIndex, prePointIndex);
 
 
                             //扇形三角形
                             for (let i = 0; i < rotAngles.length - 1; i++) {
-                                indices.push(jointIndex, pointStartIndex + i, pointStartIndex + i + 1);
+                                indices.push(preJointIndex, pointStartIndex + i, pointStartIndex + i + 1);
                             }
 
-                            indices.push(jointIndex, prePointIndex, pointStartIndex);
-                            indices.push(jointIndex, jointIndex - 1, nextPointIndex);
+                            indices.push(preJointIndex, prePointIndex, pointStartIndex);
+                            indices.push(preJointIndex, prePointIndex - 1, nextPointIndex);
 
-                            lastLeftIndex = jointIndex
+                            lastLeftIndex = nextJointIndex
                             lastRightIndex = nextPointIndex
 
                         } else {
@@ -239,7 +238,7 @@ export class GisLineRender {
                             let count = Math.ceil(halfAngle / splitAngle);
                             for (let i = 1; i <= count; i++) {
                                 let angle = i * splitAngle;
-                                if (angle > halfAngle) break;
+                                if (angle >= halfAngle) angle = halfAngle;
                                 rotAngles.push(-angle);
                                 rotAngles.splice(0, 0, angle);
                             }

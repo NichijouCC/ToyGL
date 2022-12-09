@@ -59,6 +59,7 @@ export class World extends ECS {
         this._ecsUpdate(deltaTime);
         this.tickRender(this.frameState);
         this.frameState = new FrameState();
+        this.frameState.world = this;
     }
 
     /**
@@ -91,7 +92,7 @@ export class World extends ECS {
 
     private tickRender = (state: FrameState) => {
         this.preRender.raiseEvent(state);
-        let renders = state.renders.concat(this._renders);
+        let renders = this._renders.concat(state.renders);
         this.render.renderList(this._cameras, renders);
         this.afterRender.raiseEvent();
     }

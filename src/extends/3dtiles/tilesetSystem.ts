@@ -5,7 +5,7 @@ import { TilesetRender } from "./tilesetComp";
 export class TilesetSystem extends System {
     caries = { comps: [TilesetRender] }
     private _scene: World;
-    renders: IRenderable[];
+    renders: IRenderable[] = [];
     constructor(scene: World) {
         super();
         this._scene = scene;

@@ -208,7 +208,7 @@ export class ForwardRender {
         let insPos = Tempt.getVec3(2);
 
         items.sort((a, b) => {
-            let firstSortOrder = a.sortOrder - b.sortOrder;
+            let firstSortOrder = (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
             if (!isNaN(firstSortOrder) && firstSortOrder != 0) return firstSortOrder;
             let renderType = a.material.renderType - b.material.renderType;
             if (renderType != 0) return renderType;
